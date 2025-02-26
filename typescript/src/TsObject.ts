@@ -1,0 +1,146 @@
+import { ValueBase, handleKey, OasUnknown } from '@skmtc/core'
+import type { GenerateContext, OasRef, GeneratorKey, OasSchema, OasObject, CustomValue } from '@skmtc/core'
+import isEmpty from 'lodash-es/isEmpty.js'
+import type { TypeSystemObjectProperties, TypeSystemRecord, TypeSystemValue, Modifiers } from '@skmtc/core'
+import { applyModifiers } from './applyModifiers.ts'
+import { toTsValue } from './Ts.ts'
+
+type TsObjectProps = {
+  context: GenerateContext
+  destinationPath: string
+  value: OasObject
+  modifiers: Modifiers
+  generatorKey: GeneratorKey
+}
+
+export class TsObject extends ValueBase {
+  type = 'object' as const
+  recordProperties: TypeSystemRecord | null
+  objectProperties: TypeSystemObjectProperties | null
+  modifiers: Modifiers
+
+  constructor({ context, generatorKey, destinationPath, value, modifiers }: TsObjectProps) {
+    super({ context, generatorKey })
+
+    this.modifiers = modifiers
+
+    const { properties, required, additionalProperties } = value
+
+    // If there are no properties, we need to return a record with unknown values
+    if(!properties || isEmpty(properties)) {
+      this.recordProperties = new TsRecord({ context, generatorKey, destinationPath, schema: new OasUnknown({}), modifiers })
+      this.objectProperties = null
+    } else {
+      this.recordProperties = additionalProperties
+        ? new TsRecord({ context, generatorKey, destinationPath, schema: additionalProperties, modifiers })
+        : null
+
+      this.objectProperties = new TsObjectProperties({ context, generatorKey, destinationPath, properties, required, modifiers })
+    }
+  }
+
+  override toString(): string {
+    const { objectProperties, recordProperties } = this
+
+    if (objectProperties && recordProperties) {
+      return applyModifiers(`${objectProperties} | ${recordProperties}`, this.modifiers)
+    }
+
+    return applyModifiers(
+      recordProperties?.toString() ?? objectProperties?.toString() ?? 'Record<string, never>',
+      this.modifiers,
+    )
+  }
+}
+
+type TsObjectPropertiesArgs = {
+  context: GenerateContext
+  generatorKey: GeneratorKey
+  destinationPath: string
+  properties: Record<string, OasSchema | OasRef<'schema'> | CustomValue>
+  required: OasObject['required']
+  modifiers: Modifiers
+}
+
+class TsObjectProperties extends ValueBase {
+  properties: Record<string, TypeSystemValue>
+  required: string[]
+
+  constructor({ context, generatorKey, destinationPath, properties, required = [] }: TsObjectPropertiesArgs) {
+    super({ context, generatorKey })
+
+    this.required = required
+
+    this.properties = Object.fromEntries(
+      Object.entries(properties).map(([key, property]) => {
+        const value = toTsValue({
+          destinationPath,
+          schema: property,
+          required: required?.includes(key),
+          context,
+        })
+
+        return [handleKey(key), value]
+      }),
+    )
+  }
+
+  override toString(): string {
+    return `{${Object.entries(this.properties)
+      .map(([key, value]) => {
+        const optionality = this.required.includes(key) ? '' : '?'
+        return `${key}${optionality}: ${value}`
+      })
+      .join(', ')}}`
+  }
+}
+
+type TsRecordArgs = {
+  context: GenerateContext
+  destinationPath: string
+  schema: true | OasSchema | OasRef<'schema'>
+  modifiers: Modifiers
+  generatorKey: GeneratorKey
+}
+
+class TsRecord extends ValueBase {
+  value: TypeSystemValue | 'true'
+
+  constructor({ context, generatorKey, destinationPath, schema, modifiers }: TsRecordArgs) {
+    super({ context, generatorKey })
+
+    this.value = toTsRecordChildren({
+      context,
+      destinationPath,
+      schema,
+      modifiers,
+    })
+  }
+
+  override toString(): string {
+    return `Record<string, ${this.value}>`
+  }
+}
+
+type TsRecordChildrenArgs = {
+  context: GenerateContext
+  destinationPath: string
+  schema: true | OasSchema | OasRef<'schema'>
+  modifiers: Modifiers
+}
+
+const toTsRecordChildren = ({ context, destinationPath, schema }: TsRecordChildrenArgs) => {
+  if (schema === true) {
+    return 'true'
+  }
+
+  if (isEmptyObject(schema)) {
+    return 'true'
+  }
+
+  return toTsValue({ destinationPath, schema, required: true, context })
+}
+
+const isEmptyObject = (value: unknown): value is Record<string, never> => {
+  return isEmpty(value)
+}
