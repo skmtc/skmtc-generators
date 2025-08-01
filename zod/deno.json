@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "exports": "./mod.ts",
   "imports": {
-    "@skmtc/core": "jsr:@skmtc/core@^0.0.579",
+    "@skmtc/core": "jsr:@skmtc/core@^0.0.597",
     "@std/path": "jsr:@std/path@^1.0.8",
     "lodash-es": "npm:lodash-es@^4.17.21",
     "ts-pattern": "npm:ts-pattern@^5.6.2"
