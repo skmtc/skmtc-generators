@@ -1,6 +1,6 @@
 # @skmtc/gen-msw
 
-MSW handlergenerator for [Skmtc](https://skm.tc)
+MSW handler generator for [Skmtc](https://skm.tc)
 
 ## License
 
