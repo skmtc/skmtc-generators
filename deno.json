@@ -1,7 +1,7 @@
 {
   "imports": {
     "@skmtc/core": "jsr:@skmtc/core@^0.0.684",
-    "@skmtc/gen-msw": "./msw/mod.ts",
+    "@skmtc/gen-msw": "./gen-msw/mod.ts",
     "@skmtc/gen-shadcn-form": "./gen-shadcn-form/mod.ts",
     "@skmtc/gen-shadcn-select": "./gen-shadcn-select/mod.ts",
     "@skmtc/gen-shadcn-table": "./gen-shadcn-table/mod.ts",
