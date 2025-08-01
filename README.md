@@ -7,3 +7,7 @@
 - [@skmtc/gen-tanstack-query-zod](./gen-tanstack-query-zod)
 - [@skmtc/gen-typescript](./gen-typescript)
 - [@skmtc/gen-zod](./gen-zod)
+
+## License
+
+[MIT](LICENSE).
