@@ -1,0 +1,8 @@
+{
+  "name": "@skmtc/gen-tanstack-query-zod",
+  "version": "0.0.1",
+  "exports": "./mod.ts",
+  "tasks": {
+    "publish": "deno publish --allow-slow-types --allow-dirty"
+  }
+}

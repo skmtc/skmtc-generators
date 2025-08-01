@@ -1,28 +1,26 @@
 {
   "imports": {
-    "@skmtc/core": "jsr:@skmtc/core@0.0.681",
-    "@skmtc/server": "jsr:@skmtc/server@0.0.561",
+    "@skmtc/core": "jsr:@skmtc/core@^0.0.684",
+    "@skmtc/gen-msw": "./msw/mod.ts",
+    "@skmtc/gen-shadcn-form": "./gen-shadcn-form/mod.ts",
+    "@skmtc/gen-shadcn-select": "./gen-shadcn-select/mod.ts",
+    "@skmtc/gen-shadcn-table": "./gen-shadcn-table/mod.ts",
+    "@skmtc/gen-tanstack-query-zod": "./gen-tanstack-query-zod/mod.ts",
+    "@skmtc/gen-typescript": "./gen-typescript/mod.ts",
+    "@skmtc/gen-zod": "./gen-zod/mod.ts",
     "@std/path": "jsr:@std/path@^1.0.6",
-    "@skmtc/tanstack-query-zod": "./tanstack-query-zod/mod.ts",
-    "@skmtc/zod": "./zod/mod.ts",
-    "@skmtc/typescript": "./typescript/mod.ts",
-    "@skmtc/shadcn-form": "./shadcn-form/mod.ts",
-    "@skmtc/shadcn-table": "./shadcn-table/mod.ts",
-    "@skmtc/shadcn-select-api": "./shadcn-select-api/mod.ts",
-    "@skmtc/msw": "./msw/mod.ts",
-    "ts-pattern": "npm:ts-pattern@^5.7.1",
-    "lodash-es": "npm:lodash-es@^4.17.21",
     "tiny-invariant": "npm:tiny-invariant@^1.3.3",
+    "ts-pattern": "npm:ts-pattern@^5.8.0",
     "valibot": "npm:valibot@^1.1.0"
   },
   "nodeModulesDir": "none",
   "workspace": [
-    "./tanstack-query-zod",
-    "./zod",
-    "./typescript",
-    "./shadcn-form",
-    "./shadcn-table",
-    "./shadcn-select-api",
-    "./msw"
+    "./gen-tanstack-query-zod",
+    "./gen-zod",
+    "./gen-typescript",
+    "./gen-shadcn-form",
+    "./gen-shadcn-table",
+    "./gen-shadcn-select",
+    "./gen-msw"
   ]
 }

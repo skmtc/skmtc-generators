@@ -1,5 +1,0 @@
-{
-  "name": "@skmtc/shadcn-table",
-  "version": "0.0.1",
-  "exports": "./mod.ts"
-}
