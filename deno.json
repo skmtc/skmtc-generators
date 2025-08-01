@@ -13,6 +13,9 @@
     "ts-pattern": "npm:ts-pattern@^5.8.0",
     "valibot": "npm:valibot@^1.1.0"
   },
+  "tasks": {
+    "publish": "deno task --cwd=gen-zod publish && deno task --cwd=gen-typescript publish && deno task --cwd=gen-msw publish && deno task --cwd=gen-tanstack-query-zod publish && deno task --cwd=gen-shadcn-form publish && deno task --cwd=gen-shadcn-table publish && deno task --cwd=gen-shadcn-select publish"
+  },
   "nodeModulesDir": "none",
   "workspace": [
     "./gen-tanstack-query-zod",
