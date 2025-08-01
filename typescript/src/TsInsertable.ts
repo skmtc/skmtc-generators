@@ -1,32 +1,32 @@
-import type { ContentSettings, CustomValue, OasRef, OasSchema, OasVoid } from '@skmtc/core'
-import type { TypeSystemValue, GenerateContext, RefName } from '@skmtc/core'
+import type { ContentSettings, TypeSystemValue, GenerateContext, RefName } from '@skmtc/core'
 import { toTsValue } from './Ts.ts'
 import { TypescriptBase } from './base.ts'
+import type { EnrichmentSchema } from './enrichments.ts'
 
 type ConstructorArgs = {
   context: GenerateContext
-  destinationPath: string
   refName: RefName
-  settings: ContentSettings
+  settings: ContentSettings<EnrichmentSchema>
+  rootRef: RefName
 }
 
 export class TsInsertable extends TypescriptBase {
   value: TypeSystemValue
-  schema: OasSchema | OasRef<'schema'> | OasVoid | CustomValue
-  constructor({ context, refName, settings, destinationPath }: ConstructorArgs) {
-    super({ context, refName, settings, destinationPath })
+  constructor({ context, refName, settings, rootRef }: ConstructorArgs) {
+    super({ context, refName, settings })
 
-    this.schema = context.resolveSchemaRefOnce(refName)
+    const schema = context.resolveSchemaRefOnce(refName, TypescriptBase.id)
 
     this.value = toTsValue({
-      schema: this.schema,
+      schema,
       required: true,
       destinationPath: settings.exportPath,
       context,
+      rootRef
     })
   }
 
-  toString(): string {
+  override toString() {
     return `${this.value}`
   }
 }

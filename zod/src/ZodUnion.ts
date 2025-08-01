@@ -1,5 +1,5 @@
-import { ValueBase } from '@skmtc/core'
-import type { GenerateContext, GeneratorKey } from '@skmtc/core'
+import { ContentBase } from '@skmtc/core'
+import type { GenerateContext, GeneratorKey, RefName } from '@skmtc/core'
 import type { OasDiscriminator } from '@skmtc/core'
 import type { OasSchema } from '@skmtc/core'
 import type { OasRef } from '@skmtc/core'
@@ -15,19 +15,28 @@ type ZodUnionArgs = {
   discriminator?: OasDiscriminator
   modifiers: Modifiers
   generatorKey: GeneratorKey
+  rootRef: RefName
 }
 
-export class ZodUnion extends ValueBase {
+export class ZodUnion extends ContentBase {
   type = 'union' as const
   members: TypeSystemValue[]
   discriminator: string | undefined
   modifiers: Modifiers
 
-  constructor({ context, generatorKey, destinationPath, members, discriminator, modifiers }: ZodUnionArgs) {
+  constructor({
+    context,
+    generatorKey,
+    destinationPath,
+    members,
+    discriminator,
+    modifiers,
+    rootRef
+  }: ZodUnionArgs) {
     super({ context, generatorKey })
 
-    this.members = members.map((member) => {
-      return toZodValue({ destinationPath, schema: member, required: true, context })
+    this.members = members.map(member => {
+      return toZodValue({ destinationPath, schema: member, required: true, context, rootRef })
     })
 
     this.discriminator = discriminator?.propertyName
@@ -35,7 +44,7 @@ export class ZodUnion extends ValueBase {
   }
 
   override toString(): string {
-    const members = this.members.map((member) => `${member}`).join(', ')
+    const members = this.members.map(member => `${member}`).join(', ')
 
     const content = this.discriminator
       ? `z.discriminatedUnion('${this.discriminator}', [${members}])`

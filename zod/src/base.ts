@@ -1,12 +1,11 @@
-import { decapitalize, Identifier,  toModelInsertable } from '@skmtc/core'
-import type { ModelInsertable, RefName } from '@skmtc/core'
+import { decapitalize, Identifier, toModelBase, type RefName, camelCase } from '@skmtc/core'
 import { join } from '@std/path'
 
-export const ZodBase: ModelInsertable<any> = toModelInsertable({
+export const ZodBase = toModelBase({
   id: '@skmtc/zod',
 
   toIdentifier(refName: RefName): Identifier {
-    const name = decapitalize(refName)
+    const name = decapitalize(camelCase(refName))
 
     return Identifier.createVariable(name)
   },
@@ -14,6 +13,6 @@ export const ZodBase: ModelInsertable<any> = toModelInsertable({
   toExportPath(refName: RefName): string {
     const { name } = this.toIdentifier(refName)
 
-    return join('@', 'schemas', `${decapitalize(name)}.generated.tsx`)
+    return join('@', 'types', `${decapitalize(name)}.generated.tsx`)
   }
 })

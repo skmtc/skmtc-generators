@@ -1,4 +1,4 @@
-import { ValueBase } from '@skmtc/core'
+import { ContentBase } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
 import type { OasInteger, GeneratorKey, Modifiers, GenerateContext } from '@skmtc/core'
 import { match, P } from 'ts-pattern'
@@ -10,11 +10,11 @@ type TsIntegerArgs = {
   generatorKey: GeneratorKey
 }
 
-export class TsInteger extends ValueBase {
+export class TsInteger extends ContentBase {
   type = 'integer' as const
   modifiers: Modifiers
   format?: 'int32' | 'int64'
-  enums?: number[]
+  enums?: number[] | (number | null)[]
 
   constructor({ context, integerSchema, generatorKey, modifiers }: TsIntegerArgs) {
     super({ context, generatorKey })

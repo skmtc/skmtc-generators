@@ -1,35 +1,51 @@
-import { ModelDriver, toModelGeneratorKey, ValueBase } from '@skmtc/core'
+import { ModelDriver, toModelGeneratorKey, ContentBase } from '@skmtc/core'
 import type { GenerateContext, Modifiers, RefName } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
 import { ZodInsertable } from './ZodInsertable.ts'
-import { zodConfig } from './config.ts'
+import { zodEntry } from './mod.ts'
 type ConstructorProps = {
   context: GenerateContext
   destinationPath: string
   modifiers: Modifiers
   refName: RefName
+  rootRef: RefName
 }
 
-export class ZodRef extends ValueBase {
+export class ZodRef extends ContentBase {
   type = 'ref' as const
   modifiers: Modifiers
   name: string
-  constructor({ context, refName, destinationPath, modifiers }: ConstructorProps) {
-    super({ context, generatorKey: toModelGeneratorKey({ generatorId: zodConfig.id, refName }) })
+  terminal: boolean
+  constructor({ context, refName, destinationPath, modifiers, rootRef }: ConstructorProps) {
+    super({ context, generatorKey: toModelGeneratorKey({ generatorId: zodEntry.id, refName }) })
 
-    const zodDriver = new ModelDriver({
-      context,
-      refName,
-      generation: 'force',
-      destinationPath,
-      insertable: ZodInsertable,
-    })
+    if (context.modelDepth[zodEntry.id] > 0) {
+      const settings = context.toModelContentSettings({
+        refName,
+        insertable: ZodInsertable
+      })
 
-    this.name = zodDriver.settings.identifier.name
-    this.modifiers = modifiers
+      this.name = settings.identifier.name
+      this.modifiers = modifiers
+      this.terminal = true
+    } else {
+      const zodDriver = new ModelDriver({
+        context,
+        refName,
+        generation: 'force',
+        destinationPath,
+        rootRef,
+        insertable: ZodInsertable
+      })
+
+      this.name = zodDriver.settings.identifier.name
+      this.modifiers = modifiers
+      this.terminal = false
+    }
   }
 
   override toString(): string {
-    return applyModifiers(this.name, this.modifiers)
+    const out = applyModifiers(this.name, this.modifiers)
+    return this.terminal ? `z.lazy(() => ${out})` : out
   }
 }

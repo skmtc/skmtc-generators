@@ -1,0 +1,131 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Models evaluation test",
+    "version": "0.0.0"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "String": {
+        "title": "String",
+        "type": "string"
+      },
+      "StringNullable": {
+        "title": "Nullable",
+        "type": "string",
+        "nullable": true
+      },
+      "Number": {
+        "title": "Number",
+        "type": "number"
+      },
+      "Boolean": {
+        "title": "Boolean",
+        "type": "boolean"
+      },
+      "Unspecified": {
+        "title": "Unspecified"
+      },
+      "ArrayStrings": {
+        "title": "Array of strings",
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "ArrayUnspecified": {
+        "title": "Array of unspecified",
+        "type": "array",
+        "items": {}
+      },
+      "OneOfStringNumber": {
+        "title": "One of string or number",
+        "oneOf": [{ "type": "string" }, { "type": "number" }]
+      },
+      "OneOfStringNumberNullable": {
+        "title": "One of string or number or null",
+        "oneOf": [{ "type": "string" }, { "type": "number" }]
+      },
+      "StringEnum": {
+        "title": "String enum",
+        "type": "string",
+        "enum": ["jam", "custard"]
+      },
+      "StringLiteral": {
+        "title": "String literal",
+        "type": "string",
+        "enum": ["croissant"]
+      },
+      "Recursive": {
+        "title": "Recursive",
+        "type": "object",
+        "properties": {
+          "tableNumber": { "type": "integer" },
+          "orders": {
+            "$ref": "#/components/schemas/Order"
+          }
+        }
+      },
+      "Order": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "nextOrder": { "$ref": "#/components/schemas/Order" }
+        }
+      },
+      "AllOf": {
+        "title": "All of - oneOf inside allOf",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/File"
+          },
+          {
+            "type": "object",
+            "required": ["kind"],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": ["file"]
+              }
+            }
+          }
+        ]
+      },
+      "Encoding": {
+        "type": "string",
+        "enum": ["utf-8", "base64"]
+      },
+      "File": {
+        "oneOf": [
+          {
+            "type": "object",
+            "required": ["content"],
+            "properties": {
+              "content": {
+                "type": "string"
+              },
+              "encoding": {
+                "$ref": "#/components/schemas/Encoding"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "required": ["gitSha1"],
+            "properties": {
+              "gitSha1": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "http://example.com"
+    }
+  ]
+}

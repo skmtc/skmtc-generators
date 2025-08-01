@@ -1,5 +1,5 @@
 import type { GeneratorKey, Modifiers, GenerateContext } from '@skmtc/core'
-import { ValueBase } from '@skmtc/core'
+import { ContentBase } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
 
 type TsBooleanArgs = {
@@ -8,7 +8,7 @@ type TsBooleanArgs = {
   generatorKey: GeneratorKey
 }
 
-export class TsBoolean extends ValueBase {
+export class TsBoolean extends ContentBase {
   type = 'boolean' as const
   modifiers: Modifiers
 

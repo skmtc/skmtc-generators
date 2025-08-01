@@ -1,34 +1,51 @@
-import { ModelDriver, toModelGeneratorKey, ValueBase } from '@skmtc/core'
+import { ModelDriver, toModelGeneratorKey, ContentBase } from '@skmtc/core'
 import type { GenerateContext, Modifiers, RefName } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
 import { TsInsertable } from './TsInsertable.ts'
-import { typescriptConfig } from './config.ts'
+import { typescriptEntry } from './mod.ts'
 
 type TsRefConstructorProps = {
   context: GenerateContext
   destinationPath: string
   modifiers: Modifiers
   refName: RefName
+  rootRef: RefName
 }
 
-export class TsRef extends ValueBase {
+export class TsRef extends ContentBase {
   type = 'ref' as const
   name: string
   modifiers: Modifiers
-
-  constructor({ context, refName, modifiers, destinationPath }: TsRefConstructorProps) {
-    super({ context, generatorKey: toModelGeneratorKey({ generatorId: typescriptConfig.id, refName }) })
-
-    const tsDriver = new ModelDriver({
+  terminal: boolean
+  constructor({ context, refName, modifiers, destinationPath, rootRef }: TsRefConstructorProps) {
+    super({
       context,
-      refName,
-      generation: 'force',
-      destinationPath,
-      insertable: TsInsertable,
+      generatorKey: toModelGeneratorKey({ generatorId: typescriptEntry.id, refName })
     })
 
-    this.name = tsDriver.settings.identifier.name
-    this.modifiers = modifiers
+    if (context.modelDepth[typescriptEntry.id] > 0) {
+      const settings = context.toModelContentSettings({
+        refName,
+        insertable: TsInsertable
+      })
+
+      this.name = settings.identifier.name
+      this.modifiers = modifiers
+      this.terminal = true
+    } else {
+      const tsDriver = new ModelDriver({
+        context,
+        refName,
+        generation: 'force',
+        destinationPath,
+        insertable: TsInsertable,
+        rootRef
+      })
+
+      this.name = tsDriver.settings.identifier.name
+      this.modifiers = modifiers
+      this.terminal = false
+    }
   }
 
   override toString(): string {

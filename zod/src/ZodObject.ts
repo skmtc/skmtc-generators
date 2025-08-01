@@ -1,8 +1,21 @@
-import { OasUnknown, ValueBase, handleKey } from '@skmtc/core'
-import type { GenerateContext, GeneratorKey, OasRef, OasSchema, OasObject, CustomValue } from '@skmtc/core'
+import { OasUnknown, ContentBase, handleKey } from '@skmtc/core'
+import type {
+  GenerateContext,
+  GeneratorKey,
+  OasRef,
+  OasSchema,
+  OasObject,
+  CustomValue,
+  RefName
+} from '@skmtc/core'
 import { isEmpty } from 'lodash-es'
 import { toZodValue } from './Zod.ts'
-import type { TypeSystemObjectProperties, TypeSystemRecord, TypeSystemValue, Modifiers } from '@skmtc/core'
+import type {
+  TypeSystemObjectProperties,
+  TypeSystemRecord,
+  TypeSystemValue,
+  Modifiers
+} from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
 
 type ZodObjectProps = {
@@ -11,47 +24,61 @@ type ZodObjectProps = {
   objectSchema: OasObject
   modifiers: Modifiers
   generatorKey: GeneratorKey
+  rootRef: RefName
 }
 
-export class ZodObject extends ValueBase {
+export class ZodObject extends ContentBase {
   type = 'object' as const
   recordProperties: TypeSystemRecord | null
   objectProperties: TypeSystemObjectProperties | null
   modifiers: Modifiers
 
-  constructor({ context, generatorKey, destinationPath, objectSchema, modifiers }: ZodObjectProps) {
+  constructor({
+    context,
+    generatorKey,
+    destinationPath,
+    objectSchema,
+    modifiers,
+    rootRef
+  }: ZodObjectProps) {
     super({ context, generatorKey })
 
     this.modifiers = modifiers
 
     const { properties, required, additionalProperties } = objectSchema
 
-
-    if(!properties || isEmpty(properties)) {
-      this.recordProperties = new ZodRecord({ context, generatorKey, destinationPath, schema: new OasUnknown({}), modifiers })
+    if (!properties || isEmpty(properties)) {
+      this.recordProperties = new ZodRecord({
+        context,
+        generatorKey,
+        destinationPath,
+        schema: new OasUnknown({}),
+        modifiers,
+        rootRef
+      })
       this.objectProperties = null
     } else {
       this.recordProperties = additionalProperties
-      ? new ZodRecord({
-          context,
-          generatorKey,
-          destinationPath,
-          schema: additionalProperties,
-          modifiers,
-        })
-      : null
-
-    this.objectProperties =  new ZodObjectProperties({
+        ? new ZodRecord({
             context,
             generatorKey,
             destinationPath,
-            properties,
-            required, // 'required' here refers to the object's properties, not object itself,
+            schema: additionalProperties,
             modifiers,
+            rootRef
           })
+        : null
+
+      this.objectProperties = new ZodObjectProperties({
+        context,
+        generatorKey,
+        destinationPath,
+        properties,
+        required, // 'required' here refers to the object's properties, not object itself,
+        modifiers,
+        rootRef
+      })
     }
-
-
   }
 
   override toString(): string {
@@ -63,7 +90,7 @@ export class ZodObject extends ValueBase {
 
     return applyModifiers(
       recordProperties?.toString() ?? objectProperties?.toString() ?? 'z.object({})',
-      this.modifiers,
+      this.modifiers
     )
   }
 }
@@ -75,13 +102,21 @@ type ZodObjectPropertiesArgs = {
   properties: Record<string, OasSchema | OasRef<'schema'> | CustomValue>
   required: OasObject['required']
   generatorKey: GeneratorKey
+  rootRef: RefName
 }
 
-class ZodObjectProperties extends ValueBase {
+class ZodObjectProperties extends ContentBase {
   properties: Record<string, TypeSystemValue>
   required: string[]
 
-  constructor({ context, generatorKey, destinationPath, properties, required = [] }: ZodObjectPropertiesArgs) {
+  constructor({
+    context,
+    generatorKey,
+    destinationPath,
+    properties,
+    required = [],
+    rootRef
+  }: ZodObjectPropertiesArgs) {
     super({ context, generatorKey })
 
     this.required = required
@@ -93,10 +128,11 @@ class ZodObjectProperties extends ValueBase {
           schema: property,
           required: required?.includes(key),
           context,
+          rootRef
         })
 
         return [handleKey(key), value]
-      }),
+      })
     )
   }
 
@@ -114,12 +150,20 @@ type ZodRecordArgs = {
   schema: true | OasSchema | OasRef<'schema'>
   modifiers: Modifiers
   generatorKey: GeneratorKey
+  rootRef: RefName
 }
 
-class ZodRecord extends ValueBase {
+class ZodRecord extends ContentBase {
   value: TypeSystemValue | 'true'
 
-  constructor({ context, generatorKey, destinationPath, schema, modifiers }: ZodRecordArgs) {
+  constructor({
+    context,
+    generatorKey,
+    destinationPath,
+    schema,
+    modifiers,
+    rootRef
+  }: ZodRecordArgs) {
     super({ context, generatorKey })
 
     this.value = toZodRecordChildren({
@@ -127,6 +171,7 @@ class ZodRecord extends ValueBase {
       destinationPath,
       schema,
       modifiers,
+      rootRef
     })
   }
 
@@ -140,9 +185,15 @@ type ZodRecordChildrenArgs = {
   destinationPath: string
   schema: true | OasSchema | OasRef<'schema'>
   modifiers: Modifiers
+  rootRef: RefName
 }
 
-const toZodRecordChildren = ({ context, destinationPath, schema }: ZodRecordChildrenArgs) => {
+const toZodRecordChildren = ({
+  context,
+  destinationPath,
+  schema,
+  rootRef
+}: ZodRecordChildrenArgs) => {
   if (schema === true) {
     return 'true'
   }
@@ -155,6 +206,7 @@ const toZodRecordChildren = ({ context, destinationPath, schema }: ZodRecordChil
     schema,
     required: true,
     context,
+    rootRef
   })
 }
 

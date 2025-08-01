@@ -1,4 +1,4 @@
-import { ValueBase } from '@skmtc/core'
+import { ContentBase } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
 import type { GenerateContext, Modifiers, OasInteger, GeneratorKey } from '@skmtc/core'
 
@@ -11,11 +11,11 @@ type ZodIntegerArgs = {
   generatorKey: GeneratorKey
 }
 
-export class ZodInteger extends ValueBase {
+export class ZodInteger extends ContentBase {
   type = 'integer' as const
   modifiers: Modifiers
   format?: 'int32' | 'int64'
-  enums?: number[]
+  enums?: number[] | (number | null)[]
 
   constructor({ context, integerSchema, modifiers, generatorKey }: ZodIntegerArgs) {
     super({ context, generatorKey })
@@ -32,7 +32,7 @@ export class ZodInteger extends ValueBase {
       .with({ enums: P.array() }, ({ enums }) => {
         return enums.length === 1
           ? `z.literal(${enums[0]})`
-          : `z.union([${enums.map((e) => `z.literal(${e})`).join(', ')}])`
+          : `z.union([${enums.map(e => `z.literal(${e})`).join(', ')}])`
       })
       .otherwise(() => {
         return `z.number().int()`

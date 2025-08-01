@@ -1,12 +1,12 @@
-import { capitalize, decapitalize, Identifier, toModelInsertable } from '@skmtc/core'
+import { capitalize, decapitalize, Identifier, toModelBase, camelCase } from '@skmtc/core'
+import type { RefName } from '@skmtc/core'
 import { join } from '@std/path'
-import type { ModelInsertable, RefName } from '@skmtc/core'
 
-export const TypescriptBase: ModelInsertable<any> = toModelInsertable({
+export const TypescriptBase = toModelBase({
   id: '@skmtc/typescript',
 
   toIdentifier(refName: RefName): Identifier {
-    const name = capitalize(refName)
+    const name = capitalize(camelCase(refName))
 
     return Identifier.createType(name)
   },
@@ -14,6 +14,6 @@ export const TypescriptBase: ModelInsertable<any> = toModelInsertable({
   toExportPath(refName: RefName): string {
     const { name } = this.toIdentifier(refName)
 
-    return join('@', 'schemas', `${decapitalize(name)}.generated.tsx`)
+    return join('@', 'types', `${decapitalize(name)}.generated.tsx`)
   }
 })

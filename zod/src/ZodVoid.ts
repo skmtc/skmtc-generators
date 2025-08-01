@@ -1,11 +1,11 @@
-import { type GenerateContext, ValueBase, type GeneratorKey } from '@skmtc/core'
+import { type GenerateContext, ContentBase, type GeneratorKey } from '@skmtc/core'
 
 type ConstructorArgs = {
   context: GenerateContext
   generatorKey: GeneratorKey
 }
 
-export class ZodVoid extends ValueBase {
+export class ZodVoid extends ContentBase {
   type = 'void' as const
 
   constructor({ context, generatorKey }: ConstructorArgs) {

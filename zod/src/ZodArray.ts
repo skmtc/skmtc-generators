@@ -1,6 +1,5 @@
-import { ValueBase, type GenerateContext, type GeneratorKey } from '@skmtc/core'
-import type { OasRef } from '@skmtc/core'
-import type { OasSchema } from '@skmtc/core'
+import { ContentBase } from '@skmtc/core'
+import type { OasRef, RefName, GenerateContext, GeneratorKey, OasSchema } from '@skmtc/core'
 import { toZodValue } from './Zod.ts'
 import type { TypeSystemValue } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
@@ -12,19 +11,20 @@ type ZodArrayArgs = {
   items: OasSchema | OasRef<'schema'>
   modifiers: Modifiers
   generatorKey: GeneratorKey
+  rootRef: RefName
 }
 
-export class ZodArray extends ValueBase {
+export class ZodArray extends ContentBase {
   type = 'array' as const
   items: TypeSystemValue
   modifiers: Modifiers
 
-  constructor({ context, generatorKey, destinationPath, items, modifiers }: ZodArrayArgs) {
+  constructor({ context, generatorKey, destinationPath, items, modifiers, rootRef }: ZodArrayArgs) {
     super({ context, generatorKey })
 
     this.modifiers = modifiers
 
-    this.items = toZodValue({ destinationPath, schema: items, required: true, context })
+    this.items = toZodValue({ destinationPath, schema: items, required: true, context, rootRef })
   }
 
   override toString(): string {

@@ -1,4 +1,4 @@
-import { ValueBase } from '@skmtc/core'
+import { ContentBase } from '@skmtc/core'
 import { match, P } from 'ts-pattern'
 import { applyModifiers } from './applyModifiers.ts'
 import type { Modifiers, GeneratorKey, GenerateContext, OasString } from '@skmtc/core'
@@ -10,10 +10,10 @@ type ZodStringArgs = {
   generatorKey: GeneratorKey
 }
 
-export class ZodString extends ValueBase {
+export class ZodString extends ContentBase {
   type = 'string' as const
   format: string | undefined
-  enums: string[] | undefined
+  enums: string[] | (string | null)[] | undefined
   modifiers: Modifiers
   constructor({ context, stringSchema, generatorKey, modifiers }: ZodStringArgs) {
     super({ context, generatorKey })
@@ -30,10 +30,10 @@ export class ZodString extends ValueBase {
       .with({ format: 'date-time' }, () => {
         return 'z.string().pipe( z.coerce.date() )'
       })
-      .with({ enums: P.array() }, (matched) => {
+      .with({ enums: P.array() }, matched => {
         return matched.enums.length === 1
           ? `z.literal('${matched.enums[0]}')`
-          : `z.enum([${matched.enums.map((str) => `'${str}'`).join(', ')}])`
+          : `z.enum([${matched.enums.map(str => `'${str}'`).join(', ')}])`
       })
       .otherwise(() => {
         return this.modifiers.required ? `z.string().min(1)` : `z.string()`

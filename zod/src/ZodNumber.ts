@@ -1,4 +1,4 @@
-import { type GenerateContext, ValueBase, type GeneratorKey, type Modifiers } from '@skmtc/core'
+import { type GenerateContext, ContentBase, type GeneratorKey, type Modifiers } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
 
 type ZodNumberArgs = {
@@ -7,7 +7,7 @@ type ZodNumberArgs = {
   generatorKey: GeneratorKey
 }
 
-export class ZodNumber extends ValueBase {
+export class ZodNumber extends ContentBase {
   type = 'number' as const
   modifiers: Modifiers
 

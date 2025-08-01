@@ -1,4 +1,4 @@
-import { ValueBase } from '@skmtc/core'
+import { ContentBase } from '@skmtc/core'
 import { match, P } from 'ts-pattern'
 import { applyModifiers } from './applyModifiers.ts'
 import type { Modifiers, GeneratorKey, GenerateContext, OasString } from '@skmtc/core'
@@ -10,10 +10,10 @@ type TsStringArgs = {
   generatorKey: GeneratorKey
 }
 
-export class TsString extends ValueBase {
+export class TsString extends ContentBase {
   type = 'string' as const
   format: string | undefined
-  enums: string[] | undefined
+  enums: string[] | (string | null)[] | undefined
   modifiers: Modifiers
   constructor({ context, stringSchema, generatorKey, modifiers }: TsStringArgs) {
     super({ context, generatorKey })
@@ -30,10 +30,10 @@ export class TsString extends ValueBase {
       .with({ format: 'date-time' }, () => {
         return 'Date'
       })
-      .with({ enums: P.array() }, (matched) => {
+      .with({ enums: P.array() }, matched => {
         return matched.enums.length === 1
           ? `'${matched.enums[0]}'`
-          : `${matched.enums.map((str) => `'${str}'`).join(' | ')}`
+          : `${matched.enums.map(str => `'${str}'`).join(' | ')}`
       })
       .otherwise(() => `string`)
 

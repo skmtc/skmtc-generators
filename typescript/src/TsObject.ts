@@ -1,7 +1,20 @@
-import { ValueBase, handleKey, OasUnknown } from '@skmtc/core'
-import type { GenerateContext, OasRef, GeneratorKey, OasSchema, OasObject, CustomValue } from '@skmtc/core'
+import { ContentBase, handleKey, OasUnknown } from '@skmtc/core'
+import type {
+  GenerateContext,
+  OasRef,
+  GeneratorKey,
+  OasSchema,
+  OasObject,
+  CustomValue,
+  RefName
+} from '@skmtc/core'
 import isEmpty from 'lodash-es/isEmpty.js'
-import type { TypeSystemObjectProperties, TypeSystemRecord, TypeSystemValue, Modifiers } from '@skmtc/core'
+import type {
+  TypeSystemObjectProperties,
+  TypeSystemRecord,
+  TypeSystemValue,
+  Modifiers
+} from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
 import { toTsValue } from './Ts.ts'
 
@@ -11,15 +24,23 @@ type TsObjectProps = {
   value: OasObject
   modifiers: Modifiers
   generatorKey: GeneratorKey
+  rootRef: RefName
 }
 
-export class TsObject extends ValueBase {
+export class TsObject extends ContentBase {
   type = 'object' as const
   recordProperties: TypeSystemRecord | null
   objectProperties: TypeSystemObjectProperties | null
   modifiers: Modifiers
 
-  constructor({ context, generatorKey, destinationPath, value, modifiers }: TsObjectProps) {
+  constructor({
+    context,
+    generatorKey,
+    destinationPath,
+    value,
+    modifiers,
+    rootRef
+  }: TsObjectProps) {
     super({ context, generatorKey })
 
     this.modifiers = modifiers
@@ -27,15 +48,37 @@ export class TsObject extends ValueBase {
     const { properties, required, additionalProperties } = value
 
     // If there are no properties, we need to return a record with unknown values
-    if(!properties || isEmpty(properties)) {
-      this.recordProperties = new TsRecord({ context, generatorKey, destinationPath, schema: new OasUnknown({}), modifiers })
+    if (!properties || isEmpty(properties)) {
+      this.recordProperties = new TsRecord({
+        context,
+        generatorKey,
+        destinationPath,
+        schema: new OasUnknown({}),
+        modifiers,
+        rootRef
+      })
       this.objectProperties = null
     } else {
       this.recordProperties = additionalProperties
-        ? new TsRecord({ context, generatorKey, destinationPath, schema: additionalProperties, modifiers })
+        ? new TsRecord({
+            context,
+            generatorKey,
+            destinationPath,
+            schema: additionalProperties,
+            modifiers,
+            rootRef
+          })
         : null
 
-      this.objectProperties = new TsObjectProperties({ context, generatorKey, destinationPath, properties, required, modifiers })
+      this.objectProperties = new TsObjectProperties({
+        context,
+        generatorKey,
+        destinationPath,
+        properties,
+        required,
+        modifiers,
+        rootRef
+      })
     }
   }
 
@@ -48,7 +91,7 @@ export class TsObject extends ValueBase {
 
     return applyModifiers(
       recordProperties?.toString() ?? objectProperties?.toString() ?? 'Record<string, never>',
-      this.modifiers,
+      this.modifiers
     )
   }
 }
@@ -60,13 +103,21 @@ type TsObjectPropertiesArgs = {
   properties: Record<string, OasSchema | OasRef<'schema'> | CustomValue>
   required: OasObject['required']
   modifiers: Modifiers
+  rootRef: RefName
 }
 
-class TsObjectProperties extends ValueBase {
+class TsObjectProperties extends ContentBase {
   properties: Record<string, TypeSystemValue>
   required: string[]
 
-  constructor({ context, generatorKey, destinationPath, properties, required = [] }: TsObjectPropertiesArgs) {
+  constructor({
+    context,
+    generatorKey,
+    destinationPath,
+    properties,
+    required = [],
+    rootRef
+  }: TsObjectPropertiesArgs) {
     super({ context, generatorKey })
 
     this.required = required
@@ -78,10 +129,11 @@ class TsObjectProperties extends ValueBase {
           schema: property,
           required: required?.includes(key),
           context,
+          rootRef
         })
 
         return [handleKey(key), value]
-      }),
+      })
     )
   }
 
@@ -101,12 +153,20 @@ type TsRecordArgs = {
   schema: true | OasSchema | OasRef<'schema'>
   modifiers: Modifiers
   generatorKey: GeneratorKey
+  rootRef: RefName
 }
 
-class TsRecord extends ValueBase {
+class TsRecord extends ContentBase {
   value: TypeSystemValue | 'true'
 
-  constructor({ context, generatorKey, destinationPath, schema, modifiers }: TsRecordArgs) {
+  constructor({
+    context,
+    generatorKey,
+    destinationPath,
+    schema,
+    modifiers,
+    rootRef
+  }: TsRecordArgs) {
     super({ context, generatorKey })
 
     this.value = toTsRecordChildren({
@@ -114,6 +174,7 @@ class TsRecord extends ValueBase {
       destinationPath,
       schema,
       modifiers,
+      rootRef
     })
   }
 
@@ -127,9 +188,15 @@ type TsRecordChildrenArgs = {
   destinationPath: string
   schema: true | OasSchema | OasRef<'schema'>
   modifiers: Modifiers
+  rootRef: RefName
 }
 
-const toTsRecordChildren = ({ context, destinationPath, schema }: TsRecordChildrenArgs) => {
+const toTsRecordChildren = ({
+  context,
+  destinationPath,
+  schema,
+  rootRef
+}: TsRecordChildrenArgs) => {
   if (schema === true) {
     return 'true'
   }
@@ -138,7 +205,7 @@ const toTsRecordChildren = ({ context, destinationPath, schema }: TsRecordChildr
     return 'true'
   }
 
-  return toTsValue({ destinationPath, schema, required: true, context })
+  return toTsValue({ destinationPath, schema, required: true, context, rootRef })
 }
 
 const isEmptyObject = (value: unknown): value is Record<string, never> => {

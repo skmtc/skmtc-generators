@@ -1,12 +1,12 @@
 import type { GeneratorKey, GenerateContext } from '@skmtc/core'
-import { ValueBase } from '@skmtc/core'
+import { ContentBase } from '@skmtc/core'
 
 type ConstructorArgs = {
   context: GenerateContext
   generatorKey: GeneratorKey
 }
 
-export class TsNull extends ValueBase {
+export class TsNull extends ContentBase {
   type = 'null' as const
 
   constructor({ context, generatorKey }: ConstructorArgs) {

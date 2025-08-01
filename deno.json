@@ -1,0 +1,28 @@
+{
+  "imports": {
+    "@skmtc/core": "jsr:@skmtc/core@0.0.681",
+    "@skmtc/server": "jsr:@skmtc/server@0.0.561",
+    "@std/path": "jsr:@std/path@^1.0.6",
+    "@skmtc/tanstack-query-zod": "./tanstack-query-zod/mod.ts",
+    "@skmtc/zod": "./zod/mod.ts",
+    "@skmtc/typescript": "./typescript/mod.ts",
+    "@skmtc/shadcn-form": "./shadcn-form/mod.ts",
+    "@skmtc/shadcn-table": "./shadcn-table/mod.ts",
+    "@skmtc/shadcn-select-api": "./shadcn-select-api/mod.ts",
+    "@skmtc/msw": "./msw/mod.ts",
+    "ts-pattern": "npm:ts-pattern@^5.7.1",
+    "lodash-es": "npm:lodash-es@^4.17.21",
+    "tiny-invariant": "npm:tiny-invariant@^1.3.3",
+    "valibot": "npm:valibot@^1.1.0"
+  },
+  "nodeModulesDir": "none",
+  "workspace": [
+    "./tanstack-query-zod",
+    "./zod",
+    "./typescript",
+    "./shadcn-form",
+    "./shadcn-table",
+    "./shadcn-select-api",
+    "./msw"
+  ]
+}
