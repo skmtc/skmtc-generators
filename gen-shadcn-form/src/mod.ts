@@ -6,12 +6,9 @@ export const ShadcnFormEntry = toOperationEntry<EnrichmentSchema>({
   id: ShadcnForm.id,
 
   isSupported({ operation }: IsSupportedOperationConfigArgs<EnrichmentSchema>) {
-    const schema = operation.toSuccessResponse()?.resolve().toSchema()
-
     return (
-      Boolean(schema?.isRef()) &&
       ['post', 'put', 'patch'].includes(operation.method) &&
-      Boolean(operation.requestBody?.resolve()?.toSchema())
+      Boolean(operation.requestBody?.resolve()?.toSchema()?.resolve().type === 'object')
     )
   },
 
@@ -22,8 +19,8 @@ export const ShadcnFormEntry = toOperationEntry<EnrichmentSchema>({
   toPreviewModule: ({ operation }) => ({
     name: ShadcnForm.toIdentifier(operation).name,
     exportPath: ShadcnForm.toExportPath(operation),
-    group: 'forms',
+    group: 'forms'
   }),
 
-  toEnrichmentSchema,
+  toEnrichmentSchema
 })

@@ -7,7 +7,7 @@ type ConstructorArgs = {
   context: GenerateContext
   refName: RefName
   settings: ContentSettings<EnrichmentSchema>
-  rootRef: RefName
+  rootRef?: RefName
 }
 
 export class TsInsertable extends TypescriptBase {

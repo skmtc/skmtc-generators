@@ -1,27 +1,16 @@
 import { ContentBase } from '@skmtc/core'
-import type { GenerateContext } from '@skmtc/core'
+import type { GenerateContext, ModuleExport } from '@skmtc/core'
 
 type InputOptionProps = {
   context: GenerateContext
   itemName: string
-  formatter:
-    | {
-        exportName: string
-        exportPath: string
-      }
-    | undefined
-
+  formatter: ModuleExport | undefined
   accessorPath: string[]
   destinationPath: string
 }
 
 export class InputOption extends ContentBase {
-  formatter:
-    | {
-        exportName: string
-        exportPath: string
-      }
-    | undefined
+  formatter: ModuleExport | undefined
   accessorPath: string
   constructor({ context, itemName, formatter, accessorPath, destinationPath }: InputOptionProps) {
     super({ context })

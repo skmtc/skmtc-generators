@@ -1,7 +1,6 @@
 import { ContentBase, List } from '@skmtc/core'
 import type { FieldSchema } from './enrichments.ts'
-import type { GenerateContext, ListArray } from '@skmtc/core'
-import type { Stringable } from '@skmtc/core'
+import type { GenerateContext, ListArray, Stringable } from '@skmtc/core'
 
 type EnumsFieldProps = {
   context: GenerateContext
@@ -20,7 +19,7 @@ export class EnumsField extends ContentBase {
     this.field = field
     this.accessorPath = field.accessorPath.join('.')
 
-    this.options = List.toArray(enums.map((item) => JSON.stringify({ label: item, value: item })))
+    this.options = List.toArray(enums.map(item => JSON.stringify({ label: item, value: item })))
 
     this.register({
       imports: {

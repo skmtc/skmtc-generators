@@ -1,5 +1,5 @@
 import invariant from 'tiny-invariant'
-import type { OperationInsertableArgs, RefName } from '@skmtc/core'
+import type { OperationInsertableArgs } from '@skmtc/core'
 import { TanstackQuery, toListItem } from '@skmtc/gen-tanstack-query-zod'
 import { ShadcnSelectApiBase } from './base.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
@@ -56,8 +56,7 @@ export class ShadcnSelectInput extends ShadcnSelectApiBase {
     const typeDefinition = this.createAndRegisterDefinition({
       identifier: Identifier.createType(`${settings.identifier.name}Props`),
       schema: inputPropsSchema,
-      schemaToValueFn: toTsValue,
-      rootRef: 'none' as RefName
+      schemaToValueFn: toTsValue
     })
 
     this.parameter = new FunctionParameter({ name: 'props', typeDefinition, required: true })

@@ -1,12 +1,16 @@
 import { ContentBase } from '@skmtc/core'
-import type { GenerateContext, GeneratorKey, RefName } from '@skmtc/core'
-import type { OasDiscriminator } from '@skmtc/core'
-import type { OasSchema } from '@skmtc/core'
-import type { OasRef } from '@skmtc/core'
+import type {
+  GenerateContext,
+  GeneratorKey,
+  RefName,
+  TypeSystemValue,
+  Modifiers,
+  OasRef,
+  OasSchema,
+  OasDiscriminator
+} from '@skmtc/core'
 import { toZodValue } from './Zod.ts'
-import type { TypeSystemValue } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
-import type { Modifiers } from '@skmtc/core'
 
 type ZodUnionArgs = {
   context: GenerateContext
@@ -15,7 +19,7 @@ type ZodUnionArgs = {
   discriminator?: OasDiscriminator
   modifiers: Modifiers
   generatorKey: GeneratorKey
-  rootRef: RefName
+  rootRef?: RefName
 }
 
 export class ZodUnion extends ContentBase {

@@ -5,7 +5,7 @@ import { ShadcnSelectField } from './ShadcnSelectField.ts'
 import { ShadcnSelectApiBase } from './base.ts'
 
 export const ShadcnSelectApiEntry = toOperationEntry<EnrichmentSchema>({
-  id: '@skmtc/shadcn-select-api',
+  id: '@skmtc/shadcn-select',
 
   toEnrichmentSchema,
 

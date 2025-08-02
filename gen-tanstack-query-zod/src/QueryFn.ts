@@ -1,5 +1,5 @@
 import { List, capitalize, toPathTemplate, Identifier, FunctionParameter } from '@skmtc/core'
-import type { ListObject, OperationInsertableArgs, RefName } from '@skmtc/core'
+import type { ListObject, OperationInsertableArgs } from '@skmtc/core'
 import { TanstackQueryBase } from './base.ts'
 import { toTsValue } from '@skmtc/gen-typescript'
 import { ResponseBodyZod } from './ResponseBodyZod.ts'
@@ -16,8 +16,7 @@ export class QueryFn extends TanstackQueryBase {
     const typeDefinition = this.createAndRegisterDefinition({
       schema: operation.toParametersObject(),
       identifier: Identifier.createType(`${capitalize(settings.identifier.name)}Args`),
-      schemaToValueFn: toTsValue,
-      rootRef: 'none' as RefName
+      schemaToValueFn: toTsValue
     })
 
     this.parameter = new FunctionParameter({

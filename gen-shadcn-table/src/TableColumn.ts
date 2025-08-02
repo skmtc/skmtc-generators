@@ -1,12 +1,9 @@
-import type { GenerateContext, ListObject, Stringable } from '@skmtc/core'
+import type { GenerateContext, ListObject, Stringable, ModuleExport } from '@skmtc/core'
 import { CustomValue, Definition, Identifier, List, ContentBase } from '@skmtc/core'
 import { Column } from './Column.ts'
 type ConstructorArgs = {
   context: GenerateContext
-  formatter: {
-    exportName: string
-    exportPath: string
-  }
+  formatter: ModuleExport
   destinationPath: string
   accessorPath: string[]
   label: string | undefined
@@ -28,7 +25,7 @@ export class TableColumn extends ContentBase {
     super({ context })
 
     this.label = label
-    this.name = accessorPath.map((path) => `${path}`).join('.')
+    this.name = accessorPath.map(path => `${path}`).join('.')
 
     const columHelper = new CustomValue({
       context: this.context,
@@ -75,10 +72,7 @@ const getLabel = ({ label, name }: GetLabelArgs) => {
 
 type GetCellArgs = {
   context: GenerateContext
-  formatter: {
-    exportName: string
-    exportPath: string
-  }
+  formatter: ModuleExport
   destinationPath: string
 }
 

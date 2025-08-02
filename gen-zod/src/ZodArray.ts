@@ -1,9 +1,15 @@
 import { ContentBase } from '@skmtc/core'
-import type { OasRef, RefName, GenerateContext, GeneratorKey, OasSchema } from '@skmtc/core'
+import type {
+  OasRef,
+  RefName,
+  GenerateContext,
+  GeneratorKey,
+  OasSchema,
+  Modifiers,
+  TypeSystemValue
+} from '@skmtc/core'
 import { toZodValue } from './Zod.ts'
-import type { TypeSystemValue } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
-import type { Modifiers } from '@skmtc/core'
 
 type ZodArrayArgs = {
   context: GenerateContext
@@ -11,7 +17,7 @@ type ZodArrayArgs = {
   items: OasSchema | OasRef<'schema'>
   modifiers: Modifiers
   generatorKey: GeneratorKey
-  rootRef: RefName
+  rootRef?: RefName
 }
 
 export class ZodArray extends ContentBase {

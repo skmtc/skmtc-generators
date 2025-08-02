@@ -8,7 +8,7 @@ type ConstructorArgs = {
   destinationPath: string
   refName: RefName
   settings: ContentSettings<EnrichmentSchema>
-  rootRef: RefName
+  rootRef?: RefName
 }
 
 export class ZodInsertable extends ZodBase {

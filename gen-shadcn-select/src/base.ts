@@ -1,10 +1,9 @@
 import { Identifier, toOperationBase, camelCase } from '@skmtc/core'
 import { join } from '@std/path'
-import type { EnrichmentSchema } from './enrichments.ts'
-import { toEnrichmentSchema } from './enrichments.ts'
+import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 
 export const ShadcnSelectApiBase = toOperationBase<EnrichmentSchema>({
-  id: '@skmtc/shadcn-select-api',
+  id: '@skmtc/shadcn-select',
 
   toEnrichmentSchema,
 

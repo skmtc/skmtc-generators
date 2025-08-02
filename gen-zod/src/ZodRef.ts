@@ -8,7 +8,7 @@ type ConstructorProps = {
   destinationPath: string
   modifiers: Modifiers
   refName: RefName
-  rootRef: RefName
+  rootRef?: RefName
 }
 
 export class ZodRef extends ContentBase {

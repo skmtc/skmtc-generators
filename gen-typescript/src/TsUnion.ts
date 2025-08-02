@@ -1,13 +1,17 @@
 import { ContentBase } from '@skmtc/core'
-import type { GenerateContext, GeneratorKey } from '@skmtc/core'
-import type { OasDiscriminator } from '@skmtc/core'
-import type { OasSchema } from '@skmtc/core'
-import type { OasRef } from '@skmtc/core'
+import type {
+  GenerateContext,
+  GeneratorKey,
+  OasDiscriminator,
+  OasSchema,
+  OasRef,
+  Modifiers,
+  TypeSystemValue,
+  RefName
+} from '@skmtc/core'
 import { toTsValue } from './Ts.ts'
-import type { TypeSystemValue } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
-import type { Modifiers } from '@skmtc/core'
-import type { RefName } from '@skmtc/core'
+
 type TsUnionArgs = {
   context: GenerateContext
   destinationPath: string
@@ -15,7 +19,7 @@ type TsUnionArgs = {
   discriminator?: OasDiscriminator
   modifiers: Modifiers
   generatorKey: GeneratorKey
-  rootRef: RefName
+  rootRef?: RefName
 }
 
 export class TsUnion extends ContentBase {

@@ -1,15 +1,19 @@
-import type { OperationInsertableArgs, RefName } from '@skmtc/core'
 import { TanstackQuery, RequestBodyTs, RequestBodyZod } from '@skmtc/gen-tanstack-query-zod'
-import { CustomValue, decapitalize, FunctionParameter, Identifier } from '@skmtc/core'
+import { CustomValue, decapitalize, FunctionParameter, Identifier, List } from '@skmtc/core'
 import { toTsValue } from '@skmtc/gen-typescript'
 import { ShadcnFormBase } from './base.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
 import { EnumsField } from './EnumsField.ts'
 import { InputField } from './InputField.ts'
-import { List } from '@skmtc/core'
-import type { OasSchema, OasRef, OasObject } from '@skmtc/core'
+import type {
+  OasSchema,
+  OasRef,
+  OasObject,
+  ListLines,
+  Stringable,
+  OperationInsertableArgs
+} from '@skmtc/core'
 import invariant from 'tiny-invariant'
-import type { ListLines, Stringable } from '@skmtc/core'
 
 export class ShadcnForm extends ShadcnFormBase {
   parameter: FunctionParameter
@@ -20,8 +24,6 @@ export class ShadcnForm extends ShadcnFormBase {
   formFields: ListLines<Stringable> | undefined
   constructor({ context, operation, settings }: OperationInsertableArgs<EnrichmentSchema>) {
     super({ context, operation, settings })
-
-    console.log('SETTINGS', settings)
 
     this.tsTypeName = this.insertOperation(RequestBodyTs, operation).toName()
     this.zodTypeName = this.insertOperation(RequestBodyZod, operation).toName()
@@ -42,8 +44,6 @@ export class ShadcnForm extends ShadcnFormBase {
     const body = operation.toRequestBody(({ schema }) => schema)?.resolve()
 
     invariant(body?.type === 'object', 'Schema must be an object')
-
-    console.log('FIELDS', settings.enrichments?.form?.fields)
 
     const formFields = settings.enrichments?.form?.fields
       ?.map(field => {
@@ -80,13 +80,10 @@ export class ShadcnForm extends ShadcnFormBase {
 
     this.formFields = List.toLines(formFields ?? [])
 
-    console.log('FORM FIELDS', this.formFields)
-
     const typeDefinition = this.createAndRegisterDefinition({
       identifier: Identifier.createType(`${settings.identifier.name}Props`),
       schema: formArgsSchema,
-      schemaToValueFn: toTsValue,
-      rootRef: 'none' as RefName
+      schemaToValueFn: toTsValue
     })
 
     this.parameter = new FunctionParameter({ name: 'props', typeDefinition, required: true })
@@ -100,8 +97,7 @@ export class ShadcnForm extends ShadcnFormBase {
     this.createAndRegisterDefinition({
       schema: params,
       identifier: Identifier.createType(this.pathParamsZodName),
-      schemaToValueFn: toTsValue,
-      rootRef: 'none' as RefName
+      schemaToValueFn: toTsValue
     })
 
     this.register({

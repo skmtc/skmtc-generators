@@ -1,7 +1,6 @@
 import { ContentBase, List } from '@skmtc/core'
 import type { FieldSchema } from './enrichments.ts'
-import type { GenerateContext, OasSchema, OasRef, ListArray } from '@skmtc/core'
-import type { Stringable } from '@skmtc/core'
+import type { GenerateContext, OasSchema, OasRef, ListArray, Stringable } from '@skmtc/core'
 
 type InputFieldProps = {
   context: GenerateContext
@@ -25,7 +24,7 @@ export class InputField extends ContentBase {
 
     this.enums =
       resolved && 'enums' in resolved && resolved.enums
-        ? List.toArray(resolved.enums.map((item) => JSON.stringify(item)))
+        ? List.toArray(resolved.enums.map(item => JSON.stringify(item)))
         : undefined
 
     this.register({

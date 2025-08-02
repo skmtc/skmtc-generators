@@ -9,7 +9,7 @@ import {
   toPathTemplate,
   camelCase
 } from '@skmtc/core'
-import type { OperationInsertableArgs, ListObject, Stringable, RefName } from '@skmtc/core'
+import type { OperationInsertableArgs, ListObject, Stringable } from '@skmtc/core'
 import { toTsValue } from '@skmtc/gen-typescript'
 import { TanstackQueryBase } from './base.ts'
 import { ResponseBodyZod } from './ResponseBodyZod.ts'
@@ -40,8 +40,7 @@ export class MutationFn extends TanstackQueryBase {
     const typeDefinition = this.createAndRegisterDefinition({
       schema: parametersWithBody ?? parametersObject,
       identifier: Identifier.createType(`${capitalize(settings.identifier.name)}Args`),
-      schemaToValueFn: toTsValue,
-      rootRef: 'none' as RefName
+      schemaToValueFn: toTsValue
     })
 
     this.parameter = new FunctionParameter({

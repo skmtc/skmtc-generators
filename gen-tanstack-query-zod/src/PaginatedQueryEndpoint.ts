@@ -11,13 +11,11 @@ export class PaginatedQueryEndpoint extends TanstackQueryBase {
 
     this.queryFn = new PaginatedQueryFn({ context, operation, settings })
 
-    const operationTags: Stringable[] = operation.tags?.map((tag) => `'${tag}'`) ?? []
+    const operationTags: Stringable[] = operation.tags?.map(tag => `'${tag}'`) ?? []
 
     this.queryTags = List.toArray(
       operationTags.concat(this.queryFn.parameter.toPropertyList().values)
     )
-
-    console.log('queryTags', this.queryTags.toString())
 
     this.register({
       imports: {

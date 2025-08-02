@@ -1,4 +1,4 @@
-import type { OasOperation, OperationInsertableArgs, TypeSystemValue, RefName } from '@skmtc/core'
+import type { OasOperation, OperationInsertableArgs, TypeSystemValue } from '@skmtc/core'
 import { TanstackQueryBase } from './base.ts'
 import { Identifier, OasVoid, toEndpointName, decapitalize } from '@skmtc/core'
 import { toZodValue } from '@skmtc/gen-zod'
@@ -16,7 +16,7 @@ export class ResponseBodyZod extends TanstackQueryBase {
       schema: schema ?? OasVoid.empty(),
       destinationPath: settings.exportPath,
       required: true,
-      rootRef: schema?.isRef() ? schema.toRefName() : ('none' as RefName)
+      rootRef: schema?.isRef() ? schema.toRefName() : undefined
     })
   }
 

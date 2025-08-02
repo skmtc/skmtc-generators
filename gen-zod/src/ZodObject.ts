@@ -6,15 +6,13 @@ import type {
   OasSchema,
   OasObject,
   CustomValue,
-  RefName
-} from '@skmtc/core'
-import { toZodValue } from './Zod.ts'
-import type {
+  RefName,
   TypeSystemObjectProperties,
   TypeSystemRecord,
   TypeSystemValue,
   Modifiers
 } from '@skmtc/core'
+import { toZodValue } from './Zod.ts'
 import { applyModifiers } from './applyModifiers.ts'
 
 type ZodObjectProps = {
@@ -23,7 +21,7 @@ type ZodObjectProps = {
   objectSchema: OasObject
   modifiers: Modifiers
   generatorKey: GeneratorKey
-  rootRef: RefName
+  rootRef?: RefName
 }
 
 export class ZodObject extends ContentBase {
@@ -101,7 +99,7 @@ type ZodObjectPropertiesArgs = {
   properties: Record<string, OasSchema | OasRef<'schema'> | CustomValue>
   required: OasObject['required']
   generatorKey: GeneratorKey
-  rootRef: RefName
+  rootRef?: RefName
 }
 
 class ZodObjectProperties extends ContentBase {
@@ -149,7 +147,7 @@ type ZodRecordArgs = {
   schema: true | OasSchema | OasRef<'schema'>
   modifiers: Modifiers
   generatorKey: GeneratorKey
-  rootRef: RefName
+  rootRef?: RefName
 }
 
 class ZodRecord extends ContentBase {
@@ -184,7 +182,7 @@ type ZodRecordChildrenArgs = {
   destinationPath: string
   schema: true | OasSchema | OasRef<'schema'>
   modifiers: Modifiers
-  rootRef: RefName
+  rootRef?: RefName
 }
 
 const toZodRecordChildren = ({

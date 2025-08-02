@@ -1,4 +1,4 @@
-import type { OasOperation, OperationInsertableArgs, TypeSystemValue, RefName } from '@skmtc/core'
+import type { OasOperation, OperationInsertableArgs, TypeSystemValue } from '@skmtc/core'
 import { TanstackQueryBase } from './base.ts'
 import { Identifier, capitalize, toEndpointName } from '@skmtc/core'
 import { toTsValue, TsVoid } from '@skmtc/gen-typescript'
@@ -15,7 +15,7 @@ export class RequestBodyTs extends TanstackQueryBase {
         schema,
         destinationPath: settings.exportPath,
         required: true,
-        rootRef: schema?.isRef() ? schema.toRefName() : ('none' as RefName)
+        rootRef: schema.isRef() ? schema.toRefName() : undefined
       })
     })
 

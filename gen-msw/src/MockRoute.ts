@@ -1,6 +1,6 @@
-import type { OperationInsertableArgs, RefName, TypeSystemValue } from '@skmtc/core'
+import type { OperationInsertableArgs, TypeSystemValue } from '@skmtc/core'
 import { MswBase } from './base.ts'
-import { collateExamples } from '@skmtc/core'
+import { collateExamples, isEmpty } from '@skmtc/core'
 import { toTsValue, TsNever } from '@skmtc/gen-typescript'
 
 export class MockRoute extends MswBase {
@@ -25,13 +25,13 @@ export class MockRoute extends MswBase {
           schema,
           destinationPath: settings.exportPath,
           required: true,
-          rootRef: schema?.isRef() ? schema.toRefName() : ('none' as RefName)
+          rootRef: schema.isRef() ? schema.toRefName() : undefined
         })
       }) ?? new TsNever({ context, generatorKey: this.generatorKey })
 
     const pathParams = operation.toParametersObject(['path'])
 
-    const isPathParamsEmpty = !pathParams || Object.keys(pathParams.properties ?? {}).length === 0
+    const isPathParamsEmpty = isEmpty(pathParams?.properties ?? {})
 
     this.pathParamsType = isPathParamsEmpty
       ? new TsNever({ context, generatorKey: this.generatorKey })
@@ -39,8 +39,7 @@ export class MockRoute extends MswBase {
           context,
           schema: pathParams,
           destinationPath: settings.exportPath,
-          required: true,
-          rootRef: 'none' as RefName
+          required: true
         })
 
     this.responseType = response?.schema
@@ -49,7 +48,7 @@ export class MockRoute extends MswBase {
           schema: response.schema,
           destinationPath: settings.exportPath,
           required: true,
-          rootRef: response.schema.isRef() ? response.schema.toRefName() : ('none' as RefName)
+          rootRef: response.schema.isRef() ? response.schema.toRefName() : undefined
         })
       : new TsNever({ context, generatorKey: this.generatorKey })
 

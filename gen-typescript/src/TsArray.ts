@@ -17,7 +17,7 @@ type TsArrayArgs = {
   items: OasSchema | OasRef<'schema'>
   modifiers: Modifiers
   generatorKey: GeneratorKey
-  rootRef: RefName
+  rootRef?: RefName
 }
 
 export class TsArray extends ContentBase {

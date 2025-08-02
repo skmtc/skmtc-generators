@@ -21,7 +21,7 @@ type TsObjectProps = {
   value: OasObject
   modifiers: Modifiers
   generatorKey: GeneratorKey
-  rootRef: RefName
+  rootRef?: RefName
 }
 
 export class TsObject extends ContentBase {
@@ -100,7 +100,7 @@ type TsObjectPropertiesArgs = {
   properties: Record<string, OasSchema | OasRef<'schema'> | CustomValue>
   required: OasObject['required']
   modifiers: Modifiers
-  rootRef: RefName
+  rootRef?: RefName
 }
 
 class TsObjectProperties extends ContentBase {
@@ -150,7 +150,7 @@ type TsRecordArgs = {
   schema: true | OasSchema | OasRef<'schema'>
   modifiers: Modifiers
   generatorKey: GeneratorKey
-  rootRef: RefName
+  rootRef?: RefName
 }
 
 class TsRecord extends ContentBase {
@@ -185,7 +185,7 @@ type TsRecordChildrenArgs = {
   destinationPath: string
   schema: true | OasSchema | OasRef<'schema'>
   modifiers: Modifiers
-  rootRef: RefName
+  rootRef?: RefName
 }
 
 const toTsRecordChildren = ({

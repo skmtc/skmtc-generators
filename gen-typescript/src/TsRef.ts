@@ -9,7 +9,7 @@ type TsRefConstructorProps = {
   destinationPath: string
   modifiers: Modifiers
   refName: RefName
-  rootRef: RefName
+  rootRef?: RefName
 }
 
 export class TsRef extends ContentBase {

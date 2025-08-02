@@ -1,20 +1,14 @@
 import { ContentBase } from '@skmtc/core'
-import type { GenerateContext } from '@skmtc/core'
+import type { GenerateContext, ModuleExport } from '@skmtc/core'
 
 type TableColumnProps = {
   context: GenerateContext
-  formatter: {
-    exportName: string
-    exportPath: string
-  }
+  formatter: ModuleExport
   destinationPath: string
 }
 
 export class Column extends ContentBase {
-  formatter: {
-    exportName: string
-    exportPath: string
-  }
+  formatter: ModuleExport
   constructor({ context, formatter, destinationPath }: TableColumnProps) {
     super({ context })
 

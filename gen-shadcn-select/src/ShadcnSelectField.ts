@@ -1,8 +1,7 @@
 import { ShadcnSelectApiBase } from './base.ts'
-import type { OperationInsertableArgs } from '@skmtc/core'
+import type { OperationInsertableArgs, OasOperation } from '@skmtc/core'
 import type { EnrichmentSchema } from './enrichments.ts'
 import { Identifier, CustomValue } from '@skmtc/core'
-import type { OasOperation } from '@skmtc/core'
 import { ShadcnSelectInput } from './ShadcnSelectInput.ts'
 export class ShadcnSelectField extends ShadcnSelectApiBase {
   propsTypeName: string

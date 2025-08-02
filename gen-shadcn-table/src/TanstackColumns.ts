@@ -12,21 +12,17 @@ export class TanstackColumns extends ShadcnTableBase {
   constructor({ context, operation, settings }: OperationInsertableArgs<EnrichmentSchema>) {
     super({ context, operation, settings })
 
-    const tableRowSchema = toListItem({ operation })
+    const rowSchema = toListItem({ operation })
 
-    invariant(tableRowSchema.isRef(), 'Expected table row schema to be a ref')
+    invariant(rowSchema.resolve().type === 'object', 'Expected object type')
 
-    toTsValue({
-      context: this.context,
-      schema: tableRowSchema,
-      destinationPath: settings.exportPath,
-      required: true,
-      rootRef: tableRowSchema.toRefName()
+    const fallbackName = `${settings.identifier.name}RowType`
+
+    this.createAndRegisterCannonical({
+      schema: rowSchema,
+      fallbackIdentifier: Identifier.createType(fallbackName),
+      schemaToValueFn: toTsValue
     })
-
-    const resolved = tableRowSchema.resolve()
-
-    invariant(resolved.type === 'object', 'Expected object type')
 
     const columns = settings.enrichments?.table.columns.map(column => {
       return new TableColumn({
@@ -34,7 +30,7 @@ export class TanstackColumns extends ShadcnTableBase {
         label: column.label,
         formatter: column.formatter,
         accessorPath: column.accessorPath,
-        objectName: tableRowSchema.toRefName(),
+        objectName: rowSchema.isRef() ? rowSchema.toRefName() : fallbackName,
         destinationPath: settings.exportPath
       })
     })

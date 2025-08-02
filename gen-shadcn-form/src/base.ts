@@ -1,6 +1,5 @@
 import { camelCase, capitalize, Identifier, toMethodVerb, toOperationBase } from '@skmtc/core'
 import { join } from '@std/path'
-import invariant from 'tiny-invariant'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 
 export const ShadcnFormBase = toOperationBase<EnrichmentSchema>({
@@ -16,12 +15,8 @@ export const ShadcnFormBase = toOperationBase<EnrichmentSchema>({
   },
 
   toExportPath(operation): string {
-    const schema = operation.toSuccessResponse()?.resolve().toSchema()
-
-    invariant(schema?.isRef(), 'Expected ref schema')
-
     const { name } = this.toIdentifier(operation)
 
     return join('@', 'forms', `${name}.generated.tsx`)
-  },
+  }
 })
