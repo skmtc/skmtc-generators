@@ -1,7 +1,7 @@
 {
   "version": "5",
   "specifiers": {
-    "jsr:@skmtc/core@^0.0.692": "0.0.692",
+    "jsr:@skmtc/core@^0.0.694": "0.0.694",
     "jsr:@std/fmt@^1.0.5": "1.0.8",
     "jsr:@std/fs@^1.0.11": "1.0.19",
     "jsr:@std/internal@^1.0.9": "1.0.10",
@@ -26,8 +26,8 @@
     "npm:valibot@^1.1.0": "1.1.0"
   },
   "jsr": {
-    "@skmtc/core@0.0.692": {
-      "integrity": "1798faa296b03f33e91a00f184bf1b6bc59fc7c0ed8dbc2c6b02254fa3817fb4",
+    "@skmtc/core@0.0.694": {
+      "integrity": "497acb382dc97912b140415aa8b87cc8cbf7c3f09e5563f84c6d8d7ad108cf4d",
       "dependencies": [
         "jsr:@std/log",
         "jsr:@std/path",
@@ -393,7 +393,7 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@skmtc/core@^0.0.692",
+      "jsr:@skmtc/core@^0.0.694",
       "jsr:@std/path@^1.0.6",
       "npm:tiny-invariant@^1.3.3",
       "npm:ts-pattern@^5.8.0",
@@ -402,33 +402,33 @@
     "members": {
       "gen-msw": {
         "dependencies": [
-          "jsr:@skmtc/gen-typescript@^0.0.8"
+          "jsr:@skmtc/gen-typescript@^0.0.9"
         ]
       },
       "gen-shadcn-form": {
         "dependencies": [
-          "jsr:@skmtc/gen-tanstack-query-zod@^0.0.8",
-          "jsr:@skmtc/gen-typescript@^0.0.8"
+          "jsr:@skmtc/gen-tanstack-query-zod@^0.0.9",
+          "jsr:@skmtc/gen-typescript@^0.0.9"
         ]
       },
       "gen-shadcn-select": {
         "dependencies": [
-          "jsr:@skmtc/gen-tanstack-query-zod@^0.0.8",
-          "jsr:@skmtc/gen-typescript@^0.0.8",
-          "jsr:@skmtc/gen-zod@^0.0.8"
+          "jsr:@skmtc/gen-tanstack-query-zod@^0.0.9",
+          "jsr:@skmtc/gen-typescript@^0.0.9",
+          "jsr:@skmtc/gen-zod@^0.0.9"
         ]
       },
       "gen-shadcn-table": {
         "dependencies": [
-          "jsr:@skmtc/gen-tanstack-query-zod@^0.0.8",
-          "jsr:@skmtc/gen-typescript@^0.0.8",
-          "jsr:@skmtc/gen-zod@^0.0.8"
+          "jsr:@skmtc/gen-tanstack-query-zod@^0.0.9",
+          "jsr:@skmtc/gen-typescript@^0.0.9",
+          "jsr:@skmtc/gen-zod@^0.0.9"
         ]
       },
       "gen-tanstack-query-zod": {
         "dependencies": [
-          "jsr:@skmtc/gen-typescript@^0.0.8",
-          "jsr:@skmtc/gen-zod@^0.0.8"
+          "jsr:@skmtc/gen-typescript@^0.0.9",
+          "jsr:@skmtc/gen-zod@^0.0.9"
         ]
       }
     }

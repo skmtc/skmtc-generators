@@ -35,7 +35,8 @@ export class TableColumn extends ContentBase {
     const columnHelperDefinition = new Definition({
       context: this.context,
       identifier: Identifier.createVariable('columnHelper'),
-      value: columHelper
+      value: columHelper,
+      noExport: true
     })
 
     this.register({

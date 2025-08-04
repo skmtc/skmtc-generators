@@ -28,7 +28,7 @@ export class ShadcnTable extends ShadcnTableBase {
 
     this.searchable = Boolean(searchParameter)
 
-    this.columnsName = this.insertOperation(TanstackColumns, operation).toName()
+    this.columnsName = this.insertOperation(TanstackColumns, operation, { noExport: true }).toName()
 
     this.clientName = this.insertOperation(TanstackQuery, operation).toName()
 
