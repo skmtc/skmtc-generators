@@ -113,6 +113,8 @@ export class ShadcnForm extends ShadcnFormBase {
   }
 
   override toString(): string {
+    const { title, description, submitLabel } = this.settings.enrichments?.form ?? {}
+
     return `(${this.parameter}) => {
   const form = useForm<${this.tsTypeName}>({
     resolver: zodResolver(${this.zodTypeName}),
@@ -136,9 +138,14 @@ export class ShadcnForm extends ShadcnFormBase {
 
         mutator.mutate({ ...props, body })
       })} className="flex flex-col flex-1 gap-4 p-4">
+        ${title || description ? `<div className="flex flex-col gap-2">` : ''}
+          ${title ? `<h2 className="text-2xl font-semibold tracking-tight">${title}</h2>` : ''}
+          ${description ? `<p className="text-muted-foreground">${description}</p>` : ''}
+        ${title || description ? `</div>` : ''}
+
         ${this.formFields}
 
-        <Button type="submit">Create</Button>
+        <Button type="submit">${submitLabel ?? 'Submit'}</Button>
       </form>
     </Form>
   )

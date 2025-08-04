@@ -4,6 +4,8 @@ import { formFieldItem } from '@skmtc/core'
 export const formPropertiesSchema = v.optional(
   v.object({
     title: v.optional(v.string()),
+    description: v.optional(v.string()),
+    submitLabel: v.optional(v.string()),
     fields: v.optional(v.array(formFieldItem))
   })
 )

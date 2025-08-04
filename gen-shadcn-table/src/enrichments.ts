@@ -3,6 +3,7 @@ import { tableColumnItem } from '@skmtc/core'
 
 export const tablePropertiesSchema = v.object({
   title: v.optional(v.string()),
+  description: v.optional(v.string()),
   columns: v.array(tableColumnItem)
 })
 
