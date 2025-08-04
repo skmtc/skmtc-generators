@@ -24,7 +24,7 @@ export class TanstackColumns extends ShadcnTableBase {
       schemaToValueFn: toTsValue
     })
 
-    const columns = settings.enrichments?.table.columns.map(column => {
+    const columns = settings.enrichments?.table?.columns?.map(column => {
       return new TableColumn({
         context: this.context,
         label: column.label,

@@ -58,7 +58,7 @@ export class ShadcnTable extends ShadcnTableBase {
   const { data } = ${this.clientName}(${this.pathParams.destructuredPathParams})
 
   return (
-  <div className="flex flex-col gap-4 p-4">
+  <div className="flex flex-col gap-4 p-4 w-full">
     ${title || description ? `<div className="flex flex-col gap-2">` : ''}
       ${title ? `<h2 className="text-2xl font-semibold tracking-tight">${title}</h2>` : ''}
       ${description ? `<p className="text-muted-foreground">${description}</p>` : ''}

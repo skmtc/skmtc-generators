@@ -145,7 +145,7 @@ export class ShadcnForm extends ShadcnFormBase {
 
         ${this.formFields}
 
-        <Button type="submit">${submitLabel ?? 'Submit'}</Button>
+        <Button type="submit">${submitLabel || 'Submit'}</Button>
       </form>
     </Form>
   )

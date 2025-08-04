@@ -1,11 +1,13 @@
 import * as v from 'valibot'
 import { tableColumnItem } from '@skmtc/core'
 
-export const tablePropertiesSchema = v.object({
-  title: v.optional(v.string()),
-  description: v.optional(v.string()),
-  columns: v.array(tableColumnItem)
-})
+export const tablePropertiesSchema = v.optional(
+  v.object({
+    title: v.optional(v.string()),
+    description: v.optional(v.string()),
+    columns: v.optional(v.array(tableColumnItem))
+  })
+)
 
 export type ColumnSchema = v.InferOutput<typeof tableColumnItem>
 
