@@ -22,7 +22,7 @@ export const toTsValue: SchemaToValueFn = ({
 }) => {
   const modifiers: Modifiers = {
     required,
-    description: 'description' in schema ? schema.description : undefined,
+    // description: 'description' in schema ? schema.description : undefined,
     nullable: 'nullable' in schema ? schema.nullable : undefined
   }
 
