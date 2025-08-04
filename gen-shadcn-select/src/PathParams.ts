@@ -1,5 +1,5 @@
 import { ShadcnSelectApiBase } from './base.ts'
-import { toZodValue } from '@skmtc/gen-zod'
+import { toTsValue } from '@skmtc/gen-typescript'
 import { Identifier, List, capitalize, isEmpty } from '@skmtc/core'
 import type { OperationInsertableArgs, ListObject } from '@skmtc/core'
 import type { EnrichmentSchema } from './enrichments.ts'
@@ -19,15 +19,19 @@ export class PathParams extends ShadcnSelectApiBase {
 
     this.pathParamsTsName = capitalize(`${tableName}PathParams`)
 
-    const pathParams = this.createAndRegisterDefinition({
-      schema: params,
-      identifier: Identifier.createVariable(this.pathParamsTsName),
-      schemaToValueFn: toZodValue
-    })
+    if (!this.isEmpty) {
+      const pathParams = this.createAndRegisterDefinition({
+        schema: params,
+        identifier: Identifier.createType(this.pathParamsTsName),
+        schemaToValueFn: toTsValue
+      })
 
-    this.destructuredPathParams = List.fromKeys(
-      pathParams.value.objectProperties?.properties
-    ).toObjectPlain()
+      this.destructuredPathParams = List.fromKeys(
+        pathParams.value.objectProperties?.properties
+      ).toObjectPlain()
+    } else {
+      this.destructuredPathParams = List.toObject([])
+    }
   }
 
   override toString(): string {

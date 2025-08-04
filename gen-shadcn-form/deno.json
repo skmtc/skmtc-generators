@@ -1,10 +1,10 @@
 {
   "name": "@skmtc/gen-shadcn-form",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "exports": "./mod.ts",
   "imports": {
-    "@skmtc/gen-tanstack-query-zod": "jsr:@skmtc/gen-tanstack-query-zod@^0.0.9",
-    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@^0.0.9"
+    "@skmtc/gen-tanstack-query-zod": "jsr:@skmtc/gen-tanstack-query-zod@^0.0.10",
+    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@^0.0.10"
   },
   "tasks": {
     "publish": "deno publish --allow-slow-types --allow-dirty --token=$JSR_AUTH_TOKEN"
