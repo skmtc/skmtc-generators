@@ -2,7 +2,6 @@ import type { OasOperation, OperationInsertableArgs, TypeSystemValue } from '@sk
 import { TanstackQueryBase } from './base.ts'
 import { Identifier, OasVoid, toEndpointName, decapitalize } from '@skmtc/core'
 import { toZodValue } from '@skmtc/gen-zod'
-import { join } from '@std/path'
 
 export class ResponseBodyZod extends TanstackQueryBase {
   value: TypeSystemValue
@@ -24,10 +23,6 @@ export class ResponseBodyZod extends TanstackQueryBase {
     const name = decapitalize(`${toEndpointName(operation)}Response`)
 
     return Identifier.createVariable(name)
-  }
-
-  static override toExportPath(): string {
-    return join('@', 'services', `apiTypes.generated.ts`)
   }
 
   override toString(): string {

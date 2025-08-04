@@ -1,8 +1,8 @@
 {
   "name": "@skmtc/gen-typescript",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "exports": "./mod.ts",
   "tasks": {
-    "publish": "deno publish --allow-slow-types --allow-dirty"
+    "publish": "deno publish --allow-slow-types --allow-dirty --token=$JSR_AUTH_TOKEN"
   }
 }
