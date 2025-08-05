@@ -425,6 +425,12 @@
           "jsr:@skmtc/gen-zod@^0.0.15"
         ]
       },
+      "gen-supabase-hono": {
+        "dependencies": [
+          "jsr:@skmtc/gen-typescript@^0.0.15",
+          "jsr:@skmtc/gen-zod@^0.0.15"
+        ]
+      },
       "gen-tanstack-query-zod": {
         "dependencies": [
           "jsr:@skmtc/gen-typescript@^0.0.15",
