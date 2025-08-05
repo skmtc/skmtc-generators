@@ -6,6 +6,7 @@
     "@skmtc/gen-shadcn-select": "./gen-shadcn-select/mod.ts",
     "@skmtc/gen-shadcn-table": "./gen-shadcn-table/mod.ts",
     "@skmtc/gen-tanstack-query-zod": "./gen-tanstack-query-zod/mod.ts",
+    "@skmtc/gen-supabase-hono": "./gen-supabase-hono/mod.ts",
     "@skmtc/gen-typescript": "./gen-typescript/mod.ts",
     "@skmtc/gen-zod": "./gen-zod/mod.ts",
     "@std/path": "jsr:@std/path@^1.0.6",
@@ -14,7 +15,7 @@
     "valibot": "npm:valibot@^1.1.0"
   },
   "tasks": {
-    "publish": "deno task --cwd=gen-zod publish && deno task --cwd=gen-typescript publish && deno task --cwd=gen-msw publish && deno task --cwd=gen-tanstack-query-zod publish && deno task --cwd=gen-shadcn-form publish && deno task --cwd=gen-shadcn-table publish && deno task --cwd=gen-shadcn-select publish"
+    "publish": "deno task --cwd=gen-zod publish && deno task --cwd=gen-typescript publish && deno task --cwd=gen-supabase-hono publish && deno task --cwd=gen-msw publish && deno task --cwd=gen-tanstack-query-zod publish && deno task --cwd=gen-shadcn-form publish && deno task --cwd=gen-shadcn-table publish && deno task --cwd=gen-shadcn-select publish"
   },
   "nodeModulesDir": "none",
   "workspace": [
@@ -24,6 +25,7 @@
     "./gen-shadcn-form",
     "./gen-shadcn-table",
     "./gen-shadcn-select",
-    "./gen-msw"
+    "./gen-msw",
+    "./gen-supabase-hono"
   ]
 }
