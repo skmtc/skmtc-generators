@@ -24,7 +24,7 @@ export class ZodInsertable extends ZodBase {
 
     const schema = context.resolveSchemaRefOnce(refName, ZodBase.id)
 
-    this.value = ZodInsertable.schemaToValueFn({
+    this.value = toZodValue({
       schema,
       required: true,
       destinationPath,
@@ -33,7 +33,9 @@ export class ZodInsertable extends ZodBase {
     })
   }
 
-  static schemaToValueFn = toZodValue
+  static schemaToValueFn = (...args: Parameters<typeof toZodValue>) => {
+    return toZodValue(...args)
+  }
 
   static createIdentifier = Identifier.createVariable
 

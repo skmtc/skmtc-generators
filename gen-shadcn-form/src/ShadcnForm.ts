@@ -34,7 +34,7 @@ export class ShadcnForm extends ShadcnFormBase {
 
     const tsRequestBody = this.insertNormalizedModel(TsInsertable, {
       schema: operation.toRequestBody(({ schema }) => schema)?.resolve() ?? OasVoid.empty(),
-      fallbackName: `${decapitalize(settings.identifier.name)}Body`
+      fallbackName: `${capitalize(settings.identifier.name)}Body`
     })
 
     this.tsRequestBodyName = tsRequestBody.identifier.name

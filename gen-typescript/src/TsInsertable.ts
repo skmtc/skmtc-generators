@@ -18,7 +18,7 @@ export class TsInsertable extends TypescriptBase {
 
     const schema = context.resolveSchemaRefOnce(refName, TypescriptBase.id)
 
-    this.value = TsInsertable.schemaToValueFn({
+    this.value = toTsValue({
       schema,
       required: true,
       destinationPath: settings.exportPath,
@@ -27,7 +27,9 @@ export class TsInsertable extends TypescriptBase {
     })
   }
 
-  static schemaToValueFn = toTsValue
+  static schemaToValueFn = (...args: Parameters<typeof toTsValue>) => {
+    return toTsValue(...args)
+  }
 
   static createIdentifier = Identifier.createType
 
