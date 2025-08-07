@@ -1,5 +1,5 @@
 import { List, Identifier } from '@skmtc/core'
-import { toTsValue } from '@skmtc/gen-typescript'
+import { TsInsertable } from '@skmtc/gen-typescript'
 import invariant from 'tiny-invariant'
 import { TableColumn } from './TableColumn.ts'
 import type { ListArray, OasOperation, OperationInsertableArgs } from '@skmtc/core'
@@ -18,10 +18,9 @@ export class TanstackColumns extends ShadcnTableBase {
 
     const fallbackName = `${settings.identifier.name}RowType`
 
-    this.createAndRegisterCannonical({
+    const rowTypeDefinition = this.insertNormalizedModel(TsInsertable, {
       schema: rowSchema,
-      fallbackIdentifier: Identifier.createType(fallbackName),
-      schemaToValueFn: toTsValue
+      fallbackIdentifier: Identifier.createType(fallbackName)
     })
 
     const columns = settings.enrichments?.table?.columns?.map(column => {
@@ -30,7 +29,7 @@ export class TanstackColumns extends ShadcnTableBase {
         label: column.label,
         formatter: column.formatter,
         accessorPath: column.accessorPath,
-        objectName: rowSchema.isRef() ? rowSchema.toRefName() : fallbackName,
+        objectName: rowTypeDefinition.identifier.name,
         destinationPath: settings.exportPath
       })
     })

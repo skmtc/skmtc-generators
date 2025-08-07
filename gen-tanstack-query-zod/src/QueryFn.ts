@@ -1,11 +1,19 @@
-import { List, capitalize, toPathTemplate, Identifier, FunctionParameter } from '@skmtc/core'
+import {
+  List,
+  capitalize,
+  toPathTemplate,
+  Identifier,
+  FunctionParameter,
+  decapitalize,
+  OasVoid
+} from '@skmtc/core'
 import type { ListObject, OperationInsertableArgs } from '@skmtc/core'
 import { TanstackQueryBase } from './base.ts'
 import { toTsValue } from '@skmtc/gen-typescript'
-import { ResponseBodyZod } from './ResponseBodyZod.ts'
+import { ZodInsertable } from '@skmtc/gen-zod'
 
 export class QueryFn extends TanstackQueryBase {
-  responseModelZodName: string
+  zodResponseName: string
   parameter: FunctionParameter
   queryParamArgs: ListObject<string>
   constructor({ context, operation, settings }: OperationInsertableArgs) {
@@ -26,7 +34,12 @@ export class QueryFn extends TanstackQueryBase {
       skipEmpty: true
     })
 
-    this.responseModelZodName = this.insertOperation(ResponseBodyZod, operation).toName()
+    const zodResponse = this.insertNormalizedModel(ZodInsertable, {
+      schema: operation.toSuccessResponse()?.resolve().toSchema() ?? OasVoid.empty(),
+      fallbackName: `${decapitalize(settings.identifier.name)}Response`
+    })
+
+    this.zodResponseName = zodResponse.identifier.name
   }
 
   override toString(): string {
@@ -44,7 +57,7 @@ export class QueryFn extends TanstackQueryBase {
     
       const data = await res.json()
 
-      return ${this.responseModelZodName}.parse(data)
+      return ${this.zodResponseName}.parse(data)
     }`
   }
 }

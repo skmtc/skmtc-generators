@@ -1,6 +1,13 @@
-import { TanstackQuery, RequestBodyTs, RequestBodyZod } from '@skmtc/gen-tanstack-query-zod'
-import { CustomValue, decapitalize, FunctionParameter, Identifier, List } from '@skmtc/core'
-import { toTsValue } from '@skmtc/gen-typescript'
+import { TanstackQuery } from '@skmtc/gen-tanstack-query-zod'
+import {
+  CustomValue,
+  decapitalize,
+  FunctionParameter,
+  Identifier,
+  List,
+  OasVoid
+} from '@skmtc/core'
+import { toTsValue, TsInsertable } from '@skmtc/gen-typescript'
 import { ShadcnFormBase } from './base.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
 import { EnumsField } from './EnumsField.ts'
@@ -14,25 +21,37 @@ import type {
   OperationInsertableArgs
 } from '@skmtc/core'
 import invariant from 'tiny-invariant'
+import { ZodInsertable } from '@skmtc/gen-zod'
 
 export class ShadcnForm extends ShadcnFormBase {
   parameter: FunctionParameter
   clientName: string
-  tsTypeName: string
-  zodTypeName: string
+  tsRequestBodyName: string
+  zodRequestBodyName: string
   pathParamsZodName: string
   formFields: ListLines<Stringable> | undefined
   constructor({ context, operation, settings }: OperationInsertableArgs<EnrichmentSchema>) {
     super({ context, operation, settings })
 
-    this.tsTypeName = this.insertOperation(RequestBodyTs, operation).toName()
-    this.zodTypeName = this.insertOperation(RequestBodyZod, operation).toName()
+    const tsRequestBody = this.insertNormalizedModel(TsInsertable, {
+      schema: operation.toRequestBody(({ schema }) => schema)?.resolve() ?? OasVoid.empty(),
+      fallbackName: `${decapitalize(settings.identifier.name)}Body`
+    })
+
+    this.tsRequestBodyName = tsRequestBody.identifier.name
+
+    const zodRequestBody = this.insertNormalizedModel(ZodInsertable, {
+      schema: operation.toRequestBody(({ schema }) => schema) ?? OasVoid.empty(),
+      fallbackName: `${decapitalize(settings.identifier.name)}Body`
+    })
+
+    this.zodRequestBodyName = zodRequestBody.identifier.name
 
     const formArgsSchema = operation
       .toParametersObject()
       .addProperty({
         name: 'defaultValues',
-        schema: new CustomValue({ context, value: this.tsTypeName }),
+        schema: new CustomValue({ context, value: this.tsRequestBodyName }),
         required: false
       })
       .addProperty({
@@ -116,8 +135,8 @@ export class ShadcnForm extends ShadcnFormBase {
     const { title, description, submitLabel } = this.settings.enrichments?.form ?? {}
 
     return `(${this.parameter}) => {
-  const form = useForm<${this.tsTypeName}>({
-    resolver: zodResolver(${this.zodTypeName}),
+  const form = useForm<${this.tsRequestBodyName}>({
+    resolver: zodResolver(${this.zodRequestBodyName}),
     defaultValues: props.defaultValues
   })
 

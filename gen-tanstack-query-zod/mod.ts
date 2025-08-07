@@ -1,6 +1,4 @@
 export { TanstackQuery } from './src/TanstackQuery.ts'
 export { tanstackQueryEntry as default } from './src/mod.ts'
-export * from './src/RequestBodyTs.ts'
-export * from './src/RequestBodyZod.ts'
 export { toListItem } from './src/toListItem.ts'
 export { isListResponse } from './src/isListResponse.ts'

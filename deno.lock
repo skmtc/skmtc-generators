@@ -1,7 +1,7 @@
 {
   "version": "5",
   "specifiers": {
-    "jsr:@skmtc/core@^0.0.696": "0.0.696",
+    "jsr:@skmtc/core@^0.0.702": "0.0.702",
     "jsr:@std/fmt@^1.0.5": "1.0.8",
     "jsr:@std/fs@^1.0.11": "1.0.19",
     "jsr:@std/internal@^1.0.9": "1.0.10",
@@ -26,8 +26,8 @@
     "npm:valibot@^1.1.0": "1.1.0"
   },
   "jsr": {
-    "@skmtc/core@0.0.696": {
-      "integrity": "1f8a91f993e240e8f0fa962c5fc45d79d048405ea3114fd25dc570467dc3074f",
+    "@skmtc/core@0.0.702": {
+      "integrity": "6a739ce6ae441858de05df14f43e79aaf992699ac2c2d75babc0b858afa7a260",
       "dependencies": [
         "jsr:@std/log",
         "jsr:@std/path",
@@ -393,7 +393,7 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@skmtc/core@^0.0.696",
+      "jsr:@skmtc/core@^0.0.702",
       "jsr:@std/path@^1.0.6",
       "npm:tiny-invariant@^1.3.3",
       "npm:ts-pattern@^5.8.0",

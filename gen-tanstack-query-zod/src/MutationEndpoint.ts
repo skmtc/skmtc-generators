@@ -1,7 +1,8 @@
-import { type OperationInsertableArgs, List, type ListArray } from '@skmtc/core'
+import { List, OasVoid, toEndpointName, capitalize, type ListArray } from '@skmtc/core'
+import type { OperationInsertableArgs } from '@skmtc/core'
 import { MutationFn } from './MutationFn.ts'
 import { TanstackQueryBase } from './base.ts'
-import { RequestBodyTs } from './RequestBodyTs.ts'
+import { TsInsertable } from '@skmtc/gen-typescript'
 
 export class MutationEndpoint extends TanstackQueryBase {
   tags: ListArray<string>
@@ -10,11 +11,16 @@ export class MutationEndpoint extends TanstackQueryBase {
   constructor({ context, operation, settings }: OperationInsertableArgs) {
     super({ context, operation, settings })
 
-    this.tags = List.toArray(operation.tags?.map((tag) => `'${tag}'`) ?? [])
+    this.tags = List.toArray(operation.tags?.map(tag => `'${tag}'`) ?? [])
 
     this.mutationFn = new MutationFn({ context, operation, settings })
 
-    this.requestBodyTsName = this.insertOperation(RequestBodyTs, operation).toName()
+    const requestBody = this.insertNormalizedModel(TsInsertable, {
+      schema: operation.toRequestBody(({ schema }) => schema) ?? OasVoid.empty(),
+      fallbackName: capitalize(`${toEndpointName(operation)}Body`)
+    })
+
+    this.requestBodyTsName = requestBody.identifier.name
 
     this.register({
       imports: {

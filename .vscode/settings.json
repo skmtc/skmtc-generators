@@ -1,5 +1,7 @@
 {
   "deno.enable": true,
+  "deno.enablePaths": ["./"],
+  "deno.suggest.imports.autoDiscover": true,
   "[json]": {
     "editor.formatOnSave": true,
     "editor.defaultFormatter": "esbenp.prettier-vscode"

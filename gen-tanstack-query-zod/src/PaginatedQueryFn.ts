@@ -1,12 +1,20 @@
 import type { ListObject, OperationInsertableArgs } from '@skmtc/core'
-import { FunctionParameter, capitalize, Identifier, List, toPathTemplate } from '@skmtc/core'
+import {
+  FunctionParameter,
+  capitalize,
+  Identifier,
+  List,
+  toPathTemplate,
+  decapitalize,
+  OasVoid
+} from '@skmtc/core'
 import { toTsValue } from '@skmtc/gen-typescript'
 import { TanstackQueryBase } from './base.ts'
-import { ResponseBodyZod } from './ResponseBodyZod.ts'
+import { ZodInsertable } from '@skmtc/gen-zod'
 
 export class PaginatedQueryFn extends TanstackQueryBase {
   parameter: FunctionParameter
-  responseModelZodName: string
+  zodResponseName: string
   queryParamArgs: ListObject<string>
 
   constructor({ context, operation, settings }: OperationInsertableArgs) {
@@ -14,7 +22,12 @@ export class PaginatedQueryFn extends TanstackQueryBase {
 
     this.queryParamArgs = List.toObject(operation.toParams(['query']).map(({ name }) => name))
 
-    this.responseModelZodName = this.insertOperation(ResponseBodyZod, operation).toName()
+    const zodResponse = this.insertNormalizedModel(ZodInsertable, {
+      schema: operation.toSuccessResponse()?.resolve().toSchema() ?? OasVoid.empty(),
+      fallbackName: `${decapitalize(settings.identifier.name)}Response`
+    })
+
+    this.zodResponseName = zodResponse.identifier.name
 
     const typeDefinition = this.createAndRegisterDefinition({
       schema: operation.toParametersObject(),
@@ -44,8 +57,8 @@ export class PaginatedQueryFn extends TanstackQueryBase {
       }
 
       const data = await res.json()
-    
-      const parsed = ${this.responseModelZodName}.parse(data)
+
+      const parsed = ${this.zodResponseName}.parse(data)
 
       return parsed
     }`

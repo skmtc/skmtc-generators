@@ -7,16 +7,18 @@ import {
   Identifier,
   FunctionParameter,
   toPathTemplate,
-  camelCase
+  camelCase,
+  OasVoid,
+  decapitalize
 } from '@skmtc/core'
 import type { OperationInsertableArgs, ListObject, Stringable } from '@skmtc/core'
 import { toTsValue } from '@skmtc/gen-typescript'
 import { TanstackQueryBase } from './base.ts'
-import { ResponseBodyZod } from './ResponseBodyZod.ts'
+import { ZodInsertable } from '@skmtc/gen-zod'
 
 export class MutationFn extends TanstackQueryBase {
   parameter: FunctionParameter
-  responseModelZodName: string
+  zodResponseName: string
   queryParamArgs: ListObject<string>
   headerParams: ListObject<Stringable>
 
@@ -50,7 +52,12 @@ export class MutationFn extends TanstackQueryBase {
       skipEmpty: true
     })
 
-    this.responseModelZodName = this.insertOperation(ResponseBodyZod, operation).toName()
+    const zodResponse = this.insertNormalizedModel(ZodInsertable, {
+      schema: operation.toSuccessResponse()?.resolve().toSchema() ?? OasVoid.empty(),
+      fallbackName: `${decapitalize(settings.identifier.name)}Response`
+    })
+
+    this.zodResponseName = zodResponse.identifier.name
   }
 
   override toString(): string {
@@ -67,7 +74,7 @@ export class MutationFn extends TanstackQueryBase {
         throw new Error(error)
       }
     
-      return ${this.responseModelZodName}.parse(data)
+      return ${this.zodResponseName}.parse(data)
     }`
   }
 }

@@ -2,6 +2,7 @@ import type { ContentSettings, TypeSystemValue, GenerateContext, RefName } from 
 import { toTsValue } from './Ts.ts'
 import { TypescriptBase } from './base.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
+import { Identifier } from '@skmtc/core'
 
 type ConstructorArgs = {
   context: GenerateContext
@@ -17,7 +18,7 @@ export class TsInsertable extends TypescriptBase {
 
     const schema = context.resolveSchemaRefOnce(refName, TypescriptBase.id)
 
-    this.value = toTsValue({
+    this.value = TsInsertable.schemaToValueFn({
       schema,
       required: true,
       destinationPath: settings.exportPath,
@@ -25,6 +26,10 @@ export class TsInsertable extends TypescriptBase {
       rootRef
     })
   }
+
+  static schemaToValueFn = toTsValue
+
+  static createIdentifier = Identifier.createType
 
   override toString() {
     return `${this.value}`
