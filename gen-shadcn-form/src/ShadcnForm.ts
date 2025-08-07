@@ -3,11 +3,11 @@ import {
   CustomValue,
   decapitalize,
   FunctionParameter,
-  Identifier,
   List,
-  OasVoid
+  OasVoid,
+  capitalize
 } from '@skmtc/core'
-import { toTsValue, TsInsertable } from '@skmtc/gen-typescript'
+import { TsInsertable } from '@skmtc/gen-typescript'
 import { ShadcnFormBase } from './base.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
 import { EnumsField } from './EnumsField.ts'
@@ -28,7 +28,6 @@ export class ShadcnForm extends ShadcnFormBase {
   clientName: string
   tsRequestBodyName: string
   zodRequestBodyName: string
-  pathParamsZodName: string
   formFields: ListLines<Stringable> | undefined
   constructor({ context, operation, settings }: OperationInsertableArgs<EnrichmentSchema>) {
     super({ context, operation, settings })
@@ -99,24 +98,18 @@ export class ShadcnForm extends ShadcnFormBase {
 
     this.formFields = List.toLines(formFields ?? [])
 
-    const typeDefinition = this.createAndRegisterDefinition({
-      identifier: Identifier.createType(`${settings.identifier.name}Props`),
+    const typeDefinition = this.insertNormalizedModel(TsInsertable, {
       schema: formArgsSchema,
-      schemaToValueFn: toTsValue
+      fallbackName: `${settings.identifier.name}Props`
     })
 
     this.parameter = new FunctionParameter({ name: 'props', typeDefinition, required: true })
 
     this.clientName = this.insertOperation(TanstackQuery, operation).toName()
 
-    const params = operation.toParametersObject(['path'])
-
-    this.pathParamsZodName = decapitalize(`${settings.identifier.name}PathParams`)
-
-    this.createAndRegisterDefinition({
-      schema: params,
-      identifier: Identifier.createType(this.pathParamsZodName),
-      schemaToValueFn: toTsValue
+    this.insertNormalizedModel(TsInsertable, {
+      schema: operation.toParametersObject(['path']),
+      fallbackName: capitalize(`${settings.identifier.name}PathParams`)
     })
 
     this.register({

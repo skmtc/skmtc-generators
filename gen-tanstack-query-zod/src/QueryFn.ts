@@ -2,14 +2,13 @@ import {
   List,
   capitalize,
   toPathTemplate,
-  Identifier,
   FunctionParameter,
   decapitalize,
   OasVoid
 } from '@skmtc/core'
 import type { ListObject, OperationInsertableArgs } from '@skmtc/core'
 import { TanstackQueryBase } from './base.ts'
-import { toTsValue } from '@skmtc/gen-typescript'
+import { TsInsertable } from '@skmtc/gen-typescript'
 import { ZodInsertable } from '@skmtc/gen-zod'
 
 export class QueryFn extends TanstackQueryBase {
@@ -21,10 +20,9 @@ export class QueryFn extends TanstackQueryBase {
 
     this.queryParamArgs = List.toObject(operation.toParams(['query']).map(({ name }) => name))
 
-    const typeDefinition = this.createAndRegisterDefinition({
+    const typeDefinition = this.insertNormalizedModel(TsInsertable, {
       schema: operation.toParametersObject(),
-      identifier: Identifier.createType(`${capitalize(settings.identifier.name)}Args`),
-      schemaToValueFn: toTsValue
+      fallbackName: `${capitalize(settings.identifier.name)}Args`
     })
 
     this.parameter = new FunctionParameter({

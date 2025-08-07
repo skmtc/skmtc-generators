@@ -1,6 +1,6 @@
 import { ShadcnSelectApiBase } from './base.ts'
-import { toTsValue } from '@skmtc/gen-typescript'
-import { Identifier, List, capitalize, isEmpty } from '@skmtc/core'
+import { TsInsertable } from '@skmtc/gen-typescript'
+import { List, capitalize, isEmpty } from '@skmtc/core'
 import type { OperationInsertableArgs, ListObject } from '@skmtc/core'
 import type { EnrichmentSchema } from './enrichments.ts'
 
@@ -20,10 +20,9 @@ export class PathParams extends ShadcnSelectApiBase {
     this.pathParamsTsName = capitalize(`${tableName}PathParams`)
 
     if (!this.isEmpty) {
-      const pathParams = this.createAndRegisterDefinition({
+      const pathParams = this.insertNormalizedModel(TsInsertable, {
         schema: params,
-        identifier: Identifier.createType(this.pathParamsTsName),
-        schemaToValueFn: toTsValue
+        fallbackName: this.pathParamsTsName
       })
 
       this.destructuredPathParams = List.fromKeys(

@@ -5,7 +5,7 @@ import { ShadcnSelectApiBase } from './base.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
 import { PathParams } from './PathParams.ts'
 import { CustomValue, FunctionParameter, Identifier } from '@skmtc/core'
-import { toTsValue } from '@skmtc/gen-typescript'
+import { TsInsertable } from '@skmtc/gen-typescript'
 import { InputOption } from './InputOption.ts'
 export class ShadcnSelectInput extends ShadcnSelectApiBase {
   clientName: string
@@ -53,10 +53,9 @@ export class ShadcnSelectInput extends ShadcnSelectApiBase {
         required: false
       })
 
-    const typeDefinition = this.createAndRegisterDefinition({
-      identifier: Identifier.createType(`${settings.identifier.name}Props`),
+    const typeDefinition = this.insertNormalizedModel(TsInsertable, {
       schema: inputPropsSchema,
-      schemaToValueFn: toTsValue
+      fallbackName: `${settings.identifier.name}Props`
     })
 
     this.parameter = new FunctionParameter({ name: 'props', typeDefinition, required: true })

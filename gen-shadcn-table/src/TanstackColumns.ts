@@ -16,11 +16,9 @@ export class TanstackColumns extends ShadcnTableBase {
 
     invariant(rowSchema.resolve().type === 'object', 'Expected object type')
 
-    const fallbackName = `${settings.identifier.name}RowType`
-
     const rowTypeDefinition = this.insertNormalizedModel(TsInsertable, {
       schema: rowSchema,
-      fallbackIdentifier: Identifier.createType(fallbackName)
+      fallbackName: `${settings.identifier.name}RowType`
     })
 
     const columns = settings.enrichments?.table?.columns?.map(column => {

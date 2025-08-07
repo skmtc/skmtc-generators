@@ -4,7 +4,6 @@ import {
   capitalize,
   handleKey,
   List,
-  Identifier,
   FunctionParameter,
   toPathTemplate,
   camelCase,
@@ -12,7 +11,7 @@ import {
   decapitalize
 } from '@skmtc/core'
 import type { OperationInsertableArgs, ListObject, Stringable } from '@skmtc/core'
-import { toTsValue } from '@skmtc/gen-typescript'
+import { TsInsertable } from '@skmtc/gen-typescript'
 import { TanstackQueryBase } from './base.ts'
 import { ZodInsertable } from '@skmtc/gen-zod'
 
@@ -39,10 +38,9 @@ export class MutationFn extends TanstackQueryBase {
       return parametersObject.addProperty({ name: 'body', schema, required: true })
     })
 
-    const typeDefinition = this.createAndRegisterDefinition({
+    const typeDefinition = this.insertNormalizedModel(TsInsertable, {
       schema: parametersWithBody ?? parametersObject,
-      identifier: Identifier.createType(`${capitalize(settings.identifier.name)}Args`),
-      schemaToValueFn: toTsValue
+      fallbackName: `${capitalize(settings.identifier.name)}Args`
     })
 
     this.parameter = new FunctionParameter({
