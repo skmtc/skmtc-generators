@@ -1,10 +1,10 @@
 {
   "name": "@skmtc/gen-tanstack-query-zod",
-  "version": "0.0.21",
+  "version": "0.0.22",
   "exports": "./mod.ts",
   "imports": {
-    "@skmtc/gen-zod": "jsr:@skmtc/gen-zod@^0.0.21",
-    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@^0.0.21"
+    "@skmtc/gen-zod": "jsr:@skmtc/gen-zod@^0.0.22",
+    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@^0.0.22"
   },
   "tasks": {
     "publish": "deno publish --allow-slow-types --allow-dirty --token=$JSR_AUTH_TOKEN"

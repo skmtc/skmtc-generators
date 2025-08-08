@@ -1,4 +1,4 @@
-import { List, Identifier } from '@skmtc/core'
+import { List, Identifier, capitalize } from '@skmtc/core'
 import { TsInsertable } from '@skmtc/gen-typescript'
 import invariant from 'tiny-invariant'
 import { TableColumn } from './TableColumn.ts'
@@ -18,7 +18,7 @@ export class TanstackColumns extends ShadcnTableBase {
 
     const rowTypeDefinition = this.insertNormalizedModel(TsInsertable, {
       schema: rowSchema,
-      fallbackName: `${settings.identifier.name}RowType`
+      fallbackName: capitalize(`${ShadcnTableBase.toIdentifier(operation).name}RowType`)
     })
 
     const columns = settings.enrichments?.table?.columns?.map(column => {

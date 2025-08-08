@@ -10,7 +10,6 @@ import { Identifier } from '@skmtc/core'
 export class ShadcnTable extends ShadcnTableBase {
   columnsName: string
   clientName: string
-  searchable: boolean
   pathParams: PathParams
   constructor({ context, operation, settings }: OperationInsertableArgs<EnrichmentSchema>) {
     super({ context, operation, settings })
@@ -20,13 +19,6 @@ export class ShadcnTable extends ShadcnTableBase {
     const listItem = listItemRef.resolve()
 
     invariant(listItem.type === 'object', 'Expected object type')
-
-    const searchParameter = operation.parameters?.find(parameter => {
-      const { location, name } = parameter.resolve()
-      return location === 'query' && name === 'search'
-    })
-
-    this.searchable = Boolean(searchParameter)
 
     this.columnsName = this.insertOperation(TanstackColumns, operation, { noExport: true }).toName()
 
@@ -41,12 +33,9 @@ export class ShadcnTable extends ShadcnTableBase {
       }
     })
 
-    const setStateImport = this.searchable ? { react: ['useState'] } : undefined
-
     this.register({
       imports: {
-        '@/components/data-table/data-table.tsx': ['DataTable'],
-        ...setStateImport
+        '@/components/data-table/data-table.tsx': ['DataTable']
       }
     })
   }
@@ -66,8 +55,6 @@ export class ShadcnTable extends ShadcnTableBase {
     <DataTable
       columns={columns}
       data={data ?? []}
-      ${this.searchable ? `search={search}` : ''}
-      ${this.searchable ? `setSearch={setSearch}` : ''}
     />
   </div>
   )
