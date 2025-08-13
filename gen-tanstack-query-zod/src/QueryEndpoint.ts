@@ -11,7 +11,7 @@ export class QueryEndpoint extends TanstackQueryBase {
 
     this.queryFn = new QueryFn({ context, operation, settings })
 
-    const operationTags: Stringable[] = operation.tags?.map((tag) => `'${tag}'`) ?? []
+    const operationTags: Stringable[] = operation.tags?.map(tag => `'${tag}'`) ?? []
 
     this.queryTags = List.toArray(
       operationTags.concat(this.queryFn.parameter.toPropertyList().values)

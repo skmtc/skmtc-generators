@@ -1,7 +1,7 @@
 import invariant from 'tiny-invariant'
 import type { OperationInsertableArgs } from '@skmtc/core'
 import { TanstackColumns } from './TanstackColumns.ts'
-import { TanstackQuery, toListItem } from '@skmtc/gen-tanstack-query-zod'
+import { TanstackQuery, toListKeyAndItem } from '@skmtc/gen-tanstack-query-zod'
 import { ShadcnTableBase } from './base.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
 import { PathParams } from './PathParams.ts'
@@ -11,12 +11,16 @@ export class ShadcnTable extends ShadcnTableBase {
   columnsName: string
   clientName: string
   pathParams: PathParams
+  listKey: string
   constructor({ context, operation, settings }: OperationInsertableArgs<EnrichmentSchema>) {
     super({ context, operation, settings })
 
-    const listItemRef = toListItem({ operation })
+    const { schema, key } = toListKeyAndItem(operation)
 
-    const listItem = listItemRef.resolve()
+    // @TODO: This should use safe path keys. IE ensure invalid names are escaped and arrays are handled properly
+    this.listKey = key.join('.')
+
+    const listItem = schema.resolve()
 
     invariant(listItem.type === 'object', 'Expected object type')
 
@@ -46,6 +50,8 @@ export class ShadcnTable extends ShadcnTableBase {
     return `(${this.pathParams}) => {
   const { data } = ${this.clientName}(${this.pathParams.destructuredPathParams})
 
+  console.log("${this.clientName}", data)
+
   return (
   <div className="flex flex-col gap-4 p-4 w-full">
     ${title || description ? `<div className="flex flex-col gap-2">` : ''}
@@ -54,7 +60,7 @@ export class ShadcnTable extends ShadcnTableBase {
     ${title || description ? `</div>` : ''}
     <DataTable
       columns={columns}
-      data={data ?? []}
+      data={data${this.listKey ? `?.${this.listKey}` : ''} ?? []}
     />
   </div>
   )

@@ -1,4 +1,4 @@
-import type { OperationInsertableArgs, TypeSystemValue } from '@skmtc/core'
+import { type OperationInsertableArgs, type TypeSystemValue, collateExamples } from '@skmtc/core'
 import { MswBase } from './base.ts'
 import { isEmpty } from '@skmtc/core'
 import { toTsValue, TsNever } from '@skmtc/gen-typescript'
@@ -16,7 +16,7 @@ export class MockRoute extends MswBase {
 
     const example = Object.values(response?.examples ?? {})[0]?.resolve().value
 
-    this.responseData = example // ?? collateExamples({ objectSchema: response?.schema, depth: 0 })
+    this.responseData = example ?? collateExamples({ objectSchema: response?.schema, depth: 0 })
 
     this.requestBodyType =
       operation.toRequestBody(({ schema }) => {

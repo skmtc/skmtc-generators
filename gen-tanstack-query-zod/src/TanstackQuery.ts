@@ -4,7 +4,7 @@ import { QueryEndpoint } from './QueryEndpoint.ts'
 import { PaginatedQueryEndpoint } from './PaginatedQueryEndpoint.ts'
 import { MutationEndpoint } from './MutationEndpoint.ts'
 import { TanstackQueryBase } from './base.ts'
-import { isListResponse } from './isListResponse.ts'
+import { isListResponse } from './listFns.ts'
 
 export class TanstackQuery extends TanstackQueryBase {
   client: PaginatedQueryEndpoint | QueryEndpoint | MutationEndpoint

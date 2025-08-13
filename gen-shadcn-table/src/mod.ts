@@ -8,7 +8,9 @@ export const ShadcnTableEntry = toOperationEntry<EnrichmentSchema>({
 
   toEnrichmentSchema,
 
-  isSupported: ({ operation }) => operation.method === 'get' && isListResponse(operation),
+  isSupported: ({ operation }) => {
+    return operation.method === 'get' && isListResponse(operation)
+  },
 
   transform: ({ context, operation }) => {
     context.insertOperation(ShadcnTable, operation)

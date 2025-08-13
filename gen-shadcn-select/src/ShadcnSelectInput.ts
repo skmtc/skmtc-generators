@@ -1,6 +1,6 @@
 import invariant from 'tiny-invariant'
 import type { OperationInsertableArgs } from '@skmtc/core'
-import { TanstackQuery, toListItem } from '@skmtc/gen-tanstack-query-zod'
+import { TanstackQuery, toListKeyAndItem } from '@skmtc/gen-tanstack-query-zod'
 import { ShadcnSelectApiBase } from './base.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
 import { PathParams } from './PathParams.ts'
@@ -13,13 +13,17 @@ export class ShadcnSelectInput extends ShadcnSelectApiBase {
   parameter: FunctionParameter
   option: InputOption
   itemName: string
+  listKey: string
 
   constructor({ context, operation, settings }: OperationInsertableArgs<EnrichmentSchema>) {
     super({ context, operation, settings })
 
-    const listItemRef = toListItem({ operation })
+    const { schema, key } = toListKeyAndItem(operation)
 
-    const listItem = listItemRef.resolve()
+    // @TODO: This should use safe path keys. IE ensure invalid names are escaped and arrays are handled properly
+    this.listKey = key.join('.')
+
+    const listItem = schema.resolve()
 
     invariant(listItem.type === 'object', 'Expected object type')
 
@@ -93,7 +97,7 @@ export class ShadcnSelectInput extends ShadcnSelectApiBase {
       <SelectTrigger>
         <SelectValue placeholder={props.placeholder} />
       </SelectTrigger>
-      <SelectContent>{data?.map(item => (
+      <SelectContent>{data${this.listKey ? `?.${this.listKey}` : ''}?.map(item => (
         <SelectItem key={item.id} value={item.id}>
           ${this.option}
         </SelectItem>

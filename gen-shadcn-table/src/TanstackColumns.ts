@@ -3,7 +3,7 @@ import { TsInsertable } from '@skmtc/gen-typescript'
 import invariant from 'tiny-invariant'
 import { TableColumn } from './TableColumn.ts'
 import type { ListArray, OasOperation, OperationInsertableArgs } from '@skmtc/core'
-import { toListItem } from '@skmtc/gen-tanstack-query-zod'
+import { toListKeyAndItem } from '@skmtc/gen-tanstack-query-zod'
 import { ShadcnTableBase } from './base.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
 
@@ -12,12 +12,12 @@ export class TanstackColumns extends ShadcnTableBase {
   constructor({ context, operation, settings }: OperationInsertableArgs<EnrichmentSchema>) {
     super({ context, operation, settings })
 
-    const rowSchema = toListItem({ operation })
+    const { schema } = toListKeyAndItem(operation)
 
-    invariant(rowSchema.resolve().type === 'object', 'Expected object type')
+    invariant(schema.resolve().type === 'object', 'Expected object type')
 
     const rowTypeDefinition = this.insertNormalizedModel(TsInsertable, {
-      schema: rowSchema,
+      schema,
       fallbackName: capitalize(`${ShadcnTableBase.toIdentifier(operation).name}RowType`)
     })
 
