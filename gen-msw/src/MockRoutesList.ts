@@ -1,5 +1,5 @@
-import type { Stringable, GenerateContext, ListArray } from "jsr:@skmtc/core@^0.0.707";
-import { ContentBase, List } from "jsr:@skmtc/core@^0.0.707";
+import type { Stringable, GenerateContext, ListArray } from '@skmtc/core'
+import { ContentBase, List } from '@skmtc/core'
 
 type ConstructorArgs = {
   context: GenerateContext
