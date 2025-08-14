@@ -22,8 +22,8 @@ export const ShadcnSelectApiEntry = toOperationEntry<EnrichmentSchema>({
   }),
 
   toMappingModule: ({ operation }) => ({
-    name: ShadcnSelectApiBase.toIdentifier(operation).name,
-    exportPath: ShadcnSelectApiBase.toExportPath(operation),
+    name: ShadcnSelectField.toIdentifier(operation).name,
+    exportPath: ShadcnSelectField.toExportPath(operation),
     group: 'inputs',
     itemType: 'input',
     schema: 'string'

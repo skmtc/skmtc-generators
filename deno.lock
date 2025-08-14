@@ -27,40 +27,40 @@
     "members": {
       "gen-msw": {
         "dependencies": [
-          "jsr:@skmtc/gen-typescript@^0.0.27"
+          "jsr:@skmtc/gen-typescript@^0.0.28"
         ]
       },
       "gen-shadcn-form": {
         "dependencies": [
-          "jsr:@skmtc/gen-tanstack-query-zod@^0.0.27",
-          "jsr:@skmtc/gen-typescript@^0.0.27",
-          "jsr:@skmtc/gen-zod@^0.0.27"
+          "jsr:@skmtc/gen-tanstack-query-zod@^0.0.28",
+          "jsr:@skmtc/gen-typescript@^0.0.28",
+          "jsr:@skmtc/gen-zod@^0.0.28"
         ]
       },
       "gen-shadcn-select": {
         "dependencies": [
-          "jsr:@skmtc/gen-tanstack-query-zod@^0.0.27",
-          "jsr:@skmtc/gen-typescript@^0.0.27",
-          "jsr:@skmtc/gen-zod@^0.0.27"
+          "jsr:@skmtc/gen-tanstack-query-zod@^0.0.28",
+          "jsr:@skmtc/gen-typescript@^0.0.28",
+          "jsr:@skmtc/gen-zod@^0.0.28"
         ]
       },
       "gen-shadcn-table": {
         "dependencies": [
-          "jsr:@skmtc/gen-tanstack-query-zod@^0.0.27",
-          "jsr:@skmtc/gen-typescript@^0.0.27",
-          "jsr:@skmtc/gen-zod@^0.0.27"
+          "jsr:@skmtc/gen-tanstack-query-zod@^0.0.28",
+          "jsr:@skmtc/gen-typescript@^0.0.28",
+          "jsr:@skmtc/gen-zod@^0.0.28"
         ]
       },
       "gen-supabase-hono": {
         "dependencies": [
-          "jsr:@skmtc/gen-typescript@^0.0.27",
-          "jsr:@skmtc/gen-zod@^0.0.27"
+          "jsr:@skmtc/gen-typescript@^0.0.28",
+          "jsr:@skmtc/gen-zod@^0.0.28"
         ]
       },
       "gen-tanstack-query-zod": {
         "dependencies": [
-          "jsr:@skmtc/gen-typescript@^0.0.27",
-          "jsr:@skmtc/gen-zod@^0.0.27"
+          "jsr:@skmtc/gen-typescript@^0.0.28",
+          "jsr:@skmtc/gen-zod@^0.0.28"
         ]
       }
     }
