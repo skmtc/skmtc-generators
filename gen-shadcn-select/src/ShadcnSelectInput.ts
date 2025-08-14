@@ -94,7 +94,7 @@ export class ShadcnSelectInput extends ShadcnSelectApiBase {
 
   return (
     <Select onValueChange={props.onChange} defaultValue={props.value}>
-      <SelectTrigger>
+      <SelectTrigger className="w-full">
         <SelectValue placeholder={props.placeholder} />
       </SelectTrigger>
       <SelectContent>{data${this.listKey ? `?.${this.listKey}` : ''}?.map(item => (
