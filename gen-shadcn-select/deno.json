@@ -1,11 +1,11 @@
 {
   "name": "@skmtc/gen-shadcn-select",
-  "version": "0.0.28",
+  "version": "0.0.29",
   "exports": "./mod.ts",
   "imports": {
-    "@skmtc/gen-tanstack-query-zod": "jsr:@skmtc/gen-tanstack-query-zod@^0.0.28",
-    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@^0.0.28",
-    "@skmtc/gen-zod": "jsr:@skmtc/gen-zod@^0.0.28"
+    "@skmtc/gen-tanstack-query-zod": "jsr:@skmtc/gen-tanstack-query-zod@^0.0.29",
+    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@^0.0.29",
+    "@skmtc/gen-zod": "jsr:@skmtc/gen-zod@^0.0.29"
   },
   "tasks": {
     "publish": "deno publish --allow-slow-types --allow-dirty --token=$JSR_AUTH_TOKEN"
