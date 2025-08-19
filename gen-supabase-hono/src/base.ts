@@ -12,6 +12,6 @@ export const SupabaseHonoBase = toOperationBase({
   toExportPath(operation): string {
     const firstSegment = toFirstSegment(operation)
 
-    return join('@', 'supabase', 'functions', `${firstSegment}.generated.ts`)
+    return join('@', firstSegment, `api.generated.ts`)
   }
 })

@@ -1,13 +1,15 @@
 import {
   camelCase,
+  capitalize,
   ContentBase,
-  Identifier,
+  decapitalize,
   OasVoid,
   toMethodVerb,
-  toPathTemplate
+  toPathParams,
+  List
 } from '@skmtc/core'
-import type { GenerateContext, OasOperation, TypeSystemValue } from '@skmtc/core'
-import { toTsValue } from '@skmtc/gen-typescript'
+import type { GenerateContext, OasOperation, ListObject } from '@skmtc/core'
+import { TsInsertable } from '@skmtc/gen-typescript'
 
 type SupabaseRouteArgs = {
   context: GenerateContext
@@ -17,50 +19,65 @@ type SupabaseRouteArgs = {
 
 export class SupabaseRoute extends ContentBase {
   operation: OasOperation
-  responseName: string
+  tsResponseName: string
   serviceName: string
+  serviceArgs: ListObject<string>
+  pathParams: ListObject<string>
+  queryParams: ListObject<string>
 
   constructor({ context, operation, destinationPath }: SupabaseRouteArgs) {
     super({ context })
 
     this.operation = operation
 
-    this.serviceName = `${toMethodVerb(operation.method)}${camelCase(operation.path, {
-      upperFirst: true
-    })}Api`
+    const pathName = camelCase(operation.path, { upperFirst: true })
+
+    this.serviceName = decapitalize(`${toMethodVerb(operation.method)}${pathName}Api`)
 
     const responseSchema = operation.toSuccessResponse()?.resolve().toSchema()
 
-    const value = toTsValue({
-      context: this.context,
+    const insertedResponse = context.insertNormalisedModel(TsInsertable, {
       schema: responseSchema ?? OasVoid.empty(),
-      destinationPath,
-      required: true,
-      rootRef: responseSchema?.isRef() ? responseSchema.toRefName() : undefined
+      fallbackName: capitalize(`${this.serviceName}Response`),
+      destinationPath
     })
 
-    if (!responseSchema?.isRef()) {
-      this.responseName = `${this.serviceName}Response`
+    const pathParams = operation.toParams(['path']).map(({ name }) => name)
+    const queryParams = operation.toParams(['query']).map(({ name }) => name)
 
-      context.defineAndRegister({
-        identifier: Identifier.createType(this.responseName),
-        value,
-        destinationPath
-      }).value
-    } else {
-      this.responseName = responseSchema.toRefName()
+    this.pathParams = List.toObject(pathParams)
+    this.queryParams = List.toObject(queryParams)
+
+    const combinedParams = List.toObject(pathParams.concat(queryParams))
+
+    const args = ['req: c.req']
+
+    if (combinedParams.values.length > 0) {
+      args.push(`params: ${combinedParams}`)
     }
+
+    this.serviceArgs = List.toObject(args)
+
+    this.tsResponseName = insertedResponse.identifier.name
+
+    context.register({
+      imports: {
+        './services.ts': [this.serviceName]
+      },
+      destinationPath
+    })
   }
 
   override toString(): string {
     const { method, path } = this.operation
 
-    return `app.${method.toUpperCase()}('${toPathTemplate(path)}', async c => {
-  console.log('${method} ${toPathTemplate(path)}')
+    return `app.${method}('${toPathParams(path)}', async c => {
+  console.log('${method} ${toPathParams(path)}')
 
-  const res: ${this.responseName} = await ${this.serviceName}({
-    req: c.req
-  })()
+  ${this.pathParams.values.length > 0 ? `const ${this.pathParams} = c.req.param()` : ''}
+  ${this.queryParams.values.length > 0 ? `const ${this.queryParams} = c.req.query()` : ''}
+
+  const res: ${this.tsResponseName} = await ${this.serviceName}(${this.serviceArgs})()
 
   return c.json(res)
 })`

@@ -3,13 +3,14 @@ import {
   capitalize,
   ContentBase,
   decapitalize,
-  Identifier,
   OasVoid,
   toMethodVerb,
-  toPathTemplate
+  toPathParams,
+  List
 } from '@skmtc/core'
-import type { GenerateContext, OasOperation, OasSchema, OasRef } from '@skmtc/core'
-import { toTsValue } from '@skmtc/gen-typescript'
+import type { GenerateContext, OasOperation, OasSchema, OasRef, ListObject } from '@skmtc/core'
+import { TsInsertable } from '@skmtc/gen-typescript'
+import { ZodInsertable } from '@skmtc/gen-zod'
 
 type SupabaseRouteArgs = {
   context: GenerateContext
@@ -20,74 +21,77 @@ type SupabaseRouteArgs = {
 
 export class SupabaseRouteBody extends ContentBase {
   operation: OasOperation
-  responseName: string
+  tsResponseName: string
   serviceName: string
-  requestBodyName: string
+  zodRequestBodyName: string
+  serviceArgs: ListObject<string>
+  pathParams: ListObject<string>
+  queryParams: ListObject<string>
 
   constructor({ context, operation, destinationPath, requestBodySchema }: SupabaseRouteArgs) {
     super({ context })
 
     this.operation = operation
 
-    this.serviceName = `${toMethodVerb(operation.method)}${camelCase(operation.path, {
-      upperFirst: true
-    })}Api`
+    const pathName = camelCase(operation.path, { upperFirst: true })
+
+    this.serviceName = decapitalize(`${toMethodVerb(operation.method)}${pathName}Api`)
 
     const responseSchema = operation.toSuccessResponse()?.resolve().toSchema()
 
-    const responseValue = toTsValue({
-      context: this.context,
+    const insertedResponse = context.insertNormalisedModel(TsInsertable, {
       schema: responseSchema ?? OasVoid.empty(),
-      destinationPath,
-      required: true,
-      rootRef: responseSchema?.isRef() ? responseSchema.toRefName() : undefined
+      fallbackName: capitalize(`${this.serviceName}Response`),
+      destinationPath
     })
 
-    if (!responseSchema?.isRef()) {
-      this.responseName = capitalize(`${this.serviceName}Response`)
+    this.tsResponseName = insertedResponse.identifier.name
 
-      context.defineAndRegister({
-        identifier: Identifier.createType(this.responseName),
-        value: responseValue,
-        destinationPath
-      }).value
-    } else {
-      this.responseName = responseSchema.toRefName()
-    }
-
-    const requestBodyValue = toTsValue({
-      context: this.context,
+    const insertedRequestBody = context.insertNormalisedModel(ZodInsertable, {
       schema: requestBodySchema,
-      destinationPath,
-      required: true,
-      rootRef: requestBodySchema.isRef() ? requestBodySchema.toRefName() : undefined
+      fallbackName: decapitalize(`${this.serviceName}RequestBody`),
+      destinationPath
     })
 
-    if (!requestBodySchema.isRef()) {
-      this.requestBodyName = decapitalize(`${this.serviceName}RequestBody`)
+    this.zodRequestBodyName = insertedRequestBody.identifier.name
 
-      context.defineAndRegister({
-        identifier: Identifier.createType(this.requestBodyName),
-        value: requestBodyValue,
-        destinationPath
-      }).value
-    } else {
-      this.requestBodyName = requestBodySchema.toRefName()
+    const pathParams = operation.toParams(['path']).map(({ name }) => name)
+    const queryParams = operation.toParams(['query']).map(({ name }) => name)
+
+    this.pathParams = List.toObject(pathParams)
+    this.queryParams = List.toObject(queryParams)
+
+    const combinedParams = List.toObject(pathParams.concat(queryParams))
+
+    const args = ['req: c.req', 'body']
+
+    if (combinedParams.values.length > 0) {
+      args.push(`params: ${combinedParams}`)
     }
+
+    this.serviceArgs = List.toObject(args)
+
+    context.register({
+      imports: {
+        './services.ts': [this.serviceName]
+      },
+      destinationPath
+    })
   }
 
   override toString(): string {
     const { method, path } = this.operation
 
-    return `app.${method}('${toPathTemplate(path)}', async c => {
-  console.log('${method.toUpperCase()} ${toPathTemplate(path)}')
+    return `app.${method}('${toPathParams(path)}', async c => {
+  console.log('${method.toUpperCase()} ${toPathParams(path)}')
 
   const requestBody = await c.req.json()
-  const body = ${this.requestBodyName}.parse(requestBody)
+  const body = ${this.zodRequestBodyName}.parse(requestBody)
 
-  const res: ${this.responseName} = await ${this.serviceName}({
-    req: c.req
-  })()
+  ${this.pathParams.values.length > 0 ? `const ${this.pathParams} = c.req.param()` : ''}
+  ${this.queryParams.values.length > 0 ? `const ${this.queryParams} = c.req.query()` : ''}
+
+  const res: ${this.tsResponseName} = await ${this.serviceName}(${this.serviceArgs})()
 
   return c.json(res)
 })`

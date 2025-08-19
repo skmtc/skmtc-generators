@@ -68,10 +68,6 @@ app.onError((error, c) => {
 
   console.log('ERROR', error)
 
-  if (error instanceof ValidationError) {
-    return c.json({ validationErrors: error.items }, 422)
-  }
-
   return c.json({ message: 'Internal server error' }, 500)
 })
 
