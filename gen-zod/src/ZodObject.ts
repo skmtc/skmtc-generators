@@ -76,6 +76,8 @@ export class ZodObject extends ContentBase {
         rootRef
       })
     }
+
+    context.register({ imports: { zod: ['z'] }, destinationPath })
   }
 
   override toString(): string {

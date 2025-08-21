@@ -8,6 +8,7 @@ type ZodIntegerArgs = {
   context: GenerateContext
   integerSchema: OasInteger
   modifiers: Modifiers
+  destinationPath: string
   generatorKey: GeneratorKey
 }
 
@@ -17,12 +18,20 @@ export class ZodInteger extends ContentBase {
   format?: 'int32' | 'int64'
   enums?: number[] | (number | null)[]
 
-  constructor({ context, integerSchema, modifiers, generatorKey }: ZodIntegerArgs) {
+  constructor({
+    context,
+    integerSchema,
+    modifiers,
+    destinationPath,
+    generatorKey
+  }: ZodIntegerArgs) {
     super({ context, generatorKey })
 
     this.format = integerSchema.format
     this.enums = integerSchema.enums
     this.modifiers = modifiers
+
+    context.register({ imports: { zod: ['z'] }, destinationPath })
   }
 
   override toString(): string {

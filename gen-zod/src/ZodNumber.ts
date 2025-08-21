@@ -4,6 +4,7 @@ import { applyModifiers } from './applyModifiers.ts'
 type ZodNumberArgs = {
   context: GenerateContext
   modifiers: Modifiers
+  destinationPath: string
   generatorKey: GeneratorKey
 }
 
@@ -11,10 +12,12 @@ export class ZodNumber extends ContentBase {
   type = 'number' as const
   modifiers: Modifiers
 
-  constructor({ context, modifiers, generatorKey }: ZodNumberArgs) {
+  constructor({ context, modifiers, destinationPath, generatorKey }: ZodNumberArgs) {
     super({ context, generatorKey })
 
     this.modifiers = modifiers
+
+    context.register({ imports: { zod: ['z'] }, destinationPath })
   }
 
   override toString(): string {

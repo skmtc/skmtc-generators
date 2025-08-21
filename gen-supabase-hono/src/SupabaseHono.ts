@@ -2,11 +2,10 @@ import type { OperationInsertableArgs, ListArray, OasOperation, ListLines } from
 import { List } from '@skmtc/core'
 import { SupabaseHonoBase } from './base.ts'
 import { SupabaseRoute } from './SupabaseRoute.ts'
-import { SupabaseRouteBody } from './SupabaseRouteBody.ts'
 
 export class SupabaseHono extends SupabaseHonoBase {
   methods: ListArray<string>
-  routes: ListLines<SupabaseRoute | SupabaseRouteBody>
+  routes: ListLines<SupabaseRoute>
   constructor({ context, operation, settings }: OperationInsertableArgs) {
     super({ context, operation, settings })
 
@@ -17,8 +16,7 @@ export class SupabaseHono extends SupabaseHonoBase {
       imports: {
         'npm:hono@4.5.6': ['Hono'],
         'npm:hono@4.5.6/cors': ['cors'],
-        'npm:@hono/sentry@1.2.0': ['sentry'],
-        'npm:zod@4.0.14': ['z']
+        'npm:@hono/sentry@1.2.0': ['sentry']
       }
     })
   }
@@ -30,26 +28,13 @@ export class SupabaseHono extends SupabaseHonoBase {
       this.methods.values.push(method)
     }
 
-    const requestBodySchema = operation.toRequestBody(({ schema }) => schema)
-
-    if (requestBodySchema) {
-      this.routes.values.push(
-        new SupabaseRouteBody({
-          context: this.context,
-          operation,
-          destinationPath: this.settings.exportPath,
-          requestBodySchema
-        })
-      )
-    } else {
-      this.routes.values.push(
-        new SupabaseRoute({
-          context: this.context,
-          operation,
-          destinationPath: this.settings.exportPath
-        })
-      )
-    }
+    this.routes.values.push(
+      new SupabaseRoute({
+        context: this.context,
+        operation,
+        destinationPath: this.settings.exportPath
+      })
+    )
   }
 
   override toString(): string {

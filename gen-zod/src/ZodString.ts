@@ -7,6 +7,7 @@ type ZodStringArgs = {
   context: GenerateContext
   stringSchema: OasString
   modifiers: Modifiers
+  destinationPath: string
   generatorKey: GeneratorKey
 }
 
@@ -15,12 +16,14 @@ export class ZodString extends ContentBase {
   format: string | undefined
   enums: string[] | (string | null)[] | undefined
   modifiers: Modifiers
-  constructor({ context, stringSchema, generatorKey, modifiers }: ZodStringArgs) {
+  constructor({ context, stringSchema, generatorKey, destinationPath, modifiers }: ZodStringArgs) {
     super({ context, generatorKey })
 
     this.enums = stringSchema.enums
     this.format = stringSchema.format
     this.modifiers = modifiers
+
+    context.register({ imports: { zod: ['z'] }, destinationPath })
   }
 
   override toString(): string {

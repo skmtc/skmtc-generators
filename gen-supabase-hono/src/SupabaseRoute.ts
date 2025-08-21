@@ -10,6 +10,8 @@ import {
 } from '@skmtc/core'
 import type { GenerateContext, OasOperation, ListObject } from '@skmtc/core'
 import { TsInsertable } from '@skmtc/gen-typescript'
+import { RequestBody } from './RequestBody.ts'
+import { Response } from './Response.ts'
 
 type SupabaseRouteArgs = {
   context: GenerateContext
@@ -24,6 +26,8 @@ export class SupabaseRoute extends ContentBase {
   serviceArgs: ListObject<string>
   pathParams: ListObject<string>
   queryParams: ListObject<string>
+  requestBody: RequestBody
+  response: Response
 
   constructor({ context, operation, destinationPath }: SupabaseRouteArgs) {
     super({ context })
@@ -35,6 +39,8 @@ export class SupabaseRoute extends ContentBase {
     this.serviceName = decapitalize(`${toMethodVerb(operation.method)}${pathName}Api`)
 
     const responseSchema = operation.toSuccessResponse()?.resolve().toSchema()
+
+    this.response = new Response({ context, responseSchema })
 
     const insertedResponse = context.insertNormalisedModel(TsInsertable, {
       schema: responseSchema ?? OasVoid.empty(),
@@ -50,7 +56,20 @@ export class SupabaseRoute extends ContentBase {
 
     const combinedParams = List.toObject(pathParams.concat(queryParams))
 
+    const requestBodySchema = operation.toRequestBody(({ schema }) => schema)
+
+    this.requestBody = new RequestBody({
+      context,
+      serviceName: this.serviceName,
+      destinationPath,
+      requestBodySchema
+    })
+
     const args = ['req: c.req']
+
+    if (requestBodySchema) {
+      args.push(`body`)
+    }
 
     if (combinedParams.values.length > 0) {
       args.push(`params: ${combinedParams}`)
@@ -77,9 +96,11 @@ export class SupabaseRoute extends ContentBase {
   ${this.pathParams.values.length > 0 ? `const ${this.pathParams} = c.req.param()` : ''}
   ${this.queryParams.values.length > 0 ? `const ${this.queryParams} = c.req.query()` : ''}
 
+  ${this.requestBody}
+
   const res: ${this.tsResponseName} = await ${this.serviceName}(${this.serviceArgs})()
 
-  return c.json(res)
+  ${this.response}
 })`
   }
 }

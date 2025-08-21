@@ -45,6 +45,8 @@ export class ZodUnion extends ContentBase {
 
     this.discriminator = discriminator?.propertyName
     this.modifiers = modifiers
+
+    context.register({ imports: { zod: ['z'] }, destinationPath })
   }
 
   override toString(): string {

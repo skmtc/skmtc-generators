@@ -31,6 +31,8 @@ export class ZodArray extends ContentBase {
     this.modifiers = modifiers
 
     this.items = toZodValue({ destinationPath, schema: items, required: true, context, rootRef })
+
+    context.register({ imports: { zod: ['z'] }, destinationPath })
   }
 
   override toString(): string {

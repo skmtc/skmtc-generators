@@ -26,10 +26,6 @@ export const toZodValue: SchemaToValueFn = ({
     nullable: 'nullable' in schema ? schema.nullable : undefined
   }
 
-  if (schema.type && schema.type !== 'ref') {
-    context.register({ imports: { zod: ['z'] }, destinationPath })
-  }
-
   const generatorKey = toGeneratorOnlyKey({ generatorId: zodEntry.id })
 
   return match(schema satisfies SchemaType)
@@ -67,16 +63,23 @@ export const toZodValue: SchemaToValueFn = ({
         rootRef
       })
     })
-    .with({ type: 'number' }, () => new ZodNumber({ context, modifiers, generatorKey }))
+    .with(
+      { type: 'number' },
+      () => new ZodNumber({ context, modifiers, destinationPath, generatorKey })
+    )
     .with({ type: 'integer' }, integerSchema => {
-      return new ZodInteger({ context, integerSchema, modifiers, generatorKey })
+      return new ZodInteger({ context, integerSchema, modifiers, destinationPath, generatorKey })
     })
-    .with({ type: 'boolean' }, () => new ZodBoolean({ context, modifiers, generatorKey }))
-    .with({ type: 'void' }, () => new ZodVoid({ context, generatorKey }))
+    .with(
+      { type: 'boolean' },
+      () => new ZodBoolean({ context, modifiers, destinationPath, generatorKey })
+    )
+    .with({ type: 'void' }, () => new ZodVoid({ context, destinationPath, generatorKey }))
     .with(
       { type: 'string' },
-      stringSchema => new ZodString({ context, stringSchema, modifiers, generatorKey })
+      stringSchema =>
+        new ZodString({ context, stringSchema, modifiers, destinationPath, generatorKey })
     )
-    .with({ type: 'unknown' }, () => new ZodUnknown({ context, generatorKey }))
+    .with({ type: 'unknown' }, () => new ZodUnknown({ context, destinationPath, generatorKey }))
     .exhaustive()
 }

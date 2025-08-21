@@ -25,11 +25,13 @@ export class ZodRef extends ContentBase {
         insertable: ZodInsertable
       })
 
+      context.register({ imports: { zod: ['z'] }, destinationPath: settings.exportPath })
+
       this.name = settings.identifier.name
       this.modifiers = modifiers
       this.terminal = true
     } else {
-      const zodDriver = new ModelDriver({
+      const { settings } = new ModelDriver({
         context,
         refName,
         generation: 'force',
@@ -38,7 +40,9 @@ export class ZodRef extends ContentBase {
         insertable: ZodInsertable
       })
 
-      this.name = zodDriver.settings.identifier.name
+      context.register({ imports: { zod: ['z'] }, destinationPath: settings.exportPath })
+
+      this.name = settings.identifier.name
       this.modifiers = modifiers
       this.terminal = false
     }
