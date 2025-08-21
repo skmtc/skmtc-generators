@@ -24,21 +24,29 @@ export class MutationEndpoint extends TanstackQueryBase {
 
     this.register({
       imports: {
-        '@tanstack/react-query': ['useMutation', 'useQueryClient'],
+        '@tanstack/react-query': ['useMutation', 'useQueryClient', 'UseMutationOptions'],
         zod: ['z']
       }
     })
   }
 
   override toString(): string {
-    return `() => {
+    const { tsResponseName, tsArgsName } = this.mutationFn
+
+    return `(args: UseMutationOptions<${tsResponseName},Error,${tsArgsName},unknown> = {}) => {
       const queryClient = useQueryClient()
+      
+      const { onSuccess, ...rest } = args
+
       return useMutation({
         mutationFn: ${this.mutationFn},
-        onSuccess: () => {
+        onSuccess: (...successArgs) => {
           // Invalidate and refetch
           void queryClient.invalidateQueries({ queryKey: ${this.tags}})
-        }
+
+           onSuccess?.(...successArgs)
+        },
+        ...rest
       })
     }`
   }

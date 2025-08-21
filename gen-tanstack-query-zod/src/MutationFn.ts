@@ -18,8 +18,10 @@ import { ZodInsertable } from '@skmtc/gen-zod'
 export class MutationFn extends TanstackQueryBase {
   parameter: FunctionParameter
   zodResponseName: string
+  tsResponseName: string
   queryParamArgs: ListObject<string>
   headerParams: ListObject<Stringable>
+  tsArgsName: string
 
   constructor({ context, operation, settings }: OperationInsertableArgs) {
     super({ context, operation, settings })
@@ -43,6 +45,8 @@ export class MutationFn extends TanstackQueryBase {
       fallbackName: `${capitalize(settings.identifier.name)}Args`
     })
 
+    this.tsArgsName = typeDefinition.identifier.name
+
     this.parameter = new FunctionParameter({
       typeDefinition,
       destructure: true,
@@ -56,6 +60,13 @@ export class MutationFn extends TanstackQueryBase {
     })
 
     this.zodResponseName = zodResponse.identifier.name
+
+    const tsResponse = this.insertNormalizedModel(TsInsertable, {
+      schema: operation.toSuccessResponse()?.resolve().toSchema() ?? OasVoid.empty(),
+      fallbackName: `${capitalize(settings.identifier.name)}Response`
+    })
+
+    this.tsResponseName = tsResponse.identifier.name
   }
 
   override toString(): string {

@@ -56,9 +56,7 @@ export class PaginatedQueryFn extends TanstackQueryBase {
 
       const data = await res.json()
 
-      const parsed = ${this.zodResponseName}.parse(data)
-
-      return parsed
+      return ${this.zodResponseName}.parse(data)
     }`
   }
 }

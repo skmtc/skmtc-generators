@@ -19,7 +19,6 @@ export class PaginatedQueryEndpoint extends TanstackQueryBase {
 
     this.register({
       imports: {
-        react: ['useEffect'],
         '@tanstack/react-query': ['useQuery', 'keepPreviousData']
       }
     })
@@ -32,12 +31,6 @@ export class PaginatedQueryEndpoint extends TanstackQueryBase {
         queryFn: ${this.queryFn},
         placeholderData: keepPreviousData
       })
-
-      useEffect(() => {
-        if(result.isError) {
-          console.log('ERROR', result.error)
-        }
-      }, [])
 
       return result
     }`

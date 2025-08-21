@@ -19,7 +19,6 @@ export class QueryEndpoint extends TanstackQueryBase {
 
     this.register({
       imports: {
-        react: ['useEffect'],
         '@tanstack/react-query': ['useQuery']
       }
     })
@@ -31,12 +30,6 @@ export class QueryEndpoint extends TanstackQueryBase {
         queryKey: ${this.queryTags},
         queryFn: ${this.queryFn}
       })
-
-      useEffect(() => {
-        if(result.isError) {
-          console.log('ERROR', result.error)
-        }
-      }, [])
 
       return result
     }`
