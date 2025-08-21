@@ -1,26 +1,43 @@
-import { ContentBase } from '@skmtc/core'
-import type { GenerateContext, OasSchema, OasRef } from '@skmtc/core'
+import { capitalize, ContentBase, OasVoid } from '@skmtc/core'
+import type { GenerateContext, OasSchema, OasRef, ListObject } from '@skmtc/core'
+import { TsInsertable } from '@skmtc/gen-typescript'
 
 type ResponseArgs = {
   context: GenerateContext
   responseSchema: OasSchema | OasRef<'schema'> | undefined
+  serviceName: string
+  serviceArgs: ListObject<string>
+  destinationPath: string
 }
 
 export class Response extends ContentBase {
-  hasResponse: boolean
+  serviceName: string
+  serviceArgs: ListObject<string>
+  tsResponseName: string
 
-  constructor({ context, responseSchema }: ResponseArgs) {
+  constructor({
+    context,
+    responseSchema,
+    serviceName,
+    serviceArgs,
+    destinationPath
+  }: ResponseArgs) {
     super({ context })
 
-    this.hasResponse = Boolean(responseSchema)
+    const insertedResponse = context.insertNormalisedModel(TsInsertable, {
+      schema: responseSchema ?? OasVoid.empty(),
+      fallbackName: capitalize(`${serviceName}Response`),
+      destinationPath
+    })
+
+    this.serviceName = serviceName
+    this.serviceArgs = serviceArgs
+    this.tsResponseName = insertedResponse.identifier.name
   }
 
   override toString(): string {
-    if (!this.hasResponse) {
-      return 'return c.body(null, 204)'
-    }
+    return `const res: ${this.tsResponseName} = await ${this.serviceName}(${this.serviceArgs})()
 
-    return `
     if(!res){
       return c.body(null, 404)
     }

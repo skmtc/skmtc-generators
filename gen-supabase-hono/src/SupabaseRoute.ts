@@ -1,17 +1,8 @@
-import {
-  camelCase,
-  capitalize,
-  ContentBase,
-  decapitalize,
-  OasVoid,
-  toMethodVerb,
-  toPathParams,
-  List
-} from '@skmtc/core'
+import { camelCase, ContentBase, decapitalize, toMethodVerb, toPathParams, List } from '@skmtc/core'
 import type { GenerateContext, OasOperation, ListObject } from '@skmtc/core'
-import { TsInsertable } from '@skmtc/gen-typescript'
 import { RequestBody } from './RequestBody.ts'
 import { Response } from './Response.ts'
+import { ResponseVoid } from './ResponseVoid.ts'
 
 type SupabaseRouteArgs = {
   context: GenerateContext
@@ -21,13 +12,10 @@ type SupabaseRouteArgs = {
 
 export class SupabaseRoute extends ContentBase {
   operation: OasOperation
-  tsResponseName: string
-  serviceName: string
-  serviceArgs: ListObject<string>
   pathParams: ListObject<string>
   queryParams: ListObject<string>
   requestBody: RequestBody
-  response: Response
+  response: Response | ResponseVoid
 
   constructor({ context, operation, destinationPath }: SupabaseRouteArgs) {
     super({ context })
@@ -36,17 +24,9 @@ export class SupabaseRoute extends ContentBase {
 
     const pathName = camelCase(operation.path, { upperFirst: true })
 
-    this.serviceName = decapitalize(`${toMethodVerb(operation.method)}${pathName}Api`)
+    const serviceName = decapitalize(`${toMethodVerb(operation.method)}${pathName}Api`)
 
     const responseSchema = operation.toSuccessResponse()?.resolve().toSchema()
-
-    this.response = new Response({ context, responseSchema })
-
-    const insertedResponse = context.insertNormalisedModel(TsInsertable, {
-      schema: responseSchema ?? OasVoid.empty(),
-      fallbackName: capitalize(`${this.serviceName}Response`),
-      destinationPath
-    })
 
     const pathParams = operation.toParams(['path']).map(({ name }) => name)
     const queryParams = operation.toParams(['query']).map(({ name }) => name)
@@ -60,7 +40,7 @@ export class SupabaseRoute extends ContentBase {
 
     this.requestBody = new RequestBody({
       context,
-      serviceName: this.serviceName,
+      serviceName,
       destinationPath,
       requestBodySchema
     })
@@ -75,13 +55,17 @@ export class SupabaseRoute extends ContentBase {
       args.push(`params: ${combinedParams}`)
     }
 
-    this.serviceArgs = List.toObject(args)
+    const serviceArgs = List.toObject(args)
 
-    this.tsResponseName = insertedResponse.identifier.name
+    const hasResponse = Boolean(responseSchema)
+
+    this.response = hasResponse
+      ? new Response({ context, serviceName, serviceArgs, responseSchema, destinationPath })
+      : new ResponseVoid({ context, serviceName, serviceArgs })
 
     context.register({
       imports: {
-        './services.ts': [this.serviceName]
+        './services.ts': [serviceName]
       },
       destinationPath
     })
@@ -97,8 +81,6 @@ export class SupabaseRoute extends ContentBase {
   ${this.queryParams.values.length > 0 ? `const ${this.queryParams} = c.req.query()` : ''}
 
   ${this.requestBody}
-
-  const res: ${this.tsResponseName} = await ${this.serviceName}(${this.serviceArgs})()
 
   ${this.response}
 })`
