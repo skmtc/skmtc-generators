@@ -14,6 +14,6 @@ export const TypescriptBase = toModelBase({
   toExportPath(refName: RefName): string {
     const { name } = this.toIdentifier(refName)
 
-    return join('@', 'types', `${decapitalize(name)}.generated.tsx`)
+    return join('@', 'types', `${decapitalize(name)}.generated.ts`)
   }
 })

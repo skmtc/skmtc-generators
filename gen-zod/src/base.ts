@@ -13,6 +13,6 @@ export const ZodBase = toModelBase({
   toExportPath(refName: RefName): string {
     const { name } = this.toIdentifier(refName)
 
-    return join('@', '_shared', 'types', `${decapitalize(name)}.generated.ts`)
+    return join('@', 'types', `${decapitalize(name)}.generated.ts`)
   }
 })
