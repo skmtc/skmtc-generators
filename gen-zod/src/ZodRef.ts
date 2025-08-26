@@ -40,8 +40,6 @@ export class ZodRef extends ContentBase {
         insertable: ZodInsertable
       })
 
-      context.register({ imports: { zod: ['z'] }, destinationPath: settings.exportPath })
-
       this.name = settings.identifier.name
       this.modifiers = modifiers
       this.terminal = false
