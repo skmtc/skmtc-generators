@@ -1,6 +1,6 @@
 import invariant from 'tiny-invariant'
 import type { OperationInsertableArgs } from '@skmtc/core'
-import { TanstackQuery, toListKeyAndItem } from '@skmtc/gen-tanstack-query-zod'
+import { TanstackQuery, toListKeyAndItem } from '@skmtc/gen-tanstack-query-supabase-zod'
 import { ShadcnSelectApiBase } from './base.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
 import { PathParams } from './PathParams.ts'

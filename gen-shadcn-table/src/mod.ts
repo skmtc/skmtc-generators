@@ -1,6 +1,6 @@
 import { toOperationEntry } from '@skmtc/core'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
-import { isListResponse } from '@skmtc/gen-tanstack-query-zod'
+import { isListResponse } from '@skmtc/gen-tanstack-query-supabase-zod'
 import { ShadcnTable } from './ShadcnTable.ts'
 
 export const ShadcnTableEntry = toOperationEntry<EnrichmentSchema>({

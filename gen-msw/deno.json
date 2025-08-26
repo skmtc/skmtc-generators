@@ -1,11 +1,11 @@
 {
   "name": "@skmtc/gen-msw",
-  "version": "0.0.35",
+  "version": "0.0.36",
   "exports": "./mod.ts",
   "tasks": {
     "publish": "deno publish --allow-slow-types --allow-dirty --token=$JSR_AUTH_TOKEN"
   },
   "imports": {
-    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@^0.0.35"
+    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@^0.0.36"
   }
 }

@@ -3,7 +3,7 @@ import { TsInsertable } from '@skmtc/gen-typescript'
 import invariant from 'tiny-invariant'
 import { TableColumn } from './TableColumn.ts'
 import type { ListArray, OasOperation, OperationInsertableArgs } from '@skmtc/core'
-import { toListKeyAndItem } from '@skmtc/gen-tanstack-query-zod'
+import { toListKeyAndItem } from '@skmtc/gen-tanstack-query-supabase-zod'
 import { ShadcnTableBase } from './base.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
 

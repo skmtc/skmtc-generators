@@ -27,40 +27,46 @@
     "members": {
       "gen-msw": {
         "dependencies": [
-          "jsr:@skmtc/gen-typescript@^0.0.35"
+          "jsr:@skmtc/gen-typescript@^0.0.36"
         ]
       },
       "gen-shadcn-form": {
         "dependencies": [
-          "jsr:@skmtc/gen-tanstack-query-zod@^0.0.35",
-          "jsr:@skmtc/gen-typescript@^0.0.35",
-          "jsr:@skmtc/gen-zod@^0.0.35"
+          "jsr:@skmtc/gen-tanstack-query-supabase-zod@^0.0.36",
+          "jsr:@skmtc/gen-typescript@^0.0.36",
+          "jsr:@skmtc/gen-zod@^0.0.36"
         ]
       },
       "gen-shadcn-select": {
         "dependencies": [
-          "jsr:@skmtc/gen-tanstack-query-zod@^0.0.35",
-          "jsr:@skmtc/gen-typescript@^0.0.35",
-          "jsr:@skmtc/gen-zod@^0.0.35"
+          "jsr:@skmtc/gen-tanstack-query-supabase-zod@^0.0.36",
+          "jsr:@skmtc/gen-typescript@^0.0.36",
+          "jsr:@skmtc/gen-zod@^0.0.36"
         ]
       },
       "gen-shadcn-table": {
         "dependencies": [
-          "jsr:@skmtc/gen-tanstack-query-zod@^0.0.35",
-          "jsr:@skmtc/gen-typescript@^0.0.35",
-          "jsr:@skmtc/gen-zod@^0.0.35"
+          "jsr:@skmtc/gen-tanstack-query-supabase-zod@^0.0.36",
+          "jsr:@skmtc/gen-typescript@^0.0.36",
+          "jsr:@skmtc/gen-zod@^0.0.36"
         ]
       },
       "gen-supabase-hono": {
         "dependencies": [
-          "jsr:@skmtc/gen-typescript@^0.0.35",
-          "jsr:@skmtc/gen-zod@^0.0.35"
+          "jsr:@skmtc/gen-typescript@^0.0.36",
+          "jsr:@skmtc/gen-zod@^0.0.36"
         ]
       },
-      "gen-tanstack-query-zod": {
+      "gen-tanstack-query-fetch-zod": {
         "dependencies": [
-          "jsr:@skmtc/gen-typescript@^0.0.35",
-          "jsr:@skmtc/gen-zod@^0.0.35"
+          "jsr:@skmtc/gen-typescript@^0.0.36",
+          "jsr:@skmtc/gen-zod@^0.0.36"
+        ]
+      },
+      "gen-tanstack-query-supabase-zod": {
+        "dependencies": [
+          "jsr:@skmtc/gen-typescript@^0.0.36",
+          "jsr:@skmtc/gen-zod@^0.0.36"
         ]
       }
     }

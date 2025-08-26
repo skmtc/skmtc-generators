@@ -2,7 +2,7 @@ import { capitalize, Identifier, toEndpointName, toOperationBase } from '@skmtc/
 import { join } from '@std/path'
 
 export const TanstackQueryBase = toOperationBase({
-  id: '@skmtc/gen-tanstack-query-zod',
+  id: '@skmtc/gen-tanstack-query-supabase-zod',
 
   toIdentifier(operation): Identifier {
     const name = `use${capitalize(toEndpointName(operation))}`

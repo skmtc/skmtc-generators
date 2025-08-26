@@ -1,4 +1,4 @@
-import { TanstackQuery } from '@skmtc/gen-tanstack-query-zod'
+import { TanstackQuery } from '@skmtc/gen-tanstack-query-supabase-zod'
 import {
   CustomValue,
   decapitalize,

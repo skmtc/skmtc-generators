@@ -2,7 +2,7 @@ import { TanstackQuery } from './TanstackQuery.ts'
 import { toOperationEntry } from '@skmtc/core'
 
 export const tanstackQueryEntry = toOperationEntry({
-  id: '@skmtc/gen-tanstack-query-zod',
+  id: '@skmtc/gen-tanstack-query-supabase-zod',
   transform: ({ context, operation }) => {
     context.insertOperation(TanstackQuery, operation)
   },

@@ -1,5 +1,5 @@
 {
-  "name": "@skmtc/gen-supabase-hono",
+  "name": "@skmtc/gen-tanstack-query-fetch-zod",
   "version": "0.0.36",
   "exports": "./mod.ts",
   "imports": {
