@@ -2,9 +2,10 @@ import { Identifier, toOperationBase, camelCase } from '@skmtc/core'
 import { join } from '@std/path'
 import type { EnrichmentSchema } from './enrichments.ts'
 import { toEnrichmentSchema } from './enrichments.ts'
+import denoJson from '../deno.json' with { type: 'json' }
 
 export const ShadcnTableBase = toOperationBase<EnrichmentSchema>({
-  id: '@skmtc/shadcn-table',
+  id: denoJson.name,
 
   toEnrichmentSchema,
 

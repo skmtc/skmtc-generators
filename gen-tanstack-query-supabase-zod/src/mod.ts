@@ -1,8 +1,9 @@
 import { TanstackQuery } from './TanstackQuery.ts'
 import { toOperationEntry } from '@skmtc/core'
+import denoJson from '../deno.json' with { type: 'json' }
 
 export const tanstackQueryEntry = toOperationEntry({
-  id: '@skmtc/gen-tanstack-query-supabase-zod',
+  id: denoJson.name,
   transform: ({ context, operation }) => {
     context.insertOperation(TanstackQuery, operation)
   },

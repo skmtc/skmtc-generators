@@ -1,8 +1,9 @@
 import { capitalize, Identifier, toEndpointName, toOperationBase } from '@skmtc/core'
 import { join } from '@std/path'
+import denoJson from '../deno.json' with { type: 'json' }
 
 export const TanstackQueryBase = toOperationBase({
-  id: '@skmtc/gen-tanstack-query-supabase-zod',
+  id: denoJson.name,
 
   toIdentifier(operation): Identifier {
     const name = `use${capitalize(toEndpointName(operation))}`

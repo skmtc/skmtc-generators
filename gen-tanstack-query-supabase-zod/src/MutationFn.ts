@@ -74,7 +74,7 @@ export class MutationFn extends TanstackQueryBase {
   }
 
   override toString(): string {
-    return `async () => {      
+    return `async (${this.parameter}) => {      
       const { data, error } = await supabase.functions.invoke(\`${toPathTemplate(
         this.operation.path
       )}\`, {

@@ -1,9 +1,10 @@
 import { Identifier, toOperationEntry } from '@skmtc/core'
 import { MockRoute } from './MockRoute.ts'
 import { MockRoutesList } from './MockRoutesList.ts'
+import denoJson from '../deno.json' with { type: 'json' }
 
 export const MswEntry = toOperationEntry({
-  id: '@skmtc/msw',
+  id: denoJson.name,
 
   transform: ({ context, operation }) => {
     const insertedRoute = context.insertOperation(MockRoute, operation)

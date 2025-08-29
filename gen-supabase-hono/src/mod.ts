@@ -1,9 +1,10 @@
 import invariant from 'tiny-invariant'
 import { SupabaseHono } from './SupabaseHono.ts'
 import { toOperationEntry } from '@skmtc/core'
+import denoJson from '../deno.json' with { type: 'json' }
 
 export const supabaseHonoEntry = toOperationEntry({
-  id: '@skmtc/gen-supabase-hono',
+  id: denoJson.name,
   transform: ({ context, operation }) => {
     const app =
       context.findDefinition({

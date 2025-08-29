@@ -1,8 +1,9 @@
 import { Identifier, toOperationBase, camelCase } from '@skmtc/core'
 import { join } from '@std/path'
+import denoJson from '../deno.json' with { type: 'json' }
 
 export const MswBase = toOperationBase({
-  id: '@skmtc/msw',
+  id: denoJson.name,
 
   toIdentifier({ method, path }): Identifier {
     const name = `${method}${camelCase(path, { upperFirst: true })}Handler`

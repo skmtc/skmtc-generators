@@ -2,8 +2,9 @@ import { toOperationEntry, type IsSupportedOperationConfigArgs } from '@skmtc/co
 import type { EnrichmentSchema } from './enrichments.ts'
 import { toEnrichmentSchema } from './enrichments.ts'
 import { ShadcnForm } from './ShadcnForm.ts'
+import denoJson from '../deno.json' with { type: 'json' }
 export const ShadcnFormEntry = toOperationEntry<EnrichmentSchema>({
-  id: ShadcnForm.id,
+  id: denoJson.name,
 
   isSupported({ operation }: IsSupportedOperationConfigArgs<EnrichmentSchema>) {
     return (

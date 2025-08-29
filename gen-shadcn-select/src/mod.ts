@@ -3,9 +3,10 @@ import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import { isListResponse } from '@skmtc/gen-tanstack-query-supabase-zod'
 import { ShadcnSelectField } from './ShadcnSelectField.ts'
 import { ShadcnSelectApiBase } from './base.ts'
+import denoJson from '../deno.json' with { type: 'json' }
 
 export const ShadcnSelectApiEntry = toOperationEntry<EnrichmentSchema>({
-  id: '@skmtc/shadcn-select',
+  id: denoJson.name,
 
   toEnrichmentSchema,
 
