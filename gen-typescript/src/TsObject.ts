@@ -1,4 +1,4 @@
-import { ContentBase, handleKey, OasUnknown, isEmpty } from '@skmtc/core'
+import { ContentBase, handleKey, isEmpty } from '@skmtc/core'
 import type {
   GenerateContext,
   OasRef,
@@ -14,6 +14,8 @@ import type {
 } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
 import { toTsValue } from './Ts.ts'
+import { TsUnknown } from './TsUnknown.ts'
+import { match, P } from 'ts-pattern'
 
 type TsObjectProps = {
   context: GenerateContext
@@ -44,39 +46,29 @@ export class TsObject extends ContentBase {
 
     const { properties, required, additionalProperties } = value
 
-    // If there are no properties, we need to return a record with unknown values
-    if (!properties || isEmpty(properties)) {
-      this.recordProperties = new TsRecord({
-        context,
-        generatorKey,
-        destinationPath,
-        schema: new OasUnknown({}),
-        modifiers,
-        rootRef
-      })
-      this.objectProperties = null
-    } else {
-      this.recordProperties = additionalProperties
-        ? new TsRecord({
-            context,
-            generatorKey,
-            destinationPath,
-            schema: additionalProperties,
-            modifiers,
-            rootRef
-          })
-        : null
+    const hasProperties = properties && !isEmpty(properties)
 
-      this.objectProperties = new TsObjectProperties({
-        context,
-        generatorKey,
-        destinationPath,
-        properties,
-        required,
-        modifiers,
-        rootRef
-      })
-    }
+    this.recordProperties = additionalProperties
+      ? new TsRecord({
+          context,
+          generatorKey,
+          destinationPath,
+          schema: additionalProperties,
+          rootRef
+        })
+      : null
+
+    this.objectProperties = hasProperties
+      ? new TsObjectProperties({
+          context,
+          generatorKey,
+          destinationPath,
+          properties,
+          required,
+          modifiers,
+          rootRef
+        })
+      : null
   }
 
   override toString(): string {
@@ -148,7 +140,6 @@ type TsRecordArgs = {
   context: GenerateContext
   destinationPath: string
   schema: true | OasSchema | OasRef<'schema'>
-  modifiers: Modifiers
   generatorKey: GeneratorKey
   rootRef?: RefName
 }
@@ -156,51 +147,21 @@ type TsRecordArgs = {
 class TsRecord extends ContentBase {
   value: TypeSystemValue | 'true'
 
-  constructor({
-    context,
-    generatorKey,
-    destinationPath,
-    schema,
-    modifiers,
-    rootRef
-  }: TsRecordArgs) {
+  constructor({ context, generatorKey, destinationPath, schema, rootRef }: TsRecordArgs) {
     super({ context, generatorKey })
 
-    this.value = toTsRecordChildren({
-      context,
-      destinationPath,
-      schema,
-      modifiers,
-      rootRef
-    })
+    this.value = match(schema)
+      .with(true, () => new TsUnknown({ context, generatorKey }))
+      .with(
+        P.when(schema => isEmpty(schema)),
+        () => new TsUnknown({ context, generatorKey })
+      )
+      .otherwise(matched =>
+        toTsValue({ destinationPath, schema: matched, required: true, context, rootRef })
+      )
   }
 
   override toString(): string {
     return `Record<string, ${this.value}>`
   }
-}
-
-type TsRecordChildrenArgs = {
-  context: GenerateContext
-  destinationPath: string
-  schema: true | OasSchema | OasRef<'schema'>
-  modifiers: Modifiers
-  rootRef?: RefName
-}
-
-const toTsRecordChildren = ({
-  context,
-  destinationPath,
-  schema,
-  rootRef
-}: TsRecordChildrenArgs) => {
-  if (schema === true) {
-    return 'true'
-  }
-
-  if (isEmpty(schema)) {
-    return 'true'
-  }
-
-  return toTsValue({ destinationPath, schema, required: true, context, rootRef })
 }

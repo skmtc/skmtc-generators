@@ -24,12 +24,9 @@ export class TsString extends ContentBase {
   }
 
   override toString(): string {
-    const { format, enums } = this
+    const { enums } = this
 
-    const content = match({ format, enums })
-      .with({ format: 'date-time' }, () => {
-        return 'Date'
-      })
+    const content = match({ enums })
       .with({ enums: P.array() }, matched => {
         return matched.enums.length === 1
           ? `'${matched.enums[0]}'`
