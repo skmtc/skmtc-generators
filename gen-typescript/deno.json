@@ -3,6 +3,7 @@
   "version": "0.0.38",
   "exports": "./mod.ts",
   "tasks": {
+    "test": "deno test --allow-all --no-check tests/",
     "publish": "deno publish --allow-slow-types --allow-dirty --token=$JSR_AUTH_TOKEN"
   }
 }
