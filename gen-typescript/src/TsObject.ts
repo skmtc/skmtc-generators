@@ -129,7 +129,8 @@ class TsObjectProperties extends ContentBase {
   override toString(): string {
     return `{${Object.entries(this.properties)
       .map(([key, value]) => {
-        const optionality = this.required.includes(key) ? '' : '?'
+        const optionality = 'modifiers' in value ? (value.modifiers.required ? '' : '?') : ''
+
         return `${key}${optionality}: ${value}`
       })
       .join(', ')}}`
