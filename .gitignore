@@ -10,3 +10,4 @@ node_modules
 .envrc
 
 coverage
+cov_profile

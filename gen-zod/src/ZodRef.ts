@@ -19,7 +19,7 @@ export class ZodRef extends ContentBase {
   constructor({ context, refName, destinationPath, modifiers, rootRef }: ConstructorProps) {
     super({ context, generatorKey: toModelGeneratorKey({ generatorId: zodEntry.id, refName }) })
 
-    if (context.modelDepth[zodEntry.id] > 0) {
+    if (context.modelDepth[`${zodEntry.id}:${refName}`] > 0) {
       const settings = context.toModelContentSettings({
         refName,
         insertable: ZodInsertable

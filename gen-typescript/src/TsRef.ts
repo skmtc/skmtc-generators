@@ -23,7 +23,7 @@ export class TsRef extends ContentBase {
       generatorKey: toModelGeneratorKey({ generatorId: typescriptEntry.id, refName })
     })
 
-    if (context.modelDepth[typescriptEntry.id] > 0) {
+    if (context.modelDepth[`${typescriptEntry.id}:${refName}`] > 0) {
       const settings = context.toModelContentSettings({
         refName,
         insertable: TsInsertable
