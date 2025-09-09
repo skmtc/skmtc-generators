@@ -11,16 +11,18 @@
     "@skmtc/gen-typescript": "./gen-typescript/mod.ts",
     "@skmtc/gen-valibot": "./gen-valibot/mod.ts",
     "@skmtc/gen-zod": "./gen-zod/mod.ts",
+    "@skmtc/gen-arktype": "./gen-arktype/mod.ts",
     "@std/path": "jsr:@std/path@^1.1.2",
     "openapi-types": "npm:openapi-types@^12.1.3",
     "tiny-invariant": "npm:tiny-invariant@^1.3.3",
     "ts-pattern": "npm:ts-pattern@^5.8.0",
-    "valibot": "npm:valibot@1.1.0"
+    "valibot": "npm:valibot@1.1.0",
+    "arktype": "npm:arktype@^2.0.0"
   },
   "tasks": {
-    "test": "deno task --cwd=gen-typescript test && deno task --cwd=gen-zod test && deno task --cwd=gen-valibot test",
-    "check": "deno check gen-typescript/mod.ts && deno check gen-zod/mod.ts && deno check gen-valibot/mod.ts && deno check gen-msw/mod.ts && deno check gen-shadcn-form/mod.ts && deno check gen-shadcn-select/mod.ts && deno check gen-shadcn-table/mod.ts && deno check gen-supabase-hono/mod.ts && deno check gen-tanstack-query-fetch-zod/mod.ts && deno check gen-tanstack-query-supabase-zod/mod.ts",
-    "publish": "deno task --cwd=gen-valibot publish && deno task --cwd=gen-zod publish && deno task --cwd=gen-typescript publish && deno task --cwd=gen-supabase-hono publish && deno task --cwd=gen-msw publish && deno task --cwd=gen-tanstack-query-fetch-zod publish && deno task --cwd=gen-tanstack-query-supabase-zod publish && deno task --cwd=gen-shadcn-form publish && deno task --cwd=gen-shadcn-table publish && deno task --cwd=gen-shadcn-select publish"
+    "test": "deno task --cwd=gen-typescript test && deno task --cwd=gen-zod test && deno task --cwd=gen-valibot test && deno task --cwd=gen-arktype test",
+    "check": "deno check gen-typescript/mod.ts && deno check gen-zod/mod.ts && deno check gen-valibot/mod.ts && deno check gen-arktype/mod.ts && deno check gen-msw/mod.ts && deno check gen-shadcn-form/mod.ts && deno check gen-shadcn-select/mod.ts && deno check gen-shadcn-table/mod.ts && deno check gen-supabase-hono/mod.ts && deno check gen-tanstack-query-fetch-zod/mod.ts && deno check gen-tanstack-query-supabase-zod/mod.ts",
+    "publish": "deno task --cwd=gen-arktype publish && deno task --cwd=gen-valibot publish && deno task --cwd=gen-zod publish && deno task --cwd=gen-typescript publish && deno task --cwd=gen-supabase-hono publish && deno task --cwd=gen-msw publish && deno task --cwd=gen-tanstack-query-fetch-zod publish && deno task --cwd=gen-tanstack-query-supabase-zod publish && deno task --cwd=gen-shadcn-form publish && deno task --cwd=gen-shadcn-table publish && deno task --cwd=gen-shadcn-select publish"
   },
   "nodeModulesDir": "none",
   "workspace": [
@@ -28,6 +30,7 @@
     "./gen-tanstack-query-supabase-zod",
     "./gen-valibot",
     "./gen-zod",
+    "./gen-arktype",
     "./gen-typescript",
     "./gen-shadcn-form",
     "./gen-shadcn-table",
