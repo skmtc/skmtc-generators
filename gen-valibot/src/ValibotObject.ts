@@ -1,4 +1,4 @@
-import { ContentBase, handleKey, isEmpty } from '@skmtc/core'
+import { ContentBase, isEmpty } from '@skmtc/core'
 import type {
   GenerateContext,
   GeneratorKey,
@@ -12,12 +12,12 @@ import type {
   TypeSystemValue,
   Modifiers
 } from '@skmtc/core'
-import { toZodValue } from './Zod.ts'
+import { toValibotValue } from './Valibot.ts'
 import { applyModifiers } from './applyModifiers.ts'
-import { ZodUnknown } from './ZodUnknown.ts'
+import { ValibotUnknown } from './ValibotUnknown.ts'
 import { match, P } from 'ts-pattern'
 
-type ZodObjectProps = {
+type ValibotObjectProps = {
   context: GenerateContext
   destinationPath: string
   objectSchema: OasObject
@@ -26,7 +26,7 @@ type ZodObjectProps = {
   rootRef?: RefName
 }
 
-export class ZodObject extends ContentBase {
+export class ValibotObject extends ContentBase {
   type = 'object' as const
   recordProperties: TypeSystemRecord | null
   objectProperties: TypeSystemObjectProperties | null
@@ -39,7 +39,7 @@ export class ZodObject extends ContentBase {
     objectSchema,
     modifiers,
     rootRef
-  }: ZodObjectProps) {
+  }: ValibotObjectProps) {
     super({ context, generatorKey })
 
     this.modifiers = modifiers
@@ -49,7 +49,7 @@ export class ZodObject extends ContentBase {
     const hasProperties = properties && !isEmpty(properties)
 
     this.recordProperties = additionalProperties
-      ? new ZodRecord({
+      ? new ValibotRecord({
           context,
           generatorKey,
           destinationPath,
@@ -59,35 +59,35 @@ export class ZodObject extends ContentBase {
       : null
 
     this.objectProperties = hasProperties
-      ? new ZodObjectProperties({
+      ? new ValibotObjectProperties({
           context,
           generatorKey,
           destinationPath,
           properties,
-          required, // 'required' here refers to the object's properties, not object itself,
+          required,
           modifiers,
           rootRef
         })
       : null
 
-    context.register({ imports: { zod: ['z'] }, destinationPath })
+    context.register({ imports: { valibot: ['v'] }, destinationPath })
   }
 
   override toString(): string {
     const { objectProperties, recordProperties } = this
 
     if (objectProperties && recordProperties) {
-      return applyModifiers(`${objectProperties}.and(${recordProperties})`, this.modifiers)
+      return applyModifiers(`v.intersect([${objectProperties}, ${recordProperties}])`, this.modifiers)
     }
 
     return applyModifiers(
-      recordProperties?.toString() ?? objectProperties?.toString() ?? 'z.object({})',
+      recordProperties?.toString() ?? objectProperties?.toString() ?? 'v.object({})',
       this.modifiers
     )
   }
 }
 
-type ZodObjectPropertiesArgs = {
+type ValibotObjectPropertiesArgs = {
   modifiers: Modifiers
   context: GenerateContext
   destinationPath: string
@@ -97,7 +97,7 @@ type ZodObjectPropertiesArgs = {
   rootRef?: RefName
 }
 
-class ZodObjectProperties extends ContentBase {
+class ValibotObjectProperties extends ContentBase {
   properties: Record<string, TypeSystemValue>
   required: string[]
 
@@ -108,14 +108,14 @@ class ZodObjectProperties extends ContentBase {
     properties,
     required = [],
     rootRef
-  }: ZodObjectPropertiesArgs) {
+  }: ValibotObjectPropertiesArgs) {
     super({ context, generatorKey })
 
     this.required = required
 
     this.properties = Object.fromEntries(
       Object.entries(properties).map(([key, property]) => {
-        const value = toZodValue({
+        const value = toValibotValue({
           destinationPath,
           schema: property,
           required: required?.includes(key),
@@ -129,7 +129,7 @@ class ZodObjectProperties extends ContentBase {
   }
 
   override toString(): string {
-    return `z.object({${Object.entries(this.properties)
+    return `v.object({${Object.entries(this.properties)
       .map(([key, value]) => {
         // Check if key needs quotes
         const needsQuotes = /[^a-zA-Z0-9_$]/.test(key) || /^\d/.test(key)
@@ -140,7 +140,7 @@ class ZodObjectProperties extends ContentBase {
   }
 }
 
-type ZodRecordArgs = {
+type ValibotRecordArgs = {
   context: GenerateContext
   destinationPath: string
   schema: true | OasSchema | OasRef<'schema'>
@@ -148,24 +148,24 @@ type ZodRecordArgs = {
   rootRef?: RefName
 }
 
-class ZodRecord extends ContentBase {
+class ValibotRecord extends ContentBase {
   value: TypeSystemValue | 'true'
 
-  constructor({ context, generatorKey, destinationPath, schema, rootRef }: ZodRecordArgs) {
+  constructor({ context, generatorKey, destinationPath, schema, rootRef }: ValibotRecordArgs) {
     super({ context, generatorKey })
 
     this.value = match(schema)
-      .with(true, () => new ZodUnknown({ context, destinationPath, generatorKey }))
+      .with(true, () => new ValibotUnknown({ context, destinationPath, generatorKey }))
       .with(
         P.when(schema => isEmpty(schema)),
-        () => new ZodUnknown({ context, destinationPath, generatorKey })
+        () => new ValibotUnknown({ context, destinationPath, generatorKey })
       )
       .otherwise(matched =>
-        toZodValue({ destinationPath, schema: matched, required: true, context, rootRef })
+        toValibotValue({ destinationPath, schema: matched, required: true, context, rootRef })
       )
   }
 
   override toString(): string {
-    return `z.record(z.string(), ${this.value})`
+    return `v.record(v.string(), ${this.value})`
   }
 }

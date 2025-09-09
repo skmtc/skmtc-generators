@@ -3,7 +3,7 @@ import { match, P } from 'ts-pattern'
 import { applyModifiers } from './applyModifiers.ts'
 import type { Modifiers, GeneratorKey, GenerateContext, OasString } from '@skmtc/core'
 
-type ZodStringArgs = {
+type ValibotStringArgs = {
   context: GenerateContext
   stringSchema: OasString
   modifiers: Modifiers
@@ -11,19 +11,19 @@ type ZodStringArgs = {
   generatorKey: GeneratorKey
 }
 
-export class ZodString extends ContentBase {
+export class ValibotString extends ContentBase {
   type = 'string' as const
   format: string | undefined
   enums: string[] | (string | null)[] | undefined
   modifiers: Modifiers
-  constructor({ context, stringSchema, generatorKey, destinationPath, modifiers }: ZodStringArgs) {
+  constructor({ context, stringSchema, generatorKey, destinationPath, modifiers }: ValibotStringArgs) {
     super({ context, generatorKey })
 
     this.enums = stringSchema.enums
     this.format = stringSchema.format
     this.modifiers = modifiers
 
-    context.register({ imports: { zod: ['z'] }, destinationPath })
+    context.register({ imports: { valibot: ['v'] }, destinationPath })
   }
 
   override toString(): string {
@@ -32,13 +32,13 @@ export class ZodString extends ContentBase {
     const content = match({ enums })
       .with({ enums: P.array() }, matched => {
         return matched.enums.length === 1
-          ? `z.literal("${matched.enums[0]}")`
-          : `z.enum([${matched.enums.map(str => `"${str}"`).join(', ')}])`
+          ? `v.literal("${matched.enums[0]}")`
+          : `v.picklist([${matched.enums.map(str => `"${str}"`).join(', ')}])`
       })
       .otherwise(() => {
-        let str = `z.string()`
+        let str = `v.string()`
         if (format === 'date-time') {
-          str += '.datetime()'
+          str = `v.pipe(v.string(), v.isoDateTime())`
         }
         return str
       })

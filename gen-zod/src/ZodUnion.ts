@@ -53,7 +53,7 @@ export class ZodUnion extends ContentBase {
     const members = this.members.map(member => `${member}`).join(', ')
 
     const content = this.discriminator
-      ? `z.discriminatedUnion('${this.discriminator}', [${members}])`
+      ? `z.discriminatedUnion("${this.discriminator}", [${members}])`
       : `z.union([${members}])`
 
     return applyModifiers(content, this.modifiers)
