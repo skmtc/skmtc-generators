@@ -14,9 +14,9 @@ export class SupabaseHono extends SupabaseHonoBase {
 
     this.register({
       imports: {
-        'npm:hono@4.5.6': ['Hono'],
-        'npm:hono@4.5.6/cors': ['cors'],
-        'npm:@hono/sentry@1.2.0': ['sentry']
+        hono: ['Hono'],
+        'hono/cors': ['cors'],
+        '@hono/sentry': ['sentry']
       }
     })
   }
@@ -49,9 +49,9 @@ app.use(
 )
 
 app.onError((error, c) => {
-  c.get('sentry').captureException(error)
-
   console.log('ERROR', error)
+  
+  c.get('sentry').captureException(error)
 
   return c.json({ message: 'Internal server error' }, 500)
 })

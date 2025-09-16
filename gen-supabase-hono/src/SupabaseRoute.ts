@@ -1,8 +1,9 @@
-import { camelCase, ContentBase, decapitalize, toMethodVerb, toPathParams, List } from '@skmtc/core'
+import { camelCase, ContentBase, decapitalize, toPathParams, List } from '@skmtc/core'
 import type { GenerateContext, OasOperation, ListObject } from '@skmtc/core'
 import { RequestBody } from './RequestBody.ts'
 import { Response } from './Response.ts'
 import { ResponseVoid } from './ResponseVoid.ts'
+import { toFirstSegment } from './toFirstSegment.ts'
 
 type SupabaseRouteArgs = {
   context: GenerateContext
@@ -16,6 +17,7 @@ export class SupabaseRoute extends ContentBase {
   queryParams: ListObject<string>
   requestBody: RequestBody
   response: Response | ResponseVoid
+  withBearerAuth: boolean
 
   constructor({ context, operation, destinationPath }: SupabaseRouteArgs) {
     super({ context })
@@ -24,7 +26,7 @@ export class SupabaseRoute extends ContentBase {
 
     const pathName = camelCase(operation.path, { upperFirst: true })
 
-    const serviceName = decapitalize(`${toMethodVerb(operation.method)}${pathName}Api`)
+    const serviceName = decapitalize(`${operation.method}${pathName}Api`)
 
     const responseSchema = operation.toSuccessResponse()?.resolve().toSchema()
 
@@ -45,7 +47,16 @@ export class SupabaseRoute extends ContentBase {
       requestBodySchema
     })
 
-    const args = ['req: c.req']
+    const args = [`supabase: c.get('supabase')`]
+
+    this.withBearerAuth =
+      operation.security
+        ?.flatMap(sec => sec.toSecurityScheme())
+        ?.some(sc => sc.type === 'http' && sc.scheme.toLowerCase() === 'bearer') ?? false
+
+    if (this.withBearerAuth) {
+      args.push(`claims: c.get('claims')`)
+    }
 
     if (requestBodySchema) {
       args.push(`body`)
@@ -60,21 +71,33 @@ export class SupabaseRoute extends ContentBase {
     const hasResponse = Boolean(responseSchema)
 
     this.response = hasResponse
-      ? new Response({ context, serviceName, serviceArgs, responseSchema, destinationPath })
+      ? new Response({ context, serviceName, serviceArgs, destinationPath })
       : new ResponseVoid({ context, serviceName, serviceArgs })
+
+    const firstSegment = toFirstSegment(operation)
 
     context.register({
       imports: {
-        './services.ts': [serviceName]
+        [`@/${firstSegment}/services.ts`]: [serviceName],
+        '@/_shared/middleware.ts': ['withSupabase']
       },
       destinationPath
     })
+
+    if (this.withBearerAuth) {
+      context.register({
+        imports: { '@/_shared/middleware.ts': ['withClaims'] },
+        destinationPath
+      })
+    }
   }
 
   override toString(): string {
     const { method, path } = this.operation
 
-    return `app.${method}('${toPathParams(path)}', async c => {
+    return `app.${method}('${toPathParams(path)}', withSupabase, ${
+      this.withBearerAuth ? 'withClaims,' : ''
+    } async c => {
   console.log('${method} ${toPathParams(path)}')
 
   ${this.pathParams.values.length > 0 ? `const ${this.pathParams} = c.req.param()` : ''}

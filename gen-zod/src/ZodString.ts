@@ -27,7 +27,7 @@ export class ZodString extends ContentBase {
   }
 
   override toString(): string {
-    const { enums, format } = this
+    const { enums } = this
 
     const content = match({ enums })
       .with({ enums: P.array() }, matched => {
@@ -36,11 +36,7 @@ export class ZodString extends ContentBase {
           : `z.enum([${matched.enums.map(str => `"${str}"`).join(', ')}])`
       })
       .otherwise(() => {
-        let str = `z.string()`
-        if (format === 'date-time') {
-          str += '.datetime()'
-        }
-        return str
+        return `z.string()`
       })
 
     return applyModifiers(content, this.modifiers)
