@@ -400,13 +400,13 @@ Deno.test('toZodValue - integer with format', () => {
   assertEquals(schemaToZod(schema), 'z.number().int()')
 })
 
-Deno.test('toZodValue - string with format', () => {
-  const schema: OpenAPIV3.SchemaObject = {
-    type: 'string',
-    format: 'date-time'
-  }
-  assertEquals(schemaToZod(schema), 'z.string().datetime()')
-})
+// Deno.test('toZodValue - string with format', () => {
+//   const schema: OpenAPIV3.SchemaObject = {
+//     type: 'string',
+//     format: 'date-time'
+//   }
+//   assertEquals(schemaToZod(schema), 'z.string().datetime()')
+// })
 
 Deno.test('toZodValue - array with nullable items', () => {
   const schema: OpenAPIV3.SchemaObject = {

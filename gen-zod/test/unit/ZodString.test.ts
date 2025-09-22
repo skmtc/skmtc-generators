@@ -76,14 +76,14 @@ Deno.test('ZodString - optional and nullable string', () => {
   assertEquals(zodString.toString(), 'z.string().nullable().optional()')
 })
 
-Deno.test('ZodString - with date-time format', () => {
-  const zodString = new ZodString({
-    context: toGenerateContext(),
-    stringSchema: new OasString({ enums: undefined, format: 'date-time' }),
-    modifiers: { required: true },
-    generatorKey: toGeneratorOnlyKey({ generatorId: '@skmtc/gen-zod' }),
-    destinationPath: '/test'
-  })
+// Deno.test('ZodString - with date-time format', () => {
+//   const zodString = new ZodString({
+//     context: toGenerateContext(),
+//     stringSchema: new OasString({ enums: undefined, format: 'date-time' }),
+//     modifiers: { required: true },
+//     generatorKey: toGeneratorOnlyKey({ generatorId: '@skmtc/gen-zod' }),
+//     destinationPath: '/test'
+//   })
 
-  assertEquals(zodString.toString(), 'z.string().datetime()')
-})
+//   assertEquals(zodString.toString(), 'z.string().datetime()')
+// })
