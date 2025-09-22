@@ -20,14 +20,9 @@ Deno.test('ArktypeInsertable - simple object type', () => {
   const oasDocument = parseContext.parse()
   const context = toGenerateContext({ oasDocument })
 
-  const arktypeInsertable = new ArktypeInsertable({
-    context,
-    refName: 'User' as RefName,
-    settings: { enrichments: undefined },
-    destinationPath: '/test'
-  })
+  const arktypeInsertable = context.insertModel(ArktypeInsertable, 'User' as RefName)
 
-  assertEquals(arktypeInsertable.toString(), 'type({ name: "string", age: "number" })')
+  assertEquals(`${arktypeInsertable.toValue()}`, 'type({ name: "string", age: "number" })')
 })
 
 Deno.test('ArktypeInsertable - object with optional properties', () => {
@@ -46,14 +41,9 @@ Deno.test('ArktypeInsertable - object with optional properties', () => {
   const oasDocument = parseContext.parse()
   const context = toGenerateContext({ oasDocument })
 
-  const arktypeInsertable = new ArktypeInsertable({
-    context,
-    refName: 'Profile' as RefName,
-    settings: { enrichments: undefined },
-    destinationPath: '/test'
-  })
+  const arktypeInsertable = context.insertModel(ArktypeInsertable, 'Profile' as RefName)
 
-  assertEquals(arktypeInsertable.toString(), 'type({ name: "string", "bio?": "string" })')
+  assertEquals(`${arktypeInsertable.toValue()}`, 'type({ name: "string", "bio?": "string" })')
 })
 
 Deno.test('ArktypeInsertable - primitive string type', () => {
@@ -67,14 +57,9 @@ Deno.test('ArktypeInsertable - primitive string type', () => {
   const oasDocument = parseContext.parse()
   const context = toGenerateContext({ oasDocument })
 
-  const arktypeInsertable = new ArktypeInsertable({
-    context,
-    refName: 'UserName' as RefName,
-    settings: { enrichments: undefined },
-    destinationPath: '/test'
-  })
+  const arktypeInsertable = context.insertModel(ArktypeInsertable, 'UserName' as RefName)
 
-  assertEquals(arktypeInsertable.toString(), 'type("string")')
+  assertEquals(`${arktypeInsertable.toValue()}`, 'type("string")')
 })
 
 Deno.test('ArktypeInsertable - array type', () => {
@@ -89,14 +74,9 @@ Deno.test('ArktypeInsertable - array type', () => {
   const oasDocument = parseContext.parse()
   const context = toGenerateContext({ oasDocument })
 
-  const arktypeInsertable = new ArktypeInsertable({
-    context,
-    refName: 'Tags' as RefName,
-    settings: { enrichments: undefined },
-    destinationPath: '/test'
-  })
+  const arktypeInsertable = context.insertModel(ArktypeInsertable, 'Tags' as RefName)
 
-  assertEquals(arktypeInsertable.toString(), 'type("string[]")')
+  assertEquals(`${arktypeInsertable.toValue()}`, 'type("string[]")')
 })
 
 Deno.test('ArktypeInsertable - union type', () => {
@@ -113,12 +93,7 @@ Deno.test('ArktypeInsertable - union type', () => {
   const oasDocument = parseContext.parse()
   const context = toGenerateContext({ oasDocument })
 
-  const arktypeInsertable = new ArktypeInsertable({
-    context,
-    refName: 'StringOrNumber' as RefName,
-    settings: { enrichments: undefined },
-    destinationPath: '/test'
-  })
+  const arktypeInsertable = context.insertModel(ArktypeInsertable, 'StringOrNumber' as RefName)
 
-  assertEquals(arktypeInsertable.toString(), 'type("string | number")')
+  assertEquals(`${arktypeInsertable.toValue()}`, 'type("string | number")')
 })
