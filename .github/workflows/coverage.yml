@@ -29,17 +29,15 @@ jobs:
         deno-version: v1.x
 
     - name: Run tests with coverage for ${{ matrix.generator }}
-      working-directory: ${{ matrix.generator }}
-      run: deno task test:coverage
+      run: cd ${{ matrix.generator }} && deno task test:coverage
 
     - name: Generate LCOV report for ${{ matrix.generator }}
-      working-directory: ${{ matrix.generator }}
-      run: deno task coverage:report
+      run: cd ${{ matrix.generator }} && deno task coverage:report
 
     - name: Extract coverage percentage for ${{ matrix.generator }}
       id: coverage
-      working-directory: ${{ matrix.generator }}
       run: |
+        cd ${{ matrix.generator }}
         # Extract coverage percentage from LCOV file
         if [ -f coverage.lcov ]; then
           # Calculate coverage percentage from LCOV
@@ -68,6 +66,7 @@ jobs:
 
     - name: Create coverage badge for ${{ matrix.generator }}
       run: |
+        cd ${{ matrix.generator }}
         COVERAGE="${{ steps.coverage.outputs.coverage }}"
 
         # Determine badge color based on coverage
