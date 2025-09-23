@@ -4,6 +4,10 @@
   "exports": "./mod.ts",
   "tasks": {
     "test": "deno test --allow-env --allow-sys --allow-read",
+    "test:coverage": "deno test --allow-env --allow-sys --allow-read --coverage=coverage",
+    "coverage:report": "deno coverage coverage --lcov --output=coverage.lcov",
+    "coverage:html": "deno coverage coverage --html",
+    "coverage:check": "deno coverage coverage --detailed",
     "publish": "deno publish --allow-slow-types --allow-dirty --token=$JSR_AUTH_TOKEN"
   }
 }
