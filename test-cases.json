@@ -1,0 +1,673 @@
+[
+  {
+    "testCaseName": "empty schema (any/unknown)",
+    "schema": {}
+  },
+  {
+    "testCaseName": "string type",
+    "schema": {
+      "type": "string"
+    }
+  },
+  {
+    "testCaseName": "number type",
+    "schema": {
+      "type": "number"
+    }
+  },
+  {
+    "testCaseName": "integer type",
+    "schema": {
+      "type": "integer"
+    }
+  },
+  {
+    "testCaseName": "boolean type",
+    "schema": {
+      "type": "boolean"
+    }
+  },
+  {
+    "testCaseName": "null type",
+    "schema": {
+      "type": "null"
+    }
+  },
+  {
+    "testCaseName": "literal number constant",
+    "schema": {
+      "const": 42,
+      "type": "number"
+    }
+  },
+  {
+    "testCaseName": "array of numbers",
+    "schema": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      }
+    }
+  },
+  {
+    "testCaseName": "object with required properties",
+    "schema": {
+      "type": "object",
+      "required": ["x", "y"],
+      "properties": {
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        }
+      }
+    }
+  },
+  {
+    "testCaseName": "tuple with fixed items",
+    "schema": {
+      "type": "array",
+      "items": [{
+        "type": "number"
+      }, {
+        "type": "number"
+      }],
+      "additionalItems": false,
+      "minItems": 2,
+      "maxItems": 2
+    }
+  },
+  {
+    "testCaseName": "enum with numeric constants",
+    "schema": {
+      "anyOf": [{
+        "type": "number",
+        "const": 0
+      }, {
+        "type": "number",
+        "const": 1
+      }]
+    }
+  },
+  {
+    "testCaseName": "const object with literal values",
+    "schema": {
+      "type": "object",
+      "required": ["x", "y"],
+      "properties": {
+        "x": {
+          "type": "number",
+          "const": 1
+        },
+        "y": {
+          "type": "number",
+          "const": 2
+        }
+      }
+    }
+  },
+  {
+    "testCaseName": "keyof object (string literals)",
+    "schema": {
+      "anyOf": [{
+        "type": "string",
+        "const": "x"
+      }, {
+        "type": "string",
+        "const": "y"
+      }]
+    }
+  },
+  {
+    "testCaseName": "union of string and number",
+    "schema": {
+      "anyOf": [{
+        "type": "string"
+      }, {
+        "type": "number"
+      }]
+    }
+  },
+  {
+    "testCaseName": "intersection using allOf",
+    "schema": {
+      "allOf": [{
+        "type": "object",
+        "required": ["x"],
+        "properties": {
+          "x": {
+            "type": "number"
+          }
+        }
+      }, {
+        "type": "object",
+        "required": ["y"],
+        "properties": {
+          "y": {
+            "type": "number"
+          }
+        }
+      }]
+    }
+  },
+  {
+    "testCaseName": "composite object (merged properties)",
+    "schema": {
+      "type": "object",
+      "required": ["x", "y"],
+      "properties": {
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        }
+      }
+    }
+  },
+  {
+    "testCaseName": "never type (not anything)",
+    "schema": {
+      "not": {}
+    }
+  },
+  {
+    "testCaseName": "not string type",
+    "schema": {
+      "not": {
+        "type": "string"
+      }
+    }
+  },
+  {
+    "testCaseName": "extends check (always false)",
+    "schema": {
+      "const": false,
+      "type": "boolean"
+    }
+  },
+  {
+    "testCaseName": "extract string from union",
+    "schema": {
+      "type": "string"
+    }
+  },
+  {
+    "testCaseName": "exclude string from union",
+    "schema": {
+      "type": "number"
+    }
+  },
+  {
+    "testCaseName": "mapped type object",
+    "schema": {
+      "type": "object",
+      "required": ["x", "y"],
+      "properties": {
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        }
+      }
+    }
+  },
+  {
+    "testCaseName": "template literal with pattern",
+    "schema": {
+      "type": "string",
+      "pattern": "^on(open|close)$"
+    }
+  },
+  {
+    "testCaseName": "record type with pattern properties",
+    "schema": {
+      "type": "object",
+      "patternProperties": {
+        "^.*$": {
+          "type": "number"
+        }
+      }
+    }
+  },
+  {
+    "testCaseName": "partial object (all properties optional)",
+    "schema": {
+      "type": "object",
+      "properties": {
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        }
+      }
+    }
+  },
+  {
+    "testCaseName": "required object (all properties required)",
+    "schema": {
+      "type": "object",
+      "required": ["x", "y"],
+      "properties": {
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        }
+      }
+    }
+  },
+  {
+    "testCaseName": "pick specific properties",
+    "schema": {
+      "type": "object",
+      "required": ["x"],
+      "properties": {
+        "x": {
+          "type": "number"
+        }
+      }
+    }
+  },
+  {
+    "testCaseName": "omit specific properties",
+    "schema": {
+      "type": "object",
+      "required": ["y"],
+      "properties": {
+        "y": {
+          "type": "number"
+        }
+      }
+    }
+  },
+  {
+    "testCaseName": "index access type",
+    "schema": {
+      "type": "number"
+    }
+  },
+  {
+    "testCaseName": "tuple with rest elements",
+    "schema": {
+      "type": "array",
+      "items": [
+        { "const": 0 },
+        { "const": 1 },
+        { "const": 2 },
+        { "const": 3 }
+      ],
+      "additionalItems": false,
+      "minItems": 4,
+      "maxItems": 4
+    }
+  },
+  {
+    "testCaseName": "uncapitalize string literal",
+    "schema": {
+      "type": "string",
+      "const": "hello"
+    }
+  },
+  {
+    "testCaseName": "capitalize string literal",
+    "schema": {
+      "type": "string",
+      "const": "Hello"
+    }
+  },
+  {
+    "testCaseName": "uppercase string literal",
+    "schema": {
+      "type": "string",
+      "const": "HELLO"
+    }
+  },
+  {
+    "testCaseName": "lowercase string literal",
+    "schema": {
+      "type": "string",
+      "const": "hello"
+    }
+  },
+  {
+    "testCaseName": "reference to another schema",
+    "schema": {
+      "$ref": "T"
+    }
+  },
+  {
+    "testCaseName": "string with single enum value (literal)",
+    "schema": {
+      "type": "string",
+      "enum": ["value1"]
+    }
+  },
+  {
+    "testCaseName": "string with multiple enum values",
+    "schema": {
+      "type": "string",
+      "enum": ["value1", "value2", "value3"]
+    }
+  },
+  {
+    "testCaseName": "array of strings",
+    "schema": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  {
+    "testCaseName": "nested arrays",
+    "schema": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
+      }
+    }
+  },
+  {
+    "testCaseName": "array of objects",
+    "schema": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        },
+        "required": ["id"]
+      }
+    }
+  },
+  {
+    "testCaseName": "object with optional properties",
+    "schema": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "age": {
+          "type": "number"
+        }
+      },
+      "required": ["name"]
+    }
+  },
+  {
+    "testCaseName": "empty object",
+    "schema": {
+      "type": "object"
+    }
+  },
+  {
+    "testCaseName": "object with additionalProperties",
+    "schema": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    }
+  },
+  {
+    "testCaseName": "object with properties and additionalProperties",
+    "schema": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        }
+      },
+      "required": ["id"],
+      "additionalProperties": {
+        "type": "number"
+      }
+    }
+  },
+  {
+    "testCaseName": "nested object",
+    "schema": {
+      "type": "object",
+      "properties": {
+        "user": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "profile": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": ["name"]
+            }
+          },
+          "required": ["id", "profile"]
+        }
+      },
+      "required": ["user"]
+    }
+  },
+  {
+    "testCaseName": "object with special characters in keys",
+    "schema": {
+      "type": "object",
+      "properties": {
+        "special-key": {
+          "type": "string"
+        },
+        "another.key": {
+          "type": "number"
+        }
+      },
+      "required": ["special-key", "another.key"]
+    }
+  },
+  {
+    "testCaseName": "union using oneOf",
+    "schema": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number"
+        }
+      ]
+    }
+  },
+  {
+    "testCaseName": "union using anyOf with three types",
+    "schema": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        }
+      ]
+    }
+  },
+  {
+    "testCaseName": "discriminated union with objects",
+    "schema": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["cat"]
+            },
+            "meow": {
+              "type": "boolean"
+            }
+          },
+          "required": ["type", "meow"]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["dog"]
+            },
+            "bark": {
+              "type": "boolean"
+            }
+          },
+          "required": ["type", "bark"]
+        }
+      ]
+    }
+  },
+  {
+    "testCaseName": "nullable string",
+    "schema": {
+      "type": "string",
+      "nullable": true
+    }
+  },
+  {
+    "testCaseName": "nullable object",
+    "schema": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        }
+      },
+      "required": ["id"],
+      "nullable": true
+    }
+  },
+  {
+    "testCaseName": "nullable array",
+    "schema": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "nullable": true
+    }
+  },
+  {
+    "testCaseName": "schema reference",
+    "schema": {
+      "$ref": "#/components/schemas/User"
+    }
+  },
+  {
+    "testCaseName": "deeply nested structure",
+    "schema": {
+      "type": "object",
+      "properties": {
+        "level1": {
+          "type": "object",
+          "properties": {
+            "level2": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "level3": {
+                    "type": "object",
+                    "properties": {
+                      "value": {
+                        "type": "string"
+                      }
+                    },
+                    "required": ["value"]
+                  }
+                },
+                "required": ["level3"]
+              }
+            }
+          },
+          "required": ["level2"]
+        }
+      },
+      "required": ["level1"]
+    }
+  },
+  {
+    "testCaseName": "additionalProperties with boolean true",
+    "schema": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  {
+    "testCaseName": "additionalProperties with empty object",
+    "schema": {
+      "type": "object",
+      "additionalProperties": {}
+    }
+  },
+  {
+    "testCaseName": "integer with format",
+    "schema": {
+      "type": "integer",
+      "format": "int32"
+    }
+  },
+  {
+    "testCaseName": "array with nullable items",
+    "schema": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "nullable": true
+      }
+    }
+  },
+  {
+    "testCaseName": "object with all optional properties",
+    "schema": {
+      "type": "object",
+      "properties": {
+        "prop1": {
+          "type": "string"
+        },
+        "prop2": {
+          "type": "number"
+        },
+        "prop3": {
+          "type": "boolean"
+        }
+      }
+    }
+  },
+  {
+    "testCaseName": "union with nullable member",
+    "schema": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number",
+          "nullable": true
+        }
+      ]
+    }
+  }
+]
