@@ -1,0 +1,21 @@
+# Coverage reports
+coverage/
+coverage.lcov
+*.lcov
+
+# Coverage HTML reports
+coverage_html/
+
+# Temporary files
+.DS_Store
+*.tmp
+*.log
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+Thumbs.db

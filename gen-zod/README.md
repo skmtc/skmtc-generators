@@ -1,32 +1,17 @@
 # @skmtc/gen-zod
 
-High-quality Zod schema generator for OpenAPI specifications, part of the [Skmtc](https://skm.tc) ecosystem.
+![Coverage](https://raw.githubusercontent.com/skmtc/skmtc-generators/gh-pages/badges/gen-zod/coverage.svg)
 
-## Key Features
+Zod schema generator for OpenAPI specifications, part of the [Skmtc](https://skm.tc) ecosystem.
 
-**Pure Schema Focus**: Unlike tools that generate bloated client code, gen-zod produces clean, focused Zod schemas without HTTP client overhead.
+## Advanced Type Support
 
-**Advanced Type Support**:
 - ✅ Discriminated unions with automatic detection
 - ✅ Records and `additionalProperties` handling
 - ✅ Proper optional/nullable modifiers
 - ✅ String enums and literals
 - ✅ Complex nested objects and arrays
 - ✅ Reference resolution across schemas
-
-**Clean Architecture**: Modular design with individual type classes (ZodString, ZodObject, etc.) for maintainable, testable code.
-
-**Framework Agnostic**: Generate schemas that work with any TypeScript project - Next.js, Express, Fastify, or vanilla Node.js.
-
-## Why Choose gen-zod?
-
-| Feature | gen-zod | typed-openapi | Orval | openapi-zod-client |
-|---------|---------|---------------|-------|--------------------|
-| Schema-only output | ✅ | ❌ (includes client) | ❌ (includes client) | ❌ (includes client) |
-| Discriminated unions | ✅ | ❌ | ✅ | ✅ |
-| Records support | ✅ | ❌ | ✅ | ✅ |
-| Zero config | ✅ | ✅ | ❌ | ✅ |
-| File size | Minimal | Small | Large | Large |
 
 ## Installation
 
@@ -106,8 +91,33 @@ await generateFiles({
 ## Testing
 
 ```bash
+# Run tests
 deno task test
+
+# Run tests with coverage
+deno task test:coverage
+
+# Generate coverage report
+deno task coverage:report
+
+# View detailed coverage
+deno task coverage:check
+
+# Generate HTML coverage report
+deno task coverage:html
 ```
+
+## Coverage
+
+Current test coverage is automatically tracked and displayed in the badge above. The coverage is **project-specific** - it only includes files from the `gen-zod` package, not the entire repository.
+
+The coverage report includes:
+
+- **Line Coverage**: Percentage of code lines executed during tests
+- **Function Coverage**: Percentage of functions called during tests
+- **Branch Coverage**: Percentage of code branches taken during tests
+
+Coverage reports are generated using Deno's built-in coverage tools and updated automatically via GitHub Actions. Each generator in the Skmtc ecosystem maintains its own independent coverage tracking.
 
 ## License
 
