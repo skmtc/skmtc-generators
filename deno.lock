@@ -1,7 +1,9 @@
 {
   "version": "5",
   "specifiers": {
+    "jsr:@skmtc/core@^0.0.768": "0.0.768",
     "jsr:@skmtc/core@^0.0.828": "0.0.828",
+    "jsr:@skmtc/server@*": "0.0.648",
     "jsr:@std/assert@1": "1.0.14",
     "jsr:@std/fmt@^1.0.5": "1.0.8",
     "jsr:@std/fs@^1.0.11": "1.0.19",
@@ -20,6 +22,7 @@
     "npm:@types/swagger2openapi@7.0.4": "7.0.4",
     "npm:arktype@2": "2.1.16",
     "npm:gpt-tokenizer@^3.0.1": "3.0.1",
+    "npm:hono@4.7.2": "4.7.2",
     "npm:lodash-es@4.17.21": "4.17.21",
     "npm:openapi-types@^12.1.3": "12.1.3",
     "npm:prettier@^3.6.2": "3.6.2",
@@ -30,6 +33,24 @@
     "npm:valibot@1.1.0": "1.1.0"
   },
   "jsr": {
+    "@skmtc/core@0.0.768": {
+      "integrity": "9de27151cbd72da3c88f1e65beacc2809887013848253b2c092273b0e58077c0",
+      "dependencies": [
+        "jsr:@std/log@~0.224.6",
+        "jsr:@std/path@^1.0.9",
+        "jsr:@std/yaml",
+        "npm:@apiture/openapi-down-convert",
+        "npm:@babel/helper-validator-identifier",
+        "npm:@sentry/node",
+        "npm:gpt-tokenizer",
+        "npm:lodash-es",
+        "npm:prettier",
+        "npm:swagger2openapi",
+        "npm:tiny-invariant@1.3.3",
+        "npm:ts-pattern",
+        "npm:valibot"
+      ]
+    },
     "@skmtc/core@0.0.828": {
       "integrity": "37aa8694fdc2cc4d2cccf3913fb9a1a199f53afdf13eab3b0fe38298d2df110e",
       "dependencies": [
@@ -49,6 +70,15 @@
         "npm:swagger2openapi",
         "npm:tiny-invariant@1.3.3",
         "npm:ts-pattern",
+        "npm:valibot"
+      ]
+    },
+    "@skmtc/server@0.0.648": {
+      "integrity": "30a3b7bdeda793793014da65f064b59023841386f9dcf79ee1cb655bb31a6244",
+      "dependencies": [
+        "jsr:@skmtc/core@^0.0.768",
+        "npm:@sentry/node",
+        "npm:hono",
         "npm:valibot"
       ]
     },
@@ -639,6 +669,9 @@
       "dependencies": [
         "function-bind"
       ]
+    },
+    "hono@4.7.2": {
+      "integrity": "sha512-8V5XxoOF6SI12jkHkzX/6aLBMU5GEF5g387EjVSQipS0DlxWgWGSMeEayY3CRBjtTUQYwLHx9JYouWqKzy2Vng=="
     },
     "http2-client@1.3.5": {
       "integrity": "sha512-EC2utToWl4RKfs5zd36Mxq7nzHHBuomZboI0yYL6Y0RmBgT7Sgkq4rQ0ezFTYoIsSs7Tm9SJe+o2FcAg6GBhGA=="

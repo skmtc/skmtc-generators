@@ -2,7 +2,7 @@
 
 ![Coverage](https://raw.githubusercontent.com/skmtc/skmtc-generators/gh-pages/badges/gen-zod/coverage.svg)
 
-Zod schema generator for OpenAPI specifications, part of the [Skmtc](https://skm.tc) ecosystem.
+OpenAPI to Zod schema generator for [Skmtc](https://skm.tc).
 
 ## Advanced Type Support
 
@@ -13,79 +13,75 @@ Zod schema generator for OpenAPI specifications, part of the [Skmtc](https://skm
 - ✅ Complex nested objects and arrays
 - ✅ Reference resolution across schemas
 
+## Full edge case handling report
+
+- [./test-cases.md](./test-cases.md)
+
+## Quick start
+
+Run deployed generator
+```bash
+# Using npx
+npx skmtc generate @skmtc/zod <path or url to OpenAPI schema>
+
+# Using deno
+deno run -A jsr:@skmtc/cli generate @skmtc/zod <path or url to OpenAPI schema>
+```
+
 ## Installation
 
+Add `@skmtc/gen-zod` to a Skmtc project
+
 ```bash
-# Via JSR (recommended)
-deno add @skmtc/gen-zod
+# Using npx
+npx skmtc install @skmtc/gen-zod
 
-# Via npm
-npm install @skmtc/gen-zod
+# Using deno
+deno run -A jsr:@skmtc/cli install @skmtc/gen-zod
 ```
 
-## Usage
+## Running locally
 
-```typescript
-import { zodEntry } from '@skmtc/gen-zod'
-import { generateFiles } from '@skmtc/core'
+To run Skmtc generators on your own computer, you will first need to install Deno
 
-// Generate Zod schemas from OpenAPI spec
-await generateFiles({
-  openApiPath: './api-spec.json',
-  outputDir: './generated',
-  generators: [zodEntry]
-})
+```bash
+# On MacOS / Linux
+curl -fsSL https://deno.land/install.sh | sh
+
+# On Windows
+irm https://deno.land/install.ps1 | iex
 ```
 
-### Example Output
+To create a new Skmtc project with `@skmtc/gen-zod`, run the install command. 
 
-Input OpenAPI schema:
-```json
-{
-  "components": {
-    "schemas": {
-      "User": {
-        "type": "object",
-        "required": ["id", "email"],
-        "properties": {
-          "id": { "type": "string" },
-          "email": { "type": "string", "format": "email" },
-          "role": { "type": "string", "enum": ["admin", "user"] },
-          "profile": { "$ref": "#/components/schemas/Profile" }
-        }
-      }
-    }
-  }
-}
+The prompt will ask you to create a new project and give it name.
+
+```bash
+npx skmtc install @skmtc/gen-zod
+
+deno run -A jsr:@skmtc/cli install @skmtc/gen-zod
 ```
 
-Generated Zod schema:
-```typescript
-import { z } from 'zod'
+To launch a local generator server, run the command below with the project
+name you created in previous step.
 
-export const User = z.object({
-  id: z.string(),
-  email: z.string(),
-  role: z.enum(["admin", "user"]).optional(),
-  profile: Profile.optional()
-})
+```bash
+# Using deno
+deno run -A jsr:@skmtc/cli serve <project name>
+
+# Skmtc server cannot be run using npx or Node
 ```
 
-## Integration
+With the generator server now running, open a new terminal tab and
+run the Skmtc generate command. The cli will prompt you for OpenAPI
+source schema path or url.
 
-Works seamlessly with other Skmtc generators:
+```bash 
+# Using npx
+npx skmtc generate <project name>
 
-```typescript
-import { zodEntry } from '@skmtc/gen-zod'
-import { typescriptEntry } from '@skmtc/gen-typescript'
-import { mswEntry } from '@skmtc/gen-msw'
-
-// Generate schemas, types, and mocks together
-await generateFiles({
-  openApiPath: './api-spec.json',
-  outputDir: './generated',
-  generators: [typescriptEntry, zodEntry, mswEntry]
-})
+# Using deno
+deno run -A jsr:@skmtc/cli generate <project name>
 ```
 
 ## Testing
@@ -94,30 +90,15 @@ await generateFiles({
 # Run tests
 deno task test
 
-# Run tests with coverage
-deno task test:coverage
-
-# Generate coverage report
-deno task coverage:report
-
-# View detailed coverage
-deno task coverage:check
-
 # Generate HTML coverage report
 deno task coverage:html
 ```
 
-## Coverage
+## Support
 
-Current test coverage is automatically tracked and displayed in the badge above. The coverage is **project-specific** - it only includes files from the `gen-zod` package, not the entire repository.
-
-The coverage report includes:
-
-- **Line Coverage**: Percentage of code lines executed during tests
-- **Function Coverage**: Percentage of functions called during tests
-- **Branch Coverage**: Percentage of code branches taken during tests
-
-Coverage reports are generated using Deno's built-in coverage tools and updated automatically via GitHub Actions. Each generator in the Skmtc ecosystem maintains its own independent coverage tracking.
+- For help and support please use [Discord](https://discord.gg/Mg88C8Xu5Y)
+- For bug report and technical issues use [Github issues](https://github.com/skmtc/skmtc/issues)
+- Full docs coming to [Skmtc](https://skm.tc) very soon
 
 ## License
 
