@@ -42,7 +42,18 @@ jobs:
       working-directory: ${{ matrix.generator }}
       run: deno task coverage:report
 
+    - name: Check if coverage report exists
+      id: check-coverage
+      working-directory: ${{ matrix.generator }}
+      run: |
+        if [ -f coverage.lcov ]; then
+          echo "exists=true" >> $GITHUB_OUTPUT
+        else
+          echo "exists=false" >> $GITHUB_OUTPUT
+        fi
+
     - name: Upload coverage to Coveralls
+      if: steps.check-coverage.outputs.exists == 'true'
       uses: coverallsapp/github-action@v2
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
