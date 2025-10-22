@@ -24,8 +24,7 @@ export class MutationEndpoint extends TanstackQueryBase {
 
     this.register({
       imports: {
-        '@tanstack/react-query': ['useMutation', 'useQueryClient', 'UseMutationOptions'],
-        zod: ['z']
+        '@tanstack/react-query': ['useMutation', 'useQueryClient', 'UseMutationOptions']
       }
     })
   }

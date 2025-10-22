@@ -1,6 +1,6 @@
 # @skmtc/gen-typescript
 
-![Coverage](https://raw.githubusercontent.com/skmtc/skmtc-generators/gh-pages/badges/gen-typescript/coverage.svg)
+![Coverage](https://coveralls.io/repos/github/skmtc/skmtc-generators/badge.svg?branch=main&flag=gen-typescript)
 
 OpenAPI to TypeScript types generator for [Skmtc](https://skm.tc).
 

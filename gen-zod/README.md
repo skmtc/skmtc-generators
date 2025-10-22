@@ -1,6 +1,6 @@
 # @skmtc/gen-zod
 
-![Coverage](https://raw.githubusercontent.com/skmtc/skmtc-generators/gh-pages/badges/gen-zod/coverage.svg)
+![Coverage](https://coveralls.io/repos/github/skmtc/skmtc-generators/badge.svg?branch=main&flag=gen-zod)
 
 OpenAPI to Zod schema generator for [Skmtc](https://skm.tc).
 
