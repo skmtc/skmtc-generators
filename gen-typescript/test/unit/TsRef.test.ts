@@ -147,5 +147,5 @@ Deno.test('TsRef - camelCase reference name transformation', () => {
   })
 
   // Should transform kebab-case to PascalCase (actual result is Userprofile)
-  assertEquals(tsRef.toString(), 'Userprofile')
+  assertEquals(tsRef.toString(), 'UserProfile')
 })

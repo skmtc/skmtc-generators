@@ -1,6 +1,7 @@
 {
   "version": "5",
   "specifiers": {
+    "jsr:@skmtc/core@*": "0.0.889",
     "jsr:@skmtc/core@^0.0.889": "0.0.889",
     "jsr:@std/assert@1": "1.0.14",
     "jsr:@std/fmt@^1.0.5": "1.0.8",
