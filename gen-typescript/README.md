@@ -4,15 +4,6 @@
 
 OpenAPI to TypeScript types generator for [Skmtc](https://skm.tc).
 
-## Advanced Type Support
-
-- ✅ Discriminated unions with automatic detection
-- ✅ Records and `additionalProperties` handling
-- ✅ Proper optional/nullable modifiers
-- ✅ String enums and literals
-- ✅ Complex nested objects and arrays
-- ✅ Reference resolution across schemas
-
 ## Quick start
 
 Run deployed generator
