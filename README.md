@@ -1,3 +1,5 @@
+[![Coverage Status](https://coveralls.io/repos/github/skmtc/skmtc-generators/badge.svg?branch=main)](https://coveralls.io/github/skmtc/skmtc-generators?branch=main)
+
 # Generators for Skmtc
 
 - [@skmtc/gen-arktype](./gen-arktype)
