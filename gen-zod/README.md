@@ -4,82 +4,27 @@
 
 OpenAPI to Zod schema generator for [Skmtc](https://skm.tc).
 
-## Quick start
-
-Run deployed generator
-```bash
-# Using npx
-npx skmtc generate @skmtc/zod <path or url to OpenAPI schema>
-
-# Using deno
-deno run -A jsr:@skmtc/cli generate @skmtc/zod <path or url to OpenAPI schema>
-```
-
 ## Installation
 
-Add `@skmtc/gen-zod` to a Skmtc project
+Install Deno
 
 ```bash
-# Using npx
-npx skmtc install @skmtc/gen-zod
-
-# Using deno
-deno run -A jsr:@skmtc/cli install @skmtc/gen-zod
-```
-
-## Running locally
-
-To run Skmtc generators on your own computer, you will first need to install Deno
-
-```bash
-# On MacOS / Linux
+# On MacOS/Linus
 curl -fsSL https://deno.land/install.sh | sh
 
 # On Windows
 irm https://deno.land/install.ps1 | iex
 ```
 
-To create a new Skmtc project with `@skmtc/gen-zod`, run the install command. 
-
-The prompt will ask you to create a new project and give it name.
+Install Skmtc
 
 ```bash
-npx skmtc install @skmtc/gen-zod
-
-deno run -A jsr:@skmtc/cli install @skmtc/gen-zod
+deno install -g -A jsr:@skmtc/cli -n skmtc -f
 ```
 
-To launch a local generator server, run the command below with the project
-name you created in previous step.
+## Create new project and generate with TUI
 
-```bash
-# Using deno
-deno run -A jsr:@skmtc/cli serve <project name>
-
-# Skmtc server cannot be run using npx or Node
-```
-
-With the generator server now running, open a new terminal tab and
-run the Skmtc generate command. The cli will prompt you for OpenAPI
-source schema path or url.
-
-```bash 
-# Using npx
-npx skmtc generate <project name>
-
-# Using deno
-deno run -A jsr:@skmtc/cli generate <project name>
-```
-
-## Testing
-
-```bash
-# Run tests
-deno task test
-
-# Generate HTML coverage report
-deno task coverage:html
-```
+![](assets/zod-project-create.gif)
 
 ## Support
 
