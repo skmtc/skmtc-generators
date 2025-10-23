@@ -22,7 +22,13 @@ Install Skmtc
 deno install -g -A jsr:@skmtc/cli -n skmtc -f
 ```
 
-## Create new project and generate with TUI
+## Create project and generate artifacts
+
+```bash
+# Run Skmtc and follow prompts
+skmtc
+```
+
 
 ![](assets/zod-project-create.gif)
 
