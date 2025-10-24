@@ -1,4 +1,5 @@
 [![Coverage Status](https://coveralls.io/repos/github/skmtc/skmtc-generators/badge.svg?branch=main)](https://coveralls.io/github/skmtc/skmtc-generators?branch=main)
+![GitHub License](https://img.shields.io/github/license/skmtc/skmtc-generators)
 
 # Generators for Skmtc
 
