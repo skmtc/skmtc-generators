@@ -1,4 +1,4 @@
-![](https://assets.skm.tc/zod-project-create.gif)
+![](https://assets.skm.tc/zod-run-through.gif)
 ![](assets/zod-project-create.gif)
 
 ![Coverage](https://coveralls.io/repos/github/skmtc/skmtc-generators/badge.svg?branch=main&flag=gen-zod)
