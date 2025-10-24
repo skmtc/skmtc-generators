@@ -5,6 +5,7 @@
 </div>
 
 ![Coverage](https://coveralls.io/repos/github/skmtc/skmtc-generators/badge.svg?branch=main&flag=gen-zod)
+![GitHub License](https://img.shields.io/github/license/skmtc/skmtc-generators)
 
 # OpenAPI to Zod schema generator for [Skmtc](https://skm.tc).
 
