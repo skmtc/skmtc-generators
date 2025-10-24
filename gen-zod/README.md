@@ -1,3 +1,6 @@
+![](https://assets.skm.tc/zod-project-create.gif)
+![](assets/zod-project-create.gif)
+
 # @skmtc/gen-zod
 
 ![Coverage](https://coveralls.io/repos/github/skmtc/skmtc-generators/badge.svg?branch=main&flag=gen-zod)
@@ -28,9 +31,6 @@ deno install -g -A jsr:@skmtc/cli -n skmtc -f
 # Run Skmtc and follow prompts
 skmtc
 ```
-
-
-![](assets/zod-project-create.gif)
 
 ## Support
 
