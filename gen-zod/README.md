@@ -1,5 +1,8 @@
 ![](https://assets.skm.tc/zod-run-through.gif)
-![](assets/zod-run-through.gif)
+
+<div align="center">
+  <img alt="Demo of Zod generation from OpenAPI using Skmtc" src="assets/zod-run-through.gif">
+</div>
 
 ![Coverage](https://coveralls.io/repos/github/skmtc/skmtc-generators/badge.svg?branch=main&flag=gen-zod)
 
