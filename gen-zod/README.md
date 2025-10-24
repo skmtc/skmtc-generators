@@ -1,11 +1,9 @@
-<div align="center">
-  <img alt="Generate Zod from OpenAPI using Skmtc" src="https://assets.skm.tc/zod-project-create.gif" width="756">
-  <h1 align="center">
-    <b>OpenAPI to Zod schema generator for <a href="https://skm.tc">Skmtc</a></b>
-  </h1>
-</div>
+![](https://assets.skm.tc/zod-project-create.gif)
+![](assets/zod-project-create.gif)
 
 ![Coverage](https://coveralls.io/repos/github/skmtc/skmtc-generators/badge.svg?branch=main&flag=gen-zod)
+
+# OpenAPI to Zod schema generator for [Skmtc](https://skm.tc).
 
 ## Installation
 
