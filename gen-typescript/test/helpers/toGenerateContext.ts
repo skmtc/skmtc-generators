@@ -1,4 +1,4 @@
-import { GenerateContext, OasDocument, StackTrail } from '@skmtc/core'
+import { GenerateContext, type GenerateContextType, OasDocument, StackTrail } from '@skmtc/core'
 import * as log from 'jsr:@std/log@0.224/logger'
 import { typescriptEntry } from '../../src/mod.ts'
 

@@ -1,11 +1,11 @@
 import { ContentBase } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
-import type { GenerateContext, Modifiers, OasInteger, GeneratorKey } from '@skmtc/core'
+import type { GenerateContextType, Modifiers, OasInteger, GeneratorKey } from '@skmtc/core'
 
 import { match, P } from 'ts-pattern'
 
 type ZodIntegerArgs = {
-  context: GenerateContext
+  context: GenerateContextType
   integerSchema: OasInteger
   modifiers: Modifiers
   destinationPath: string

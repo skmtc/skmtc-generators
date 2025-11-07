@@ -1,5 +1,5 @@
 import { assertEquals } from 'jsr:@std/assert@^1.0.0'
-import { toSchemaV3 } from '@skmtc/core'
+import { toSchemaV3, StackTrail } from '@skmtc/core'
 import { toArktypeValue } from '../src/Arktype.ts'
 import type { OpenAPIV3 } from 'openapi-types'
 import { toParseContext } from './helpers/toParseContext.ts'
@@ -10,7 +10,8 @@ function schemaToArktype(
   schema: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject,
   required = true
 ): string {
-  const parsedSchema = toSchemaV3({ schema, context: toParseContext() })
+  const stackTrail = new StackTrail(['TEST'])
+  const parsedSchema = toSchemaV3({ schema, context: toParseContext(), stackTrail })
 
   const result = toArktypeValue({
     schema: parsedSchema,
@@ -63,7 +64,7 @@ Deno.test('toArktypeValue - string with multiple enum values', () => {
     type: 'string',
     enum: ['active', 'inactive', 'pending']
   }
-  assertEquals(schemaToArktype(schema), 'type("\'active\' | \'inactive\' | \'pending\'")')
+  assertEquals(schemaToArktype(schema), "type(\"'active' | 'inactive' | 'pending'\")")
 })
 
 // ============================================================================
@@ -201,20 +202,14 @@ Deno.test('toArktypeValue - object with special characters in keys', () => {
 
 Deno.test('toArktypeValue - simple union (oneOf)', () => {
   const schema: OpenAPIV3.SchemaObject = {
-    oneOf: [
-      { type: 'string' },
-      { type: 'number' }
-    ]
+    oneOf: [{ type: 'string' }, { type: 'number' }]
   }
   assertEquals(schemaToArktype(schema), 'type("string | number")')
 })
 
 Deno.test('toArktypeValue - simple union (anyOf)', () => {
   const schema: OpenAPIV3.SchemaObject = {
-    anyOf: [
-      { type: 'string' },
-      { type: 'number' }
-    ]
+    anyOf: [{ type: 'string' }, { type: 'number' }]
   }
   assertEquals(schemaToArktype(schema), 'type("string | number")')
 })
@@ -290,12 +285,14 @@ Deno.test('toArktypeValue - schema reference', () => {
     }
   }
 
+  const stackTrail = new StackTrail(['TEST'])
   const parseContext = toParseContext({ schemas })
-  const oasDocument = parseContext.parse()
+  const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
   const schema: OpenAPIV3.ReferenceObject = { $ref: '#/components/schemas/User' }
-  const parsedSchema = toSchemaV3({ schema, context: parseContext })
+
+  const parsedSchema = toSchemaV3({ schema, context: parseContext, stackTrail })
 
   const result = toArktypeValue({
     schema: parsedSchema,
@@ -397,10 +394,7 @@ Deno.test('toArktypeValue - object with all optional properties', () => {
 
 Deno.test('toArktypeValue - union with nullable member', () => {
   const schema: OpenAPIV3.SchemaObject = {
-    oneOf: [
-      { type: 'string', nullable: true },
-      { type: 'number' }
-    ]
+    oneOf: [{ type: 'string', nullable: true }, { type: 'number' }]
   }
   assertEquals(schemaToArktype(schema), 'type("string | null | number")')
 })

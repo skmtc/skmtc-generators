@@ -1,6 +1,6 @@
 import { ContentBase } from '@skmtc/core'
 import type {
-  GenerateContext,
+  GenerateContextType,
   GeneratorKey,
   OasDiscriminator,
   OasSchema,
@@ -13,7 +13,7 @@ import { toTsValue } from './Ts.ts'
 import { applyModifiers } from './applyModifiers.ts'
 
 type TsUnionArgs = {
-  context: GenerateContext
+  context: GenerateContextType
   destinationPath: string
   members: (OasSchema | OasRef<'schema'>)[]
   discriminator?: OasDiscriminator

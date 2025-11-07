@@ -1,9 +1,9 @@
-import type { GeneratorKey, Modifiers, GenerateContext } from '@skmtc/core'
+import type { GeneratorKey, Modifiers, GenerateContextType } from '@skmtc/core'
 import { ContentBase } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
 
 type TsNumberArgs = {
-  context: GenerateContext
+  context: GenerateContextType
   modifiers: Modifiers
   generatorKey: GeneratorKey
 }

@@ -1,9 +1,9 @@
 import { ContentBase } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
-import type { Modifiers, GeneratorKey, GenerateContext, OasInteger } from '@skmtc/core'
+import type { Modifiers, GeneratorKey, GenerateContextType, OasInteger } from '@skmtc/core'
 
 type ValibotIntegerArgs = {
-  context: GenerateContext
+  context: GenerateContextType
   integerSchema: OasInteger
   modifiers: Modifiers
   destinationPath: string

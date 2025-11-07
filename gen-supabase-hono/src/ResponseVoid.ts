@@ -1,8 +1,8 @@
 import { ContentBase } from '@skmtc/core'
-import type { GenerateContext, ListObject } from '@skmtc/core'
+import type { GenerateContextType, ListObject } from '@skmtc/core'
 
 type ResponseVoidArgs = {
-  context: GenerateContext
+  context: GenerateContextType
   serviceName: string
   serviceArgs: ListObject<string>
 }

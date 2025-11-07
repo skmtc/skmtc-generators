@@ -1,6 +1,6 @@
 import { assertEquals } from 'jsr:@std/assert@^1.0.0'
 import { TsInsertable } from '../../src/TsInsertable.ts'
-import { ContentSettings, RefName } from '@skmtc/core'
+import { ContentSettings, RefName, StackTrail } from '@skmtc/core'
 import { Identifier } from '@skmtc/core'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
 import { toParseContext } from '../helpers/toParseContext.ts'
@@ -17,8 +17,9 @@ Deno.test('TsInsertable - simple object type', () => {
     }
   }
 
+  const stackTrail = new StackTrail(['TEST'])
   const parseContext = toParseContext({ schemas })
-  const oasDocument = parseContext.parse()
+  const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
   const tsInsertable = context.insertModel(TsInsertable, 'User' as RefName)
@@ -40,8 +41,9 @@ Deno.test('TsInsertable - object with optional properties', () => {
     }
   }
 
+  const stackTrail = new StackTrail(['TEST'])
   const parseContext = toParseContext({ schemas })
-  const oasDocument = parseContext.parse()
+  const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
   const tsInsertable = context.insertModel(TsInsertable, 'Product' as RefName)
@@ -59,8 +61,9 @@ Deno.test('TsInsertable - primitive string type', () => {
     }
   }
 
+  const stackTrail = new StackTrail(['TEST'])
   const parseContext = toParseContext({ schemas })
-  const oasDocument = parseContext.parse()
+  const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
   const tsInsertable = context.insertModel(TsInsertable, 'UserId' as RefName)
@@ -78,8 +81,9 @@ Deno.test('TsInsertable - array type', () => {
     }
   }
 
+  const stackTrail = new StackTrail(['TEST'])
   const parseContext = toParseContext({ schemas })
-  const oasDocument = parseContext.parse()
+  const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
   const tsInsertable = context.insertModel(TsInsertable, 'UserList' as RefName)
@@ -94,8 +98,9 @@ Deno.test('TsInsertable - union type', () => {
     }
   }
 
+  const stackTrail = new StackTrail(['TEST'])
   const parseContext = toParseContext({ schemas })
-  const oasDocument = parseContext.parse()
+  const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
   const tsInsertable = context.insertModel(TsInsertable, 'StringOrNumber' as RefName)

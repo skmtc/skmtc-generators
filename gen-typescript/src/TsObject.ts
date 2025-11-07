@@ -1,6 +1,6 @@
 import { ContentBase, handleKey, isEmpty } from '@skmtc/core'
 import type {
-  GenerateContext,
+  GenerateContextType,
   OasRef,
   GeneratorKey,
   OasSchema,
@@ -18,7 +18,7 @@ import { TsUnknown } from './TsUnknown.ts'
 import { match, P } from 'ts-pattern'
 
 type TsObjectProps = {
-  context: GenerateContext
+  context: GenerateContextType
   destinationPath: string
   value: OasObject
   modifiers: Modifiers
@@ -86,7 +86,7 @@ export class TsObject extends ContentBase {
 }
 
 type TsObjectPropertiesArgs = {
-  context: GenerateContext
+  context: GenerateContextType
   generatorKey: GeneratorKey
   destinationPath: string
   properties: Record<string, OasSchema | OasRef<'schema'> | CustomValue>
@@ -138,7 +138,7 @@ class TsObjectProperties extends ContentBase {
 }
 
 type TsRecordArgs = {
-  context: GenerateContext
+  context: GenerateContextType
   destinationPath: string
   schema: true | OasSchema | OasRef<'schema'>
   generatorKey: GeneratorKey

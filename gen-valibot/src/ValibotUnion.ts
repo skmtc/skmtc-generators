@@ -1,6 +1,6 @@
 import { ContentBase } from '@skmtc/core'
 import type {
-  GenerateContext,
+  GenerateContextType,
   GeneratorKey,
   RefName,
   TypeSystemValue,
@@ -13,7 +13,7 @@ import { toValibotValue } from './Valibot.ts'
 import { applyModifiers } from './applyModifiers.ts'
 
 type ValibotUnionArgs = {
-  context: GenerateContext
+  context: GenerateContextType
   destinationPath: string
   members: (OasSchema | OasRef<'schema'>)[]
   discriminator?: OasDiscriminator

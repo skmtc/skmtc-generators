@@ -1,11 +1,11 @@
-import type { ContentSettings, TypeSystemValue, GenerateContext, RefName } from '@skmtc/core'
+import type { ContentSettings, TypeSystemValue, GenerateContextType, RefName } from '@skmtc/core'
 import { toTsValue } from './Ts.ts'
 import { TypescriptBase } from './base.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
 import { Identifier } from '@skmtc/core'
 
 type ConstructorArgs = {
-  context: GenerateContext
+  context: GenerateContextType
   refName: RefName
   settings: ContentSettings<EnrichmentSchema>
   rootRef?: RefName

@@ -1,9 +1,9 @@
 import { ContentBase, List } from '@skmtc/core'
 import type { FieldSchema } from './enrichments.ts'
-import type { GenerateContext, ListArray, Stringable } from '@skmtc/core'
+import type { GenerateContextType, ListArray, Stringable } from '@skmtc/core'
 
 type EnumsFieldProps = {
-  context: GenerateContext
+  context: GenerateContextType
   field: FieldSchema
   enums: unknown[]
   destinationPath: string

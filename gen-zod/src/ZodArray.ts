@@ -2,7 +2,7 @@ import { ContentBase } from '@skmtc/core'
 import type {
   OasRef,
   RefName,
-  GenerateContext,
+  GenerateContextType,
   GeneratorKey,
   OasSchema,
   Modifiers,
@@ -12,7 +12,7 @@ import { toZodValue } from './Zod.ts'
 import { applyModifiers } from './applyModifiers.ts'
 
 type ZodArrayArgs = {
-  context: GenerateContext
+  context: GenerateContextType
   destinationPath: string
   items: OasSchema | OasRef<'schema'>
   modifiers: Modifiers

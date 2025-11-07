@@ -1,11 +1,11 @@
-import { GenerateContext, ParseContext, StackTrail } from '@skmtc/core'
+import { GenerateContext, type GenerateContextType, ParseContext, StackTrail } from '@skmtc/core'
 import type { OpenAPIV3 } from 'openapi-types'
 import * as log from 'jsr:@std/log@^0.224.0'
 
 /**
  * Creates a mock GenerateContext for testing
  */
-export function createMockContext(): GenerateContext {
+export function createMockContext(): GenerateContextType {
   // Create a minimal OpenAPI document
   const documentObject: OpenAPIV3.Document = {
     openapi: '3.0.0',
@@ -31,19 +31,17 @@ export function createMockContext(): GenerateContext {
   const parseContext = new ParseContext({
     documentObject,
     logger,
-    stackTrail,
     silent: true
   })
 
   // Parse to get OasDocument
-  const oasDocument = parseContext.parse()
+  const oasDocument = parseContext.parse(stackTrail)
 
   // Create GenerateContext
   const generateContext = new GenerateContext({
     oasDocument,
     settings: undefined,
     logger,
-    stackTrail,
     captureCurrentResult: () => {},
     // @ts-expect-error - mock implementation
     toGeneratorConfigMap: () => ({

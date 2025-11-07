@@ -1,10 +1,10 @@
 import { ModelDriver, toModelGeneratorKey, ContentBase } from '@skmtc/core'
-import type { GenerateContext, Modifiers, RefName } from '@skmtc/core'
+import type { GenerateContextType, Modifiers, RefName } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
 import { ZodInsertable } from './ZodInsertable.ts'
 import { zodEntry } from './mod.ts'
 type ConstructorProps = {
-  context: GenerateContext
+  context: GenerateContextType
   destinationPath: string
   modifiers: Modifiers
   refName: RefName
@@ -34,7 +34,6 @@ export class ZodRef extends ContentBase {
       const { settings } = new ModelDriver({
         context,
         refName,
-        generation: 'force',
         destinationPath,
         rootRef,
         insertable: ZodInsertable

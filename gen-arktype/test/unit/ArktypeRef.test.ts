@@ -1,6 +1,6 @@
 import { assertEquals } from 'jsr:@std/assert@^1.0.0'
 import { ArktypeRef } from '../../src/ArktypeRef.ts'
-import { RefName, toGeneratorOnlyKey } from '@skmtc/core'
+import { type RefName, toGeneratorOnlyKey } from '@skmtc/core'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
 import { arktypeEntry } from '../../src/mod.ts'
 

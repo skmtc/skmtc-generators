@@ -3,13 +3,15 @@ import { toZodValue } from './gen-zod/src/Zod.ts'
 import type { OpenAPIV3 } from 'openapi-types'
 import { toParseContext } from './gen-zod/test/helpers/toParseContext.ts'
 import { toGenerateContext } from './gen-zod/test/helpers/toGenerateContext.ts'
+import { StackTrail } from '@skmtc/core'
 
 // Helper to convert schema and get Zod string (copied from toZodValue.test.ts)
 function schemaToZod(
   schema: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject,
   required = true
 ): string {
-  const parsedSchema = toSchemaV3({ schema, context: toParseContext() })
+  const stackTrail = new StackTrail(['TEST'])
+  const parsedSchema = toSchemaV3({ schema, context: toParseContext(), stackTrail })
 
   const result = toZodValue({
     schema: parsedSchema,

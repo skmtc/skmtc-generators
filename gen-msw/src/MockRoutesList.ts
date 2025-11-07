@@ -1,8 +1,8 @@
-import type { Stringable, GenerateContext, ListArray } from '@skmtc/core'
+import type { Stringable, GenerateContextType, ListArray } from '@skmtc/core'
 import { ContentBase, List } from '@skmtc/core'
 
 type ConstructorArgs = {
-  context: GenerateContext
+  context: GenerateContextType
 }
 
 export class MockRoutesList extends ContentBase {

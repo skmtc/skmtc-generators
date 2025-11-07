@@ -1,6 +1,6 @@
 import { ContentBase, isEmpty } from '@skmtc/core'
 import type {
-  GenerateContext,
+  GenerateContextType,
   GeneratorKey,
   OasRef,
   OasSchema,
@@ -18,7 +18,7 @@ import { ValibotUnknown } from './ValibotUnknown.ts'
 import { match, P } from 'ts-pattern'
 
 type ValibotObjectProps = {
-  context: GenerateContext
+  context: GenerateContextType
   destinationPath: string
   objectSchema: OasObject
   modifiers: Modifiers
@@ -89,7 +89,7 @@ export class ValibotObject extends ContentBase {
 
 type ValibotObjectPropertiesArgs = {
   modifiers: Modifiers
-  context: GenerateContext
+  context: GenerateContextType
   destinationPath: string
   properties: Record<string, OasSchema | OasRef<'schema'> | CustomValue>
   required: OasObject['required']
@@ -141,7 +141,7 @@ class ValibotObjectProperties extends ContentBase {
 }
 
 type ValibotRecordArgs = {
-  context: GenerateContext
+  context: GenerateContextType
   destinationPath: string
   schema: true | OasSchema | OasRef<'schema'>
   generatorKey: GeneratorKey

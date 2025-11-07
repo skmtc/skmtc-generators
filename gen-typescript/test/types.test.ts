@@ -1,5 +1,5 @@
 import { assertEquals } from 'jsr:@std/assert@^1.0.0'
-import { toSchemaV3 } from '@skmtc/core'
+import { toSchemaV3, StackTrail } from '@skmtc/core'
 import { toTsValue } from '../src/Ts.ts'
 import type { OpenAPIV3 } from 'openapi-types'
 import { toParseContext } from './helpers/toParseContext.ts'
@@ -10,7 +10,8 @@ function jsonSchemaToTs(
   jsonSchema: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject,
   required = true
 ): string {
-  const parsedSchema = toSchemaV3({ schema: jsonSchema, context: toParseContext() })
+  const stackTrail = new StackTrail(['TEST'])
+  const parsedSchema = toSchemaV3({ schema: jsonSchema, context: toParseContext(), stackTrail })
 
   const result = toTsValue({
     schema: parsedSchema,
@@ -146,13 +147,16 @@ Deno.test('types.md line 64 - Tuple array', () => {
 
 Deno.test('types.md line 78 - Enum with anyOf', () => {
   const jsonSchema: OpenAPIV3.SchemaObject = {
-    anyOf: [{
-      type: 'number',
-      enum: [0]
-    }, {
-      type: 'number',
-      enum: [1]
-    }]
+    anyOf: [
+      {
+        type: 'number',
+        enum: [0]
+      },
+      {
+        type: 'number',
+        enum: [1]
+      }
+    ]
   }
   // Actual output treats each anyOf member as its type
   assertEquals(jsonSchemaToTs(jsonSchema), 'number | number')
@@ -187,13 +191,16 @@ Deno.test('types.md line 89 - Const object', () => {
 
 Deno.test('types.md line 105 - KeyOf object', () => {
   const jsonSchema: OpenAPIV3.SchemaObject = {
-    anyOf: [{
-      type: 'string',
-      enum: ['x']
-    }, {
-      type: 'string',
-      enum: ['y']
-    }]
+    anyOf: [
+      {
+        type: 'string',
+        enum: ['x']
+      },
+      {
+        type: 'string',
+        enum: ['y']
+      }
+    ]
   }
   assertEquals(jsonSchemaToTs(jsonSchema), "'x' | 'y'")
 })
@@ -204,11 +211,14 @@ Deno.test('types.md line 105 - KeyOf object', () => {
 
 Deno.test('types.md line 116 - Union type', () => {
   const jsonSchema: OpenAPIV3.SchemaObject = {
-    anyOf: [{
-      type: 'string'
-    }, {
-      type: 'number'
-    }]
+    anyOf: [
+      {
+        type: 'string'
+      },
+      {
+        type: 'number'
+      }
+    ]
   }
   assertEquals(jsonSchemaToTs(jsonSchema), 'string | number')
 })
@@ -219,23 +229,26 @@ Deno.test('types.md line 116 - Union type', () => {
 
 Deno.test('types.md line 125 - Intersection type', () => {
   const jsonSchema: OpenAPIV3.SchemaObject = {
-    allOf: [{
-      type: 'object',
-      required: ['x'],
-      properties: {
-        x: {
-          type: 'number'
+    allOf: [
+      {
+        type: 'object',
+        required: ['x'],
+        properties: {
+          x: {
+            type: 'number'
+          }
+        }
+      },
+      {
+        type: 'object',
+        required: ['y'],
+        properties: {
+          y: {
+            type: 'number'
+          }
         }
       }
-    }, {
-      type: 'object',
-      required: ['y'],
-      properties: {
-        y: {
-          type: 'number'
-        }
-      }
-    }]
+    ]
   }
   // Actual output merges allOf into single object
   assertEquals(jsonSchemaToTs(jsonSchema), '{x: number, y: number}')
@@ -518,12 +531,14 @@ Deno.test('types.md line 328 - Reference type', () => {
     }
   }
 
+  const stackTrail = new StackTrail(['TEST'])
   const parseContext = toParseContext({ schemas })
-  const oasDocument = parseContext.parse()
+  const oasDocument = parseContext.parse(stackTrail)
 
   const parsedSchema = toSchemaV3({
     schema: { $ref: '#/components/schemas/T' },
-    context: parseContext
+    context: parseContext,
+    stackTrail
   })
 
   const result = toTsValue({

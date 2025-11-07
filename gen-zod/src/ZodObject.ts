@@ -1,6 +1,6 @@
 import { ContentBase, handleKey, isEmpty } from '@skmtc/core'
 import type {
-  GenerateContext,
+  GenerateContextType,
   GeneratorKey,
   OasRef,
   OasSchema,
@@ -18,7 +18,7 @@ import { ZodUnknown } from './ZodUnknown.ts'
 import { match, P } from 'ts-pattern'
 
 type ZodObjectProps = {
-  context: GenerateContext
+  context: GenerateContextType
   destinationPath: string
   objectSchema: OasObject
   modifiers: Modifiers
@@ -89,7 +89,7 @@ export class ZodObject extends ContentBase {
 
 type ZodObjectPropertiesArgs = {
   modifiers: Modifiers
-  context: GenerateContext
+  context: GenerateContextType
   destinationPath: string
   properties: Record<string, OasSchema | OasRef<'schema'> | CustomValue>
   required: OasObject['required']
@@ -141,7 +141,7 @@ class ZodObjectProperties extends ContentBase {
 }
 
 type ZodRecordArgs = {
-  context: GenerateContext
+  context: GenerateContextType
   destinationPath: string
   schema: true | OasSchema | OasRef<'schema'>
   generatorKey: GeneratorKey

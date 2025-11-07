@@ -1,9 +1,9 @@
-import { ContentBase, type TypeSystemValue, type GenerateContext, type Modifiers, type GeneratorKey, type OasObject, type RefName, type TypeSystemRecord, type TypeSystemObjectProperties, handleKey, isEmpty } from '@skmtc/core'
+import { ContentBase, type TypeSystemValue, type GenerateContextType, type Modifiers, type GeneratorKey, type OasObject, type RefName, type TypeSystemRecord, type TypeSystemObjectProperties, handleKey, isEmpty } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
 import { toArktypeValue } from './Arktype.ts'
 
 type ArktypeObjectArgs = {
-  context: GenerateContext
+  context: GenerateContextType
   objectSchema: OasObject
   modifiers: Modifiers
   destinationPath: string

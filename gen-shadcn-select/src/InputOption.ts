@@ -1,8 +1,8 @@
 import { ContentBase } from '@skmtc/core'
-import type { GenerateContext, ModuleExport } from '@skmtc/core'
+import type { GenerateContextType, ModuleExport } from '@skmtc/core'
 
 type InputOptionProps = {
-  context: GenerateContext
+  context: GenerateContextType
   itemName: string
   formatter: ModuleExport | undefined
   accessorPath: string[]

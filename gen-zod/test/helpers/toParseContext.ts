@@ -1,4 +1,4 @@
-import { ParseContext, StackTrail } from '@skmtc/core'
+import { ParseContext } from '@skmtc/core'
 import type { OpenAPIV3 } from 'openapi-types'
 import * as log from 'jsr:@std/log@^0.224.0'
 
@@ -22,7 +22,6 @@ export const toParseContext = ({ schemas }: ToParseContextArgs = {}) => {
   return new ParseContext({
     documentObject,
     logger: new log.Logger('test', 'ERROR'),
-    stackTrail: new StackTrail(),
     silent: true
   })
 }

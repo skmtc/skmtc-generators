@@ -1,11 +1,11 @@
 import { ModelDriver, toModelGeneratorKey, ContentBase } from '@skmtc/core'
-import type { GenerateContext, Modifiers, RefName } from '@skmtc/core'
+import type { GenerateContextType, Modifiers, RefName } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
 import { TsInsertable } from './TsInsertable.ts'
 import { typescriptEntry } from './mod.ts'
 
 type TsRefConstructorProps = {
-  context: GenerateContext
+  context: GenerateContextType
   destinationPath: string
   modifiers: Modifiers
   refName: RefName
@@ -36,7 +36,6 @@ export class TsRef extends ContentBase {
       const tsDriver = new ModelDriver({
         context,
         refName,
-        generation: 'force',
         destinationPath,
         insertable: TsInsertable,
         rootRef

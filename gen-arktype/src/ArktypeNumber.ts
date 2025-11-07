@@ -1,9 +1,9 @@
 import { ContentBase } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
-import type { Modifiers, GeneratorKey, GenerateContext } from '@skmtc/core'
+import type { Modifiers, GeneratorKey, GenerateContextType } from '@skmtc/core'
 
 type ArktypeNumberArgs = {
-  context: GenerateContext
+  context: GenerateContextType
   modifiers: Modifiers
   destinationPath: string
   generatorKey: GeneratorKey

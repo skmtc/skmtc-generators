@@ -1,6 +1,6 @@
 import {
   type TypeSystemValue,
-  type GenerateContext,
+  type GenerateContextType,
   type RefName,
   type ContentSettings,
   Identifier
@@ -10,7 +10,7 @@ import { ValibotBase } from './base.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
 
 type ConstructorArgs = {
-  context: GenerateContext
+  context: GenerateContextType
   destinationPath: string
   refName: RefName
   settings: ContentSettings<EnrichmentSchema>

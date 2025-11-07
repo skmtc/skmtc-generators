@@ -1,8 +1,8 @@
 import { ContentBase } from '@skmtc/core'
-import type { GeneratorKey, GenerateContext } from '@skmtc/core'
+import type { GeneratorKey, GenerateContextType } from '@skmtc/core'
 
 type ValibotVoidArgs = {
-  context: GenerateContext
+  context: GenerateContextType
   destinationPath: string
   generatorKey: GeneratorKey
 }

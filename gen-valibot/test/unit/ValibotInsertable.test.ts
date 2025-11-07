@@ -1,6 +1,6 @@
 import { assertEquals } from 'jsr:@std/assert@^1.0.0'
 import { ValibotInsertable } from '../../src/ValibotInsertable.ts'
-import { RefName } from '@skmtc/core'
+import { RefName, StackTrail } from '@skmtc/core'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
 import { toParseContext } from '../helpers/toParseContext.ts'
 
@@ -16,8 +16,9 @@ Deno.test('ValibotInsertable - simple object type', () => {
     }
   }
 
+  const stackTrail = new StackTrail(['TEST'])
   const parseContext = toParseContext({ schemas })
-  const oasDocument = parseContext.parse()
+  const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
   const valibotInsertable = context.insertModel(ValibotInsertable, 'User' as RefName)
@@ -39,8 +40,9 @@ Deno.test('ValibotInsertable - object with optional properties', () => {
     }
   }
 
+  const stackTrail = new StackTrail(['TEST'])
   const parseContext = toParseContext({ schemas })
-  const oasDocument = parseContext.parse()
+  const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
   const valibotInsertable = context.insertModel(ValibotInsertable, 'Product' as RefName)
@@ -58,8 +60,9 @@ Deno.test('ValibotInsertable - primitive string type', () => {
     }
   }
 
+  const stackTrail = new StackTrail(['TEST'])
   const parseContext = toParseContext({ schemas })
-  const oasDocument = parseContext.parse()
+  const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
   const valibotInsertable = context.insertModel(ValibotInsertable, 'UserId' as RefName)
@@ -77,8 +80,9 @@ Deno.test('ValibotInsertable - array type', () => {
     }
   }
 
+  const stackTrail = new StackTrail(['TEST'])
   const parseContext = toParseContext({ schemas })
-  const oasDocument = parseContext.parse()
+  const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
   const valibotInsertable = context.insertModel(ValibotInsertable, 'UserList' as RefName)
@@ -93,8 +97,9 @@ Deno.test('ValibotInsertable - union type', () => {
     }
   }
 
+  const stackTrail = new StackTrail(['TEST'])
   const parseContext = toParseContext({ schemas })
-  const oasDocument = parseContext.parse()
+  const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
   const valibotInsertable = context.insertModel(ValibotInsertable, 'StringOrNumber' as RefName)

@@ -1,5 +1,5 @@
 import { assertEquals } from 'jsr:@std/assert@^1.0.0'
-import { toSchemaV3 } from '@skmtc/core'
+import { toSchemaV3, StackTrail } from '@skmtc/core'
 import { toZodValue } from '../src/Zod.ts'
 import type { OpenAPIV3 } from 'openapi-types'
 import { toParseContext } from './helpers/toParseContext.ts'
@@ -10,7 +10,8 @@ function schemaToZod(
   schema: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject,
   required = true
 ): string {
-  const parsedSchema = toSchemaV3({ schema, context: toParseContext() })
+  const stackTrail = new StackTrail(['TEST'])
+  const parsedSchema = toSchemaV3({ schema, context: toParseContext(), stackTrail })
 
   const result = toZodValue({
     schema: parsedSchema,
@@ -317,13 +318,15 @@ Deno.test('toZodValue - schema reference', () => {
     }
   }
 
+  const stackTrail = new StackTrail(['TEST'])
   const parseContext = toParseContext({ schemas })
 
-  const oasDocument = parseContext.parse()
+  const oasDocument = parseContext.parse(stackTrail)
 
   const parsedSchema = toSchemaV3({
     schema: { $ref: '#/components/schemas/User' },
-    context: parseContext
+    context: parseContext,
+    stackTrail
   })
 
   const result = toZodValue({

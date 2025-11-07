@@ -1,9 +1,9 @@
 import { ContentBase, List } from '@skmtc/core'
 import type { FieldSchema } from './enrichments.ts'
-import type { GenerateContext, OasSchema, OasRef, ListArray, Stringable } from '@skmtc/core'
+import type { GenerateContextType, OasSchema, OasRef, ListArray, Stringable } from '@skmtc/core'
 
 type InputFieldProps = {
-  context: GenerateContext
+  context: GenerateContextType
   field: FieldSchema
   schema: OasSchema | OasRef<'schema'> | undefined
   destinationPath: string

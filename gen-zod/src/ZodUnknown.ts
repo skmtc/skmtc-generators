@@ -1,7 +1,7 @@
-import { ContentBase, type GeneratorKey, type GenerateContext } from '@skmtc/core'
+import { ContentBase, type GeneratorKey, type GenerateContextType } from '@skmtc/core'
 
 type ConstructorArgs = {
-  context: GenerateContext
+  context: GenerateContextType
   destinationPath: string
   generatorKey: GeneratorKey
 }

@@ -7,10 +7,7 @@ import { toGeneratorOnlyKey } from '@skmtc/core'
 Deno.test('ValibotUnion - simple union with two types', () => {
   const valibotUnion = new ValibotUnion({
     context: toGenerateContext(),
-    members: [
-      new OasString({ enums: undefined, format: undefined }),
-      new OasNumber()
-    ],
+    members: [new OasString({ enums: undefined, format: undefined }), new OasNumber()],
     discriminator: undefined,
     modifiers: { required: true },
     generatorKey: toGeneratorOnlyKey({ generatorId: '@skmtc/gen-valibot' }),
@@ -40,10 +37,7 @@ Deno.test('ValibotUnion - union with three types', () => {
 Deno.test('ValibotUnion - nullable union', () => {
   const valibotUnion = new ValibotUnion({
     context: toGenerateContext(),
-    members: [
-      new OasString({ enums: undefined, format: undefined }),
-      new OasNumber()
-    ],
+    members: [new OasString({ enums: undefined, format: undefined }), new OasNumber()],
     discriminator: undefined,
     modifiers: { required: true, nullable: true },
     generatorKey: toGeneratorOnlyKey({ generatorId: '@skmtc/gen-valibot' }),
@@ -56,10 +50,7 @@ Deno.test('ValibotUnion - nullable union', () => {
 Deno.test('ValibotUnion - optional union', () => {
   const valibotUnion = new ValibotUnion({
     context: toGenerateContext(),
-    members: [
-      new OasString({ enums: undefined, format: undefined }),
-      new OasNumber()
-    ],
+    members: [new OasString({ enums: undefined, format: undefined }), new OasNumber()],
     discriminator: undefined,
     modifiers: { required: false },
     generatorKey: toGeneratorOnlyKey({ generatorId: '@skmtc/gen-valibot' }),

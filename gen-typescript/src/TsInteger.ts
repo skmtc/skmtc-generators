@@ -1,10 +1,10 @@
 import { ContentBase } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
-import type { OasInteger, GeneratorKey, Modifiers, GenerateContext } from '@skmtc/core'
+import type { OasInteger, GeneratorKey, Modifiers, GenerateContextType } from '@skmtc/core'
 import { match, P } from 'ts-pattern'
 
 type TsIntegerArgs = {
-  context: GenerateContext
+  context: GenerateContextType
   integerSchema: OasInteger
   modifiers: Modifiers
   generatorKey: GeneratorKey

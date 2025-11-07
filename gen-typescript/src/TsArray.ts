@@ -4,7 +4,7 @@ import type {
   OasSchema,
   Modifiers,
   GeneratorKey,
-  GenerateContext,
+  GenerateContextType,
   OasRef,
   RefName
 } from '@skmtc/core'
@@ -12,7 +12,7 @@ import { toTsValue } from './Ts.ts'
 import { applyModifiers } from './applyModifiers.ts'
 
 type TsArrayArgs = {
-  context: GenerateContext
+  context: GenerateContextType
   destinationPath: string
   items: OasSchema | OasRef<'schema'>
   modifiers: Modifiers

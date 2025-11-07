@@ -1,7 +1,7 @@
 import { ContentBase, camelCase, decapitalize } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
 import type {
-  GenerateContext,
+  GenerateContextType,
   GeneratorKey,
   RefName,
   Modifiers,
@@ -9,7 +9,7 @@ import type {
 } from '@skmtc/core'
 
 type ValibotRefArgs = {
-  context: GenerateContext
+  context: GenerateContextType
   destinationPath: string
   refName: RefName
   modifiers: Modifiers

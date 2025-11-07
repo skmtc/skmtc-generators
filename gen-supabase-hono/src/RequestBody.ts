@@ -1,9 +1,9 @@
 import { ContentBase, decapitalize } from '@skmtc/core'
-import type { GenerateContext, OasSchema, OasRef } from '@skmtc/core'
+import type { GenerateContextType, OasSchema, OasRef } from '@skmtc/core'
 import { ZodInsertable } from '@skmtc/gen-zod'
 
 type RequestBodyArgs = {
-  context: GenerateContext
+  context: GenerateContextType
   serviceName: string
   destinationPath: string
   requestBodySchema: OasSchema | OasRef<'schema'> | undefined

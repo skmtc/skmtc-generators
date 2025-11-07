@@ -1,8 +1,8 @@
-import type { GenerateContext, ListObject, Stringable, ModuleExport } from '@skmtc/core'
+import type { GenerateContextType, ListObject, Stringable, ModuleExport } from '@skmtc/core'
 import { CustomValue, Definition, Identifier, List, ContentBase } from '@skmtc/core'
 import { Column } from './Column.ts'
 type ConstructorArgs = {
-  context: GenerateContext
+  context: GenerateContextType
   formatter: ModuleExport
   destinationPath: string
   accessorPath: string[]
@@ -72,7 +72,7 @@ const getLabel = ({ label, name }: GetLabelArgs) => {
 }
 
 type GetCellArgs = {
-  context: GenerateContext
+  context: GenerateContextType
   formatter: ModuleExport
   destinationPath: string
 }

@@ -1,12 +1,12 @@
 import { camelCase, ContentBase, decapitalize, toPathParams, List } from '@skmtc/core'
-import type { GenerateContext, OasOperation, ListObject } from '@skmtc/core'
+import type { GenerateContextType, OasOperation, ListObject } from '@skmtc/core'
 import { RequestBody } from './RequestBody.ts'
 import { Response } from './Response.ts'
 import { ResponseVoid } from './ResponseVoid.ts'
 import { toFirstSegment } from './toFirstSegment.ts'
 
 type SupabaseRouteArgs = {
-  context: GenerateContext
+  context: GenerateContextType
   operation: OasOperation
   destinationPath: string
 }

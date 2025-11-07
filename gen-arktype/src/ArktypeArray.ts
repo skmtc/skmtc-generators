@@ -1,9 +1,9 @@
-import { ContentBase, type TypeSystemValue, type GenerateContext, type Modifiers, type GeneratorKey, type RefName } from '@skmtc/core'
+import { ContentBase, type TypeSystemValue, type GenerateContextType, type Modifiers, type GeneratorKey, type RefName } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
 import { toArktypeValue } from './Arktype.ts'
 
 type ArktypeArrayArgs = {
-  context: GenerateContext
+  context: GenerateContextType
   modifiers: Modifiers
   items: any
   destinationPath: string

@@ -1,6 +1,6 @@
 import { assertEquals } from 'jsr:@std/assert@^1.0.0'
 import { ValibotRef } from '../../src/ValibotRef.ts'
-import { RefName, toGeneratorOnlyKey } from '@skmtc/core'
+import { RefName, toGeneratorOnlyKey, StackTrail } from '@skmtc/core'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
 import { toParseContext } from '../helpers/toParseContext.ts'
 import { valibotEntry } from '../../src/mod.ts'
@@ -16,8 +16,9 @@ Deno.test('ValibotRef - basic reference', () => {
     }
   }
 
+  const stackTrail = new StackTrail(['TEST'])
   const parseContext = toParseContext({ schemas })
-  const oasDocument = parseContext.parse()
+  const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
   const valibotRef = new ValibotRef({
@@ -43,8 +44,9 @@ Deno.test('ValibotRef - nullable reference', () => {
     }
   }
 
+  const stackTrail = new StackTrail(['TEST'])
   const parseContext = toParseContext({ schemas })
-  const oasDocument = parseContext.parse()
+  const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
   const valibotRef = new ValibotRef({
@@ -70,8 +72,9 @@ Deno.test('ValibotRef - optional reference', () => {
     }
   }
 
+  const stackTrail = new StackTrail(['TEST'])
   const parseContext = toParseContext({ schemas })
-  const oasDocument = parseContext.parse()
+  const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
   const valibotRef = new ValibotRef({
@@ -101,8 +104,9 @@ Deno.test('ValibotRef - recursive reference', () => {
     }
   }
 
+  const stackTrail = new StackTrail(['TEST'])
   const parseContext = toParseContext({ schemas })
-  const oasDocument = parseContext.parse()
+  const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
   const valibotRef = new ValibotRef({
@@ -128,8 +132,9 @@ Deno.test('ValibotRef - camelCase reference name transformation', () => {
     }
   }
 
+  const stackTrail = new StackTrail(['TEST'])
   const parseContext = toParseContext({ schemas })
-  const oasDocument = parseContext.parse()
+  const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
   const valibotRef = new ValibotRef({

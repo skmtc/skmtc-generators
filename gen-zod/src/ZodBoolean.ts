@@ -1,8 +1,8 @@
 import { applyModifiers } from './applyModifiers.ts'
-import { type Modifiers, type GeneratorKey, ContentBase, type GenerateContext } from '@skmtc/core'
+import { type Modifiers, type GeneratorKey, ContentBase, type GenerateContextType } from '@skmtc/core'
 
 type ZodBooleanArgs = {
-  context: GenerateContext
+  context: GenerateContextType
   modifiers: Modifiers
   destinationPath: string
   generatorKey: GeneratorKey

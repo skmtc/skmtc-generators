@@ -2,7 +2,7 @@ import { ContentBase } from '@skmtc/core'
 import { toValibotValue } from './Valibot.ts'
 import { applyModifiers } from './applyModifiers.ts'
 import type {
-  GenerateContext,
+  GenerateContextType,
   GeneratorKey,
   RefName,
   TypeSystemValue,
@@ -12,7 +12,7 @@ import type {
 } from '@skmtc/core'
 
 type ValibotArrayArgs = {
-  context: GenerateContext
+  context: GenerateContextType
   destinationPath: string
   items: OasSchema | OasRef<'schema'>
   modifiers: Modifiers

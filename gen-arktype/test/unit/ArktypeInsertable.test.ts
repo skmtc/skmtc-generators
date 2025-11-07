@@ -1,6 +1,6 @@
 import { assertEquals } from 'jsr:@std/assert@^1.0.0'
 import { ArktypeInsertable } from '../../src/ArktypeInsertable.ts'
-import { RefName } from '@skmtc/core'
+import { type RefName, StackTrail } from '@skmtc/core'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
 import { toParseContext } from '../helpers/toParseContext.ts'
 
@@ -16,8 +16,9 @@ Deno.test('ArktypeInsertable - simple object type', () => {
     }
   }
 
+  const stackTrail = new StackTrail(['TEST'])
   const parseContext = toParseContext({ schemas })
-  const oasDocument = parseContext.parse()
+  const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
   const arktypeInsertable = context.insertModel(ArktypeInsertable, 'User' as RefName)
@@ -37,8 +38,9 @@ Deno.test('ArktypeInsertable - object with optional properties', () => {
     }
   }
 
+  const stackTrail = new StackTrail(['TEST'])
   const parseContext = toParseContext({ schemas })
-  const oasDocument = parseContext.parse()
+  const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
   const arktypeInsertable = context.insertModel(ArktypeInsertable, 'Profile' as RefName)
@@ -53,8 +55,9 @@ Deno.test('ArktypeInsertable - primitive string type', () => {
     }
   }
 
+  const stackTrail = new StackTrail(['TEST'])
   const parseContext = toParseContext({ schemas })
-  const oasDocument = parseContext.parse()
+  const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
   const arktypeInsertable = context.insertModel(ArktypeInsertable, 'UserName' as RefName)
@@ -70,8 +73,9 @@ Deno.test('ArktypeInsertable - array type', () => {
     }
   }
 
+  const stackTrail = new StackTrail(['TEST'])
   const parseContext = toParseContext({ schemas })
-  const oasDocument = parseContext.parse()
+  const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
   const arktypeInsertable = context.insertModel(ArktypeInsertable, 'Tags' as RefName)
@@ -82,15 +86,13 @@ Deno.test('ArktypeInsertable - array type', () => {
 Deno.test('ArktypeInsertable - union type', () => {
   const schemas = {
     StringOrNumber: {
-      oneOf: [
-        { type: 'string' as const },
-        { type: 'number' as const }
-      ]
+      oneOf: [{ type: 'string' as const }, { type: 'number' as const }]
     }
   }
 
+  const stackTrail = new StackTrail(['TEST'])
   const parseContext = toParseContext({ schemas })
-  const oasDocument = parseContext.parse()
+  const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
   const arktypeInsertable = context.insertModel(ArktypeInsertable, 'StringOrNumber' as RefName)

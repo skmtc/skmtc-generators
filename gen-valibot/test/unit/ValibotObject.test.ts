@@ -39,7 +39,10 @@ Deno.test('ValibotObject - object with optional properties', () => {
     destinationPath: '/test'
   })
 
-  assertEquals(valibotObject.toString(), 'v.object({id: v.string(), description: v.optional(v.string())})')
+  assertEquals(
+    valibotObject.toString(),
+    'v.object({id: v.string(), description: v.optional(v.string())})'
+  )
 })
 
 Deno.test('ValibotObject - empty object', () => {
@@ -89,7 +92,10 @@ Deno.test('ValibotObject - object with properties and additionalProperties', () 
     destinationPath: '/test'
   })
 
-  assertEquals(valibotObject.toString(), 'v.intersect([v.object({id: v.string()}), v.record(v.string(), v.number())])')
+  assertEquals(
+    valibotObject.toString(),
+    'v.intersect([v.object({id: v.string()}), v.record(v.string(), v.number())])'
+  )
 })
 
 Deno.test('ValibotObject - nullable object', () => {

@@ -1,6 +1,6 @@
 import { assertEquals } from 'jsr:@std/assert@^1.0.0'
 import { TsRef } from '../../src/TsRef.ts'
-import { OasRef, type RefName } from '@skmtc/core'
+import { OasRef, type RefName, StackTrail } from '@skmtc/core'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
 import { toParseContext } from '../helpers/toParseContext.ts'
 import { toTsValue } from '@skmtc/gen-typescript'
@@ -17,8 +17,9 @@ Deno.test('TsRef - basic reference', () => {
     }
   }
 
+  const stackTrail = new StackTrail(['TEST'])
   const parseContext = toParseContext({ schemas })
-  const oasDocument = parseContext.parse()
+  const oasDocument = parseContext.parse(stackTrail)
 
   const tsRef = new TsRef({
     context: toGenerateContext({ oasDocument }),
@@ -42,8 +43,9 @@ Deno.test('TsRef - nullable reference', () => {
     }
   }
 
+  const stackTrail = new StackTrail(['TEST'])
   const parseContext = toParseContext({ schemas })
-  const oasDocument = parseContext.parse()
+  const oasDocument = parseContext.parse(stackTrail)
 
   const tsRef = new TsRef({
     context: toGenerateContext({ oasDocument }),
@@ -66,8 +68,9 @@ Deno.test('TsRef - optional reference', () => {
     }
   }
 
+  const stackTrail = new StackTrail(['TEST'])
   const parseContext = toParseContext({ schemas })
-  const oasDocument = parseContext.parse()
+  const oasDocument = parseContext.parse(stackTrail)
 
   const tsRef = new TsRef({
     context: toGenerateContext({ oasDocument }),
@@ -91,8 +94,9 @@ Deno.test('TsRef - recursive reference', () => {
     }
   }
 
+  const stackTrail = new StackTrail(['TEST'])
   const parseContext = toParseContext({ schemas })
-  const oasDocument = parseContext.parse()
+  const oasDocument = parseContext.parse(stackTrail)
 
   const context = toGenerateContext({ oasDocument })
 
@@ -111,7 +115,7 @@ Deno.test('TsRef - recursive reference', () => {
     destinationPath: '@/types/category.generated.ts'
   })
 
-  const output = context.toArtifacts()
+  const output = context.toArtifacts(stackTrail)
 
   const files = Object.fromEntries(
     Array.from(output.files.entries()).map(([path, file]) => {
@@ -136,8 +140,9 @@ Deno.test('TsRef - camelCase reference name transformation', () => {
     }
   }
 
+  const stackTrail = new StackTrail(['TEST'])
   const parseContext = toParseContext({ schemas })
-  const oasDocument = parseContext.parse()
+  const oasDocument = parseContext.parse(stackTrail)
 
   const tsRef = new TsRef({
     context: toGenerateContext({ oasDocument }),

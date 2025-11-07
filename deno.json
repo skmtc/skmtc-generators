@@ -1,6 +1,6 @@
 {
   "imports": {
-    "@skmtc/core": "jsr:@skmtc/core@^0.0.889",
+    "@skmtc/core": "jsr:@skmtc/core@^0.0.951",
     "@skmtc/gen-msw": "./gen-msw/mod.ts",
     "@skmtc/gen-shadcn-form": "./gen-shadcn-form/mod.ts",
     "@skmtc/gen-shadcn-select": "./gen-shadcn-select/mod.ts",
@@ -16,8 +16,7 @@
     "openapi-types": "npm:openapi-types@^12.1.3",
     "tiny-invariant": "npm:tiny-invariant@^1.3.3",
     "ts-pattern": "npm:ts-pattern@^5.8.0",
-    "valibot": "npm:valibot@1.1.0",
-    "arktype": "npm:arktype@^2.0.0"
+    "valibot": "npm:valibot@1.1.0"
   },
   "tasks": {
     "test": "deno task --cwd=gen-typescript test && deno task --cwd=gen-zod test && deno task --cwd=gen-valibot test && deno task --cwd=gen-arktype test",

@@ -1,4 +1,4 @@
-import { GenerateContext, OasDocument, StackTrail } from '@skmtc/core'
+import { GenerateContext, OasDocument } from '@skmtc/core'
 import * as log from 'jsr:@std/log@0.224/logger'
 import { valibotEntry } from '../../src/mod.ts'
 
@@ -11,7 +11,6 @@ export const toGenerateContext = ({ oasDocument }: ToGenerateContextArgs = {}) =
     oasDocument: oasDocument ?? new OasDocument(),
     settings: undefined,
     logger: new log.Logger('test', 'ERROR'),
-    stackTrail: new StackTrail(),
     captureCurrentResult: () => {},
     // @ts-expect-error - mock implementation
     toGeneratorConfigMap: () => ({

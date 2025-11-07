@@ -38,7 +38,7 @@ Deno.test('ArktypeString - multiple enum values', () => {
     destinationPath: '/test'
   })
 
-  assertEquals(arktypeString.toString(), 'type("\'active\' | \'inactive\' | \'pending\'")')
+  assertEquals(arktypeString.toString(), "type(\"'active' | 'inactive' | 'pending'\")")
 })
 
 Deno.test('ArktypeString - nullable string', () => {

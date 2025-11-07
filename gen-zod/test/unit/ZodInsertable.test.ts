@@ -1,10 +1,11 @@
 import { assertEquals } from 'jsr:@std/assert@^1.0.0'
 import { ZodInsertable } from '../../src/ZodInsertable.ts'
-import { RefName } from '@skmtc/core'
+import { type RefName, StackTrail } from '@skmtc/core'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
 import { toParseContext } from '../helpers/toParseContext.ts'
 
 Deno.test('ZodInsertable - simple object type', () => {
+  const stackTrail = new StackTrail(['TEST'])
   const schemas = {
     User: {
       type: 'object' as const,
@@ -17,7 +18,7 @@ Deno.test('ZodInsertable - simple object type', () => {
   }
 
   const parseContext = toParseContext({ schemas })
-  const oasDocument = parseContext.parse()
+  const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
   const zodInsertable = context.insertModel(ZodInsertable, 'User' as RefName)
@@ -27,6 +28,7 @@ Deno.test('ZodInsertable - simple object type', () => {
 })
 
 Deno.test('ZodInsertable - object with optional properties', () => {
+  const stackTrail = new StackTrail(['TEST'])
   const schemas = {
     Product: {
       type: 'object' as const,
@@ -40,7 +42,7 @@ Deno.test('ZodInsertable - object with optional properties', () => {
   }
 
   const parseContext = toParseContext({ schemas })
-  const oasDocument = parseContext.parse()
+  const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
   const zodInsertable = context.insertModel(ZodInsertable, 'Product' as RefName)
@@ -52,6 +54,7 @@ Deno.test('ZodInsertable - object with optional properties', () => {
 })
 
 Deno.test('ZodInsertable - primitive string type', () => {
+  const stackTrail = new StackTrail(['TEST'])
   const schemas = {
     UserId: {
       type: 'string' as const
@@ -59,7 +62,7 @@ Deno.test('ZodInsertable - primitive string type', () => {
   }
 
   const parseContext = toParseContext({ schemas })
-  const oasDocument = parseContext.parse()
+  const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
   const zodInsertable = context.insertModel(ZodInsertable, 'UserId' as RefName)
@@ -68,6 +71,7 @@ Deno.test('ZodInsertable - primitive string type', () => {
 })
 
 Deno.test('ZodInsertable - array type', () => {
+  const stackTrail = new StackTrail(['TEST'])
   const schemas = {
     UserList: {
       type: 'array' as const,
@@ -78,7 +82,7 @@ Deno.test('ZodInsertable - array type', () => {
   }
 
   const parseContext = toParseContext({ schemas })
-  const oasDocument = parseContext.parse()
+  const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
   const zodInsertable = context.insertModel(ZodInsertable, 'UserList' as RefName)
@@ -87,6 +91,7 @@ Deno.test('ZodInsertable - array type', () => {
 })
 
 Deno.test('ZodInsertable - union type', () => {
+  const stackTrail = new StackTrail(['TEST'])
   const schemas = {
     StringOrNumber: {
       oneOf: [{ type: 'string' as const }, { type: 'number' as const }]
@@ -94,7 +99,7 @@ Deno.test('ZodInsertable - union type', () => {
   }
 
   const parseContext = toParseContext({ schemas })
-  const oasDocument = parseContext.parse()
+  const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
   const zodInsertable = context.insertModel(ZodInsertable, 'StringOrNumber' as RefName)

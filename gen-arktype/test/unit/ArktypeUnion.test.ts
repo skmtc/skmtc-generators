@@ -8,10 +8,7 @@ import { arktypeEntry } from '../../src/mod.ts'
 Deno.test('ArktypeUnion - simple union with two types', () => {
   const arktypeUnion = new ArktypeUnion({
     context: toGenerateContext(),
-    members: [
-      new OasString({ enums: undefined, format: undefined }),
-      new OasNumber()
-    ],
+    members: [new OasString({ enums: undefined, format: undefined }), new OasNumber()],
     discriminator: undefined,
     modifiers: { required: true },
     generatorKey: toGeneratorOnlyKey({ generatorId: arktypeEntry.id }),
@@ -41,10 +38,7 @@ Deno.test('ArktypeUnion - union with three types', () => {
 Deno.test('ArktypeUnion - nullable union', () => {
   const arktypeUnion = new ArktypeUnion({
     context: toGenerateContext(),
-    members: [
-      new OasString({ enums: undefined, format: undefined }),
-      new OasNumber()
-    ],
+    members: [new OasString({ enums: undefined, format: undefined }), new OasNumber()],
     discriminator: undefined,
     modifiers: { required: true, nullable: true },
     generatorKey: toGeneratorOnlyKey({ generatorId: arktypeEntry.id }),
@@ -57,10 +51,7 @@ Deno.test('ArktypeUnion - nullable union', () => {
 Deno.test('ArktypeUnion - optional union', () => {
   const arktypeUnion = new ArktypeUnion({
     context: toGenerateContext(),
-    members: [
-      new OasString({ enums: undefined, format: undefined }),
-      new OasNumber()
-    ],
+    members: [new OasString({ enums: undefined, format: undefined }), new OasNumber()],
     discriminator: undefined,
     modifiers: { required: false },
     generatorKey: toGeneratorOnlyKey({ generatorId: arktypeEntry.id }),
