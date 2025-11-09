@@ -1,5 +1,4 @@
 import { ContentBase } from '@skmtc/core'
-import { match, P } from 'ts-pattern'
 import { applyModifiers } from './applyModifiers.ts'
 import type { Modifiers, GeneratorKey, GenerateContextType, OasString } from '@skmtc/core'
 
@@ -29,15 +28,14 @@ export class ZodString extends ContentBase {
   override toString(): string {
     const { enums } = this
 
-    const content = match({ enums })
-      .with({ enums: P.array() }, matched => {
-        return matched.enums.length === 1
-          ? `z.literal("${matched.enums[0]}")`
-          : `z.enum([${matched.enums.map(str => `"${str}"`).join(', ')}])`
-      })
-      .otherwise(() => {
-        return `z.string()`
-      })
+    let content: string
+    if (enums && Array.isArray(enums)) {
+      content = enums.length === 1
+        ? `z.literal("${enums[0]}")`
+        : `z.enum([${enums.map(str => `"${str}"`).join(', ')}])`
+    } else {
+      content = `z.string()`
+    }
 
     return applyModifiers(content, this.modifiers)
   }

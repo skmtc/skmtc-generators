@@ -15,7 +15,6 @@ import type {
 import { toZodValue } from './Zod.ts'
 import { applyModifiers } from './applyModifiers.ts'
 import { ZodUnknown } from './ZodUnknown.ts'
-import { match, P } from 'ts-pattern'
 
 type ZodObjectProps = {
   context: GenerateContextType
@@ -154,15 +153,11 @@ class ZodRecord extends ContentBase {
   constructor({ context, generatorKey, destinationPath, schema, rootRef }: ZodRecordArgs) {
     super({ context, generatorKey })
 
-    this.value = match(schema)
-      .with(true, () => new ZodUnknown({ context, destinationPath, generatorKey }))
-      .with(
-        P.when(schema => isEmpty(schema)),
-        () => new ZodUnknown({ context, destinationPath, generatorKey })
-      )
-      .otherwise(matched =>
-        toZodValue({ destinationPath, schema: matched, required: true, context, rootRef })
-      )
+    if (schema === true || isEmpty(schema)) {
+      this.value = new ZodUnknown({ context, destinationPath, generatorKey })
+    } else {
+      this.value = toZodValue({ destinationPath, schema, required: true, context, rootRef })
+    }
   }
 
   override toString(): string {

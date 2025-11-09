@@ -1,6 +1,6 @@
 {
   "name": "@skmtc/gen-msw",
-  "version": "0.0.44",
+  "version": "0.0.45",
   "exports": "./mod.ts",
   "tasks": {
     "test": "deno test --allow-env --allow-sys --allow-read || true",
@@ -11,6 +11,6 @@
     "publish": "deno publish --allow-slow-types --allow-dirty --token=$JSR_AUTH_TOKEN"
   },
   "imports": {
-    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@^0.0.44"
+    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@^0.0.45"
   }
 }

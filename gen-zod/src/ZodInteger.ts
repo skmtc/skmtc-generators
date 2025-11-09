@@ -2,8 +2,6 @@ import { ContentBase } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
 import type { GenerateContextType, Modifiers, OasInteger, GeneratorKey } from '@skmtc/core'
 
-import { match, P } from 'ts-pattern'
-
 type ZodIntegerArgs = {
   context: GenerateContextType
   integerSchema: OasInteger
@@ -37,15 +35,14 @@ export class ZodInteger extends ContentBase {
   override toString(): string {
     const { enums } = this
 
-    const content = match({ enums })
-      .with({ enums: P.array() }, ({ enums }) => {
-        return enums.length === 1
-          ? `z.literal(${enums[0]})`
-          : `z.union([${enums.map(e => `z.literal(${e})`).join(', ')}])`
-      })
-      .otherwise(() => {
-        return `z.number().int()`
-      })
+    let content: string
+    if (enums && Array.isArray(enums)) {
+      content = enums.length === 1
+        ? `z.literal(${enums[0]})`
+        : `z.union([${enums.map(e => `z.literal(${e})`).join(', ')}])`
+    } else {
+      content = `z.number().int()`
+    }
 
     return applyModifiers(content, this.modifiers)
   }

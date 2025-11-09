@@ -1,7 +1,7 @@
 {
   "version": "5",
   "specifiers": {
-    "jsr:@skmtc/core@^0.0.961": "0.0.961",
+    "jsr:@skmtc/core@^0.0.963": "0.0.963",
     "jsr:@std/fmt@^1.0.5": "1.0.8",
     "jsr:@std/fs@^1.0.11": "1.0.19",
     "jsr:@std/internal@^1.0.10": "1.0.12",
@@ -21,8 +21,8 @@
     "npm:valibot@1.1.0": "1.1.0"
   },
   "jsr": {
-    "@skmtc/core@0.0.961": {
-      "integrity": "1480d536301a6c5f817ece54d13d006c0fb151ee7196019a8b3e5ddf0ac3a131",
+    "@skmtc/core@0.0.963": {
+      "integrity": "f6b29d13f64aa9a45212e0a7684a192f58d7e48765d23c07f32d37a033606d43",
       "dependencies": [
         "jsr:@std/log",
         "jsr:@std/path@^1.0.9",
@@ -32,7 +32,6 @@
         "npm:lodash-es",
         "npm:openapi-types",
         "npm:tiny-invariant@1.3.3",
-        "npm:ts-pattern",
         "npm:valibot"
       ]
     },
@@ -100,7 +99,7 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@skmtc/core@^0.0.961",
+      "jsr:@skmtc/core@^0.0.963",
       "jsr:@std/path@^1.1.2",
       "npm:openapi-types@^12.1.3",
       "npm:tiny-invariant@^1.3.3",
@@ -110,46 +109,46 @@
     "members": {
       "gen-msw": {
         "dependencies": [
-          "jsr:@skmtc/gen-typescript@^0.0.44"
+          "jsr:@skmtc/gen-typescript@^0.0.45"
         ]
       },
       "gen-shadcn-form": {
         "dependencies": [
-          "jsr:@skmtc/gen-tanstack-query-supabase-zod@^0.0.44",
-          "jsr:@skmtc/gen-typescript@^0.0.44",
-          "jsr:@skmtc/gen-zod@^0.0.44"
+          "jsr:@skmtc/gen-tanstack-query-supabase-zod@^0.0.45",
+          "jsr:@skmtc/gen-typescript@^0.0.45",
+          "jsr:@skmtc/gen-zod@^0.0.45"
         ]
       },
       "gen-shadcn-select": {
         "dependencies": [
-          "jsr:@skmtc/gen-tanstack-query-supabase-zod@^0.0.44",
-          "jsr:@skmtc/gen-typescript@^0.0.44",
-          "jsr:@skmtc/gen-zod@^0.0.44"
+          "jsr:@skmtc/gen-tanstack-query-supabase-zod@^0.0.45",
+          "jsr:@skmtc/gen-typescript@^0.0.45",
+          "jsr:@skmtc/gen-zod@^0.0.45"
         ]
       },
       "gen-shadcn-table": {
         "dependencies": [
-          "jsr:@skmtc/gen-tanstack-query-supabase-zod@^0.0.44",
-          "jsr:@skmtc/gen-typescript@^0.0.44",
-          "jsr:@skmtc/gen-zod@^0.0.44"
+          "jsr:@skmtc/gen-tanstack-query-supabase-zod@^0.0.45",
+          "jsr:@skmtc/gen-typescript@^0.0.45",
+          "jsr:@skmtc/gen-zod@^0.0.45"
         ]
       },
       "gen-supabase-hono": {
         "dependencies": [
-          "jsr:@skmtc/gen-typescript@^0.0.44",
-          "jsr:@skmtc/gen-zod@^0.0.44"
+          "jsr:@skmtc/gen-typescript@^0.0.45",
+          "jsr:@skmtc/gen-zod@^0.0.45"
         ]
       },
       "gen-tanstack-query-fetch-zod": {
         "dependencies": [
-          "jsr:@skmtc/gen-typescript@^0.0.44",
-          "jsr:@skmtc/gen-zod@^0.0.44"
+          "jsr:@skmtc/gen-typescript@^0.0.45",
+          "jsr:@skmtc/gen-zod@^0.0.45"
         ]
       },
       "gen-tanstack-query-supabase-zod": {
         "dependencies": [
-          "jsr:@skmtc/gen-typescript@^0.0.44",
-          "jsr:@skmtc/gen-zod@^0.0.44"
+          "jsr:@skmtc/gen-typescript@^0.0.45",
+          "jsr:@skmtc/gen-zod@^0.0.45"
         ]
       }
     }

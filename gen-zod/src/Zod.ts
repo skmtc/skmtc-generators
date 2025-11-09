@@ -1,6 +1,5 @@
 import { ZodString } from './ZodString.ts'
 import { ZodArray } from './ZodArray.ts'
-import { match } from 'ts-pattern'
 import { ZodRef } from './ZodRef.ts'
 import { ZodObject } from './ZodObject.ts'
 import { ZodUnion } from './ZodUnion.ts'
@@ -28,58 +27,73 @@ export const toZodValue: SchemaToValueFn = ({
 
   const generatorKey = toGeneratorOnlyKey({ generatorId: zodEntry.id })
 
-  return match(schema satisfies SchemaType)
-    .with({ type: 'custom' }, custom => custom)
-    .with({ type: 'ref' }, ref => {
+  switch (schema.type) {
+    case 'custom':
+      return schema as any
+    case 'ref':
       return new ZodRef({
         context,
         destinationPath,
-        refName: toRefName(ref.$ref),
+        refName: toRefName(schema.$ref),
         modifiers,
         rootRef
       })
-    })
-    .with({ type: 'array' }, ({ items }) => {
-      return new ZodArray({ context, destinationPath, modifiers, items, generatorKey, rootRef })
-    })
-    .with({ type: 'object' }, objectSchema => {
+    case 'array':
+      return new ZodArray({
+        context,
+        destinationPath,
+        modifiers,
+        items: schema.items,
+        generatorKey,
+        rootRef
+      })
+    case 'object':
       return new ZodObject({
         context,
         destinationPath,
-        objectSchema,
+        objectSchema: schema,
         modifiers,
         generatorKey,
         rootRef
       })
-    })
-    .with({ type: 'union' }, ({ members, discriminator }) => {
+    case 'union':
       return new ZodUnion({
         context,
         destinationPath,
-        members,
-        discriminator,
+        members: schema.members,
+        discriminator: schema.discriminator,
         modifiers,
         generatorKey,
         rootRef
       })
-    })
-    .with(
-      { type: 'number' },
-      () => new ZodNumber({ context, modifiers, destinationPath, generatorKey })
-    )
-    .with({ type: 'integer' }, integerSchema => {
-      return new ZodInteger({ context, integerSchema, modifiers, destinationPath, generatorKey })
-    })
-    .with(
-      { type: 'boolean' },
-      () => new ZodBoolean({ context, modifiers, destinationPath, generatorKey })
-    )
-    .with({ type: 'void' }, () => new ZodVoid({ context, destinationPath, generatorKey }))
-    .with(
-      { type: 'string' },
-      stringSchema =>
-        new ZodString({ context, stringSchema, modifiers, destinationPath, generatorKey })
-    )
-    .with({ type: 'unknown' }, () => new ZodUnknown({ context, destinationPath, generatorKey }))
-    .exhaustive()
+    case 'number':
+      return new ZodNumber({ context, modifiers, destinationPath, generatorKey })
+    case 'integer':
+      return new ZodInteger({
+        context,
+        integerSchema: schema,
+        modifiers,
+        destinationPath,
+        generatorKey
+      })
+    case 'boolean':
+      return new ZodBoolean({ context, modifiers, destinationPath, generatorKey })
+    case 'void':
+      return new ZodVoid({ context, destinationPath, generatorKey })
+    case 'string':
+      return new ZodString({
+        context,
+        stringSchema: schema,
+        modifiers,
+        destinationPath,
+        generatorKey
+      })
+    case 'unknown':
+      return new ZodUnknown({ context, destinationPath, generatorKey })
+    default: {
+      // Exhaustiveness check - if SchemaType is properly defined, this should never happen
+      const _exhaustive: never = schema
+      throw new Error(`Unhandled schema type: ${(_exhaustive as any).type}`)
+    }
+  }
 }
