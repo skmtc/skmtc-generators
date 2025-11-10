@@ -33,11 +33,11 @@ skmtc
 ```
 
 <p align="center" width="100%">
-<video src="https://assets.skm.tc/create-project.mp4" width="80%" controls></video>
+<video src="assets/create-project.mp4" width="80%" controls></video>
 </p>
 
 <p align="center" width="100%">
-<video src="https://assets.skm.tc/generate-artifacts.mp4" width="80%" controls></video>
+<video src="assets/generate-artifacts.mp4" width="80%" controls></video>
 </p>
 
 ## Create project and generate artifacts using CLI
