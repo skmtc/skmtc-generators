@@ -1,7 +1,5 @@
-![](https://assets.skm.tc/zod-run-through.gif)
-
 <div align="center">
-  <img alt="Demo of Zod generation from OpenAPI using Skmtc" src="assets/zod-run-through.gif">
+  <img alt="Skmtc logo" src="assets/skmtc.svg">
 </div>
 
 ![Coverage](https://coveralls.io/repos/github/skmtc/skmtc-generators/badge.svg?branch=main&flag=gen-zod)
@@ -24,14 +22,35 @@ irm https://deno.land/install.ps1 | iex
 Install Skmtc
 
 ```bash
-deno install -g -A jsr:@skmtc/cli -n skmtc -f
+deno install -g -A --unstable-worker-options jsr:@skmtc/cli@0.0.388 -n skmtc -f
 ```
 
-## Create project and generate artifacts
+## Generate code using Skmtc TUI
 
 ```bash
-# Run Skmtc and follow prompts
+# Create project then Generate artifacts
 skmtc
+```
+
+<p align="center" width="100%">
+<video src="https://assets.skm.tc/create-project.mp4" width="80%" controls></video>
+</p>
+
+<p align="center" width="100%">
+<video src="https://assets.skm.tc/generate-artifacts.mp4" width="80%" controls></video>
+</p>
+
+## Create project and generate artifacts using CLI
+
+```bash
+# Create project
+skmtc init <project name>
+# Install zod generator 
+skmtc install @skmtc/gen-zod <project name>
+# Bundle generator code
+skmtc bundle <project name>
+# Generate artifacts from OpenAPI schema
+skmtc generate <project name> <path or url to openapi schema>
 ```
 
 ## Support
