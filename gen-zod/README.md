@@ -1,4 +1,4 @@
-<div align="center">
+<div align="left">
   <img alt="Skmtc logo" src="assets/skmtc.svg">
 </div>
 
