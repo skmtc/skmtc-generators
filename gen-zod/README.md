@@ -34,15 +34,9 @@ deno install -g -A --unstable-worker-options jsr:@skmtc/cli@0.0.388 -n skmtc -f
 skmtc
 ```
 
-<p align="center" width="100%">
-<video src="assets/create-project.mp4" width="80%" controls></video>
-</p>
+https://github.com/user-attachments/assets/375aedde-aed8-42a3-bd13-3004f736dee7
 
-[![Watch the video](https://img.youtube.com/vi/T-D1KVIuvjA/maxresdefault.jpg)](https://assets.skm.tc/create-project.mp4)
-
-<p align="center" width="100%">
-<video src="assets/generate-artifacts.mp4" width="80%" controls></video>
-</p>
+https://github.com/user-attachments/assets/c830e57a-4767-46e3-b27e-e518c9f6b0d7
 
 ## Create project and generate artifacts using CLI
 
