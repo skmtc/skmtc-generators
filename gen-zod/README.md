@@ -38,6 +38,8 @@ skmtc
 <video src="assets/create-project.mp4" width="80%" controls></video>
 </p>
 
+[![Watch the video](https://img.youtube.com/vi/T-D1KVIuvjA/maxresdefault.jpg)](https://assets.skm.tc/create-project.mp4)
+
 <p align="center" width="100%">
 <video src="assets/generate-artifacts.mp4" width="80%" controls></video>
 </p>
