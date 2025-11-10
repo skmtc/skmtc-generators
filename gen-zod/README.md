@@ -47,10 +47,13 @@ skmtc
 ```bash
 # Create project
 skmtc init <project name>
+
 # Install zod generator 
 skmtc install @skmtc/gen-zod <project name>
+
 # Bundle generator code
 skmtc bundle <project name>
+
 # Generate artifacts from OpenAPI schema
 skmtc generate <project name> <path or url to openapi schema>
 ```
