@@ -1,5 +1,7 @@
-<div align="left" style="margin-bottom: 24px">
+<div align="left">
   <img alt="Skmtc logo" src="assets/skmtc.svg">
+  <br />
+  <br />
 </div>
 
 ![Coverage](https://coveralls.io/repos/github/skmtc/skmtc-generators/badge.svg?branch=main&flag=gen-zod)
