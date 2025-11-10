@@ -9,6 +9,10 @@
 
 # OpenAPI to Zod schema generator for [Skmtc](https://skm.tc).
 
+- Fast: Github OpenAPI to Zod in 0.5sec [(9.5x faster than Orval)](https://github.com/skmtc/openapi-codegen-benchmarks)
+- Modular: Use by itself or combine with other [Skmtc generators](https://github.com/skmtc/skmtc-generators)
+- Flexible: Customise output code by editing string templates not ASTs
+
 ## Installation
 
 Install Deno
