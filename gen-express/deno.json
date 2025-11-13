@@ -1,0 +1,17 @@
+{
+  "name": "@skmtc/gen-express",
+  "version": "0.0.45",
+  "exports": "./mod.ts",
+  "imports": {
+    "@skmtc/gen-valibot": "jsr:@skmtc/gen-valibot@^0.0.45",
+    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@^0.0.45"
+  },
+  "tasks": {
+    "test": "deno test --allow-env --allow-sys --allow-read || true",
+    "test:coverage": "deno test --allow-env --allow-sys --allow-read --coverage=coverage || true",
+    "coverage:report": "deno coverage coverage --lcov --output=coverage.lcov 2>/dev/null || echo 'No coverage data'",
+    "coverage:html": "deno coverage coverage --html || true",
+    "coverage:check": "deno coverage coverage --detailed || true",
+    "publish": "deno publish --allow-slow-types --allow-dirty --token=$JSR_AUTH_TOKEN"
+  }
+}
