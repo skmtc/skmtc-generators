@@ -2,91 +2,517 @@
 
 ![Coverage](https://coveralls.io/repos/github/skmtc/skmtc-generators/badge.svg?branch=main&flag=gen-typescript)
 
-OpenAPI to TypeScript types generator for [Skmtc](https://skm.tc).
+OpenAPI to TypeScript type definitions generator for [Skmtc](https://skm.tc).
+
+Generate type-safe TypeScript types, interfaces, and type aliases from your OpenAPI specifications. Perfect for ensuring type safety across your API clients and servers.
 
 ## Quick start
 
-Run deployed generator
-```bash
-# Using npx
-npx skmtc generate @skmtc/typescript <path or url to OpenAPI schema>
+Run the deployed generator:
 
-# Using deno
-deno run -A jsr:@skmtc/cli generate @skmtc/typescript <path or url to OpenAPI schema>
+```bash
+deno run -A jsr:@skmtc/cli gen --generators "@skmtc/gen-typescript"
 ```
 
 ## Installation
 
-Add `@skmtc/gen-typescript` to a Skmtc project
+Add to your Skmtc project configuration:
 
-```bash
-# Using npx
-npx skmtc install @skmtc/gen-typescript
-
-# Using deno
-deno run -A jsr:@skmtc/cli install @skmtc/gen-typescript
+```json
+{
+  "generators": {
+    "@skmtc/gen-typescript": "^0.0.46"
+  }
+}
 ```
 
-## Running locally
+## Usage Examples
 
-To run Skmtc generators on your own computer, you will first need to install Deno
+### Basic Primitive Types
 
-```bash
-# On MacOS / Linux
-curl -fsSL https://deno.land/install.sh | sh
+<table>
+<tr>
+<th>Input (OpenAPI Schema)</th>
+<th>TypeScript</th>
+</tr>
+<tr>
+<td>
 
-# On Windows
-irm https://deno.land/install.ps1 | iex
+```json
+{
+  "components": {
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "age": { "type": "number" },
+          "score": { "type": "integer" },
+          "isActive": { "type": "boolean" }
+        },
+        "required": ["id", "age", "score", "isActive"]
+      }
+    }
+  }
+}
 ```
 
-To create a new Skmtc project with `@skmtc/gen-typescript`, run the install command. 
+</td>
+<td>
 
-The prompt will ask you to create a new project and give it name.
-
-```bash
-npx skmtc install @skmtc/gen-typescript
-
-deno run -A jsr:@skmtc/cli install @skmtc/gen-typescript
+```typescript
+export type User = {
+  id: string,
+  age: number,
+  score: number,
+  isActive: boolean
+}
 ```
 
-To launch a local generator server, run the command below with the project
-name you created in previous step.
+</td>
+</tr>
+</table>
 
-```bash
-# Using deno
-deno run -A jsr:@skmtc/cli serve <project name>
+### Optional Properties
 
-# Skmtc server cannot be run using npx or Node
+Properties not in the `required` array become optional:
+
+<table>
+<tr>
+<th>Input (OpenAPI Schema)</th>
+<th>TypeScript</th>
+</tr>
+<tr>
+<td>
+
+```json
+{
+  "Profile": {
+    "type": "object",
+    "properties": {
+      "username": { "type": "string" },
+      "bio": { "type": "string" },
+      "website": { "type": "string" }
+    },
+    "required": ["username"]
+  }
+}
 ```
 
-With the generator server now running, open a new terminal tab and
-run the Skmtc generate command. The cli will prompt you for OpenAPI
-source schema path or url.
+</td>
+<td>
 
-```bash 
-# Using npx
-npx skmtc generate <project name>
-
-# Using deno
-deno run -A jsr:@skmtc/cli generate <project name>
+```typescript
+export type Profile = {
+  username: string,
+  bio?: string | undefined,
+  website?: string | undefined
+}
 ```
+
+</td>
+</tr>
+</table>
+
+### String Enums and Literal Unions
+
+Single enum values become literals, multiple values become unions:
+
+<table>
+<tr>
+<th>Input (OpenAPI Schema)</th>
+<th>TypeScript</th>
+</tr>
+<tr>
+<td>
+
+```json
+{
+  "Status": {
+    "type": "string",
+    "enum": ["active", "inactive", "pending"]
+  },
+  "Role": {
+    "type": "string",
+    "enum": ["admin"]
+  }
+}
+```
+
+</td>
+<td>
+
+```typescript
+export type Status = 'active' | 'inactive' | 'pending'
+export type Role = 'admin'
+```
+
+</td>
+</tr>
+</table>
+
+### Arrays
+
+<table>
+<tr>
+<th>Input (OpenAPI Schema)</th>
+<th>TypeScript</th>
+</tr>
+<tr>
+<td>
+
+```json
+{
+  "Tags": {
+    "type": "array",
+    "items": { "type": "string" }
+  },
+  "Matrix": {
+    "type": "array",
+    "items": {
+      "type": "array",
+      "items": { "type": "number" }
+    }
+  }
+}
+```
+
+</td>
+<td>
+
+```typescript
+export type Tags = Array<string>
+export type Matrix = Array<Array<number>>
+```
+
+</td>
+</tr>
+</table>
+
+### Nested Objects
+
+<table>
+<tr>
+<th>Input (OpenAPI Schema)</th>
+<th>TypeScript</th>
+</tr>
+<tr>
+<td>
+
+```json
+{
+  "Company": {
+    "type": "object",
+    "properties": {
+      "name": { "type": "string" },
+      "address": {
+        "type": "object",
+        "properties": {
+          "street": { "type": "string" },
+          "city": { "type": "string" }
+        },
+        "required": ["street", "city"]
+      }
+    },
+    "required": ["name", "address"]
+  }
+}
+```
+
+</td>
+<td>
+
+```typescript
+export type Company = {
+  name: string,
+  address: {
+    street: string,
+    city: string
+  }
+}
+```
+
+</td>
+</tr>
+</table>
+
+### Nullable Types
+
+<table>
+<tr>
+<th>Input (OpenAPI Schema)</th>
+<th>TypeScript</th>
+</tr>
+<tr>
+<td>
+
+```json
+{
+  "Article": {
+    "type": "object",
+    "properties": {
+      "title": { "type": "string" },
+      "publishedAt": {
+        "type": "string",
+        "nullable": true
+      }
+    },
+    "required": ["title", "publishedAt"]
+  }
+}
+```
+
+</td>
+<td>
+
+```typescript
+export type Article = {
+  title: string,
+  publishedAt: string | null
+}
+```
+
+</td>
+</tr>
+</table>
+
+### Union Types
+
+<table>
+<tr>
+<th>Input (OpenAPI Schema)</th>
+<th>TypeScript</th>
+</tr>
+<tr>
+<td>
+
+```json
+{
+  "StringOrNumber": {
+    "anyOf": [
+      { "type": "string" },
+      { "type": "number" }
+    ]
+  },
+  "Pet": {
+    "oneOf": [
+      {
+        "type": "object",
+        "properties": {
+          "type": { "type": "string", "enum": ["cat"] },
+          "meow": { "type": "boolean" }
+        },
+        "required": ["type", "meow"]
+      },
+      {
+        "type": "object",
+        "properties": {
+          "type": { "type": "string", "enum": ["dog"] },
+          "bark": { "type": "boolean" }
+        },
+        "required": ["type", "bark"]
+      }
+    ]
+  }
+}
+```
+
+</td>
+<td>
+
+```typescript
+export type StringOrNumber = string | number
+
+export type Pet = {
+  type: 'cat',
+  meow: boolean
+} | {
+  type: 'dog',
+  bark: boolean
+}
+```
+
+</td>
+</tr>
+</table>
+
+### Record Types (Additional Properties)
+
+<table>
+<tr>
+<th>Input (OpenAPI Schema)</th>
+<th>TypeScript</th>
+</tr>
+<tr>
+<td>
+
+```json
+{
+  "Metadata": {
+    "type": "object",
+    "additionalProperties": { "type": "string" }
+  },
+  "Config": {
+    "type": "object",
+    "properties": {
+      "id": { "type": "string" }
+    },
+    "required": ["id"],
+    "additionalProperties": { "type": "number" }
+  }
+}
+```
+
+</td>
+<td>
+
+```typescript
+export type Metadata = Record<string, string>
+
+export type Config = {id: string} | Record<string, number>
+```
+
+</td>
+</tr>
+</table>
+
+### References and Recursive Types
+
+<table>
+<tr>
+<th>Input (OpenAPI Schema)</th>
+<th>TypeScript</th>
+</tr>
+<tr>
+<td>
+
+```json
+{
+  "Category": {
+    "type": "object",
+    "properties": {
+      "name": { "type": "string" },
+      "parent": { "$ref": "#/components/schemas/Category" }
+    },
+    "required": ["name"]
+  }
+}
+```
+
+</td>
+<td>
+
+```typescript
+export type Category = {
+  name: string,
+  parent?: Category | undefined
+}
+```
+
+</td>
+</tr>
+</table>
+
+### Type Name Transformations
+
+Schema names are automatically converted to PascalCase:
+
+<table>
+<tr>
+<th>Input (OpenAPI Schema)</th>
+<th>TypeScript</th>
+</tr>
+<tr>
+<td>
+
+```json
+{
+  "user-profile": { "type": "string" },
+  "api_response": { "type": "number" },
+  "MyType": { "type": "boolean" }
+}
+```
+
+</td>
+<td>
+
+```typescript
+export type UserProfile = string
+export type ApiResponse = number
+export type MyType = boolean
+```
+
+</td>
+</tr>
+</table>
+
+### Empty Objects
+
+<table>
+<tr>
+<th>Input (OpenAPI Schema)</th>
+<th>TypeScript</th>
+</tr>
+<tr>
+<td>
+
+```json
+{
+  "EmptyObject": {
+    "type": "object"
+  }
+}
+```
+
+</td>
+<td>
+
+```typescript
+export type EmptyObject = Record<string, unknown>
+```
+
+</td>
+</tr>
+</table>
+
+## Supported Features
+
+- **Primitive types**: string, number, integer, boolean, null, unknown
+- **Complex types**: object, array, union (oneOf/anyOf), references ($ref)
+- **Modifiers**: nullable, optional properties, required properties
+- **Enums**: Single values (literals) and multiple values (unions)
+- **Objects**: Nested objects, empty objects, properties with special characters
+- **Additional properties**: Record types, mixed with regular properties
+- **Arrays**: Typed arrays, nested arrays, arrays of objects
+- **References**: Schema references including recursive types
+- **Name transformations**: kebab-case and snake_case to PascalCase
 
 ## Testing
 
-```bash
-# Run tests
-deno task test
+Run tests for this generator:
 
-# Generate HTML coverage report
+```bash
+cd gen-typescript && deno task test
+```
+
+Or with coverage:
+
+```bash
+deno task test:coverage
+```
+
+Generate HTML coverage report:
+
+```bash
 deno task coverage:html
 ```
 
 ## Support
 
-- For help and support please use [Discord](https://discord.gg/Mg88C8Xu5Y)
-- For bug report and technical issues use [Github issues](https://github.com/skmtc/skmtc/issues)
-- Full docs coming to [Skmtc](https://skm.tc) very soon
+- [Discord Community](https://discord.gg/skmtc)
+- [GitHub Issues](https://github.com/skimah/skmtc-generators/issues)
+- [Documentation](https://docs.skm.tc)
 
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE).
