@@ -1,6 +1,6 @@
 {
   "imports": {
-    "@skmtc/core": "jsr:@skmtc/core@^0.0.971",
+    "@skmtc/core": "jsr:@skmtc/core@^0.0.974",
     "@skmtc/gen-express": "./gen-express/mod.ts",
     "@skmtc/gen-msw": "./gen-msw/mod.ts",
     "@skmtc/gen-shadcn-form": "./gen-shadcn-form/mod.ts",

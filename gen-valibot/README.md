@@ -21,7 +21,7 @@ Add to your Skmtc project configuration:
 ```json
 {
   "generators": {
-    "@skmtc/gen-valibot": "^0.0.46"
+    "@skmtc/gen-valibot": "^0.0.47"
   }
 }
 ```
