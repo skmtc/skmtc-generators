@@ -6,24 +6,45 @@ OpenAPI to TypeScript type definitions generator for [Skmtc](https://skm.tc).
 
 Generate type-safe TypeScript types, interfaces, and type aliases from your OpenAPI specifications. Perfect for ensuring type safety across your API clients and servers.
 
-## Quick start
-
-Run the deployed generator:
-
-```bash
-deno run -A jsr:@skmtc/cli gen --generators "@skmtc/gen-typescript"
-```
-
 ## Installation
 
-Add to your Skmtc project configuration:
+Install Deno
 
-```json
-{
-  "generators": {
-    "@skmtc/gen-typescript": "^0.0.47"
-  }
-}
+```bash
+# On MacOS/Linux
+curl -fsSL https://deno.land/install.sh | sh
+
+# On Windows
+irm https://deno.land/install.ps1 | iex
+```
+
+Install Skmtc
+
+```bash
+deno install -g -A --unstable-worker-options jsr:@skmtc/cli@0.0.388 -n skmtc -f
+```
+
+## Create project and generate artifacts using TUI (recommended)
+
+```bash
+# Create project then Generate artifacts
+skmtc
+```
+
+## Create project and generate artifacts using CLI
+
+```bash
+# Create project
+skmtc init <project name>
+
+# Install TypeScript generator
+skmtc install @skmtc/gen-typescript <project name>
+
+# Bundle generator code
+skmtc bundle <project name>
+
+# Generate artifacts from OpenAPI schema
+skmtc generate <project name> <path or url to openapi schema>
 ```
 
 ## Usage Examples

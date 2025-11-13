@@ -6,31 +6,58 @@ OpenAPI to [Valibot](https://valibot.dev/) schema generator for [Skmtc](https://
 
 Generate type-safe Valibot validation schemas from your OpenAPI specifications. Valibot is a modular, lightweight schema library with excellent TypeScript support and tree-shaking capabilities.
 
-## Quick start
-
-Run the deployed generator:
-
-```bash
-deno run -A jsr:@skmtc/cli gen --generators "@skmtc/gen-valibot"
-```
-
 ## Installation
 
-Add to your Skmtc project configuration:
+Install Deno
 
-```json
-{
-  "generators": {
-    "@skmtc/gen-valibot": "^0.0.47"
-  }
-}
+```bash
+# On MacOS/Linux
+curl -fsSL https://deno.land/install.sh | sh
+
+# On Windows
+irm https://deno.land/install.ps1 | iex
+```
+
+Install Skmtc
+
+```bash
+deno install -g -A --unstable-worker-options jsr:@skmtc/cli@0.0.388 -n skmtc -f
+```
+
+## Create project and generate artifacts using TUI (recommended)
+
+```bash
+# Create project then Generate artifacts
+skmtc
+```
+
+## Create project and generate artifacts using CLI
+
+```bash
+# Create project
+skmtc init <project name>
+
+# Install Valibot generator
+skmtc install @skmtc/gen-valibot <project name>
+
+# Bundle generator code
+skmtc bundle <project name>
+
+# Generate artifacts from OpenAPI schema
+skmtc generate <project name> <path or url to openapi schema>
 ```
 
 ## Usage Examples
 
 ### Basic Types
 
-Given this OpenAPI schema:
+<table>
+<tr>
+<th>Input (OpenAPI Schema)</th>
+<th>Valibot Schema</th>
+</tr>
+<tr>
+<td valign="top">
 
 ```json
 {
@@ -50,7 +77,8 @@ Given this OpenAPI schema:
 }
 ```
 
-Generates:
+</td>
+<td valign="top">
 
 ```typescript
 import * as v from "valibot"
@@ -62,9 +90,19 @@ export const User = v.object({
 })
 ```
 
+</td>
+</tr>
+</table>
+
 ### Enums and Literals
 
-OpenAPI schema with enums:
+<table>
+<tr>
+<th>Input (OpenAPI Schema)</th>
+<th>Valibot Schema</th>
+</tr>
+<tr>
+<td valign="top">
 
 ```json
 {
@@ -79,16 +117,27 @@ OpenAPI schema with enums:
 }
 ```
 
-Generates:
+</td>
+<td valign="top">
 
 ```typescript
 export const Status = v.picklist(["active", "inactive", "pending"])
 export const Role = v.literal("admin")
 ```
 
+</td>
+</tr>
+</table>
+
 ### Arrays and Nested Objects
 
-OpenAPI schema with complex nesting:
+<table>
+<tr>
+<th>Input (OpenAPI Schema)</th>
+<th>Valibot Schema</th>
+</tr>
+<tr>
+<td valign="top">
 
 ```json
 {
@@ -113,7 +162,8 @@ OpenAPI schema with complex nesting:
 }
 ```
 
-Generates:
+</td>
+<td valign="top">
 
 ```typescript
 export const Team = v.object({
@@ -125,7 +175,19 @@ export const Team = v.object({
 })
 ```
 
+</td>
+</tr>
+</table>
+
 ### Nullable and Optional Fields
+
+<table>
+<tr>
+<th>Input (OpenAPI Schema)</th>
+<th>Valibot Schema</th>
+</tr>
+<tr>
+<td valign="top">
 
 ```json
 {
@@ -143,7 +205,8 @@ export const Team = v.object({
 }
 ```
 
-Generates:
+</td>
+<td valign="top">
 
 ```typescript
 export const Profile = v.object({
@@ -152,7 +215,19 @@ export const Profile = v.object({
 })
 ```
 
+</td>
+</tr>
+</table>
+
 ### Union Types
+
+<table>
+<tr>
+<th>Input (OpenAPI Schema)</th>
+<th>Valibot Schema</th>
+</tr>
+<tr>
+<td valign="top">
 
 ```json
 {
@@ -179,7 +254,8 @@ export const Profile = v.object({
 }
 ```
 
-Generates:
+</td>
+<td valign="top">
 
 ```typescript
 export const Pet = v.union([
@@ -194,9 +270,19 @@ export const Pet = v.union([
 ])
 ```
 
+</td>
+</tr>
+</table>
+
 ### String Formats
 
-OpenAPI string formats are converted to Valibot validations:
+<table>
+<tr>
+<th>Input (OpenAPI Schema)</th>
+<th>Valibot Schema</th>
+</tr>
+<tr>
+<td valign="top">
 
 ```json
 {
@@ -213,7 +299,8 @@ OpenAPI string formats are converted to Valibot validations:
 }
 ```
 
-Generates:
+</td>
+<td valign="top">
 
 ```typescript
 export const Event = v.object({
@@ -221,7 +308,19 @@ export const Event = v.object({
 })
 ```
 
+</td>
+</tr>
+</table>
+
 ### Additional Properties
+
+<table>
+<tr>
+<th>Input (OpenAPI Schema)</th>
+<th>Valibot Schema</th>
+</tr>
+<tr>
+<td valign="top">
 
 ```json
 {
@@ -232,13 +331,26 @@ export const Event = v.object({
 }
 ```
 
-Generates:
+</td>
+<td valign="top">
 
 ```typescript
 export const Metadata = v.record(v.string(), v.string())
 ```
 
+</td>
+</tr>
+</table>
+
 With both properties and additionalProperties:
+
+<table>
+<tr>
+<th>Input (OpenAPI Schema)</th>
+<th>Valibot Schema</th>
+</tr>
+<tr>
+<td valign="top">
 
 ```json
 {
@@ -253,7 +365,8 @@ With both properties and additionalProperties:
 }
 ```
 
-Generates:
+</td>
+<td valign="top">
 
 ```typescript
 export const Config = v.intersect([
@@ -261,6 +374,10 @@ export const Config = v.intersect([
   v.record(v.string(), v.number())
 ])
 ```
+
+</td>
+</tr>
+</table>
 
 ## Supported Features
 

@@ -109,52 +109,52 @@
     "members": {
       "gen-express": {
         "dependencies": [
-          "jsr:@skmtc/gen-typescript@^0.0.47",
-          "jsr:@skmtc/gen-valibot@^0.0.47"
+          "jsr:@skmtc/gen-typescript@^0.0.48",
+          "jsr:@skmtc/gen-valibot@^0.0.48"
         ]
       },
       "gen-msw": {
         "dependencies": [
-          "jsr:@skmtc/gen-typescript@^0.0.47"
+          "jsr:@skmtc/gen-typescript@^0.0.48"
         ]
       },
       "gen-shadcn-form": {
         "dependencies": [
-          "jsr:@skmtc/gen-tanstack-query-supabase-zod@^0.0.47",
-          "jsr:@skmtc/gen-typescript@^0.0.47",
-          "jsr:@skmtc/gen-zod@^0.0.47"
+          "jsr:@skmtc/gen-tanstack-query-supabase-zod@^0.0.48",
+          "jsr:@skmtc/gen-typescript@^0.0.48",
+          "jsr:@skmtc/gen-zod@^0.0.48"
         ]
       },
       "gen-shadcn-select": {
         "dependencies": [
-          "jsr:@skmtc/gen-tanstack-query-supabase-zod@^0.0.47",
-          "jsr:@skmtc/gen-typescript@^0.0.47",
-          "jsr:@skmtc/gen-zod@^0.0.47"
+          "jsr:@skmtc/gen-tanstack-query-supabase-zod@^0.0.48",
+          "jsr:@skmtc/gen-typescript@^0.0.48",
+          "jsr:@skmtc/gen-zod@^0.0.48"
         ]
       },
       "gen-shadcn-table": {
         "dependencies": [
-          "jsr:@skmtc/gen-tanstack-query-supabase-zod@^0.0.47",
-          "jsr:@skmtc/gen-typescript@^0.0.47",
-          "jsr:@skmtc/gen-zod@^0.0.47"
+          "jsr:@skmtc/gen-tanstack-query-supabase-zod@^0.0.48",
+          "jsr:@skmtc/gen-typescript@^0.0.48",
+          "jsr:@skmtc/gen-zod@^0.0.48"
         ]
       },
       "gen-supabase-hono": {
         "dependencies": [
-          "jsr:@skmtc/gen-typescript@^0.0.47",
-          "jsr:@skmtc/gen-zod@^0.0.47"
+          "jsr:@skmtc/gen-typescript@^0.0.48",
+          "jsr:@skmtc/gen-zod@^0.0.48"
         ]
       },
       "gen-tanstack-query-fetch-zod": {
         "dependencies": [
-          "jsr:@skmtc/gen-typescript@^0.0.47",
-          "jsr:@skmtc/gen-zod@^0.0.47"
+          "jsr:@skmtc/gen-typescript@^0.0.48",
+          "jsr:@skmtc/gen-zod@^0.0.48"
         ]
       },
       "gen-tanstack-query-supabase-zod": {
         "dependencies": [
-          "jsr:@skmtc/gen-typescript@^0.0.47",
-          "jsr:@skmtc/gen-zod@^0.0.47"
+          "jsr:@skmtc/gen-typescript@^0.0.48",
+          "jsr:@skmtc/gen-zod@^0.0.48"
         ]
       }
     }

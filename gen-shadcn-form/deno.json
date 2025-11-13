@@ -1,11 +1,11 @@
 {
   "name": "@skmtc/gen-shadcn-form",
-  "version": "0.0.47",
+  "version": "0.0.48",
   "exports": "./mod.ts",
   "imports": {
-    "@skmtc/gen-tanstack-query-supabase-zod": "jsr:@skmtc/gen-tanstack-query-supabase-zod@^0.0.47",
-    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@^0.0.47",
-    "@skmtc/gen-zod": "jsr:@skmtc/gen-zod@^0.0.47"
+    "@skmtc/gen-tanstack-query-supabase-zod": "jsr:@skmtc/gen-tanstack-query-supabase-zod@^0.0.48",
+    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@^0.0.48",
+    "@skmtc/gen-zod": "jsr:@skmtc/gen-zod@^0.0.48"
   },
   "tasks": {
     "test": "deno test --allow-env --allow-sys --allow-read || true",
