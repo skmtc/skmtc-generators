@@ -46,31 +46,31 @@ export class ValibotUnion extends ContentBase {
     this.discriminator = discriminator?.propertyName
     this.modifiers = modifiers
 
-    context.register({ imports: { valibot: ['v'] }, destinationPath })
+    context.register({ imports: { valibot: [{ '*': 'v' }] }, destinationPath })
   }
 
   override toString(): string {
     const members = this.members.map(member => `${member}`).join(', ')
 
-    const content = this.discriminator
-      ? this.buildVariantUnion()
-      : `v.union([${members}])`
+    const content = this.discriminator ? this.buildVariantUnion() : `v.union([${members}])`
 
     return applyModifiers(content, this.modifiers)
   }
 
   private buildVariantUnion(): string {
     if (!this.discriminator) return `v.union([${this.members.join(', ')}])`
-    
+
     // Extract discriminator values from each member
     const variants: Record<string, string> = {}
-    
+
     this.members.forEach(member => {
       const memberStr = member.toString()
-      
+
       // Try to extract the discriminator value from the member string
       // This is a simplified approach - in a real implementation you might need more sophisticated parsing
-      const literalMatch = memberStr.match(new RegExp(`${this.discriminator}: v\\.literal\\("([^"]+)"\\)`))
+      const literalMatch = memberStr.match(
+        new RegExp(`${this.discriminator}: v\\.literal\\("([^"]+)"\\)`)
+      )
       if (literalMatch) {
         const value = literalMatch[1]
         variants[value] = memberStr

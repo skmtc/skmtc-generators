@@ -16,14 +16,20 @@ export class ValibotString extends ContentBase {
   format: string | undefined
   enums: string[] | (string | null)[] | undefined
   modifiers: Modifiers
-  constructor({ context, stringSchema, generatorKey, destinationPath, modifiers }: ValibotStringArgs) {
+  constructor({
+    context,
+    stringSchema,
+    generatorKey,
+    destinationPath,
+    modifiers
+  }: ValibotStringArgs) {
     super({ context, generatorKey })
 
     this.enums = stringSchema.enums
     this.format = stringSchema.format
     this.modifiers = modifiers
 
-    context.register({ imports: { valibot: ['v'] }, destinationPath })
+    context.register({ imports: { valibot: [{ '*': 'v' }] }, destinationPath })
   }
 
   override toString(): string {

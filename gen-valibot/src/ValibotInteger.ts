@@ -19,7 +19,7 @@ export class ValibotInteger extends ContentBase {
 
     this.modifiers = modifiers
 
-    context.register({ imports: { valibot: ['v'] }, destinationPath })
+    context.register({ imports: { valibot: [{ '*': 'v' }] }, destinationPath })
   }
 
   override toString(): string {

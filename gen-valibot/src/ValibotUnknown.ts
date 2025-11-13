@@ -13,7 +13,7 @@ export class ValibotUnknown extends ContentBase {
   constructor({ context, generatorKey, destinationPath }: ValibotUnknownArgs) {
     super({ context, generatorKey })
 
-    context.register({ imports: { valibot: ['v'] }, destinationPath })
+    context.register({ imports: { valibot: [{ '*': 'v' }] }, destinationPath })
   }
 
   override toString(): string {

@@ -25,7 +25,14 @@ export class ValibotRef extends ContentBase {
   destinationPath: string
   rootRef?: RefName
 
-  constructor({ context, refName, destinationPath, modifiers, generatorKey, rootRef }: ValibotRefArgs) {
+  constructor({
+    context,
+    refName,
+    destinationPath,
+    modifiers,
+    generatorKey,
+    rootRef
+  }: ValibotRefArgs) {
     super({ context, generatorKey })
 
     this.name = decapitalize(camelCase(refName))
@@ -34,7 +41,7 @@ export class ValibotRef extends ContentBase {
     this.destinationPath = destinationPath
     this.rootRef = rootRef
 
-    context.register({ imports: { valibot: ['v'] }, destinationPath })
+    context.register({ imports: { valibot: [{ '*': 'v' }] }, destinationPath })
   }
 
   override toString(): string {

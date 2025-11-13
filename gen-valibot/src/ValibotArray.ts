@@ -25,7 +25,14 @@ export class ValibotArray extends ContentBase {
   items: TypeSystemValue
   modifiers: Modifiers
 
-  constructor({ context, generatorKey, destinationPath, items, modifiers, rootRef }: ValibotArrayArgs) {
+  constructor({
+    context,
+    generatorKey,
+    destinationPath,
+    items,
+    modifiers,
+    rootRef
+  }: ValibotArrayArgs) {
     super({ context, generatorKey })
 
     this.modifiers = modifiers
@@ -38,7 +45,7 @@ export class ValibotArray extends ContentBase {
       rootRef
     })
 
-    context.register({ imports: { valibot: ['v'] }, destinationPath })
+    context.register({ imports: { valibot: [{ '*': 'v' }] }, destinationPath })
   }
 
   override toString(): string {

@@ -70,14 +70,17 @@ export class ValibotObject extends ContentBase {
         })
       : null
 
-    context.register({ imports: { valibot: ['v'] }, destinationPath })
+    context.register({ imports: { valibot: [{ '*': 'v' }] }, destinationPath })
   }
 
   override toString(): string {
     const { objectProperties, recordProperties } = this
 
     if (objectProperties && recordProperties) {
-      return applyModifiers(`v.intersect([${objectProperties}, ${recordProperties}])`, this.modifiers)
+      return applyModifiers(
+        `v.intersect([${objectProperties}, ${recordProperties}])`,
+        this.modifiers
+      )
     }
 
     return applyModifiers(
