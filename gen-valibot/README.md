@@ -4,32 +4,37 @@
 
 OpenAPI to [Valibot](https://valibot.dev/) schema generator for [Skmtc](https://skm.tc).
 
-Generate type-safe Valibot validation schemas from your OpenAPI specifications. Valibot is a modular, lightweight schema library with excellent TypeScript support and tree-shaking capabilities.
+## Supported Features
 
-## Installation
+- **Primitive types**: string, number, integer, boolean
+- **Complex types**: object, array, union (oneOf/anyOf)
+- **Modifiers**: nullable, optional
+- **Enums**: Single values (literal) and multiple values (picklist)
+- **String formats**: date-time (isoDateTime)
+- **Integer validation**: Uses `v.pipe(v.number(), v.integer())`
+- **References**: Schema references via `$ref`
+- **Additional properties**: Record types and intersections
+- **Nested structures**: Deeply nested objects and arrays
 
-Install Deno
+## Getting started
+
+### Install Skmtc
 
 ```bash
-# On MacOS/Linux
-curl -fsSL https://deno.land/install.sh | sh
-
-# On Windows
-irm https://deno.land/install.ps1 | iex
+deno install -g -A --unstable-worker-options jsr:@skmtc/cli@0.0.405 -n skmtc -f
 ```
 
-Install Skmtc
+**Skmtc** runs on [Deno](https://deno.com). You can install it using 
+- `curl -fsSL https://deno.land/install.sh | sh` on MacOS/Linux
+- `irm https://deno.land/install.ps1 | iex` on Windows
+
+### Create project and generate artifacts using TUI
 
 ```bash
-deno install -g -A --unstable-worker-options jsr:@skmtc/cli@0.0.388 -n skmtc -f
-```
-
-## Create project and generate artifacts using TUI (recommended)
-
-```bash
-# Create project then Generate artifacts
 skmtc
 ```
+
+![](assets/demo.gif)
 
 ## Create project and generate artifacts using CLI
 
@@ -378,18 +383,6 @@ export const Config = v.intersect([
 </td>
 </tr>
 </table>
-
-## Supported Features
-
-- **Primitive types**: string, number, integer, boolean
-- **Complex types**: object, array, union (oneOf/anyOf)
-- **Modifiers**: nullable, optional
-- **Enums**: Single values (literal) and multiple values (picklist)
-- **String formats**: date-time (isoDateTime)
-- **Integer validation**: Uses `v.pipe(v.number(), v.integer())`
-- **References**: Schema references via `$ref`
-- **Additional properties**: Record types and intersections
-- **Nested structures**: Deeply nested objects and arrays
 
 ## Testing
 

@@ -4,34 +4,39 @@
 
 OpenAPI to TypeScript type definitions generator for [Skmtc](https://skm.tc).
 
-Generate type-safe TypeScript types, interfaces, and type aliases from your OpenAPI specifications. Perfect for ensuring type safety across your API clients and servers.
+## Supported Features
 
-## Installation
+- **Primitive types**: string, number, integer, boolean, null, unknown
+- **Complex types**: object, array, union (oneOf/anyOf), references ($ref)
+- **Modifiers**: nullable, optional properties, required properties
+- **Enums**: Single values (literals) and multiple values (unions)
+- **Objects**: Nested objects, empty objects, properties with special characters
+- **Additional properties**: Record types, mixed with regular properties
+- **Arrays**: Typed arrays, nested arrays, arrays of objects
+- **References**: Schema references including recursive types
+- **Name transformations**: kebab-case and snake_case to PascalCase
 
-Install Deno
+## Getting started
+
+### Install Skmtc
 
 ```bash
-# On MacOS/Linux
-curl -fsSL https://deno.land/install.sh | sh
-
-# On Windows
-irm https://deno.land/install.ps1 | iex
+deno install -g -A --unstable-worker-options jsr:@skmtc/cli@0.0.405 -n skmtc -f
 ```
 
-Install Skmtc
+**Skmtc** runs on [Deno](https://deno.com). You can install it using 
+- `curl -fsSL https://deno.land/install.sh | sh` on MacOS/Linux
+- `irm https://deno.land/install.ps1 | iex` on Windows
+
+### Create project and generate artifacts using TUI
 
 ```bash
-deno install -g -A --unstable-worker-options jsr:@skmtc/cli@0.0.388 -n skmtc -f
-```
-
-## Create project and generate artifacts using TUI (recommended)
-
-```bash
-# Create project then Generate artifacts
 skmtc
 ```
 
-## Create project and generate artifacts using CLI
+![](assets/demo.gif)
+
+### Create project and generate artifacts using CLI
 
 ```bash
 # Create project
@@ -495,18 +500,6 @@ export type EmptyObject = Record<string, unknown>
 </td>
 </tr>
 </table>
-
-## Supported Features
-
-- **Primitive types**: string, number, integer, boolean, null, unknown
-- **Complex types**: object, array, union (oneOf/anyOf), references ($ref)
-- **Modifiers**: nullable, optional properties, required properties
-- **Enums**: Single values (literals) and multiple values (unions)
-- **Objects**: Nested objects, empty objects, properties with special characters
-- **Additional properties**: Record types, mixed with regular properties
-- **Arrays**: Typed arrays, nested arrays, arrays of objects
-- **References**: Schema references including recursive types
-- **Name transformations**: kebab-case and snake_case to PascalCase
 
 ## Testing
 

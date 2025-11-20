@@ -1,41 +1,50 @@
-import { ContentBase } from '@skmtc/core'
+import { ContentBase } from "@skmtc/core";
 import type {
-  OasRef,
-  RefName,
   GenerateContextType,
   GeneratorKey,
-  OasSchema,
   Modifiers,
-  TypeSystemValue
-} from '@skmtc/core'
-import { toZodValue } from './Zod.ts'
-import { applyModifiers } from './applyModifiers.ts'
+  OasRef,
+  OasSchema,
+  RefName,
+  TypeSystemValue,
+} from "@skmtc/core";
+import { toZodValue } from "./Zod.ts";
+import { applyModifiers } from "./applyModifiers.ts";
 
 type ZodArrayArgs = {
-  context: GenerateContextType
-  destinationPath: string
-  items: OasSchema | OasRef<'schema'>
-  modifiers: Modifiers
-  generatorKey: GeneratorKey
-  rootRef?: RefName
-}
+  context: GenerateContextType;
+  destinationPath: string;
+  items: OasSchema | OasRef<"schema">;
+  modifiers: Modifiers;
+  generatorKey: GeneratorKey;
+  rootRef?: RefName;
+};
 
 export class ZodArray extends ContentBase {
-  type = 'array' as const
-  items: TypeSystemValue
-  modifiers: Modifiers
+  type = "array" as const;
+  items: TypeSystemValue;
+  modifiers: Modifiers;
 
-  constructor({ context, generatorKey, destinationPath, items, modifiers, rootRef }: ZodArrayArgs) {
-    super({ context, generatorKey })
+  constructor(
+    { context, generatorKey, destinationPath, items, modifiers, rootRef }:
+      ZodArrayArgs,
+  ) {
+    super({ context, generatorKey });
 
-    this.modifiers = modifiers
+    this.modifiers = modifiers;
 
-    this.items = toZodValue({ destinationPath, schema: items, required: true, context, rootRef })
+    this.items = toZodValue({
+      destinationPath,
+      schema: items,
+      required: true,
+      context,
+      rootRef,
+    });
 
-    context.register({ imports: { zod: ['z'] }, destinationPath })
+    context.register({ imports: { zod: ["z"] }, destinationPath });
   }
 
   override toString(): string {
-    return applyModifiers(`z.array(${this.items})`, this.modifiers)
+    return applyModifiers(`z.array(${this.items})`, this.modifiers);
   }
 }

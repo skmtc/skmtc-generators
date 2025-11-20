@@ -1,46 +1,40 @@
 import { TanstackQuery } from '@skmtc/gen-tanstack-query-supabase-zod'
-import {
-  CustomValue,
-  decapitalize,
-  FunctionParameter,
-  List,
-  OasVoid,
-  capitalize
-} from '@skmtc/core'
+import { CustomValue, decapitalize, FunctionParameter, capitalize } from '@skmtc/core'
 import { TsInsertable } from '@skmtc/gen-typescript'
 import { ShadcnFormBase } from './base.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
-import { EnumsField } from './EnumsField.ts'
-import { InputField } from './InputField.ts'
-import type {
-  OasSchema,
-  OasRef,
-  OasObject,
-  ListLines,
-  Stringable,
-  OperationInsertableArgs
-} from '@skmtc/core'
+import type { OasSchema, OasRef, OasObject, OperationInsertableArgs } from '@skmtc/core'
 import invariant from 'tiny-invariant'
 import { ZodInsertable } from '@skmtc/gen-zod'
+import { FormFields } from './FormFields.ts'
+import { join } from 'node:path'
 
 export class ShadcnForm extends ShadcnFormBase {
   parameter: FunctionParameter
   clientName: string
   tsRequestBodyName: string
   zodRequestBodyName: string
-  formFields: ListLines<Stringable> | undefined
+  fields: FormFields
   constructor({ context, operation, settings }: OperationInsertableArgs<EnrichmentSchema>) {
     super({ context, operation, settings })
 
+    const requestBody = operation.toRequestBody(({ schema }) => schema)
+
+    invariant(requestBody, 'Request body is required')
+
+    if (!requestBody.isRef()) {
+      requestBody.nullable = false
+    }
+
     const tsRequestBody = this.insertNormalizedModel(TsInsertable, {
-      schema: operation.toRequestBody(({ schema }) => schema)?.resolve() ?? OasVoid.empty(),
+      schema: requestBody,
       fallbackName: `${capitalize(settings.identifier.name)}Body`
     })
 
     this.tsRequestBodyName = tsRequestBody.identifier.name
 
     const zodRequestBody = this.insertNormalizedModel(ZodInsertable, {
-      schema: operation.toRequestBody(({ schema }) => schema) ?? OasVoid.empty(),
+      schema: requestBody,
       fallbackName: `${decapitalize(settings.identifier.name)}Body`
     })
 
@@ -50,7 +44,7 @@ export class ShadcnForm extends ShadcnFormBase {
       .toParametersObject()
       .addProperty({
         name: 'defaultValues',
-        schema: new CustomValue({ context, value: this.tsRequestBodyName }),
+        schema: new CustomValue({ context, value: `Required<${this.tsRequestBodyName}>` }),
         required: false
       })
       .addProperty({
@@ -63,40 +57,7 @@ export class ShadcnForm extends ShadcnFormBase {
 
     invariant(body?.type === 'object', 'Schema must be an object')
 
-    const formFields = settings.enrichments?.form?.fields
-      ?.map(field => {
-        const schemaAtPath = pathToOptions({
-          path: field.accessorPath,
-          schema: body
-        })
-
-        return { field, schemaAtPath }
-      })
-      .filter(({ schemaAtPath }) => schemaAtPath !== null)
-      .map(({ field, schemaAtPath }) => {
-        // TODO Replace ! with some kind of guard clause
-        const { schema } = schemaAtPath!
-
-        const resolved = schema.resolve()
-
-        if ('enums' in resolved && resolved.enums) {
-          return new EnumsField({
-            context,
-            field,
-            enums: resolved.enums,
-            destinationPath: settings.exportPath
-          })
-        }
-
-        return new InputField({
-          context,
-          field,
-          schema,
-          destinationPath: settings.exportPath
-        })
-      })
-
-    this.formFields = List.toLines(formFields ?? [])
+    this.fields = new FormFields({ context, operation, settings })
 
     const typeDefinition = this.insertNormalizedModel(TsInsertable, {
       schema: formArgsSchema,
@@ -110,6 +71,13 @@ export class ShadcnForm extends ShadcnFormBase {
     this.insertNormalizedModel(TsInsertable, {
       schema: operation.toParametersObject(['path']),
       fallbackName: capitalize(`${settings.identifier.name}PathParams`)
+    })
+
+    context.register({
+      imports: {
+        [this.settings.exportPath]: [this.settings.identifier.name]
+      },
+      destinationPath: join('@', 'demo.tsx')
     })
 
     this.register({
@@ -128,8 +96,8 @@ export class ShadcnForm extends ShadcnFormBase {
     const { title, description, submitLabel } = this.settings.enrichments?.form ?? {}
 
     return `(${this.parameter}) => {
-  const form = useForm<${this.tsRequestBodyName}>({
-    resolver: zodResolver(${this.zodRequestBodyName}),
+  const form = useForm<Required<${this.tsRequestBodyName}>>({
+    resolver: zodResolver(${this.zodRequestBodyName}.required()),
     defaultValues: props.defaultValues
   })
 
@@ -155,7 +123,7 @@ export class ShadcnForm extends ShadcnFormBase {
           ${description ? `<p className="text-muted-foreground">${description}</p>` : ''}
         ${title || description ? `</div>` : ''}
 
-        ${this.formFields}
+        ${this.fields}
 
         <Button type="submit">${submitLabel || 'Submit'}</Button>
       </form>

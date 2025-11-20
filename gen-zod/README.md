@@ -4,40 +4,41 @@
 
 OpenAPI to [Zod](https://zod.dev/) schema generator for [Skmtc](https://skm.tc).
 
-Generate type-safe Zod validation schemas from your OpenAPI specifications. Zod is a TypeScript-first schema validation library with static type inference.
+## Supported Features
 
-- **Fast**: Github OpenAPI to Zod in 0.5sec [(9.5x faster than Orval)](https://github.com/skmtc/openapi-codegen-benchmarks)
-- **Modular**: Use by itself or combine with other [Skmtc generators](https://github.com/skmtc/skmtc-generators)
-- **Flexible**: Customise output code by editing string templates not ASTs
+- **Primitive types**: string, number, integer, boolean, void, unknown
+- **Complex types**: object, array, union (oneOf/anyOf), references ($ref)
+- **Modifiers**: nullable (`.nullable()`), optional (`.optional()`)
+- **Enums**: Single values (`z.literal()`) and multiple values (`z.enum()`)
+- **Integer validation**: Uses `z.number().int()` for integer types
+- **Objects**: Nested objects, properties with special characters
+- **Additional properties**: Record types (`z.record()`), mixed with regular
+  properties using `.and()`
+- **Arrays**: Typed arrays, nested arrays, arrays of objects
+- **Unions**: Simple unions and discriminated unions (`z.discriminatedUnion()`)
+- **References**: Schema references including recursive types with `z.lazy()`
+- **Name transformations**: kebab-case and snake_case to PascalCase
 
-## Installation
+## Getting started
 
-Install Deno
+### Install Skmtc
 
 ```bash
-# On MacOS/Linux
-curl -fsSL https://deno.land/install.sh | sh
-
-# On Windows
-irm https://deno.land/install.ps1 | iex
+deno install -g -A --unstable-worker-options jsr:@skmtc/cli@0.0.405 -n skmtc -f
 ```
 
-Install Skmtc
+**Skmtc** runs on [Deno](https://deno.com). You can install it using
+
+- `curl -fsSL https://deno.land/install.sh | sh` on MacOS/Linux
+- `irm https://deno.land/install.ps1 | iex` on Windows
+
+### Create project and generate artifacts using TUI
 
 ```bash
-deno install -g -A --unstable-worker-options jsr:@skmtc/cli@0.0.388 -n skmtc -f
-```
-
-## Create project and generate artifacts using TUI (recommended)
-
-```bash
-# Create project then Generate artifacts
 skmtc
 ```
 
-https://github.com/user-attachments/assets/375aedde-aed8-42a3-bd13-3004f736dee7
-
-https://github.com/user-attachments/assets/c830e57a-4767-46e3-b27e-e518c9f6b0d7
+![](assets/demo.gif)
 
 ## Create project and generate artifacts using CLI
 
@@ -90,14 +91,14 @@ skmtc generate <project name> <path or url to openapi schema>
 <td valign="top">
 
 ```typescript
-import { z } from "zod"
+import { z } from "zod";
 
 export const User = z.object({
   id: z.string(),
   age: z.number(),
   score: z.number().int(),
-  isActive: z.boolean()
-})
+  isActive: z.boolean(),
+});
 ```
 
 </td>
@@ -137,8 +138,8 @@ Properties not in the `required` array become optional:
 export const Profile = z.object({
   username: z.string(),
   bio: z.string().optional(),
-  website: z.string().optional()
-})
+  website: z.string().optional(),
+});
 ```
 
 </td>
@@ -174,8 +175,8 @@ Single enum values become literals, multiple values become z.enum:
 <td valign="top">
 
 ```typescript
-export const Status = z.enum(["active", "inactive", "pending"])
-export const Role = z.literal("admin")
+export const Status = z.enum(["active", "inactive", "pending"]);
+export const Role = z.literal("admin");
 ```
 
 </td>
@@ -212,8 +213,8 @@ export const Role = z.literal("admin")
 <td valign="top">
 
 ```typescript
-export const Tags = z.array(z.string())
-export const Matrix = z.array(z.array(z.number()))
+export const Tags = z.array(z.string());
+export const Matrix = z.array(z.array(z.number()));
 ```
 
 </td>
@@ -258,9 +259,9 @@ export const Company = z.object({
   name: z.string(),
   address: z.object({
     street: z.string(),
-    city: z.string()
-  })
-})
+    city: z.string(),
+  }),
+});
 ```
 
 </td>
@@ -299,8 +300,8 @@ export const Company = z.object({
 ```typescript
 export const Article = z.object({
   title: z.string(),
-  publishedAt: z.string().nullable()
-})
+  publishedAt: z.string().nullable(),
+});
 ```
 
 </td>
@@ -352,18 +353,18 @@ export const Article = z.object({
 <td valign="top">
 
 ```typescript
-export const StringOrNumber = z.union([z.string(), z.number()])
+export const StringOrNumber = z.union([z.string(), z.number()]);
 
 export const Pet = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("cat"),
-    meow: z.boolean()
+    meow: z.boolean(),
   }),
   z.object({
     type: z.literal("dog"),
-    bark: z.boolean()
-  })
-])
+    bark: z.boolean(),
+  }),
+]);
 ```
 
 </td>
@@ -401,11 +402,11 @@ export const Pet = z.discriminatedUnion("type", [
 <td valign="top">
 
 ```typescript
-export const Metadata = z.record(z.string(), z.string())
+export const Metadata = z.record(z.string(), z.string());
 
 export const Config = z.object({ id: z.string() }).and(
-  z.record(z.string(), z.number())
-)
+  z.record(z.string(), z.number()),
+);
 ```
 
 </td>
@@ -441,8 +442,8 @@ export const Config = z.object({ id: z.string() }).and(
 ```typescript
 export const Category = z.object({
   name: z.string(),
-  parent: z.lazy(() => Category).optional()
-})
+  parent: z.lazy(() => Category).optional(),
+});
 ```
 
 </td>
@@ -473,28 +474,14 @@ Schema names are automatically converted to PascalCase:
 <td valign="top">
 
 ```typescript
-export const UserProfile = z.string()
-export const ApiResponse = z.number()
-export const MyType = z.boolean()
+export const UserProfile = z.string();
+export const ApiResponse = z.number();
+export const MyType = z.boolean();
 ```
 
 </td>
 </tr>
 </table>
-
-## Supported Features
-
-- **Primitive types**: string, number, integer, boolean, void, unknown
-- **Complex types**: object, array, union (oneOf/anyOf), references ($ref)
-- **Modifiers**: nullable (`.nullable()`), optional (`.optional()`)
-- **Enums**: Single values (`z.literal()`) and multiple values (`z.enum()`)
-- **Integer validation**: Uses `z.number().int()` for integer types
-- **Objects**: Nested objects, properties with special characters
-- **Additional properties**: Record types (`z.record()`), mixed with regular properties using `.and()`
-- **Arrays**: Typed arrays, nested arrays, arrays of objects
-- **Unions**: Simple unions and discriminated unions (`z.discriminatedUnion()`)
-- **References**: Schema references including recursive types with `z.lazy()`
-- **Name transformations**: kebab-case and snake_case to PascalCase
 
 ## Testing
 

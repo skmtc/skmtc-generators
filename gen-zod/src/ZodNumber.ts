@@ -1,26 +1,90 @@
-import { type GenerateContextType, ContentBase, type GeneratorKey, type Modifiers } from '@skmtc/core'
-import { applyModifiers } from './applyModifiers.ts'
+import {
+  ContentBase,
+  type GenerateContextType,
+  type GeneratorKey,
+  type Modifiers,
+  type OasNumber,
+} from "@skmtc/core";
+import { applyModifiers } from "./applyModifiers.ts";
+import { List } from "@skmtc/core";
+import { ZodConstraint } from "./ZodConstraints.ts";
 
 type ZodNumberArgs = {
-  context: GenerateContextType
-  modifiers: Modifiers
-  destinationPath: string
-  generatorKey: GeneratorKey
-}
+  context: GenerateContextType;
+  modifiers: Modifiers;
+  schema: OasNumber;
+  destinationPath: string;
+  generatorKey: GeneratorKey;
+};
 
 export class ZodNumber extends ContentBase {
-  type = 'number' as const
-  modifiers: Modifiers
+  type = "number" as const;
+  modifiers: Modifiers;
+  enums?: number[] | (number | null)[];
+  constraints: List<ZodConstraint[]>;
+  constructor(
+    { context, modifiers, schema, destinationPath, generatorKey }:
+      ZodNumberArgs,
+  ) {
+    super({ context, generatorKey });
 
-  constructor({ context, modifiers, destinationPath, generatorKey }: ZodNumberArgs) {
-    super({ context, generatorKey })
+    this.modifiers = modifiers;
+    this.enums = schema.enums;
+    this.constraints = new List<ZodConstraint[]>([], {
+      skipEmpty: true,
+      separator: "",
+    });
 
-    this.modifiers = modifiers
+    if (schema.minimum !== undefined) {
+      if (schema.exclusiveMinimum) {
+        this.constraints.values.push(
+          new ZodConstraint({ context, name: "gt", value: schema.minimum }),
+        );
+      } else {
+        this.constraints.values.push(
+          new ZodConstraint({ context, name: "gte", value: schema.minimum }),
+        );
+      }
+    }
 
-    context.register({ imports: { zod: ['z'] }, destinationPath })
+    if (schema.maximum !== undefined) {
+      if (schema.exclusiveMaximum) {
+        this.constraints.values.push(
+          new ZodConstraint({ context, name: "lt", value: schema.maximum }),
+        );
+      } else {
+        this.constraints.values.push(
+          new ZodConstraint({ context, name: "lte", value: schema.maximum }),
+        );
+      }
+    }
+
+    if (schema.multipleOf !== undefined) {
+      this.constraints.values.push(
+        new ZodConstraint({
+          context,
+          name: "multipleOf",
+          value: schema.multipleOf,
+        }),
+      );
+    }
+
+    context.register({ imports: { zod: ["z"] }, destinationPath });
   }
 
   override toString(): string {
-    return applyModifiers(`z.number()`, this.modifiers)
+    const { enums } = this;
+
+    let content: string;
+
+    if (enums && Array.isArray(enums)) {
+      content = enums.length === 1
+        ? `z.literal(${enums[0]})`
+        : `z.union([${enums.map((e) => `z.literal(${e})`).join(", ")}])`;
+      return applyModifiers(content, this.modifiers);
+    } else {
+      content = `z.number()`;
+      return applyModifiers(`${content}${this.constraints}`, this.modifiers);
+    }
   }
 }

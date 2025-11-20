@@ -1,21 +1,25 @@
-import { ContentBase, type GeneratorKey, type GenerateContextType } from '@skmtc/core'
+import {
+  ContentBase,
+  type GenerateContextType,
+  type GeneratorKey,
+} from "@skmtc/core";
 
 type ConstructorArgs = {
-  context: GenerateContextType
-  destinationPath: string
-  generatorKey: GeneratorKey
-}
+  context: GenerateContextType;
+  destinationPath: string;
+  generatorKey: GeneratorKey;
+};
 
 export class ZodUnknown extends ContentBase {
-  type = 'unknown' as const
+  type = "unknown" as const;
 
   constructor({ context, destinationPath, generatorKey }: ConstructorArgs) {
-    super({ context, generatorKey })
+    super({ context, generatorKey });
 
-    context.register({ imports: { zod: ['z'] }, destinationPath })
+    context.register({ imports: { zod: ["z"] }, destinationPath });
   }
 
   override toString(): string {
-    return `z.unknown()`
+    return `z.unknown()`;
   }
 }
