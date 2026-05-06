@@ -1,8 +1,11 @@
-import { synthesizeArgsObject, toGqlOperationEntry } from '@skmtc/core'
-import { emitForm } from './ReapitForm.ts'
+import {
+  synthesizeArgsObject,
+  toGqlOperationEntry,
+  type IsSupportedGqlOperationConfigArgs
+} from '@skmtc/core'
+import { ReapitForm } from './ReapitForm.ts'
+import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
-
-const id = denoJson.name
 
 /**
  * gen-reapit-form: emits one React form component per GraphQL **Mutation**
@@ -10,14 +13,27 @@ const id = denoJson.name
  * `@hookform/lenses` for state, and a Zod resolver derived from the args
  * object via `gen-zod`.
  */
-export const reapitFormEntry = toGqlOperationEntry({
-  id,
-  isSupported: ({ operation }) =>
-    operation.rootKind === 'mutation' && synthesizeArgsObject(operation) !== undefined,
-  transform: ({ context, operation, acc }) => {
+export const reapitFormEntry = toGqlOperationEntry<EnrichmentSchema>({
+  id: denoJson.name,
+
+  isSupported({ operation }: IsSupportedGqlOperationConfigArgs<EnrichmentSchema>) {
+    return operation.rootKind === 'mutation' && synthesizeArgsObject(operation) !== undefined
+  },
+
+  transform({ context, operation, acc }) {
     if (operation.rootKind !== 'mutation') return acc
     if (synthesizeArgsObject(operation) === undefined) return acc
-    emitForm(context, operation)
+
+    context.insertOperation({ insertable: ReapitForm, operation })
+
     return acc
-  }
+  },
+
+  toPreviewModule: ({ operation }) => ({
+    name: ReapitForm.toIdentifier(operation).name,
+    exportPath: ReapitForm.toExportPath(operation),
+    group: 'forms'
+  }),
+
+  toEnrichmentSchema
 })

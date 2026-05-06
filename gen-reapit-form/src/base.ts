@@ -1,18 +1,22 @@
-import { capitalize, camelCase } from '@skmtc/core'
+import { camelCase, capitalize, Identifier, toGqlOperationBase } from '@skmtc/core'
 import { join } from '@std/path'
-import type { GqlOperation } from '@skmtc/core'
+import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
+import denoJson from '../deno.json' with { type: 'json' }
 
-/**
- * Reapit form file path. One file per Mutation root field, e.g.
- * `@/forms/CreatePostForm.generated.tsx`.
- */
-export const toExportPath = (operation: GqlOperation): string => {
-  return join('@', 'forms', `${toFormName(operation)}.generated.tsx`)
-}
+export const ReapitFormBase = toGqlOperationBase<EnrichmentSchema>({
+  id: denoJson.name,
 
-/**
- * Component identifier — `Mutation.createPost` becomes `CreatePostForm`.
- */
-export const toFormName = (operation: GqlOperation): string => {
-  return `${capitalize(camelCase(operation.fieldName))}Form`
-}
+  toEnrichmentSchema,
+
+  toIdentifier(operation): Identifier {
+    const name = `${capitalize(camelCase(operation.fieldName))}Form`
+
+    return Identifier.createVariable(name)
+  },
+
+  toExportPath(operation): string {
+    const { name } = this.toIdentifier(operation)
+
+    return join('@', 'forms', `${name}.generated.tsx`)
+  }
+})

@@ -30,9 +30,11 @@
         "jsr:@std/fmt@1",
         "jsr:@std/log@~0.224.6",
         "jsr:@std/path@^1.0.9",
+        "npm:@babel/helper-validator-identifier",
         "npm:@types/babel__helper-validator-identifier",
         "npm:@types/lodash-es",
         "npm:graphql",
+        "npm:lodash-es",
         "npm:openapi-types",
         "npm:tiny-invariant@1.3.3",
         "npm:valibot"
