@@ -1,0 +1,27 @@
+# Demo SDL for gen-reapit-form. One mutation with mixed required / optional
+# arguments to exercise the form emitter.
+
+scalar DateTime
+
+input CreatePostInput {
+  authorId: ID!
+  title: String!
+  body: String
+  published: Boolean
+}
+
+type Post {
+  id: ID!
+  title: String!
+  body: String
+  publishedAt: DateTime
+}
+
+type Query {
+  posts: [Post!]!
+}
+
+type Mutation {
+  createPost(input: CreatePostInput!): Post!
+  publishPost(id: ID!, scheduledFor: DateTime): Post!
+}

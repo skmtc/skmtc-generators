@@ -1,0 +1,46 @@
+# Sample schema for the gen-graphql-operation demo.
+# Exercises: scalar types, lists, refs, non-null vs nullable,
+# arguments with defaults, custom scalar (DateTime),
+# query/mutation root operations, plus features that should surface
+# as parse issues (custom directive, non-root field args).
+
+scalar DateTime
+
+# Custom directive — schema-driven generation can't represent it, so
+# the parser logs it as DROPPED_DIRECTIVE so the user can see the
+# semantic gap.
+directive @auth(role: String!) on FIELD_DEFINITION
+
+type User {
+  id: ID!
+  name: String!
+  email: String
+  createdAt: DateTime!
+  # `posts(limit, offset)` carries field-level arguments — non-root
+  # fields can have these in GraphQL but the schema-driven model can't
+  # carry them, so they should surface as SKIPPED_FIELD_ARGUMENTS.
+  posts(limit: Int = 5, offset: Int): [Post!]!
+}
+
+type Post {
+  id: ID!
+  title: String!
+  body: String
+  author: User!
+  publishedAt: DateTime
+}
+
+input CreatePostInput {
+  authorId: ID!
+  title: String!
+  body: String
+}
+
+type Query {
+  user(id: ID!): User
+  posts(limit: Int = 10, offset: Int): [Post!]!
+}
+
+type Mutation {
+  createPost(input: CreatePostInput!): Post!
+}
