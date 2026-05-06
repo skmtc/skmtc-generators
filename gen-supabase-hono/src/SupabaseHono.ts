@@ -1,4 +1,4 @@
-import type { OperationInsertableArgs, ListArray, OasOperation, ListLines } from '@skmtc/core'
+import type { OasOperationInsertableArgs, ListArray, OasOperation, ListLines } from '@skmtc/core'
 import { List } from '@skmtc/core'
 import { SupabaseHonoBase } from './base.ts'
 import { SupabaseRoute } from './SupabaseRoute.ts'
@@ -6,7 +6,7 @@ import { SupabaseRoute } from './SupabaseRoute.ts'
 export class SupabaseHono extends SupabaseHonoBase {
   methods: ListArray<string>
   routes: ListLines<SupabaseRoute>
-  constructor({ context, operation, settings }: OperationInsertableArgs) {
+  constructor({ context, operation, settings }: OasOperationInsertableArgs) {
     super({ context, operation, settings })
 
     this.methods = List.toArray([])

@@ -6,7 +6,7 @@ import {
   decapitalize,
   OasVoid
 } from '@skmtc/core'
-import type { ListObject, OperationInsertableArgs } from '@skmtc/core'
+import type { ListObject, OasOperationInsertableArgs } from '@skmtc/core'
 import { TanstackQueryBase } from './base.ts'
 import { TsInsertable } from '@skmtc/gen-typescript'
 import { ZodInsertable } from '@skmtc/gen-zod'
@@ -15,7 +15,7 @@ export class QueryFn extends TanstackQueryBase {
   zodResponseName: string
   parameter: FunctionParameter
   queryParamArgs: ListObject<string>
-  constructor({ context, operation, settings }: OperationInsertableArgs) {
+  constructor({ context, operation, settings }: OasOperationInsertableArgs) {
     super({ context, operation, settings })
 
     this.queryParamArgs = List.toObject(operation.toParams(['query']).map(({ name }) => name))

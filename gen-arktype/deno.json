@@ -1,6 +1,6 @@
 {
   "name": "@skmtc/gen-arktype",
-  "version": "0.0.49",
+  "version": "0.0.50",
   "exports": "./mod.ts",
   "tasks": {
     "test": "deno test --allow-env --allow-sys --allow-read",
@@ -8,6 +8,6 @@
     "coverage:report": "deno coverage coverage --lcov --output=coverage.lcov",
     "coverage:html": "deno coverage coverage --html",
     "coverage:check": "deno coverage coverage --detailed",
-    "publish": "deno publish --allow-slow-types --allow-dirty --token=$JSR_AUTH_TOKEN"
+    "publish": "JSR_URL=https://jsr.skmtc.dev/ deno publish --allow-slow-types --allow-dirty --token=$JSR_AUTH_TOKEN"
   }
 }

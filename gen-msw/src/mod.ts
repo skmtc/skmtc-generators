@@ -1,13 +1,13 @@
-import { Identifier, toOperationEntry } from '@skmtc/core'
+import { Identifier, toOasOperationEntry } from '@skmtc/core'
 import { MockRoute } from './MockRoute.ts'
 import { MockRoutesList } from './MockRoutesList.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
-export const MswEntry = toOperationEntry({
+export const MswEntry = toOasOperationEntry({
   id: denoJson.name,
 
   transform: ({ context, operation }) => {
-    const insertedRoute = context.insertOperation(MockRoute, operation)
+    const insertedRoute = context.insertOperation({ insertable: MockRoute, operation: operation })
 
     const { exportPath } = insertedRoute.settings
 

@@ -1,10 +1,10 @@
-import { toOperationEntry } from '@skmtc/core'
+import { toOasOperationEntry } from '@skmtc/core'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import { isListResponse } from '@skmtc/gen-tanstack-query-supabase-zod'
 import { ShadcnTable } from './ShadcnTable.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
-export const ShadcnTableEntry = toOperationEntry<EnrichmentSchema>({
+export const ShadcnTableEntry = toOasOperationEntry<EnrichmentSchema>({
   id: denoJson.name,
 
   toEnrichmentSchema,
@@ -14,7 +14,7 @@ export const ShadcnTableEntry = toOperationEntry<EnrichmentSchema>({
   },
 
   transform: ({ context, operation }) => {
-    context.insertOperation(ShadcnTable, operation)
+    context.insertOperation({ insertable: ShadcnTable, operation: operation })
   },
 
   toPreviewModule: ({ operation }) => ({

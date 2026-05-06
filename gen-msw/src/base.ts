@@ -1,8 +1,8 @@
-import { Identifier, toOperationBase, camelCase } from '@skmtc/core'
+import { Identifier, toOasOperationBase, camelCase } from '@skmtc/core'
 import { join } from '@std/path'
 import denoJson from '../deno.json' with { type: 'json' }
 
-export const MswBase = toOperationBase({
+export const MswBase = toOasOperationBase({
   id: denoJson.name,
 
   toIdentifier({ method, path }): Identifier {

@@ -10,7 +10,7 @@ import {
   OasVoid,
   decapitalize
 } from '@skmtc/core'
-import type { OperationInsertableArgs, ListObject, Stringable } from '@skmtc/core'
+import type { OasOperationInsertableArgs, ListObject, Stringable } from '@skmtc/core'
 import { TsInsertable } from '@skmtc/gen-typescript'
 import { TanstackQueryBase } from './base.ts'
 import { ZodInsertable } from '@skmtc/gen-zod'
@@ -23,7 +23,7 @@ export class MutationFn extends TanstackQueryBase {
   headerParams: ListObject<Stringable>
   tsArgsName: string
 
-  constructor({ context, operation, settings }: OperationInsertableArgs) {
+  constructor({ context, operation, settings }: OasOperationInsertableArgs) {
     super({ context, operation, settings })
 
     this.queryParamArgs = List.toObject(operation.toParams(['query']).map(({ name }) => name))

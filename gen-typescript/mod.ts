@@ -12,4 +12,15 @@ export * from './src/TsUnion.ts'
 export * from './src/TsUnknown.ts'
 export * from './src/TsVoid.ts'
 export { TsInsertable } from './src/TsInsertable.ts'
+export {
+  typescriptEntry,
+  toTypescriptEntry,
+  type TypescriptEntryOptions
+} from './src/mod.ts'
 export { typescriptEntry as default } from './src/mod.ts'
+export {
+  setCustomScalars,
+  getCustomScalar,
+  getCustomScalarMap,
+  resetCustomScalars
+} from './src/scalars.ts'

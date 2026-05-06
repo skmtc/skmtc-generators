@@ -1,4 +1,4 @@
-import type { ListObject, OperationInsertableArgs } from '@skmtc/core'
+import type { ListObject, OasOperationInsertableArgs } from '@skmtc/core'
 import {
   FunctionParameter,
   capitalize,
@@ -16,7 +16,7 @@ export class PaginatedQueryFn extends TanstackQueryBase {
   zodResponseName: string
   queryParamArgs: ListObject<string>
 
-  constructor({ context, operation, settings }: OperationInsertableArgs) {
+  constructor({ context, operation, settings }: OasOperationInsertableArgs) {
     super({ context, operation, settings })
 
     this.queryParamArgs = List.toObject(operation.toParams(['query']).map(({ name }) => name))

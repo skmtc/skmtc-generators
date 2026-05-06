@@ -2,14 +2,14 @@ import { List, Identifier, capitalize } from '@skmtc/core'
 import { TsInsertable } from '@skmtc/gen-typescript'
 import invariant from 'tiny-invariant'
 import { TableColumn } from './TableColumn.ts'
-import type { ListArray, OasOperation, OperationInsertableArgs } from '@skmtc/core'
+import type { ListArray, OasOperation, OasOperationInsertableArgs } from '@skmtc/core'
 import { toListKeyAndItem } from '@skmtc/gen-tanstack-query-supabase-zod'
 import { ShadcnTableBase } from './base.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
 
 export class TanstackColumns extends ShadcnTableBase {
   columns: ListArray<TableColumn>
-  constructor({ context, operation, settings }: OperationInsertableArgs<EnrichmentSchema>) {
+  constructor({ context, operation, settings }: OasOperationInsertableArgs<EnrichmentSchema>) {
     super({ context, operation, settings })
 
     const { schema } = toListKeyAndItem(operation)

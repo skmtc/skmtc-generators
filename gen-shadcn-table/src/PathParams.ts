@@ -1,14 +1,14 @@
 import { ShadcnTableBase } from './base.ts'
 import { TsInsertable } from '@skmtc/gen-typescript'
 import { List, capitalize, isEmpty } from '@skmtc/core'
-import type { OperationInsertableArgs, ListObject } from '@skmtc/core'
+import type { OasOperationInsertableArgs, ListObject } from '@skmtc/core'
 import type { EnrichmentSchema } from './enrichments.ts'
 
 export class PathParams extends ShadcnTableBase {
   pathParamsTsName: string
   destructuredPathParams: ListObject<string>
   isEmpty: boolean
-  constructor({ context, operation, settings }: OperationInsertableArgs<EnrichmentSchema>) {
+  constructor({ context, operation, settings }: OasOperationInsertableArgs<EnrichmentSchema>) {
     super({ context, operation, settings })
 
     const params = operation.toParametersObject(['path'])

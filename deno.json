@@ -1,6 +1,16 @@
 {
   "imports": {
-    "@skmtc/core": "jsr:@skmtc/core@^0.0.984",
+    "@skmtc/core": "jsr:@skmtc/core@^0.2.0",
+    "@skmtc/core/parsers/graphql": "jsr:@skmtc/core@^0.2.0/parsers/graphql",
+    "@std/log": "jsr:@std/log@^0.224.6",
+    "@std/fmt/colors": "jsr:@std/fmt@^1.0.0/colors",
+    "@std/path/normalize": "jsr:@std/path@^1.1.2/normalize",
+    "@std/path/join": "jsr:@std/path@^1.1.2/join",
+    "@types/lodash-es": "npm:@types/lodash-es@4.17.12",
+    "lodash-es/get": "npm:lodash-es@4.17.21/get.js",
+    "lodash-es/set": "npm:lodash-es@4.17.21/set.js",
+    "graphql": "npm:graphql@^16.9.0",
+    "tiny-invariant": "npm:tiny-invariant@^1.3.3",
     "@skmtc/gen-express": "./gen-express/mod.ts",
     "@skmtc/gen-msw": "./gen-msw/mod.ts",
     "@skmtc/gen-shadcn-form": "./gen-shadcn-form/mod.ts",
@@ -13,6 +23,10 @@
     "@skmtc/gen-valibot": "./gen-valibot/mod.ts",
     "@skmtc/gen-zod": "./gen-zod/mod.ts",
     "@skmtc/gen-arktype": "./gen-arktype/mod.ts",
+    "@skmtc/gen-daisyui-form": "./gen-daisyui-form/mod.ts",
+    "@skmtc/gen-graphql-operation": "./gen-graphql-operation/mod.ts",
+    "@skmtc/gen-graphql-typed-document-node": "./gen-graphql-typed-document-node/mod.ts",
+    "@skmtc/gen-reapit-form": "./gen-reapit-form/mod.ts",
     "@std/path": "jsr:@std/path@^1.1.2",
     "openapi-types": "npm:openapi-types@^12.1.3",
     "tiny-invariant": "npm:tiny-invariant@^1.3.3",
@@ -22,7 +36,7 @@
   "tasks": {
     "test": "deno task --cwd=gen-typescript test && deno task --cwd=gen-zod test && deno task --cwd=gen-valibot test && deno task --cwd=gen-arktype test",
     "check": "deno check gen-typescript/mod.ts && deno check gen-zod/mod.ts && deno check gen-valibot/mod.ts && deno check gen-arktype/mod.ts && deno check gen-msw/mod.ts && deno check gen-shadcn-form/mod.ts && deno check gen-shadcn-select/mod.ts && deno check gen-shadcn-table/mod.ts && deno check gen-supabase-hono/mod.ts && deno check gen-express/mod.ts && deno check gen-tanstack-query-fetch-zod/mod.ts && deno check gen-tanstack-query-supabase-zod/mod.ts",
-    "publish": "deno task --cwd=gen-arktype publish && deno task --cwd=gen-valibot publish && deno task --cwd=gen-zod publish && deno task --cwd=gen-typescript publish && deno task --cwd=gen-supabase-hono publish && deno task --cwd=gen-express publish && deno task --cwd=gen-msw publish && deno task --cwd=gen-tanstack-query-fetch-zod publish && deno task --cwd=gen-tanstack-query-supabase-zod publish && deno task --cwd=gen-shadcn-form publish && deno task --cwd=gen-shadcn-table publish && deno task --cwd=gen-shadcn-select publish"
+    "publish": "deno task --cwd=gen-typescript publish && deno task --cwd=gen-zod publish && deno task --cwd=gen-valibot publish && deno task --cwd=gen-arktype publish && deno task --cwd=gen-msw publish && deno task --cwd=gen-supabase-hono publish && deno task --cwd=gen-express publish && deno task --cwd=gen-tanstack-query-fetch-zod publish && deno task --cwd=gen-tanstack-query-supabase-zod publish && deno task --cwd=gen-daisyui-form publish && deno task --cwd=gen-reapit-form publish && deno task --cwd=gen-graphql-operation publish && deno task --cwd=gen-shadcn-form publish && deno task --cwd=gen-shadcn-select publish && deno task --cwd=gen-shadcn-table publish && deno task --cwd=gen-graphql-typed-document-node publish"
   },
   "nodeModulesDir": "none",
   "workspace": [
@@ -37,6 +51,10 @@
     "./gen-shadcn-select",
     "./gen-msw",
     "./gen-supabase-hono",
-    "./gen-express"
+    "./gen-express",
+    "./gen-daisyui-form",
+    "./gen-graphql-operation",
+    "./gen-graphql-typed-document-node",
+    "./gen-reapit-form"
   ]
 }

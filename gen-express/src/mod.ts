@@ -1,16 +1,16 @@
 import invariant from 'tiny-invariant'
 import { ExpressApp } from './ExpressApp.ts'
-import { toOperationEntry } from '@skmtc/core'
+import { toOasOperationEntry } from '@skmtc/core'
 import denoJson from '../deno.json' with { type: 'json' }
 
-export const expressEntry = toOperationEntry({
+export const expressEntry = toOasOperationEntry({
   id: denoJson.name,
   transform: ({ context, operation }) => {
     const app =
       context.findDefinition({
         name: 'app',
         exportPath: ExpressApp.toExportPath(operation)
-      }) ?? context.insertOperation(ExpressApp, operation).definition
+      }) ?? context.insertOperation({ insertable: ExpressApp, operation: operation }).definition
 
     invariant(app?.value instanceof ExpressApp, 'app must be an instance of ExpressApp')
 

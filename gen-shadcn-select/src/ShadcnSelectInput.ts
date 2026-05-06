@@ -1,5 +1,5 @@
 import invariant from 'tiny-invariant'
-import type { OperationInsertableArgs } from '@skmtc/core'
+import type { OasOperationInsertableArgs } from '@skmtc/core'
 import { TanstackQuery, toListKeyAndItem } from '@skmtc/gen-tanstack-query-supabase-zod'
 import { ShadcnSelectApiBase } from './base.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
@@ -15,7 +15,7 @@ export class ShadcnSelectInput extends ShadcnSelectApiBase {
   itemName: string
   listKey: string
 
-  constructor({ context, operation, settings }: OperationInsertableArgs<EnrichmentSchema>) {
+  constructor({ context, operation, settings }: OasOperationInsertableArgs<EnrichmentSchema>) {
     super({ context, operation, settings })
 
     const { schema, key } = toListKeyAndItem(operation)

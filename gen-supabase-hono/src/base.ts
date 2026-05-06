@@ -1,9 +1,9 @@
-import { Identifier, toOperationBase } from '@skmtc/core'
+import { Identifier, toOasOperationBase } from '@skmtc/core'
 import { join } from '@std/path'
 import { toFirstSegment } from './toFirstSegment.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
-export const SupabaseHonoBase = toOperationBase({
+export const SupabaseHonoBase = toOasOperationBase({
   id: denoJson.name,
 
   toIdentifier(): Identifier {

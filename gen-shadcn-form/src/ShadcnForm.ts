@@ -3,7 +3,7 @@ import { CustomValue, decapitalize, FunctionParameter, capitalize } from '@skmtc
 import { TsInsertable } from '@skmtc/gen-typescript'
 import { ShadcnFormBase } from './base.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
-import type { OasSchema, OasRef, OasObject, OperationInsertableArgs } from '@skmtc/core'
+import type { OasSchema, OasRef, OasObject, OasOperationInsertableArgs } from '@skmtc/core'
 import invariant from 'tiny-invariant'
 import { ZodInsertable } from '@skmtc/gen-zod'
 import { FormFields } from './FormFields.ts'
@@ -15,7 +15,7 @@ export class ShadcnForm extends ShadcnFormBase {
   tsRequestBodyName: string
   zodRequestBodyName: string
   fields: FormFields
-  constructor({ context, operation, settings }: OperationInsertableArgs<EnrichmentSchema>) {
+  constructor({ context, operation, settings }: OasOperationInsertableArgs<EnrichmentSchema>) {
     super({ context, operation, settings })
 
     const requestBody = operation.toRequestBody(({ schema }) => schema)

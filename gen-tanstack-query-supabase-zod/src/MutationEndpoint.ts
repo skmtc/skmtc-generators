@@ -1,5 +1,5 @@
 import { List, OasVoid, toEndpointName, capitalize, type ListArray } from '@skmtc/core'
-import type { OperationInsertableArgs } from '@skmtc/core'
+import type { OasOperationInsertableArgs } from '@skmtc/core'
 import { MutationFn } from './MutationFn.ts'
 import { TanstackQueryBase } from './base.ts'
 import { TsInsertable } from '@skmtc/gen-typescript'
@@ -8,7 +8,7 @@ export class MutationEndpoint extends TanstackQueryBase {
   tags: ListArray<string>
   mutationFn: MutationFn
   requestBodyTsName: string
-  constructor({ context, operation, settings }: OperationInsertableArgs) {
+  constructor({ context, operation, settings }: OasOperationInsertableArgs) {
     super({ context, operation, settings })
 
     this.tags = List.toArray(operation.tags?.map(tag => `'${tag}'`) ?? [])

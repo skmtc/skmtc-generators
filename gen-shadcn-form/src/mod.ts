@@ -1,12 +1,12 @@
-import { toOperationEntry, type IsSupportedOperationConfigArgs } from '@skmtc/core'
+import { toOasOperationEntry, type IsSupportedOasOperationConfigArgs } from '@skmtc/core'
 import type { EnrichmentSchema } from './enrichments.ts'
 import { toEnrichmentSchema } from './enrichments.ts'
 import { ShadcnForm } from './ShadcnForm.ts'
 import denoJson from '../deno.json' with { type: 'json' }
-export const ShadcnFormEntry = toOperationEntry<EnrichmentSchema>({
+export const ShadcnFormEntry = toOasOperationEntry<EnrichmentSchema>({
   id: denoJson.name,
 
-  isSupported({ operation }: IsSupportedOperationConfigArgs<EnrichmentSchema>) {
+  isSupported({ operation }: IsSupportedOasOperationConfigArgs<EnrichmentSchema>) {
     return (
       ['post', 'put', 'patch'].includes(operation.method) &&
       Boolean(operation.requestBody?.resolve()?.toSchema()?.resolve().type === 'object')
@@ -14,7 +14,7 @@ export const ShadcnFormEntry = toOperationEntry<EnrichmentSchema>({
   },
 
   transform({ context, operation }) {
-    context.insertOperation(ShadcnForm, operation)
+    context.insertOperation({ insertable: ShadcnForm, operation: operation })
   },
 
   toPreviewModule: ({ operation }) => ({
