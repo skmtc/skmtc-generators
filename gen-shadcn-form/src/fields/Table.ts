@@ -1,4 +1,4 @@
-import { List, ContentBase } from '@skmtc/core'
+import { List, SnippetBase } from '@skmtc/core'
 import type {
   CustomValue,
   EntryList,
@@ -24,7 +24,7 @@ type TableArgs = {
   topLevelSchema: OasSchema | OasRef<'schema'>
 }
 
-export class Table extends ContentBase {
+export class Table extends SnippetBase {
   constructor({
     context,
     label,
@@ -70,7 +70,7 @@ type SimpleTableArgs = {
   topLevelSchema: OasSchema | OasRef<'schema'>
 }
 
-export class SimpleTable extends ContentBase {
+export class SimpleTable extends SnippetBase {
   name: string
   headers: ListArray<Stringable>
   label: string | undefined
@@ -133,7 +133,7 @@ type ObjectTableArgs = {
   topLevelSchema: OasSchema | OasRef<'schema'>
 }
 
-export class ObjectTable extends ContentBase {
+export class ObjectTable extends SnippetBase {
   name: string
   headers: ListArray<Stringable>
   label: string | undefined
@@ -207,7 +207,7 @@ type SimpleTableRowRenderArgs = {
   topLevelSchema: OasSchema | OasRef<'schema'>
 }
 
-class SimpleTableRowRender extends ContentBase {
+class SimpleTableRowRender extends SnippetBase {
   parentName: string
   cells: ListLines<Stringable>
   rowType: TypeSystemValue
@@ -274,7 +274,7 @@ type TableObjectRowRenderArgs = {
   topLevelSchema: OasSchema | OasRef<'schema'>
 }
 
-class TableObjectRowRender extends ContentBase {
+class TableObjectRowRender extends SnippetBase {
   parentName: string
   cells: ListLines<Stringable>
   rowType: TypeSystemValue

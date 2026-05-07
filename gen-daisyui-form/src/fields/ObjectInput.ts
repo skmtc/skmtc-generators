@@ -1,4 +1,4 @@
-import { ContentBase, List } from '@skmtc/core'
+import { SnippetBase, List } from '@skmtc/core'
 import type {
   GenerateContextType,
   ListLines,
@@ -20,7 +20,7 @@ type ObjectInputArgs = {
   topLevelSchema: OasSchema | OasRef<'schema'>
 }
 
-export class ObjectInput extends ContentBase {
+export class ObjectInput extends SnippetBase {
   name: string
   label: string | undefined
   fields: ListLines<Stringable>

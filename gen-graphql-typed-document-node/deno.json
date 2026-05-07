@@ -1,12 +1,12 @@
 {
   "name": "@skmtc/gen-graphql-typed-document-node",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "exports": "./mod.ts",
   "imports": {
-    "@skmtc/core": "jsr:@skmtc/core@^0.2.0",
-    "@skmtc/core/parsers/graphql": "jsr:@skmtc/core@^0.2.0/parsers/graphql",
-    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@^0.0.50",
-    "@skmtc/gen-graphql-operation": "jsr:@skmtc/gen-graphql-operation@^0.0.1",
+    "@skmtc/core": "jsr:@skmtc/core@^0.3.1",
+    "@skmtc/core/parsers/graphql": "jsr:@skmtc/core@^0.3.1/parsers/graphql",
+    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@^0.0.51",
+    "@skmtc/gen-graphql-operation": "jsr:@skmtc/gen-graphql-operation@^0.0.2",
     "@std/assert": "jsr:@std/assert@^1.0.10",
     "@std/log": "jsr:@std/log@^0.224.6",
     "@std/path": "jsr:@std/path@^1.1.2",

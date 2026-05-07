@@ -1,14 +1,14 @@
 import { ShadcnSelectApiBase } from './base.ts'
-import { TsInsertable } from '@skmtc/gen-typescript'
+import { TsProjection } from '@skmtc/gen-typescript'
 import { List, capitalize, isEmpty } from '@skmtc/core'
-import type { OasOperationInsertableArgs, ListObject } from '@skmtc/core'
+import type { OasOperationProjectionConstructorArgs, ListObject } from '@skmtc/core'
 import type { EnrichmentSchema } from './enrichments.ts'
 
 export class PathParams extends ShadcnSelectApiBase {
   pathParamsTsName: string
   isEmpty: boolean
   destructuredPathParams: ListObject<string>
-  constructor({ context, operation, settings }: OasOperationInsertableArgs<EnrichmentSchema>) {
+  constructor({ context, operation, settings }: OasOperationProjectionConstructorArgs<EnrichmentSchema>) {
     super({ context, operation, settings })
 
     const params = operation.toParametersObject(['path'])
@@ -20,7 +20,7 @@ export class PathParams extends ShadcnSelectApiBase {
     this.pathParamsTsName = capitalize(`${tableName}PathParams`)
 
     if (!this.isEmpty) {
-      const pathParams = this.insertNormalizedModel(TsInsertable, {
+      const pathParams = this.insertNormalizedModel(TsProjection, {
         schema: params,
         fallbackName: this.pathParamsTsName
       })

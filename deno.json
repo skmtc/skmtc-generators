@@ -1,7 +1,7 @@
 {
   "imports": {
-    "@skmtc/core": "jsr:@skmtc/core@^0.2.0",
-    "@skmtc/core/parsers/graphql": "jsr:@skmtc/core@^0.2.0/parsers/graphql",
+    "@skmtc/core": "jsr:@skmtc/core@^0.3.1",
+    "@skmtc/core/parsers/graphql": "jsr:@skmtc/core@^0.3.1/parsers/graphql",
     "@std/log": "jsr:@std/log@^0.224.6",
     "@std/fmt/colors": "jsr:@std/fmt@^1.0.0/colors",
     "@std/path/normalize": "jsr:@std/path@^1.1.2/normalize",
@@ -29,6 +29,7 @@
     "@skmtc/gen-reapit-form": "./gen-reapit-form/mod.ts",
     "@skmtc/gen-reapit-searchable-dropdown": "./gen-reapit-searchable-dropdown/mod.ts",
     "@skmtc/gen-reapit-multi-select": "./gen-reapit-multi-select/mod.ts",
+    "@skmtc/gen-reapit-graphql-client": "./gen-reapit-graphql-client/mod.ts",
     "@std/path": "jsr:@std/path@^1.1.2",
     "openapi-types": "npm:openapi-types@^12.1.3",
     "tiny-invariant": "npm:tiny-invariant@^1.3.3",
@@ -59,6 +60,7 @@
     "./gen-graphql-typed-document-node",
     "./gen-reapit-form",
     "./gen-reapit-searchable-dropdown",
-    "./gen-reapit-multi-select"
+    "./gen-reapit-multi-select",
+    "./gen-reapit-graphql-client"
   ]
 }

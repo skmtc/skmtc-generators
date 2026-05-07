@@ -1,4 +1,4 @@
-import { ContentBase } from '@skmtc/core'
+import { SnippetBase } from '@skmtc/core'
 import type { GenerateContextType } from '@skmtc/core'
 
 export type LookupInputArgs = {
@@ -17,7 +17,7 @@ export type LookupInputArgs = {
  * file by the Driver during `context.insertOperation` — so no
  * `register()` call is needed here.
  */
-export class LookupInput extends ContentBase {
+export class LookupInput extends SnippetBase {
   readonly componentName: string
   readonly path: string
   readonly label: string | undefined

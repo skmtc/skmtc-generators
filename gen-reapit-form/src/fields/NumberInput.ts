@@ -1,4 +1,4 @@
-import { ContentBase } from '@skmtc/core'
+import { SnippetBase } from '@skmtc/core'
 import type { GenerateContextType } from '@skmtc/core'
 
 export type NumberInputArgs = {
@@ -10,7 +10,7 @@ export type NumberInputArgs = {
 }
 
 /** Numeric input. Emits `<NumberField lens={lens.focus(path)} />`. */
-export class NumberInput extends ContentBase {
+export class NumberInput extends SnippetBase {
   readonly path: string
   readonly label: string | undefined
   readonly isRequired: boolean

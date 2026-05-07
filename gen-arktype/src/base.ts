@@ -1,8 +1,8 @@
-import { decapitalize, Identifier, toModelBase, type RefName, camelCase } from '@skmtc/core'
+import { decapitalize, Identifier, toModelProjectionBase, type RefName, camelCase } from '@skmtc/core'
 import { join } from '@std/path'
 import denoJson from '../deno.json' with { type: 'json' }
 
-export const ArktypeBase = toModelBase({
+export const ArktypeBase = toModelProjectionBase({
   id: denoJson.name,
 
   toIdentifier(refName: RefName): Identifier {

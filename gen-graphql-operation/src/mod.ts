@@ -6,7 +6,7 @@ import type {
   OasSchema
 } from '@skmtc/core'
 import { Definition, toGeneratorOnlyKey, synthesizeArgsObject, toGqlOperationEntry } from '@skmtc/core'
-import { TsInsertable } from '@skmtc/gen-typescript'
+import { TsProjection } from '@skmtc/gen-typescript'
 import { toExportPath, toBaseIdentifier } from './base.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
@@ -36,7 +36,7 @@ const emitOperation = (context: GenerateContextType, operation: GqlOperation): v
   const generatorKey = toGeneratorOnlyKey({ generatorId: id })
 
   // Result type: prefer a ref to the registered model so the typed
-  // identity is shared, otherwise inline through the TS insertable.
+  // identity is shared, otherwise inline through the TS projection.
   const resultIdentifier = emitResult({
     context,
     returnType: operation.returnType,
@@ -45,12 +45,12 @@ const emitOperation = (context: GenerateContextType, operation: GqlOperation): v
     generatorKey
   })
 
-  // Args type: synthesize an OasObject and route it through TsInsertable
+  // Args type: synthesize an OasObject and route it through TsProjection
   // so it picks up the same scalar/format mapping as everything else.
   const argsObject = synthesizeArgsObject(operation)
   if (argsObject !== undefined) {
     context.insertNormalisedModel(
-      TsInsertable,
+      TsProjection,
       {
         schema: argsObject,
         fallbackName: `${base}Args`,
@@ -60,7 +60,7 @@ const emitOperation = (context: GenerateContextType, operation: GqlOperation): v
   } else {
     // No arguments: still emit an empty record alias so the consumer can
     // reference the type uniformly.
-    const emptyArgsId = TsInsertable.createIdentifier(`${base}Args`)
+    const emptyArgsId = TsProjection.createIdentifier(`${base}Args`)
     context.register({
       destinationPath: exportPath,
       definitions: [
@@ -93,7 +93,7 @@ type EmitResultArgs = {
 /**
  * Emit the `<Base>Result` type for an operation's return shape.
  *
- * For ref returns, inserts the referenced model via `TsInsertable` and
+ * For ref returns, inserts the referenced model via `TsProjection` and
  * emits a `type FooResult = ReferencedType` alias plus the import.
  * For inline returns, routes the schema through `insertNormalisedModel`
  * to materialize a TS type alias under the `Result` name.
@@ -105,11 +105,11 @@ const emitResult = ({
   exportPath,
   generatorKey
 }: EmitResultArgs): Identifier => {
-  const resultId = TsInsertable.createIdentifier(`${base}Result`)
+  const resultId = TsProjection.createIdentifier(`${base}Result`)
 
   if (returnType.isRef()) {
     // Ensure the model's TS file is generated (idempotent if already done).
-    const inserted = context.insertModel(TsInsertable, returnType.toRefName())
+    const inserted = context.insertModel(TsProjection, returnType.toRefName())
     const targetName = inserted.settings.identifier.name
     const targetPath = inserted.settings.exportPath
 
@@ -132,7 +132,7 @@ const emitResult = ({
     // Inline schema — synthesize a TS type via insertNormalisedModel
     // under the result name itself.
     context.insertNormalisedModel(
-      TsInsertable,
+      TsProjection,
       {
         schema: returnType,
         fallbackName: `${base}Result`,

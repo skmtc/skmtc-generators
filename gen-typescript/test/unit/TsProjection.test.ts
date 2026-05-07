@@ -1,10 +1,11 @@
 import { assertEquals } from 'jsr:@std/assert@^1.0.0'
-import { ValibotInsertable } from '../../src/ValibotInsertable.ts'
-import { type RefName, StackTrail } from '@skmtc/core'
+import { TsProjection } from '../../src/TsProjection.ts'
+import { ContentSettings, RefName, StackTrail } from '@skmtc/core'
+import { Identifier } from '@skmtc/core'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
 import { toParseContext } from '../helpers/toParseContext.ts'
 
-Deno.test('ValibotInsertable - simple object type', () => {
+Deno.test('TsProjection - simple object type', () => {
   const schemas = {
     User: {
       type: 'object' as const,
@@ -21,13 +22,13 @@ Deno.test('ValibotInsertable - simple object type', () => {
   const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
-  const valibotInsertable = context.insertModel(ValibotInsertable, 'User' as RefName)
+  const tsProjection = context.insertModel(TsProjection, 'User' as RefName)
 
   // Should generate an object with required properties
-  assertEquals(`${valibotInsertable.toValue()}`, 'v.object({id: v.string(), name: v.string()})')
+  assertEquals(`${tsProjection.toValue()}`, '{id: string, name: string}')
 })
 
-Deno.test('ValibotInsertable - object with optional properties', () => {
+Deno.test('TsProjection - object with optional properties', () => {
   const schemas = {
     Product: {
       type: 'object' as const,
@@ -45,15 +46,15 @@ Deno.test('ValibotInsertable - object with optional properties', () => {
   const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
-  const valibotInsertable = context.insertModel(ValibotInsertable, 'Product' as RefName)
+  const tsProjection = context.insertModel(TsProjection, 'Product' as RefName)
 
   assertEquals(
-    `${valibotInsertable.toValue()}`,
-    'v.object({id: v.string(), name: v.string(), description: v.optional(v.string())})'
+    `${tsProjection.toValue()}`,
+    '{id: string, name: string, description?: string | undefined}'
   )
 })
 
-Deno.test('ValibotInsertable - primitive string type', () => {
+Deno.test('TsProjection - primitive string type', () => {
   const schemas = {
     UserId: {
       type: 'string' as const
@@ -65,12 +66,12 @@ Deno.test('ValibotInsertable - primitive string type', () => {
   const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
-  const valibotInsertable = context.insertModel(ValibotInsertable, 'UserId' as RefName)
+  const tsProjection = context.insertModel(TsProjection, 'UserId' as RefName)
 
-  assertEquals(`${valibotInsertable.toValue()}`, 'v.string()')
+  assertEquals(`${tsProjection.toValue()}`, 'string')
 })
 
-Deno.test('ValibotInsertable - array type', () => {
+Deno.test('TsProjection - array type', () => {
   const schemas = {
     UserList: {
       type: 'array' as const,
@@ -85,12 +86,12 @@ Deno.test('ValibotInsertable - array type', () => {
   const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
-  const valibotInsertable = context.insertModel(ValibotInsertable, 'UserList' as RefName)
+  const tsProjection = context.insertModel(TsProjection, 'UserList' as RefName)
 
-  assertEquals(`${valibotInsertable.toValue()}`, 'v.array(v.string())')
+  assertEquals(`${tsProjection.toValue()}`, 'Array<string>')
 })
 
-Deno.test('ValibotInsertable - union type', () => {
+Deno.test('TsProjection - union type', () => {
   const schemas = {
     StringOrNumber: {
       oneOf: [{ type: 'string' as const }, { type: 'number' as const }]
@@ -102,7 +103,7 @@ Deno.test('ValibotInsertable - union type', () => {
   const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
-  const valibotInsertable = context.insertModel(ValibotInsertable, 'StringOrNumber' as RefName)
+  const tsProjection = context.insertModel(TsProjection, 'StringOrNumber' as RefName)
 
-  assertEquals(`${valibotInsertable.toValue()}`, 'v.union([v.string(), v.number()])')
+  assertEquals(`${tsProjection.toValue()}`, 'string | number')
 })

@@ -28,7 +28,7 @@ export const reapitMultiSelectEntry = toGqlOperationEntry<EnrichmentSchema>({
 
   transform({ context, operation, acc }) {
     if (!ReapitMultiSelect.isSupported({ context, operation })) return acc
-    context.insertOperation({ insertable: ReapitMultiSelect, operation })
+    context.insertOperation({ projection: ReapitMultiSelect, operation })
     return acc
   },
 

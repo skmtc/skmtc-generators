@@ -1,12 +1,12 @@
-import type { OasOperationInsertableArgs, ListLines, Stringable } from '@skmtc/core'
-import { List, ContentBase } from '@skmtc/core'
+import type { OasOperationProjectionConstructorArgs, ListLines, Stringable } from '@skmtc/core'
+import { List, SnippetBase } from '@skmtc/core'
 import invariant from 'tiny-invariant'
 import { schemaToField, getLabel } from './schemaToField.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
 
-export class FormFields extends ContentBase {
+export class FormFields extends SnippetBase {
   fields: ListLines<Stringable> | undefined
-  constructor({ context, operation, settings }: OasOperationInsertableArgs<EnrichmentSchema>) {
+  constructor({ context, operation, settings }: OasOperationProjectionConstructorArgs<EnrichmentSchema>) {
     super({ context })
 
     this.fields = operation.toRequestBody(({ schema: parentSchema }) => {

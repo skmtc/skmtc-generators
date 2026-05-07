@@ -10,7 +10,7 @@ export const supabaseHonoEntry = toOasOperationEntry({
       context.findDefinition({
         name: 'app',
         exportPath: SupabaseHono.toExportPath(operation)
-      }) ?? context.insertOperation({ insertable: SupabaseHono, operation: operation }).definition
+      }) ?? context.insertOperation({ projection: SupabaseHono, operation: operation }).definition
 
     invariant(app?.value instanceof SupabaseHono, 'app must be an instance of SupabaseHono')
 

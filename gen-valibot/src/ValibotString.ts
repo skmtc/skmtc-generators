@@ -1,4 +1,4 @@
-import { ContentBase } from '@skmtc/core'
+import { SnippetBase } from '@skmtc/core'
 import { match, P } from 'ts-pattern'
 import { applyModifiers } from './applyModifiers.ts'
 import type { Modifiers, GeneratorKey, GenerateContextType, OasString } from '@skmtc/core'
@@ -11,7 +11,7 @@ type ValibotStringArgs = {
   generatorKey: GeneratorKey
 }
 
-export class ValibotString extends ContentBase {
+export class ValibotString extends SnippetBase {
   type = 'string' as const
   format: string | undefined
   enums: string[] | (string | null)[] | undefined

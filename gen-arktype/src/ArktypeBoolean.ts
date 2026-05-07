@@ -1,4 +1,4 @@
-import { ContentBase } from '@skmtc/core'
+import { SnippetBase } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
 import type { Modifiers, GeneratorKey, GenerateContextType } from '@skmtc/core'
 
@@ -9,7 +9,7 @@ type ArktypeBooleanArgs = {
   generatorKey: GeneratorKey
 }
 
-export class ArktypeBoolean extends ContentBase {
+export class ArktypeBoolean extends SnippetBase {
   type = 'boolean' as const
   modifiers: Modifiers
   

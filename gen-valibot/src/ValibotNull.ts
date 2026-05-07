@@ -1,4 +1,4 @@
-import { ContentBase } from '@skmtc/core'
+import { SnippetBase } from '@skmtc/core'
 import type { GeneratorKey, GenerateContextType } from '@skmtc/core'
 
 type ValibotNullArgs = {
@@ -7,7 +7,7 @@ type ValibotNullArgs = {
   generatorKey: GeneratorKey
 }
 
-export class ValibotNull extends ContentBase {
+export class ValibotNull extends SnippetBase {
   type = 'null' as const
 
   constructor({ context, generatorKey, destinationPath }: ValibotNullArgs) {

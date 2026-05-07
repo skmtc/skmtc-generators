@@ -11,7 +11,7 @@ export * from './src/TsString.ts'
 export * from './src/TsUnion.ts'
 export * from './src/TsUnknown.ts'
 export * from './src/TsVoid.ts'
-export { TsInsertable } from './src/TsInsertable.ts'
+export { TsProjection } from './src/TsProjection.ts'
 export {
   typescriptEntry,
   toTypescriptEntry,

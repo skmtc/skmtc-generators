@@ -1,9 +1,9 @@
-import { camelCase, capitalize, Identifier, toMethodVerb, toOasOperationBase } from '@skmtc/core'
+import { camelCase, capitalize, Identifier, toMethodVerb, toOasOperationProjectionBase } from '@skmtc/core'
 import { join } from '@std/path'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
-export const ShadcnFormBase = toOasOperationBase<EnrichmentSchema>({
+export const ShadcnFormBase = toOasOperationProjectionBase<EnrichmentSchema>({
   id: denoJson.name,
 
   toEnrichmentSchema,

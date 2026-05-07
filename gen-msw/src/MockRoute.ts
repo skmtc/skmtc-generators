@@ -1,4 +1,4 @@
-import { type OasOperationInsertableArgs, type TypeSystemValue, collateExamples } from '@skmtc/core'
+import { type OasOperationProjectionConstructorArgs, type TypeSystemValue, collateExamples } from '@skmtc/core'
 import { MswBase } from './base.ts'
 import { isEmpty } from '@skmtc/core'
 import { toTsValue, TsNever } from '@skmtc/gen-typescript'
@@ -9,7 +9,7 @@ export class MockRoute extends MswBase {
   responseType: TypeSystemValue
   pathParamsType: TypeSystemValue
 
-  constructor({ context, operation, settings }: OasOperationInsertableArgs) {
+  constructor({ context, operation, settings }: OasOperationProjectionConstructorArgs) {
     super({ context, operation, settings })
 
     const response = operation.toSuccessResponse()?.resolve().content?.['application/json']

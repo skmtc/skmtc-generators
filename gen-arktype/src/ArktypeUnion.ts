@@ -1,4 +1,4 @@
-import { ContentBase, type TypeSystemValue, type GenerateContextType, type Modifiers, type GeneratorKey, type RefName } from '@skmtc/core'
+import { SnippetBase, type TypeSystemValue, type GenerateContextType, type Modifiers, type GeneratorKey, type RefName } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
 import { toArktypeValue } from './Arktype.ts'
 
@@ -12,7 +12,7 @@ type ArktypeUnionArgs = {
   rootRef?: RefName
 }
 
-export class ArktypeUnion extends ContentBase {
+export class ArktypeUnion extends SnippetBase {
   type = 'union' as const
   members: TypeSystemValue[]
   discriminator: any

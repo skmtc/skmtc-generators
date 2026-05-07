@@ -1,7 +1,7 @@
-import { ModelDriver, toModelGeneratorKey, ContentBase } from '@skmtc/core'
+import { ModelDriver, toModelGeneratorKey, SnippetBase } from '@skmtc/core'
 import type { GenerateContextType, Modifiers, RefName } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
-import { TsInsertable } from './TsInsertable.ts'
+import { TsProjection } from './TsProjection.ts'
 import { typescriptEntry } from './mod.ts'
 
 type TsRefConstructorProps = {
@@ -12,7 +12,7 @@ type TsRefConstructorProps = {
   rootRef?: RefName
 }
 
-export class TsRef extends ContentBase {
+export class TsRef extends SnippetBase {
   type = 'ref' as const
   name: string
   modifiers: Modifiers
@@ -26,7 +26,7 @@ export class TsRef extends ContentBase {
     if (context.modelDepth[`${typescriptEntry.id}:${refName}`] > 0) {
       const settings = context.toModelContentSettings({
         refName,
-        insertable: TsInsertable
+        projection: TsProjection
       })
 
       this.name = settings.identifier.name
@@ -37,7 +37,7 @@ export class TsRef extends ContentBase {
         context,
         refName,
         destinationPath,
-        insertable: TsInsertable,
+        projection: TsProjection,
         rootRef
       })
 

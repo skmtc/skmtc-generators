@@ -1,6 +1,6 @@
-import { ContentBase, decapitalize } from '@skmtc/core'
+import { SnippetBase, decapitalize } from '@skmtc/core'
 import type { GenerateContextType, OasSchema, OasRef } from '@skmtc/core'
-import { ValibotInsertable } from '@skmtc/gen-valibot'
+import { ValibotProjection } from '@skmtc/gen-valibot'
 
 type RequestBodyArgs = {
   context: GenerateContextType
@@ -9,7 +9,7 @@ type RequestBodyArgs = {
   requestBodySchema: OasSchema | OasRef<'schema'> | undefined
 }
 
-export class RequestBody extends ContentBase {
+export class RequestBody extends SnippetBase {
   valibotRequestBodyName: string | null
 
   constructor({ context, serviceName, destinationPath, requestBodySchema }: RequestBodyArgs) {
@@ -20,7 +20,7 @@ export class RequestBody extends ContentBase {
       return
     }
 
-    const insertedRequestBody = context.insertNormalisedModel(ValibotInsertable, {
+    const insertedRequestBody = context.insertNormalisedModel(ValibotProjection, {
       schema: requestBodySchema,
       fallbackName: decapitalize(`${serviceName}RequestBody`),
       destinationPath

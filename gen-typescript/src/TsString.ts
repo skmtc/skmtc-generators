@@ -1,4 +1,4 @@
-import { ContentBase } from '@skmtc/core'
+import { SnippetBase } from '@skmtc/core'
 import { match, P } from 'ts-pattern'
 import { applyModifiers } from './applyModifiers.ts'
 import { getCustomScalar } from './scalars.ts'
@@ -11,7 +11,7 @@ type TsStringArgs = {
   generatorKey: GeneratorKey
 }
 
-export class TsString extends ContentBase {
+export class TsString extends SnippetBase {
   type = 'string' as const
   format: string | undefined
   enums: string[] | (string | null)[] | undefined

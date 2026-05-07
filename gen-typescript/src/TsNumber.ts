@@ -1,5 +1,5 @@
 import type { GeneratorKey, Modifiers, GenerateContextType } from '@skmtc/core'
-import { ContentBase } from '@skmtc/core'
+import { SnippetBase } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
 
 type TsNumberArgs = {
@@ -8,7 +8,7 @@ type TsNumberArgs = {
   generatorKey: GeneratorKey
 }
 
-export class TsNumber extends ContentBase {
+export class TsNumber extends SnippetBase {
   type = 'number' as const
   modifiers: Modifiers
 

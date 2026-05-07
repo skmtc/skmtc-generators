@@ -1,4 +1,4 @@
-import { ContentBase, List } from '@skmtc/core'
+import { SnippetBase, List } from '@skmtc/core'
 import type { GenerateContextType, ListLines, Stringable } from '@skmtc/core'
 
 type SelectInputArgs = {
@@ -12,7 +12,7 @@ type SelectInputArgs = {
   size?: 'xs' | 'sm' | 'md' | 'lg'
 }
 
-export class SelectInput extends ContentBase {
+export class SelectInput extends SnippetBase {
   name: string
   label: string | undefined
   placeholder?: string

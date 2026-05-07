@@ -1,4 +1,4 @@
-import type { OasOperationInsertableArgs, ListArray, OasOperation, ListLines } from '@skmtc/core'
+import type { OasOperationProjectionConstructorArgs, ListArray, OasOperation, ListLines } from '@skmtc/core'
 import { List } from '@skmtc/core'
 import { ExpressAppBase } from './base.ts'
 import { ExpressRoute } from './ExpressRoute.ts'
@@ -7,7 +7,7 @@ export class ExpressApp extends ExpressAppBase {
   methods: ListArray<string>
   routes: ListLines<ExpressRoute>
 
-  constructor({ context, operation, settings }: OasOperationInsertableArgs) {
+  constructor({ context, operation, settings }: OasOperationProjectionConstructorArgs) {
     super({ context, operation, settings })
 
     this.methods = List.toArray([])

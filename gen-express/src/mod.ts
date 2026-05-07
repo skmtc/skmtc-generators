@@ -10,7 +10,7 @@ export const expressEntry = toOasOperationEntry({
       context.findDefinition({
         name: 'app',
         exportPath: ExpressApp.toExportPath(operation)
-      }) ?? context.insertOperation({ insertable: ExpressApp, operation: operation }).definition
+      }) ?? context.insertOperation({ projection: ExpressApp, operation: operation }).definition
 
     invariant(app?.value instanceof ExpressApp, 'app must be an instance of ExpressApp')
 

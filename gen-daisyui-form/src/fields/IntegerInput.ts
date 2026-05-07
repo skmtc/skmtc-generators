@@ -1,4 +1,4 @@
-import { ContentBase } from '@skmtc/core'
+import { SnippetBase } from '@skmtc/core'
 import type { GenerateContextType } from '@skmtc/core'
 
 type IntegerInputArgs = {
@@ -11,7 +11,7 @@ type IntegerInputArgs = {
   size?: 'xs' | 'sm' | 'md' | 'lg'
 }
 
-export class IntegerInput extends ContentBase {
+export class IntegerInput extends SnippetBase {
   name: string
   label: string | undefined
   placeholder?: string

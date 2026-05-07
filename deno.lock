@@ -1,30 +1,23 @@
 {
   "version": "5",
   "specifiers": {
-    "jsr:@skmtc/core@0.2": "0.2.0",
-    "jsr:@std/assert@1": "1.0.15",
-    "jsr:@std/assert@^1.0.10": "1.0.15",
-    "jsr:@std/assert@^1.0.19": "1.0.19",
-    "jsr:@std/async@^1.3.0": "1.3.0",
-    "jsr:@std/data-structures@^1.0.11": "1.0.11",
+    "jsr:@skmtc/core@0.3.2": "0.3.2",
+    "jsr:@skmtc/core@~0.3.1": "0.3.2",
+    "jsr:@std/assert@1": "1.0.19",
     "jsr:@std/fmt@1": "1.0.10",
     "jsr:@std/fmt@^1.0.5": "1.0.10",
     "jsr:@std/fs@^1.0.11": "1.0.23",
-    "jsr:@std/fs@^1.0.23": "1.0.23",
     "jsr:@std/internal@^1.0.12": "1.0.13",
-    "jsr:@std/internal@^1.0.13": "1.0.13",
     "jsr:@std/io@~0.225.2": "0.225.3",
     "jsr:@std/log@0.224": "0.224.14",
     "jsr:@std/log@~0.224.6": "0.224.14",
     "jsr:@std/path@^1.0.9": "1.1.4",
     "jsr:@std/path@^1.1.2": "1.1.4",
-    "jsr:@std/path@^1.1.4": "1.1.4",
-    "jsr:@std/testing@^1.0.8": "1.0.18",
     "npm:@babel/helper-validator-identifier@7.22.20": "7.22.20",
     "npm:@babel/helper-validator-identifier@7.27.1": "7.27.1",
     "npm:@types/babel__helper-validator-identifier@7.15.2": "7.15.2",
     "npm:@types/lodash-es@4.17.12": "4.17.12",
-    "npm:graphql@^16.9.0": "16.13.2",
+    "npm:graphql@^16.9.0": "16.14.0",
     "npm:lodash-es@4.17.21": "4.17.21",
     "npm:openapi-types@^12.1.3": "12.1.3",
     "npm:tiny-invariant@1.3.3": "1.3.3",
@@ -33,8 +26,8 @@
     "npm:valibot@1.1.0": "1.1.0"
   },
   "jsr": {
-    "@skmtc/core@0.2.0": {
-      "integrity": "7f00b0fef432cc69fff5a3e3bb9b5bc129c3b9227d59ea48f55a9de672e36025",
+    "@skmtc/core@0.3.1": {
+      "integrity": "fb9cf532c5c3445ab43fd681683003f8672c13c528bedfb4ca9fec740c8ca02b",
       "dependencies": [
         "jsr:@std/fmt@1",
         "jsr:@std/log@~0.224.6",
@@ -49,32 +42,33 @@
         "npm:valibot"
       ]
     },
-    "@std/assert@1.0.15": {
-      "integrity": "d64018e951dbdfab9777335ecdb000c0b4e3df036984083be219ce5941e4703b",
+    "@skmtc/core@0.3.2": {
+      "integrity": "569ea6cf19f36bf64b710a4af76659ce8277ff83cc5c5065f72b0d94a062a2bf",
       "dependencies": [
-        "jsr:@std/internal@^1.0.12"
+        "jsr:@std/fmt@1",
+        "jsr:@std/log@~0.224.6",
+        "jsr:@std/path@^1.0.9",
+        "npm:@babel/helper-validator-identifier@7.27.1",
+        "npm:@types/babel__helper-validator-identifier",
+        "npm:@types/lodash-es",
+        "npm:graphql",
+        "npm:lodash-es",
+        "npm:openapi-types",
+        "npm:tiny-invariant@1.3.3",
+        "npm:valibot"
       ]
     },
     "@std/assert@1.0.19": {
       "integrity": "eaada96ee120cb980bc47e040f82814d786fe8162ecc53c91d8df60b8755991e",
       "dependencies": [
-        "jsr:@std/internal@^1.0.12"
+        "jsr:@std/internal"
       ]
-    },
-    "@std/async@1.3.0": {
-      "integrity": "80485538a4f7baaa46bfe2246168069e02ed142b9f9079cd164f43bb060ad9e9"
-    },
-    "@std/data-structures@1.0.11": {
-      "integrity": "53b98ed7efa61f107dfc14244bd2ec5557f7f7ee0bbaef6d449d7937facacb89"
     },
     "@std/fmt@1.0.10": {
       "integrity": "90dfba288802ac6de82fb31d0917eb9e4450b9925b954d5e51fc29ac07419db5"
     },
     "@std/fs@1.0.23": {
-      "integrity": "3ecbae4ce4fee03b180fa710caff36bb5adb66631c46a6460aaad49515565a37",
-      "dependencies": [
-        "jsr:@std/path@^1.1.4"
-      ]
+      "integrity": "3ecbae4ce4fee03b180fa710caff36bb5adb66631c46a6460aaad49515565a37"
     },
     "@std/internal@1.0.13": {
       "integrity": "2f9546691d4ac2d32859c82dff284aaeac980ddeca38430d07941e7e288725c0"
@@ -86,25 +80,14 @@
       "integrity": "257f7adceee3b53bb2bc86c7242e7d1bc59729e57d4981c4a7e5b876c808f05e",
       "dependencies": [
         "jsr:@std/fmt@^1.0.5",
-        "jsr:@std/fs@^1.0.11",
+        "jsr:@std/fs",
         "jsr:@std/io"
       ]
     },
     "@std/path@1.1.4": {
       "integrity": "1d2d43f39efb1b42f0b1882a25486647cb851481862dc7313390b2bb044314b5",
       "dependencies": [
-        "jsr:@std/internal@^1.0.12"
-      ]
-    },
-    "@std/testing@1.0.18": {
-      "integrity": "d3152f57b11666bf6358d0e127c7e3488e91178b0c2d8fbf0793e1c53cd13cb1",
-      "dependencies": [
-        "jsr:@std/assert@^1.0.19",
-        "jsr:@std/async",
-        "jsr:@std/data-structures",
-        "jsr:@std/fs@^1.0.23",
-        "jsr:@std/internal@^1.0.13",
-        "jsr:@std/path@^1.1.4"
+        "jsr:@std/internal"
       ]
     }
   },
@@ -127,8 +110,8 @@
     "@types/lodash@4.17.24": {
       "integrity": "sha512-gIW7lQLZbue7lRSWEFql49QJJWThrTFFeIMJdp3eH4tKoxm1OvEPg02rm4wCCSHS0cL3/Fizimb35b7k8atwsQ=="
     },
-    "graphql@16.13.2": {
-      "integrity": "sha512-5bJ+nf/UCpAjHM8i06fl7eLyVC9iuNAjm9qzkiu2ZGhM0VscSvS6WDPfAwkdkBuoXGM9FJSbKl6wylMwP9Ktig=="
+    "graphql@16.14.0": {
+      "integrity": "sha512-BBvQ/406p+4CZbTpCbVPSxfzrZrbnuWSP1ELYgyS6B+hNeKzgrdB4JczCa5VZUBQrDa9hUngm0KnexY6pJRN5Q=="
     },
     "lodash-es@4.17.21": {
       "integrity": "sha512-mKnC+QJ9pWVzv+C4/U3rRsHapFfHvQFoFB92e52xeyGMcX6/OlIl78je1u8vePzYZSkkogMPJ2yjxxsb89cxyw=="
@@ -148,7 +131,7 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@skmtc/core@0.2",
+      "jsr:@skmtc/core@~0.3.1",
       "jsr:@std/fmt@1",
       "jsr:@std/log@~0.224.6",
       "jsr:@std/path@^1.1.2",
@@ -175,7 +158,7 @@
       },
       "gen-graphql-operation": {
         "dependencies": [
-          "jsr:@skmtc/core@0.2",
+          "jsr:@skmtc/core@~0.3.1",
           "jsr:@skmtc/gen-typescript@^0.0.50",
           "jsr:@std/assert@^1.0.10",
           "jsr:@std/fmt@1",
@@ -193,7 +176,7 @@
       },
       "gen-graphql-typed-document-node": {
         "dependencies": [
-          "jsr:@skmtc/core@0.2",
+          "jsr:@skmtc/core@~0.3.1",
           "jsr:@skmtc/gen-graphql-operation@^0.0.1",
           "jsr:@skmtc/gen-typescript@^0.0.50",
           "jsr:@std/assert@^1.0.10",

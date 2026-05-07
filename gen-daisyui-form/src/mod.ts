@@ -14,7 +14,7 @@ export const daisyFormEntry = toOasOperationEntry<EnrichmentSchema>({
   },
 
   transform({ context, operation }) {
-    context.insertOperation({ insertable: DaisyForm, operation: operation })
+    context.insertOperation({ projection: DaisyForm, operation: operation })
   },
 
   toPreviewModule: ({ operation }) => ({

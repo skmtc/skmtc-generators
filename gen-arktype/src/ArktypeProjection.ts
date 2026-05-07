@@ -17,7 +17,7 @@ type ConstructorArgs = {
   rootRef?: RefName
 }
 
-export class ArktypeInsertable extends ArktypeBase {
+export class ArktypeProjection extends ArktypeBase {
   value: TypeSystemValue
   
   constructor({ context, refName, settings, destinationPath, rootRef }: ConstructorArgs) {

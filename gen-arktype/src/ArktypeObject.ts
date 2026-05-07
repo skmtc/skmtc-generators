@@ -1,4 +1,4 @@
-import { ContentBase, type TypeSystemValue, type GenerateContextType, type Modifiers, type GeneratorKey, type OasObject, type RefName, type TypeSystemRecord, type TypeSystemObjectProperties, handleKey, isEmpty } from '@skmtc/core'
+import { SnippetBase, type TypeSystemValue, type GenerateContextType, type Modifiers, type GeneratorKey, type OasObject, type RefName, type TypeSystemRecord, type TypeSystemObjectProperties, handleKey, isEmpty } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
 import { toArktypeValue } from './Arktype.ts'
 
@@ -11,7 +11,7 @@ type ArktypeObjectArgs = {
   rootRef?: RefName
 }
 
-export class ArktypeObject extends ContentBase {
+export class ArktypeObject extends SnippetBase {
   type = 'object' as const
   recordProperties: TypeSystemRecord | null
   objectProperties: TypeSystemObjectProperties | null

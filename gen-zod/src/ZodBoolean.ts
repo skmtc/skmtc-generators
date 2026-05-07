@@ -1,6 +1,6 @@
 import { applyModifiers } from "./applyModifiers.ts";
 import {
-  ContentBase,
+  SnippetBase,
   type GenerateContextType,
   type GeneratorKey,
   type Modifiers,
@@ -13,7 +13,7 @@ type ZodBooleanArgs = {
   generatorKey: GeneratorKey;
 };
 
-export class ZodBoolean extends ContentBase {
+export class ZodBoolean extends SnippetBase {
   type = "boolean" as const;
   modifiers: Modifiers;
 

@@ -1,7 +1,7 @@
-import { ContentBase, ModelDriver, toModelGeneratorKey } from "@skmtc/core";
+import { SnippetBase, ModelDriver, toModelGeneratorKey } from "@skmtc/core";
 import type { GenerateContextType, Modifiers, RefName } from "@skmtc/core";
 import { applyModifiers } from "./applyModifiers.ts";
-import { ZodInsertable } from "./ZodInsertable.ts";
+import { ZodProjection } from "./ZodProjection.ts";
 import { zodEntry } from "./mod.ts";
 type ConstructorProps = {
   context: GenerateContextType;
@@ -11,7 +11,7 @@ type ConstructorProps = {
   rootRef?: RefName;
 };
 
-export class ZodRef extends ContentBase {
+export class ZodRef extends SnippetBase {
   type = "ref" as const;
   modifiers: Modifiers;
   name: string;
@@ -27,7 +27,7 @@ export class ZodRef extends ContentBase {
     if (context.modelDepth[`${zodEntry.id}:${refName}`] > 0) {
       const settings = context.toModelContentSettings({
         refName,
-        insertable: ZodInsertable,
+        projection: ZodProjection,
       });
 
       context.register({
@@ -44,7 +44,7 @@ export class ZodRef extends ContentBase {
         refName,
         destinationPath,
         rootRef,
-        insertable: ZodInsertable,
+        projection: ZodProjection,
       });
 
       this.name = settings.identifier.name;

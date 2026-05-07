@@ -10,16 +10,16 @@ import { ReapitSearchableDropdown } from '@skmtc/gen-reapit-searchable-dropdown'
 import { ReapitMultiSelect } from '@skmtc/gen-reapit-multi-select'
 
 // Maps the canonical `formFieldItem.referenceKind` discriminator onto
-// the producer generator's Insertable class. The form picks one of
+// the producer generator's Projection class. The form picks one of
 // these per referenced field; idempotency on `(toIdentifier,
 // toExportPath)` ensures multiple consumers of the same operation
 // share a single emitted component file.
-const KIND_TO_INSERTABLE = {
+const KIND_TO_PROJECTION = {
   searchable: ReapitSearchableDropdown,
   multiselect: ReapitMultiSelect
 } as const
 
-type ReferenceKind = keyof typeof KIND_TO_INSERTABLE
+type ReferenceKind = keyof typeof KIND_TO_PROJECTION
 
 export type SchemaToFieldArgs = {
   context: GenerateContextType
@@ -69,16 +69,16 @@ export const schemaToField = (args: SchemaToFieldArgs): Stringable => {
   //    direct argument) — recursive `schemaToField` calls below drop it.
   if (references) {
     const kind: ReferenceKind = isReferenceKind(referenceKind) ? referenceKind : 'searchable'
-    const Insertable = KIND_TO_INSERTABLE[kind]
+    const Projection = KIND_TO_PROJECTION[kind]
     const queryOp = context.gqlDocument.operations.find(
       op =>
         op.rootKind === 'query' &&
         op.fieldName === references &&
-        Insertable.isSupported({ context, operation: op })
+        Projection.isSupported({ context, operation: op })
     )
     if (queryOp) {
       const inserted = context.insertOperation({
-        insertable: Insertable,
+        projection: Projection,
         operation: queryOp,
         destinationPath
       })
@@ -160,7 +160,7 @@ export const schemaToField = (args: SchemaToFieldArgs): Stringable => {
     // input. Anything else falls back to a single string field for v1 (the
     // consumer can enrich, or we add `<NumberArrayField>` etc. later).
     const items = schema.items
-    if (items && !('type' in items && items.type === 'custom')) {
+    if (items) {
       const resolved = items.isRef() ? items.resolve() : items
       if (resolved.type === 'string') {
         return new ArrayInput({ context, path, label, isRequired, destinationPath })

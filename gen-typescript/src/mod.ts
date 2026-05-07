@@ -1,5 +1,5 @@
 import { toModelEntry } from '@skmtc/core'
-import { TsInsertable } from './TsInsertable.ts'
+import { TsProjection } from './TsProjection.ts'
 import { setCustomScalars } from './scalars.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
@@ -43,7 +43,7 @@ export const toTypescriptEntry = (options: TypescriptEntryOptions = {}) => {
   return toModelEntry({
     id: denoJson.name,
     transform({ context, refName }) {
-      context.insertModel(TsInsertable, refName)
+      context.insertModel(TsProjection, refName)
     }
   })
 }

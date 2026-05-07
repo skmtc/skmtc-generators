@@ -17,7 +17,7 @@ type ConstructorArgs = {
   rootRef?: RefName
 }
 
-export class ValibotInsertable extends ValibotBase {
+export class ValibotProjection extends ValibotBase {
   value: TypeSystemValue
   constructor({ context, refName, settings, destinationPath, rootRef }: ConstructorArgs) {
     super({ context, refName, settings })

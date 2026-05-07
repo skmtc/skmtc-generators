@@ -11,7 +11,7 @@ type ConstructorArgs = {
   rootRef?: RefName
 }
 
-export class TsInsertable extends TypescriptBase {
+export class TsProjection extends TypescriptBase {
   value: TypeSystemValue
   constructor({ context, refName, settings, rootRef }: ConstructorArgs) {
     super({ context, refName, settings })

@@ -1,4 +1,4 @@
-import { ContentBase, handleKey, isEmpty } from '@skmtc/core'
+import { SnippetBase, handleKey, isEmpty } from '@skmtc/core'
 import type {
   GenerateContextType,
   OasRef,
@@ -26,7 +26,7 @@ type TsObjectProps = {
   rootRef?: RefName
 }
 
-export class TsObject extends ContentBase {
+export class TsObject extends SnippetBase {
   type = 'object' as const
   recordProperties: TypeSystemRecord | null
   objectProperties: TypeSystemObjectProperties | null
@@ -95,7 +95,7 @@ type TsObjectPropertiesArgs = {
   rootRef?: RefName
 }
 
-class TsObjectProperties extends ContentBase {
+class TsObjectProperties extends SnippetBase {
   properties: Record<string, TypeSystemValue>
   required: string[]
 
@@ -145,7 +145,7 @@ type TsRecordArgs = {
   rootRef?: RefName
 }
 
-class TsRecord extends ContentBase {
+class TsRecord extends SnippetBase {
   value: TypeSystemValue | 'true'
 
   constructor({ context, generatorKey, destinationPath, schema, rootRef }: TsRecordArgs) {

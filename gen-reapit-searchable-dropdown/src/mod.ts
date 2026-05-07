@@ -30,7 +30,7 @@ export const reapitSearchableDropdownEntry = toGqlOperationEntry<EnrichmentSchem
   },
 
   transform({ context, operation, acc }) {
-    context.insertOperation({ insertable: ReapitSearchableDropdown, operation })
+    context.insertOperation({ projection: ReapitSearchableDropdown, operation })
     return acc
   },
 

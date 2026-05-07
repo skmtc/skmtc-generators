@@ -1,4 +1,4 @@
-import { ContentBase, isEmpty } from '@skmtc/core'
+import { SnippetBase, isEmpty } from '@skmtc/core'
 import type {
   GenerateContextType,
   GeneratorKey,
@@ -26,7 +26,7 @@ type ValibotObjectProps = {
   rootRef?: RefName
 }
 
-export class ValibotObject extends ContentBase {
+export class ValibotObject extends SnippetBase {
   type = 'object' as const
   recordProperties: TypeSystemRecord | null
   objectProperties: TypeSystemObjectProperties | null
@@ -100,7 +100,7 @@ type ValibotObjectPropertiesArgs = {
   rootRef?: RefName
 }
 
-class ValibotObjectProperties extends ContentBase {
+class ValibotObjectProperties extends SnippetBase {
   properties: Record<string, TypeSystemValue>
   required: string[]
 
@@ -151,7 +151,7 @@ type ValibotRecordArgs = {
   rootRef?: RefName
 }
 
-class ValibotRecord extends ContentBase {
+class ValibotRecord extends SnippetBase {
   value: TypeSystemValue | 'true'
 
   constructor({ context, generatorKey, destinationPath, schema, rootRef }: ValibotRecordArgs) {

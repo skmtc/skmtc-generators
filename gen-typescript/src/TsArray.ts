@@ -1,4 +1,4 @@
-import { ContentBase } from '@skmtc/core'
+import { SnippetBase } from '@skmtc/core'
 import type {
   TypeSystemValue,
   OasSchema,
@@ -20,7 +20,7 @@ type TsArrayArgs = {
   rootRef?: RefName
 }
 
-export class TsArray extends ContentBase {
+export class TsArray extends SnippetBase {
   type = 'array' as const
   items: TypeSystemValue
   modifiers: Modifiers

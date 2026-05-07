@@ -1,4 +1,4 @@
-import { ContentBase } from "@skmtc/core";
+import { SnippetBase } from "@skmtc/core";
 import { applyModifiers } from "./applyModifiers.ts";
 import type {
   GenerateContextType,
@@ -17,7 +17,7 @@ type ZodIntegerArgs = {
   generatorKey: GeneratorKey;
 };
 
-export class ZodInteger extends ContentBase {
+export class ZodInteger extends SnippetBase {
   type = "integer" as const;
   modifiers: Modifiers;
   format?: "int32" | "int64";

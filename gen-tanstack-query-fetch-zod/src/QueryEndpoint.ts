@@ -1,4 +1,4 @@
-import type { Stringable, OasOperationInsertableArgs, ListArray } from '@skmtc/core'
+import type { Stringable, OasOperationProjectionConstructorArgs, ListArray } from '@skmtc/core'
 import { List } from '@skmtc/core'
 import { TanstackQueryBase } from './base.ts'
 import { QueryFn } from './QueryFn.ts'
@@ -6,7 +6,7 @@ import { QueryFn } from './QueryFn.ts'
 export class QueryEndpoint extends TanstackQueryBase {
   queryFn: QueryFn
   queryTags: ListArray<Stringable>
-  constructor({ context, operation, settings }: OasOperationInsertableArgs) {
+  constructor({ context, operation, settings }: OasOperationProjectionConstructorArgs) {
     super({ context, operation, settings })
 
     this.queryFn = new QueryFn({ context, operation, settings })

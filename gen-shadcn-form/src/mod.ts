@@ -14,7 +14,7 @@ export const ShadcnFormEntry = toOasOperationEntry<EnrichmentSchema>({
   },
 
   transform({ context, operation }) {
-    context.insertOperation({ insertable: ShadcnForm, operation: operation })
+    context.insertOperation({ projection: ShadcnForm, operation: operation })
   },
 
   toPreviewModule: ({ operation }) => ({

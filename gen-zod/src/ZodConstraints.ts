@@ -1,4 +1,4 @@
-import { ContentBase, type GenerateContextType } from "@skmtc/core";
+import { SnippetBase, type GenerateContextType } from "@skmtc/core";
 
 type ZodConstraintArgs = {
   context: GenerateContextType;
@@ -6,7 +6,7 @@ type ZodConstraintArgs = {
   value: number | undefined;
 };
 
-export class ZodConstraint extends ContentBase {
+export class ZodConstraint extends SnippetBase {
   name: string;
   value: number | undefined;
   constructor({ context, name, value }: ZodConstraintArgs) {

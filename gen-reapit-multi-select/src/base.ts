@@ -1,6 +1,6 @@
 import {
   Identifier,
-  toGqlOperationBase,
+  toGqlOperationProjectionBase,
   type OasObject,
   type OasRef,
   type OasSchema
@@ -19,7 +19,7 @@ const decapitalize = (name: string): string =>
 // files end in `MultiSelect.generated.tsx` and the exported component is
 // `<XMultiSelectField>`. Keeping the suffixes distinct ensures content-
 // addressed identity collisions are impossible.
-export const ReapitMultiSelectBase = toGqlOperationBase<EnrichmentSchema>({
+export const ReapitMultiSelectBase = toGqlOperationProjectionBase<EnrichmentSchema>({
   id: denoJson.name,
 
   toEnrichmentSchema,

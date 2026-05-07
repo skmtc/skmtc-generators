@@ -1,10 +1,10 @@
 import { assertEquals } from "jsr:@std/assert@^1.0.0";
-import { ZodInsertable } from "../../src/ZodInsertable.ts";
+import { ZodProjection } from "../../src/ZodProjection.ts";
 import { type RefName, StackTrail } from "@skmtc/core";
 import { toGenerateContext } from "../helpers/toGenerateContext.ts";
 import { toParseContext } from "../helpers/toParseContext.ts";
 
-Deno.test("ZodInsertable - simple object type", () => {
+Deno.test("ZodProjection - simple object type", () => {
   const stackTrail = new StackTrail(["TEST"]);
   const schemas = {
     User: {
@@ -21,16 +21,16 @@ Deno.test("ZodInsertable - simple object type", () => {
   const oasDocument = parseContext.parse(stackTrail);
   const context = toGenerateContext({ oasDocument });
 
-  const zodInsertable = context.insertModel(ZodInsertable, "User" as RefName);
+  const zodProjection = context.insertModel(ZodProjection, "User" as RefName);
 
   // Should generate an object with required properties
   assertEquals(
-    `${zodInsertable.toValue()}`,
+    `${zodProjection.toValue()}`,
     "z.object({id: z.string(), name: z.string()})",
   );
 });
 
-Deno.test("ZodInsertable - object with optional properties", () => {
+Deno.test("ZodProjection - object with optional properties", () => {
   const stackTrail = new StackTrail(["TEST"]);
   const schemas = {
     Product: {
@@ -48,18 +48,18 @@ Deno.test("ZodInsertable - object with optional properties", () => {
   const oasDocument = parseContext.parse(stackTrail);
   const context = toGenerateContext({ oasDocument });
 
-  const zodInsertable = context.insertModel(
-    ZodInsertable,
+  const zodProjection = context.insertModel(
+    ZodProjection,
     "Product" as RefName,
   );
 
   assertEquals(
-    `${zodInsertable.toValue()}`,
+    `${zodProjection.toValue()}`,
     "z.object({id: z.string(), name: z.string(), description: z.string().optional()})",
   );
 });
 
-Deno.test("ZodInsertable - primitive string type", () => {
+Deno.test("ZodProjection - primitive string type", () => {
   const stackTrail = new StackTrail(["TEST"]);
   const schemas = {
     UserId: {
@@ -71,12 +71,12 @@ Deno.test("ZodInsertable - primitive string type", () => {
   const oasDocument = parseContext.parse(stackTrail);
   const context = toGenerateContext({ oasDocument });
 
-  const zodInsertable = context.insertModel(ZodInsertable, "UserId" as RefName);
+  const zodProjection = context.insertModel(ZodProjection, "UserId" as RefName);
 
-  assertEquals(`${zodInsertable.toValue()}`, "z.string()");
+  assertEquals(`${zodProjection.toValue()}`, "z.string()");
 });
 
-Deno.test("ZodInsertable - array type", () => {
+Deno.test("ZodProjection - array type", () => {
   const stackTrail = new StackTrail(["TEST"]);
   const schemas = {
     UserList: {
@@ -91,15 +91,15 @@ Deno.test("ZodInsertable - array type", () => {
   const oasDocument = parseContext.parse(stackTrail);
   const context = toGenerateContext({ oasDocument });
 
-  const zodInsertable = context.insertModel(
-    ZodInsertable,
+  const zodProjection = context.insertModel(
+    ZodProjection,
     "UserList" as RefName,
   );
 
-  assertEquals(`${zodInsertable.toValue()}`, "z.array(z.string())");
+  assertEquals(`${zodProjection.toValue()}`, "z.array(z.string())");
 });
 
-Deno.test("ZodInsertable - union type", () => {
+Deno.test("ZodProjection - union type", () => {
   const stackTrail = new StackTrail(["TEST"]);
   const schemas = {
     StringOrNumber: {
@@ -111,13 +111,13 @@ Deno.test("ZodInsertable - union type", () => {
   const oasDocument = parseContext.parse(stackTrail);
   const context = toGenerateContext({ oasDocument });
 
-  const zodInsertable = context.insertModel(
-    ZodInsertable,
+  const zodProjection = context.insertModel(
+    ZodProjection,
     "StringOrNumber" as RefName,
   );
 
   assertEquals(
-    `${zodInsertable.toValue()}`,
+    `${zodProjection.toValue()}`,
     "z.union([z.string(), z.number()])",
   );
 });

@@ -1,6 +1,6 @@
-import { ContentBase, decapitalize } from '@skmtc/core'
+import { SnippetBase, decapitalize } from '@skmtc/core'
 import type { GenerateContextType, OasSchema, OasRef } from '@skmtc/core'
-import { ZodInsertable } from '@skmtc/gen-zod'
+import { ZodProjection } from '@skmtc/gen-zod'
 
 type RequestBodyArgs = {
   context: GenerateContextType
@@ -9,7 +9,7 @@ type RequestBodyArgs = {
   requestBodySchema: OasSchema | OasRef<'schema'> | undefined
 }
 
-export class RequestBody extends ContentBase {
+export class RequestBody extends SnippetBase {
   zodRequestBodyName: string | null
 
   constructor({ context, serviceName, destinationPath, requestBodySchema }: RequestBodyArgs) {
@@ -21,7 +21,7 @@ export class RequestBody extends ContentBase {
       return
     }
 
-    const insertedRequestBody = context.insertNormalisedModel(ZodInsertable, {
+    const insertedRequestBody = context.insertNormalisedModel(ZodProjection, {
       schema: requestBodySchema,
       fallbackName: decapitalize(`${serviceName}RequestBody`),
       destinationPath

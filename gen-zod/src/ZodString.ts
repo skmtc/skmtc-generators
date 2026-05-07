@@ -1,4 +1,4 @@
-import { ContentBase } from "@skmtc/core";
+import { SnippetBase } from "@skmtc/core";
 import { applyModifiers } from "./applyModifiers.ts";
 import type {
   GenerateContextType,
@@ -17,7 +17,7 @@ type ZodStringArgs = {
   generatorKey: GeneratorKey;
 };
 
-export class ZodString extends ContentBase {
+export class ZodString extends SnippetBase {
   type = "string" as const;
   format: string | undefined;
   enums: string[] | (string | null)[] | undefined;

@@ -1,4 +1,4 @@
-import { ContentBase } from '@skmtc/core'
+import { SnippetBase } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
 import type { Modifiers, GeneratorKey, GenerateContextType, OasInteger } from '@skmtc/core'
 
@@ -10,7 +10,7 @@ type ValibotIntegerArgs = {
   generatorKey: GeneratorKey
 }
 
-export class ValibotInteger extends ContentBase {
+export class ValibotInteger extends SnippetBase {
   type = 'integer' as const
   modifiers: Modifiers
 

@@ -1,7 +1,7 @@
 import {
   Identifier,
   toGeneratorOnlyKey,
-  type GqlOperationInsertableArgs
+  type GqlOperationProjectionConstructorArgs
 } from '@skmtc/core'
 import { ReapitSearchableDropdownBase } from './base.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
@@ -39,7 +39,7 @@ export class ReapitSearchableDropdown extends ReapitSearchableDropdownBase {
   rowTypeName: string
   queryConstName: string
 
-  constructor({ context, operation, settings }: GqlOperationInsertableArgs<EnrichmentSchema>) {
+  constructor({ context, operation, settings }: GqlOperationProjectionConstructorArgs<EnrichmentSchema>) {
     super({ context, operation, settings })
 
     const stripped = stripGetPrefix(operation.fieldName)

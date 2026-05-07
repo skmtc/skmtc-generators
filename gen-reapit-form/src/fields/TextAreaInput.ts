@@ -1,4 +1,4 @@
-import { ContentBase } from '@skmtc/core'
+import { SnippetBase } from '@skmtc/core'
 import type { GenerateContextType } from '@skmtc/core'
 
 export type TextAreaInputArgs = {
@@ -10,7 +10,7 @@ export type TextAreaInputArgs = {
 }
 
 /** Multi-line text. Emits `<TextAreaField lens={lens.focus(path)} />`. */
-export class TextAreaInput extends ContentBase {
+export class TextAreaInput extends SnippetBase {
   readonly path: string
   readonly label: string | undefined
   readonly isRequired: boolean

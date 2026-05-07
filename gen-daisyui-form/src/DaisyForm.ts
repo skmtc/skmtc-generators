@@ -1,7 +1,7 @@
 import { capitalize, decapitalize } from '@skmtc/core'
-import type { OasOperationInsertableArgs } from '@skmtc/core'
-import { TsInsertable } from '@skmtc/gen-typescript'
-import { ZodInsertable } from '@skmtc/gen-zod'
+import type { OasOperationProjectionConstructorArgs } from '@skmtc/core'
+import { TsProjection } from '@skmtc/gen-typescript'
+import { ZodProjection } from '@skmtc/gen-zod'
 import invariant from 'tiny-invariant'
 import { DaisyFormBase } from './base.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
@@ -17,7 +17,7 @@ export class DaisyForm extends DaisyFormBase {
   submitColor: string
   showCard: boolean
 
-  constructor({ context, operation, settings }: OasOperationInsertableArgs<EnrichmentSchema>) {
+  constructor({ context, operation, settings }: OasOperationProjectionConstructorArgs<EnrichmentSchema>) {
     super({ context, operation, settings })
 
     const requestBody = operation.toRequestBody(({ schema }) => schema)
@@ -27,13 +27,13 @@ export class DaisyForm extends DaisyFormBase {
       requestBody.nullable = false
     }
 
-    const tsBody = this.insertNormalizedModel(TsInsertable, {
+    const tsBody = this.insertNormalizedModel(TsProjection, {
       schema: requestBody,
       fallbackName: `${capitalize(settings.identifier.name)}Body`
     })
     this.tsBodyName = tsBody.identifier.name
 
-    const zodBody = this.insertNormalizedModel(ZodInsertable, {
+    const zodBody = this.insertNormalizedModel(ZodProjection, {
       schema: requestBody,
       fallbackName: `${decapitalize(settings.identifier.name)}Body`
     })

@@ -1,4 +1,4 @@
-import { ContentBase } from "@skmtc/core";
+import { SnippetBase } from "@skmtc/core";
 import type {
   GenerateContextType,
   GeneratorKey,
@@ -22,7 +22,7 @@ type ZodUnionArgs = {
   rootRef?: RefName;
 };
 
-export class ZodUnion extends ContentBase {
+export class ZodUnion extends SnippetBase {
   type = "union" as const;
   members: TypeSystemValue[];
   discriminator: string | undefined;

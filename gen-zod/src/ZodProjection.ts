@@ -17,7 +17,7 @@ type ConstructorArgs = {
   rootRef?: RefName;
 };
 
-export class ZodInsertable extends ZodBase {
+export class ZodProjection extends ZodBase {
   value: TypeSystemValue;
   constructor(
     { context, refName, settings, destinationPath, rootRef }: ConstructorArgs,

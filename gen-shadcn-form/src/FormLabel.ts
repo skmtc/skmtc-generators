@@ -1,11 +1,11 @@
-import { ContentBase, type GenerateContextType } from '@skmtc/core'
+import { SnippetBase, type GenerateContextType } from '@skmtc/core'
 
 type FormLabelArgs = {
   context: GenerateContextType
   label: string | undefined
   destinationPath: string
 }
-export class FormLabel extends ContentBase {
+export class FormLabel extends SnippetBase {
   label: string | undefined
   destinationPath: string
   constructor({ context, label, destinationPath }: FormLabelArgs) {

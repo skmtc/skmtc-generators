@@ -1,11 +1,11 @@
-import { type GenerateContextType, ContentBase, type GeneratorKey } from '@skmtc/core'
+import { type GenerateContextType, SnippetBase, type GeneratorKey } from '@skmtc/core'
 
 type ConstructorArgs = {
   context: GenerateContextType
   generatorKey: GeneratorKey
 }
 
-export class TsUnknown extends ContentBase {
+export class TsUnknown extends SnippetBase {
   type = 'unknown' as const
 
   constructor({ context, generatorKey }: ConstructorArgs) {

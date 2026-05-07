@@ -1,5 +1,5 @@
 import invariant from 'tiny-invariant'
-import type { OasOperationInsertableArgs } from '@skmtc/core'
+import type { OasOperationProjectionConstructorArgs } from '@skmtc/core'
 import { TanstackColumns } from './TanstackColumns.ts'
 import { TanstackQuery, toListKeyAndItem } from '@skmtc/gen-tanstack-query-supabase-zod'
 import { ShadcnTableBase } from './base.ts'
@@ -12,7 +12,7 @@ export class ShadcnTable extends ShadcnTableBase {
   clientName: string
   pathParams: PathParams
   listKey: string
-  constructor({ context, operation, settings }: OasOperationInsertableArgs<EnrichmentSchema>) {
+  constructor({ context, operation, settings }: OasOperationProjectionConstructorArgs<EnrichmentSchema>) {
     super({ context, operation, settings })
 
     const { schema, key } = toListKeyAndItem(operation)

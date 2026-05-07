@@ -47,8 +47,8 @@ export function createMockContext(): GenerateContextType {
     toGeneratorConfigMap: () => ({
       '@skmtc/gen-typescript': {
         entry: null as any,
-        operationInsertables: {},
-        modelInsertables: {},
+        operationProjections: {},
+        modelProjections: {},
         enrichments: undefined
       }
     })

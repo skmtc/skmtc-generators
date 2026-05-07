@@ -1,5 +1,5 @@
 import {
-  ContentBase,
+  SnippetBase,
   type GenerateContextType,
   type GeneratorKey,
   type Modifiers,
@@ -17,7 +17,7 @@ type ZodNumberArgs = {
   generatorKey: GeneratorKey;
 };
 
-export class ZodNumber extends ContentBase {
+export class ZodNumber extends SnippetBase {
   type = "number" as const;
   modifiers: Modifiers;
   enums?: number[] | (number | null)[];

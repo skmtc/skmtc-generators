@@ -1,4 +1,4 @@
-import { ContentBase } from '@skmtc/core'
+import { SnippetBase } from '@skmtc/core'
 import type { GeneratorKey, GenerateContextType } from '@skmtc/core'
 
 type ArktypeNullArgs = {
@@ -7,7 +7,7 @@ type ArktypeNullArgs = {
   generatorKey: GeneratorKey
 }
 
-export class ArktypeNull extends ContentBase {
+export class ArktypeNull extends SnippetBase {
   type = 'null' as const
   
   constructor({ context, generatorKey, destinationPath }: ArktypeNullArgs) {

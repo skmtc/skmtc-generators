@@ -3,12 +3,12 @@ import {
   decapitalize,
   Identifier,
   type RefName,
-  toModelBase,
+  toModelProjectionBase,
 } from "@skmtc/core";
 import { join } from "@std/path";
 import denoJson from "../deno.json" with { type: "json" };
 
-export const ZodBase = toModelBase({
+export const ZodBase = toModelProjectionBase({
   id: denoJson.name,
 
   toIdentifier(refName: RefName): Identifier {

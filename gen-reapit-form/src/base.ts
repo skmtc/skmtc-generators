@@ -1,9 +1,9 @@
-import { camelCase, capitalize, Identifier, toGqlOperationBase } from '@skmtc/core'
+import { camelCase, capitalize, Identifier, toGqlOperationProjectionBase } from '@skmtc/core'
 import { join } from '@std/path'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
-export const ReapitFormBase = toGqlOperationBase<EnrichmentSchema>({
+export const ReapitFormBase = toGqlOperationProjectionBase<EnrichmentSchema>({
   id: denoJson.name,
 
   toEnrichmentSchema,

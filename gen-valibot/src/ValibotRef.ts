@@ -1,4 +1,4 @@
-import { ContentBase, camelCase, decapitalize } from '@skmtc/core'
+import { SnippetBase, camelCase, decapitalize } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
 import type {
   GenerateContextType,
@@ -17,7 +17,7 @@ type ValibotRefArgs = {
   rootRef?: RefName
 }
 
-export class ValibotRef extends ContentBase {
+export class ValibotRef extends SnippetBase {
   type = 'ref' as const
   name: string
   refName: RefName

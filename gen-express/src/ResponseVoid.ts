@@ -1,4 +1,4 @@
-import { ContentBase } from '@skmtc/core'
+import { SnippetBase } from '@skmtc/core'
 import type { GenerateContextType, ListObject } from '@skmtc/core'
 
 type ResponseVoidArgs = {
@@ -7,7 +7,7 @@ type ResponseVoidArgs = {
   serviceArgs: ListObject<string>
 }
 
-export class ResponseVoid extends ContentBase {
+export class ResponseVoid extends SnippetBase {
   serviceName: string
   serviceArgs: ListObject<string>
 

@@ -13,7 +13,7 @@ export const ShadcnSelectApiEntry = toOasOperationEntry<EnrichmentSchema>({
   isSupported: ({ operation }) => operation.method === 'get' && isListResponse(operation),
 
   transform: ({ context, operation }) => {
-    context.insertOperation({ insertable: ShadcnSelectField, operation: operation })
+    context.insertOperation({ projection: ShadcnSelectField, operation: operation })
   },
 
   toPreviewModule: ({ operation }) => ({

@@ -10,10 +10,10 @@ import {
   OasVoid,
   decapitalize
 } from '@skmtc/core'
-import type { OasOperationInsertableArgs, ListObject, Stringable } from '@skmtc/core'
-import { TsInsertable } from '@skmtc/gen-typescript'
+import type { OasOperationProjectionConstructorArgs, ListObject, Stringable } from '@skmtc/core'
+import { TsProjection } from '@skmtc/gen-typescript'
 import { TanstackQueryBase } from './base.ts'
-import { ZodInsertable } from '@skmtc/gen-zod'
+import { ZodProjection } from '@skmtc/gen-zod'
 
 export class MutationFn extends TanstackQueryBase {
   parameter: FunctionParameter
@@ -23,7 +23,7 @@ export class MutationFn extends TanstackQueryBase {
   headerParams: ListObject<Stringable>
   tsArgsName: string
 
-  constructor({ context, operation, settings }: OasOperationInsertableArgs) {
+  constructor({ context, operation, settings }: OasOperationProjectionConstructorArgs) {
     super({ context, operation, settings })
 
     this.queryParamArgs = List.toObject(operation.toParams(['query']).map(({ name }) => name))
@@ -40,7 +40,7 @@ export class MutationFn extends TanstackQueryBase {
       return parametersObject.addProperty({ name: 'body', schema, required: true })
     })
 
-    const typeDefinition = this.insertNormalizedModel(TsInsertable, {
+    const typeDefinition = this.insertNormalizedModel(TsProjection, {
       schema: parametersWithBody ?? parametersObject,
       fallbackName: `${capitalize(settings.identifier.name)}Args`
     })
@@ -54,14 +54,14 @@ export class MutationFn extends TanstackQueryBase {
       skipEmpty: true
     })
 
-    const zodResponse = this.insertNormalizedModel(ZodInsertable, {
+    const zodResponse = this.insertNormalizedModel(ZodProjection, {
       schema: operation.toSuccessResponse()?.resolve().toSchema() ?? OasVoid.empty(),
       fallbackName: `${decapitalize(settings.identifier.name)}Response`
     })
 
     this.zodResponseName = zodResponse.identifier.name
 
-    const tsResponse = this.insertNormalizedModel(TsInsertable, {
+    const tsResponse = this.insertNormalizedModel(TsProjection, {
       schema: operation.toSuccessResponse()?.resolve().toSchema() ?? OasVoid.empty(),
       fallbackName: `${capitalize(settings.identifier.name)}Response`
     })

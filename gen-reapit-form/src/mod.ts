@@ -24,7 +24,7 @@ export const reapitFormEntry = toGqlOperationEntry<EnrichmentSchema>({
     if (operation.rootKind !== 'mutation') return acc
     if (synthesizeArgsObject(operation) === undefined) return acc
 
-    context.insertOperation({ insertable: ReapitForm, operation })
+    context.insertOperation({ projection: ReapitForm, operation })
 
     return acc
   },

@@ -1,4 +1,4 @@
-import { ContentBase, handleKey, isEmpty } from "@skmtc/core";
+import { SnippetBase, handleKey, isEmpty } from "@skmtc/core";
 import type {
   CustomValue,
   GenerateContextType,
@@ -25,7 +25,7 @@ type ZodObjectProps = {
   rootRef?: RefName;
 };
 
-export class ZodObject extends ContentBase {
+export class ZodObject extends SnippetBase {
   type = "object" as const;
   recordProperties: TypeSystemRecord | null;
   objectProperties: TypeSystemObjectProperties | null;
@@ -100,7 +100,7 @@ type ZodObjectPropertiesArgs = {
   rootRef?: RefName;
 };
 
-class ZodObjectProperties extends ContentBase {
+class ZodObjectProperties extends SnippetBase {
   properties: Record<string, TypeSystemValue>;
   required: string[];
 
@@ -153,7 +153,7 @@ type ZodRecordArgs = {
   rootRef?: RefName;
 };
 
-class ZodRecord extends ContentBase {
+class ZodRecord extends SnippetBase {
   value: TypeSystemValue | "true";
 
   constructor(

@@ -1,5 +1,5 @@
 import {
-  ContentBase,
+  SnippetBase,
   type GenerateContextType,
   type GeneratorKey,
 } from "@skmtc/core";
@@ -10,7 +10,7 @@ type ConstructorArgs = {
   destinationPath: string;
 };
 
-export class ZodVoid extends ContentBase {
+export class ZodVoid extends SnippetBase {
   type = "void" as const;
 
   constructor({ context, generatorKey, destinationPath }: ConstructorArgs) {

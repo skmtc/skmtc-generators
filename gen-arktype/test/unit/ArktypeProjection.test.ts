@@ -1,10 +1,10 @@
 import { assertEquals } from 'jsr:@std/assert@^1.0.0'
-import { ArktypeInsertable } from '../../src/ArktypeInsertable.ts'
+import { ArktypeProjection } from '../../src/ArktypeProjection.ts'
 import { type RefName, StackTrail } from '@skmtc/core'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
 import { toParseContext } from '../helpers/toParseContext.ts'
 
-Deno.test('ArktypeInsertable - simple object type', () => {
+Deno.test('ArktypeProjection - simple object type', () => {
   const schemas = {
     User: {
       type: 'object' as const,
@@ -21,12 +21,12 @@ Deno.test('ArktypeInsertable - simple object type', () => {
   const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
-  const arktypeInsertable = context.insertModel(ArktypeInsertable, 'User' as RefName)
+  const arktypeProjection = context.insertModel(ArktypeProjection, 'User' as RefName)
 
-  assertEquals(`${arktypeInsertable.toValue()}`, 'type({ name: "string", age: "number" })')
+  assertEquals(`${arktypeProjection.toValue()}`, 'type({ name: "string", age: "number" })')
 })
 
-Deno.test('ArktypeInsertable - object with optional properties', () => {
+Deno.test('ArktypeProjection - object with optional properties', () => {
   const schemas = {
     Profile: {
       type: 'object' as const,
@@ -43,12 +43,12 @@ Deno.test('ArktypeInsertable - object with optional properties', () => {
   const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
-  const arktypeInsertable = context.insertModel(ArktypeInsertable, 'Profile' as RefName)
+  const arktypeProjection = context.insertModel(ArktypeProjection, 'Profile' as RefName)
 
-  assertEquals(`${arktypeInsertable.toValue()}`, 'type({ name: "string", "bio?": "string" })')
+  assertEquals(`${arktypeProjection.toValue()}`, 'type({ name: "string", "bio?": "string" })')
 })
 
-Deno.test('ArktypeInsertable - primitive string type', () => {
+Deno.test('ArktypeProjection - primitive string type', () => {
   const schemas = {
     UserName: {
       type: 'string' as const
@@ -60,12 +60,12 @@ Deno.test('ArktypeInsertable - primitive string type', () => {
   const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
-  const arktypeInsertable = context.insertModel(ArktypeInsertable, 'UserName' as RefName)
+  const arktypeProjection = context.insertModel(ArktypeProjection, 'UserName' as RefName)
 
-  assertEquals(`${arktypeInsertable.toValue()}`, 'type("string")')
+  assertEquals(`${arktypeProjection.toValue()}`, 'type("string")')
 })
 
-Deno.test('ArktypeInsertable - array type', () => {
+Deno.test('ArktypeProjection - array type', () => {
   const schemas = {
     Tags: {
       type: 'array' as const,
@@ -78,12 +78,12 @@ Deno.test('ArktypeInsertable - array type', () => {
   const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
-  const arktypeInsertable = context.insertModel(ArktypeInsertable, 'Tags' as RefName)
+  const arktypeProjection = context.insertModel(ArktypeProjection, 'Tags' as RefName)
 
-  assertEquals(`${arktypeInsertable.toValue()}`, 'type("string[]")')
+  assertEquals(`${arktypeProjection.toValue()}`, 'type("string[]")')
 })
 
-Deno.test('ArktypeInsertable - union type', () => {
+Deno.test('ArktypeProjection - union type', () => {
   const schemas = {
     StringOrNumber: {
       oneOf: [{ type: 'string' as const }, { type: 'number' as const }]
@@ -95,7 +95,7 @@ Deno.test('ArktypeInsertable - union type', () => {
   const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
-  const arktypeInsertable = context.insertModel(ArktypeInsertable, 'StringOrNumber' as RefName)
+  const arktypeProjection = context.insertModel(ArktypeProjection, 'StringOrNumber' as RefName)
 
-  assertEquals(`${arktypeInsertable.toValue()}`, 'type("string | number")')
+  assertEquals(`${arktypeProjection.toValue()}`, 'type("string | number")')
 })

@@ -1,4 +1,4 @@
-import { ContentBase } from '@skmtc/core'
+import { SnippetBase } from '@skmtc/core'
 import type {
   GenerateContextType,
   GeneratorKey,
@@ -22,7 +22,7 @@ type TsUnionArgs = {
   rootRef?: RefName
 }
 
-export class TsUnion extends ContentBase {
+export class TsUnion extends SnippetBase {
   type = 'union' as const
   members: TypeSystemValue[]
   discriminator: string | undefined

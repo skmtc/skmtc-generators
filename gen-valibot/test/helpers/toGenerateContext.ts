@@ -8,12 +8,12 @@ type ToGenerateContextArgs = {
 
 export const toGenerateContext = ({ oasDocument }: ToGenerateContextArgs = {}) => {
   const context = new GenerateContext({
-    oasDocument: oasDocument ?? new OasDocument(),
+    document: { type: 'oas', value: oasDocument ?? new OasDocument() },
     settings: undefined,
     logger: new log.Logger('test', 'ERROR'),
     captureCurrentResult: () => {},
-    // @ts-expect-error - mock implementation
     toGeneratorConfigMap: () => ({
+      // @ts-expect-error - factory-emitted transform is monomorphic over Acc
       '@skmtc/gen-valibot': valibotEntry
     })
   })

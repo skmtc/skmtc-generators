@@ -1,4 +1,4 @@
-import { ContentBase, List } from '@skmtc/core'
+import { SnippetBase, List } from '@skmtc/core'
 import type { ListLines, OasSchema, Stringable, OasRef, GenerateContextType } from '@skmtc/core'
 import { schemaToField, getLabel } from '../schemaToField.ts'
 import invariant from 'tiny-invariant'
@@ -14,7 +14,7 @@ type ObjectInputArgs = {
   topLevelSchema: OasSchema | OasRef<'schema'>
 }
 
-export class ObjectInput extends ContentBase {
+export class ObjectInput extends SnippetBase {
   name: string
   label: FormLabel
   placeholder?: string

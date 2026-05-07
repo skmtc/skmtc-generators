@@ -162,7 +162,6 @@ type GetReferencedOperationArgs = {
 }
 
 const getReferencedOperation = ({ context, references }: GetReferencedOperationArgs) => {
-  // @ts-expect-error - TODO: fix this
   const operation = context.oasDocument.operations.find(operation => {
     return (
       operation.tags?.includes(references) && ShadcnSelectInput.isSupported({ context, operation })

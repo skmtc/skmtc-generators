@@ -1,4 +1,4 @@
-import { ContentBase, List } from '@skmtc/core'
+import { SnippetBase, List } from '@skmtc/core'
 import type { GenerateContextType, ListLines, Stringable } from '@skmtc/core'
 
 export type SelectInputArgs = {
@@ -20,7 +20,7 @@ export type SelectInputArgs = {
  * `<EnumNameSelectField>` and `gen-reapit-form` defers to that
  * generator.
  */
-export class SelectInput extends ContentBase {
+export class SelectInput extends SnippetBase {
   readonly path: string
   readonly label: string | undefined
   readonly isRequired: boolean

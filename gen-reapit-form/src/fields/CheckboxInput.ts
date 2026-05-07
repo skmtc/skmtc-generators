@@ -1,4 +1,4 @@
-import { ContentBase } from '@skmtc/core'
+import { SnippetBase } from '@skmtc/core'
 import type { GenerateContextType } from '@skmtc/core'
 
 export type CheckboxInputArgs = {
@@ -9,7 +9,7 @@ export type CheckboxInputArgs = {
 }
 
 /** Boolean checkbox. Emits `<CheckboxField lens={lens.focus(path)} />`. */
-export class CheckboxInput extends ContentBase {
+export class CheckboxInput extends SnippetBase {
   readonly path: string
   readonly label: string | undefined
 

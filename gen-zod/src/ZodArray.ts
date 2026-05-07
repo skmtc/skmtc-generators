@@ -1,4 +1,4 @@
-import { ContentBase } from "@skmtc/core";
+import { SnippetBase } from "@skmtc/core";
 import type {
   GenerateContextType,
   GeneratorKey,
@@ -20,7 +20,7 @@ type ZodArrayArgs = {
   rootRef?: RefName;
 };
 
-export class ZodArray extends ContentBase {
+export class ZodArray extends SnippetBase {
   type = "array" as const;
   items: TypeSystemValue;
   modifiers: Modifiers;

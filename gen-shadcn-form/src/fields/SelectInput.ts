@@ -1,4 +1,4 @@
-import { List, ContentBase } from '@skmtc/core'
+import { List, SnippetBase } from '@skmtc/core'
 import type { GenerateContextType, ListLines, Stringable } from '@skmtc/core'
 
 type SelectInputArgs = {
@@ -11,7 +11,7 @@ type SelectInputArgs = {
   enums: string[]
 }
 
-export class SelectInput extends ContentBase {
+export class SelectInput extends SnippetBase {
   name: string
   label: string | undefined
 

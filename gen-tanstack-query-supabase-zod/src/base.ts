@@ -1,8 +1,8 @@
-import { capitalize, Identifier, toEndpointName, toOasOperationBase } from '@skmtc/core'
+import { capitalize, Identifier, toEndpointName, toOasOperationProjectionBase } from '@skmtc/core'
 import { join } from '@std/path'
 import denoJson from '../deno.json' with { type: 'json' }
 
-export const TanstackQueryBase = toOasOperationBase({
+export const TanstackQueryBase = toOasOperationProjectionBase({
   id: denoJson.name,
 
   toIdentifier(operation): Identifier {

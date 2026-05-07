@@ -16,7 +16,7 @@
  * invoked once per process so this is safe; if you need parallel
  * generations with different scalar maps in-process, instantiate via
  * {@link toTypescriptEntry} which snapshots the configuration into the
- * insertable.
+ * projection.
  */
 
 const defaults: Record<string, string> = {

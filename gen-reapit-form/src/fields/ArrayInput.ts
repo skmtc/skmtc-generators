@@ -1,4 +1,4 @@
-import { ContentBase } from '@skmtc/core'
+import { SnippetBase } from '@skmtc/core'
 import type { GenerateContextType } from '@skmtc/core'
 
 export type ArrayInputArgs = {
@@ -23,7 +23,7 @@ export type ArrayInputArgs = {
  * generator-private enrichment (see skmtc-generator skill, "Generator-
  * private enrichments").
  */
-export class ArrayInput extends ContentBase {
+export class ArrayInput extends SnippetBase {
   readonly path: string
   readonly label: string | undefined
   readonly isRequired: boolean

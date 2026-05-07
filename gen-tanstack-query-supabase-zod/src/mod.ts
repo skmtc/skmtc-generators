@@ -5,7 +5,7 @@ import denoJson from '../deno.json' with { type: 'json' }
 export const tanstackQueryEntry = toOasOperationEntry({
   id: denoJson.name,
   transform: ({ context, operation }) => {
-    context.insertOperation({ insertable: TanstackQuery, operation: operation })
+    context.insertOperation({ projection: TanstackQuery, operation: operation })
   },
   isSupported({ operation }) {
     if (['get', 'delete'].includes(operation.method)) {

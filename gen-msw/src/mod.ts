@@ -7,7 +7,7 @@ export const MswEntry = toOasOperationEntry({
   id: denoJson.name,
 
   transform: ({ context, operation }) => {
-    const insertedRoute = context.insertOperation({ insertable: MockRoute, operation: operation })
+    const insertedRoute = context.insertOperation({ projection: MockRoute, operation: operation })
 
     const { exportPath } = insertedRoute.settings
 

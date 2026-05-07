@@ -14,7 +14,7 @@ export const ShadcnTableEntry = toOasOperationEntry<EnrichmentSchema>({
   },
 
   transform: ({ context, operation }) => {
-    context.insertOperation({ insertable: ShadcnTable, operation: operation })
+    context.insertOperation({ projection: ShadcnTable, operation: operation })
   },
 
   toPreviewModule: ({ operation }) => ({

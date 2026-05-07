@@ -1,4 +1,4 @@
-import { ContentBase, type TypeSystemValue, type GenerateContextType, type Modifiers, type GeneratorKey, type RefName } from '@skmtc/core'
+import { SnippetBase, type TypeSystemValue, type GenerateContextType, type Modifiers, type GeneratorKey, type RefName } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
 import { toArktypeValue } from './Arktype.ts'
 
@@ -11,7 +11,7 @@ type ArktypeArrayArgs = {
   rootRef?: RefName
 }
 
-export class ArktypeArray extends ContentBase {
+export class ArktypeArray extends SnippetBase {
   type = 'array' as const
   items: TypeSystemValue
   modifiers: Modifiers

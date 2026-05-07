@@ -1,9 +1,9 @@
-import { Identifier, toOasOperationBase } from '@skmtc/core'
+import { Identifier, toOasOperationProjectionBase } from '@skmtc/core'
 import { join } from '@std/path'
 import { toFirstSegment } from './toFirstSegment.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
-export const ExpressAppBase = toOasOperationBase({
+export const ExpressAppBase = toOasOperationProjectionBase({
   id: denoJson.name,
 
   toIdentifier(): Identifier {

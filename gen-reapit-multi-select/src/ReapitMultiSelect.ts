@@ -1,4 +1,4 @@
-import { Identifier, toGeneratorOnlyKey, type GqlOperationInsertableArgs } from '@skmtc/core'
+import { Identifier, toGeneratorOnlyKey, type GqlOperationProjectionConstructorArgs } from '@skmtc/core'
 import { ReapitMultiSelectBase } from './base.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
@@ -31,7 +31,7 @@ export class ReapitMultiSelect extends ReapitMultiSelectBase {
   rowTypeName: string
   queryConstName: string
 
-  constructor({ context, operation, settings }: GqlOperationInsertableArgs<EnrichmentSchema>) {
+  constructor({ context, operation, settings }: GqlOperationProjectionConstructorArgs<EnrichmentSchema>) {
     super({ context, operation, settings })
 
     const stripped = stripGetPrefix(operation.fieldName)

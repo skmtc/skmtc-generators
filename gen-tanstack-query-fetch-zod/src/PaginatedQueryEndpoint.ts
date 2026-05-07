@@ -1,4 +1,4 @@
-import type { OasOperationInsertableArgs, Stringable, ListArray } from '@skmtc/core'
+import type { OasOperationProjectionConstructorArgs, Stringable, ListArray } from '@skmtc/core'
 import { List } from '@skmtc/core'
 import { PaginatedQueryFn } from './PaginatedQueryFn.ts'
 import { TanstackQueryBase } from './base.ts'
@@ -6,7 +6,7 @@ import { TanstackQueryBase } from './base.ts'
 export class PaginatedQueryEndpoint extends TanstackQueryBase {
   queryFn: PaginatedQueryFn
   queryTags: ListArray<Stringable>
-  constructor({ context, operation, settings }: OasOperationInsertableArgs) {
+  constructor({ context, operation, settings }: OasOperationProjectionConstructorArgs) {
     super({ context, operation, settings })
 
     this.queryFn = new PaginatedQueryFn({ context, operation, settings })

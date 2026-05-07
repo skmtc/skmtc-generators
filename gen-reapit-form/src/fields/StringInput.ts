@@ -1,4 +1,4 @@
-import { ContentBase } from '@skmtc/core'
+import { SnippetBase } from '@skmtc/core'
 import type { GenerateContextType } from '@skmtc/core'
 
 export type StringInputArgs = {
@@ -11,7 +11,7 @@ export type StringInputArgs = {
 }
 
 /** Single-line text. Emits `<StringField lens={lens.focus(path)} />`. */
-export class StringInput extends ContentBase {
+export class StringInput extends SnippetBase {
   readonly path: string
   readonly label: string | undefined
   readonly isRequired: boolean

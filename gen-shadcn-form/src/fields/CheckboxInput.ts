@@ -1,4 +1,4 @@
-import { ContentBase } from '@skmtc/core'
+import { SnippetBase } from '@skmtc/core'
 import type { GenerateContextType } from '@skmtc/core'
 
 type CheckboxInputArgs = {
@@ -10,7 +10,7 @@ type CheckboxInputArgs = {
   destinationPath: string
 }
 
-export class CheckboxInput extends ContentBase {
+export class CheckboxInput extends SnippetBase {
   name: string
   label: string | undefined
   placeholder?: string

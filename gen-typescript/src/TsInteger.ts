@@ -1,4 +1,4 @@
-import { ContentBase } from '@skmtc/core'
+import { SnippetBase } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
 import type { OasInteger, GeneratorKey, Modifiers, GenerateContextType } from '@skmtc/core'
 import { match, P } from 'ts-pattern'
@@ -10,7 +10,7 @@ type TsIntegerArgs = {
   generatorKey: GeneratorKey
 }
 
-export class TsInteger extends ContentBase {
+export class TsInteger extends SnippetBase {
   type = 'integer' as const
   modifiers: Modifiers
   format?: 'int32' | 'int64'

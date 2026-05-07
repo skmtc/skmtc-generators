@@ -1,4 +1,4 @@
-import { ContentBase } from '@skmtc/core'
+import { SnippetBase } from '@skmtc/core'
 import type {
   GenerateContextType,
   GeneratorKey,
@@ -22,7 +22,7 @@ type ValibotUnionArgs = {
   rootRef?: RefName
 }
 
-export class ValibotUnion extends ContentBase {
+export class ValibotUnion extends SnippetBase {
   type = 'union' as const
   members: TypeSystemValue[]
   discriminator: string | undefined

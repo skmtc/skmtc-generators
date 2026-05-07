@@ -1,11 +1,11 @@
 import { TanstackQuery } from '@skmtc/gen-tanstack-query-supabase-zod'
 import { CustomValue, decapitalize, FunctionParameter, capitalize } from '@skmtc/core'
-import { TsInsertable } from '@skmtc/gen-typescript'
+import { TsProjection } from '@skmtc/gen-typescript'
 import { ShadcnFormBase } from './base.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
-import type { OasSchema, OasRef, OasObject, OasOperationInsertableArgs } from '@skmtc/core'
+import type { OasSchema, OasRef, OasObject, OasOperationProjectionConstructorArgs } from '@skmtc/core'
 import invariant from 'tiny-invariant'
-import { ZodInsertable } from '@skmtc/gen-zod'
+import { ZodProjection } from '@skmtc/gen-zod'
 import { FormFields } from './FormFields.ts'
 import { join } from 'node:path'
 
@@ -15,7 +15,7 @@ export class ShadcnForm extends ShadcnFormBase {
   tsRequestBodyName: string
   zodRequestBodyName: string
   fields: FormFields
-  constructor({ context, operation, settings }: OasOperationInsertableArgs<EnrichmentSchema>) {
+  constructor({ context, operation, settings }: OasOperationProjectionConstructorArgs<EnrichmentSchema>) {
     super({ context, operation, settings })
 
     const requestBody = operation.toRequestBody(({ schema }) => schema)
@@ -26,14 +26,14 @@ export class ShadcnForm extends ShadcnFormBase {
       requestBody.nullable = false
     }
 
-    const tsRequestBody = this.insertNormalizedModel(TsInsertable, {
+    const tsRequestBody = this.insertNormalizedModel(TsProjection, {
       schema: requestBody,
       fallbackName: `${capitalize(settings.identifier.name)}Body`
     })
 
     this.tsRequestBodyName = tsRequestBody.identifier.name
 
-    const zodRequestBody = this.insertNormalizedModel(ZodInsertable, {
+    const zodRequestBody = this.insertNormalizedModel(ZodProjection, {
       schema: requestBody,
       fallbackName: `${decapitalize(settings.identifier.name)}Body`
     })
@@ -59,7 +59,7 @@ export class ShadcnForm extends ShadcnFormBase {
 
     this.fields = new FormFields({ context, operation, settings })
 
-    const typeDefinition = this.insertNormalizedModel(TsInsertable, {
+    const typeDefinition = this.insertNormalizedModel(TsProjection, {
       schema: formArgsSchema,
       fallbackName: `${settings.identifier.name}Props`
     })
@@ -68,7 +68,7 @@ export class ShadcnForm extends ShadcnFormBase {
 
     this.clientName = this.insertOperation(TanstackQuery, operation).toName()
 
-    this.insertNormalizedModel(TsInsertable, {
+    this.insertNormalizedModel(TsProjection, {
       schema: operation.toParametersObject(['path']),
       fallbackName: capitalize(`${settings.identifier.name}PathParams`)
     })

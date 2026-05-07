@@ -5,8 +5,8 @@ import {
   capitalize,
   decapitalize
 } from '@skmtc/core'
-import type { GqlOperationInsertableArgs, OasObject } from '@skmtc/core'
-import { ZodInsertable } from '@skmtc/gen-zod'
+import type { GqlOperationProjectionConstructorArgs, OasObject } from '@skmtc/core'
+import { ZodProjection } from '@skmtc/gen-zod'
 import invariant from 'tiny-invariant'
 import denoJson from '../deno.json' with { type: 'json' }
 import { ReapitFormBase } from './base.ts'
@@ -39,7 +39,7 @@ export class ReapitForm extends ReapitFormBase {
   fieldsBlock: string
   coerceBlock: string
 
-  constructor({ context, operation, settings }: GqlOperationInsertableArgs<EnrichmentSchema>) {
+  constructor({ context, operation, settings }: GqlOperationProjectionConstructorArgs<EnrichmentSchema>) {
     super({ context, operation, settings })
 
     const args = synthesizeArgsObject(operation)
@@ -53,7 +53,7 @@ export class ReapitForm extends ReapitFormBase {
     // can otherwise produce subtly-different representations of the
     // same shape — e.g. `(string | null) | undefined` vs `string | null
     // | undefined` — that fail invariance checks on `Resolver<TFieldValues>`.)
-    const zodArgs = this.insertNormalizedModel(ZodInsertable, {
+    const zodArgs = this.insertNormalizedModel(ZodProjection, {
       schema: args satisfies OasObject,
       fallbackName: decapitalize(`${base}Args`)
     })

@@ -1,4 +1,4 @@
-import { ContentBase } from '@skmtc/core'
+import { SnippetBase } from '@skmtc/core'
 import type { GeneratorKey, GenerateContextType } from '@skmtc/core'
 
 type ArktypeUnknownArgs = {
@@ -7,7 +7,7 @@ type ArktypeUnknownArgs = {
   generatorKey: GeneratorKey
 }
 
-export class ArktypeUnknown extends ContentBase {
+export class ArktypeUnknown extends SnippetBase {
   type = 'unknown' as const
   
   constructor({ context, generatorKey, destinationPath }: ArktypeUnknownArgs) {
