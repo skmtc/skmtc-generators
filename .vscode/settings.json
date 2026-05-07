@@ -2,6 +2,9 @@
   "deno.enable": true,
   "deno.enablePaths": ["./"],
   "deno.suggest.imports.autoDiscover": true,
+  "deno.env": {
+    "JSR_URL": "https://jsr.skmtc.dev/"
+  },
   "[json]": {
     "editor.formatOnSave": true,
     "editor.defaultFormatter": "esbenp.prettier-vscode"

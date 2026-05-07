@@ -67,6 +67,14 @@ const toCoerceValue = (
   }
 
   if (schema.type === 'string') {
+    if (schema.format === 'JSON') {
+      // Custom scalar `JSON` is a string in OAS land but the gateway
+      // expects an actual JSON value. Parse on submit; empty → null
+      // (always, regardless of nullability — sending the literal string
+      // "" would round-trip as a JSON parse error). Malformed JSON will
+      // throw in `handleSubmit`, which RHF surfaces as a submit error.
+      return `${accessor} ? JSON.parse(${accessor}) : null`
+    }
     // RHF stores `""` after the user clears a text input. For optional
     // strings we want that to become `null` in the submit shape; for
     // required strings, leave it (Zod validation should reject empties
@@ -74,6 +82,15 @@ const toCoerceValue = (
     return isRequired ? accessor : `${accessor} || null`
   }
 
-  // Array / unknown — pass through. v1: no per-element coercion.
+  if (schema.type === 'array') {
+    // ArrayStringField stores `string[]` once the user types, but RHF's
+    // controller hands us `undefined` while the field is untouched. The
+    // GraphQL API rejects `undefined` for `[String!]!` (required) and
+    // for nullable arrays we still prefer `[]` over `null` to keep the
+    // submit shape uniform — the gateway treats them identically.
+    return `${accessor} ?? []`
+  }
+
+  // Unknown — pass through.
   return accessor
 }

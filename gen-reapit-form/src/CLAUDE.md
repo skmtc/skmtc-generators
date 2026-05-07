@@ -7,14 +7,9 @@
 
 | ID | Time | T | Title | Read |
 |----|------|---|-------|------|
-| #18829 | 12:33 PM | ✅ | Updated 15+ generator packages to use protocol-specific operation types | ~186 |
-| #18650 | 8:49 AM | 🔄 | Refactored gen-reapit-form to use lens-based field components | ~456 |
-| #18649 | " | 🟣 | Refactored gen-reapit-form to use lens-based field component pattern | ~565 |
-| #18642 | 8:25 AM | 🟣 | Added exported type alias for form arguments in gen-reapit-form | ~119 |
-| #18641 | " | ⚖️ | Derive TypeScript types from Zod schemas using z.infer instead of gen-typescript | ~141 |
-| #18640 | 8:22 AM | 🔴 | Fixed Button prop name from intent to variant in ReapitForm | ~217 |
-| #18636 | 8:14 AM | ✅ | Updated ReapitForm documentation to reflect consumer-provided field components | ~352 |
-| #18616 | 6:49 AM | 🟣 | Implemented field-level rendering for gen-reapit-form generator | ~563 |
-| #18615 | 6:45 AM | 🔴 | Fixed invariant failure in gen-reapit-form transform | ~272 |
-| #18614 | 6:44 AM | 🟣 | Created gen-reapit-form generator for GraphQL mutations | ~506 |
+| #19145 | 7:59 PM | 🟣 | Added JSON scalar handling to form value coercion generator | ~370 |
+| #19141 | 7:57 PM | 🔴 | Fixed array field coercion in form generator | ~370 |
+| #19140 | " | 🟣 | Array Field Support in ReapitForm Generator | ~316 |
+| #19139 | " | 🟣 | Added ArrayInput field type to gen-reapit-form generator | ~314 |
+| #19132 | 7:51 PM | 🔵 | ReapitForm Generator Architecture | ~352 |
 </claude-mem-context>

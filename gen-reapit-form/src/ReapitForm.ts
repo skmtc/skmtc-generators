@@ -10,7 +10,7 @@ import { ZodInsertable } from '@skmtc/gen-zod'
 import invariant from 'tiny-invariant'
 import denoJson from '../deno.json' with { type: 'json' }
 import { ReapitFormBase } from './base.ts'
-import type { EnrichmentSchema } from './enrichments.ts'
+import type { EnrichmentSchema, FormFieldItem } from './enrichments.ts'
 import { schemaToField, getLabel } from './schemaToField.ts'
 import { toCoerceBlock } from './toCoerceBlock.ts'
 
@@ -72,18 +72,27 @@ export class ReapitForm extends ReapitFormBase {
 
     // Compose one field per top-level argument. Field child instances
     // register their own imports against `settings.exportPath` during
-    // construction.
+    // construction. Per-field overrides (e.g. `references` for lookup
+    // dispatch) come from `settings.enrichments?.fields`, keyed by the
+    // top-level argument name.
+    const fieldOverrides = new Map<string, FormFieldItem>()
+    for (const override of settings.enrichments?.form?.fields ?? []) {
+      fieldOverrides.set(override.id, override)
+    }
     const required = args.required ?? []
-    const fieldLines = Object.entries(args.properties ?? {}).map(([propName, propSchema]) =>
-      schemaToField({
+    const fieldLines = Object.entries(args.properties ?? {}).map(([propName, propSchema]) => {
+      const override = fieldOverrides.get(propName)
+      return schemaToField({
         context,
         path: propName,
-        label: getLabel({ schema: propSchema, name: propName }),
+        label: override?.label ?? getLabel({ schema: propSchema, name: propName }),
         isRequired: required.includes(propName),
         schema: propSchema,
-        destinationPath: settings.exportPath
+        destinationPath: settings.exportPath,
+        references: override?.references,
+        referenceKind: override?.referenceKind
       }).toString()
-    )
+    })
     this.fieldsBlock = fieldLines.join('\n')
 
     // Synthesise a per-form transform from RHF-stored values → GraphQL
