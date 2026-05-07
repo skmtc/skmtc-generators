@@ -1,5 +1,6 @@
 import { SnippetBase } from '@skmtc/core'
 import type { GenerateContextType } from '@skmtc/core'
+import { labelText } from './labelText.ts'
 
 export type TextAreaInputArgs = {
   context: GenerateContextType
@@ -28,8 +29,9 @@ export class TextAreaInput extends SnippetBase {
   }
 
   override toString(): string {
+    const label = labelText(this.label, this.isRequired)
     return `<TextAreaField lens={lens.focus('${this.path}').defined()}${
-      this.label ? ` label="${this.label}"` : ''
+      label ? ` label="${label}"` : ''
     } />`
   }
 }

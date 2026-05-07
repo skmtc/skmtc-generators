@@ -1,5 +1,6 @@
 import { SnippetBase } from '@skmtc/core'
 import type { GenerateContextType } from '@skmtc/core'
+import { labelText } from './labelText.ts'
 
 export type LookupInputArgs = {
   context: GenerateContextType
@@ -8,6 +9,7 @@ export type LookupInputArgs = {
   /** Lens path expressed as dotted property names, e.g. `officeIds`. */
   path: string
   label: string | undefined
+  isRequired: boolean
 }
 
 /**
@@ -21,17 +23,20 @@ export class LookupInput extends SnippetBase {
   readonly componentName: string
   readonly path: string
   readonly label: string | undefined
+  readonly isRequired: boolean
 
-  constructor({ context, componentName, path, label }: LookupInputArgs) {
+  constructor({ context, componentName, path, label, isRequired }: LookupInputArgs) {
     super({ context })
     this.componentName = componentName
     this.path = path
     this.label = label
+    this.isRequired = isRequired
   }
 
   override toString(): string {
+    const label = labelText(this.label, this.isRequired)
     return `<${this.componentName} lens={lens.focus('${this.path}').defined()}${
-      this.label ? ` label="${this.label}"` : ''
+      label ? ` label="${label}"` : ''
     } />`
   }
 }

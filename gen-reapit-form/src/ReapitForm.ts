@@ -11,7 +11,7 @@ import invariant from 'tiny-invariant'
 import denoJson from '../deno.json' with { type: 'json' }
 import { ReapitFormBase } from './base.ts'
 import type { EnrichmentSchema, FormFieldItem } from './enrichments.ts'
-import { schemaToField, getLabel } from './schemaToField.ts'
+import { schemaToField } from './schemaToField.ts'
 import { toCoerceBlock } from './toCoerceBlock.ts'
 
 const id = denoJson.name
@@ -38,8 +38,15 @@ export class ReapitForm extends ReapitFormBase {
   tsArgsName: string
   fieldsBlock: string
   coerceBlock: string
+  title: string | undefined
+  description: string | undefined
+  submitLabel: string
 
-  constructor({ context, operation, settings }: GqlOperationProjectionConstructorArgs<EnrichmentSchema>) {
+  constructor({
+    context,
+    operation,
+    settings
+  }: GqlOperationProjectionConstructorArgs<EnrichmentSchema>) {
     super({ context, operation, settings })
 
     const args = synthesizeArgsObject(operation)
@@ -60,39 +67,45 @@ export class ReapitForm extends ReapitFormBase {
     this.zodArgsName = zodArgs.identifier.name
     this.tsArgsName = `${capitalize(base)}Args`
 
+    this.title = settings.enrichments?.form?.title
+    this.description = settings.enrichments?.form?.description
+    this.submitLabel = settings.enrichments?.form?.submitLabel ?? 'Submit'
+
+    const elementsImports: string[] = ['Button', 'FormLayout']
+    if (this.title) elementsImports.push('Title')
+    if (this.description) elementsImports.push('BodyText')
+
     this.register({
       imports: {
         zod: ['z'],
         'react-hook-form': ['useForm'],
         '@hookform/resolvers/zod': ['zodResolver'],
         '@hookform/lenses': ['useLens'],
-        '@reapit/elements': ['Button']
+        '@reapit/elements': elementsImports
       }
     })
 
     // Compose one field per top-level argument. Field child instances
     // register their own imports against `settings.exportPath` during
-    // construction. Per-field overrides (e.g. `references` for lookup
-    // dispatch) come from `settings.enrichments?.fields`, keyed by the
-    // top-level argument name.
+    // construction. Per-field overrides come from
+    // `settings.enrichments?.form?.fields`, keyed by `id` interpreted
+    // as the dotted accessor path (so nested overrides like
+    // `primaryAddress.type` are supported, not just top-level args).
     const fieldOverrides = new Map<string, FormFieldItem>()
     for (const override of settings.enrichments?.form?.fields ?? []) {
       fieldOverrides.set(override.id, override)
     }
     const required = args.required ?? []
-    const fieldLines = Object.entries(args.properties ?? {}).map(([propName, propSchema]) => {
-      const override = fieldOverrides.get(propName)
-      return schemaToField({
+    const fieldLines = Object.entries(args.properties ?? {}).map(([propName, propSchema]) =>
+      schemaToField({
         context,
         path: propName,
-        label: override?.label ?? getLabel({ schema: propSchema, name: propName }),
         isRequired: required.includes(propName),
         schema: propSchema,
         destinationPath: settings.exportPath,
-        references: override?.references,
-        referenceKind: override?.referenceKind
+        overrides: fieldOverrides
       }).toString()
-    })
+    )
     this.fieldsBlock = fieldLines.join('\n')
 
     // Synthesise a per-form transform from RHF-stored values → GraphQL
@@ -113,16 +126,21 @@ export class ReapitForm extends ReapitFormBase {
   }
 
   override toString(): string {
-    return `(props: { onSubmit: (values: ${this.tsArgsName}) => void }) => {
+    const titleBlock = this.title ? `<Title>${this.title}</Title>\n` : ''
+    const descriptionBlock = this.description ? `<BodyText>${this.description}</BodyText>\n` : ''
+    return `(props: { onSubmit: (values: ${this.tsArgsName}) => void | Promise<void> }) => {
   const form = useForm<${this.tsArgsName}>({
     resolver: zodResolver(${this.zodArgsName})
   })
   const lens = useLens({ control: form.control })
+  const { isSubmitting } = form.formState
 
   return (
-    <form onSubmit={form.handleSubmit(values => props.onSubmit(${this.coerceBlock}))}>
-      ${this.fieldsBlock}
-      <Button intent="primary" type="submit">Submit</Button>
+    <form onSubmit={form.handleSubmit(async values => { await props.onSubmit(${this.coerceBlock}) })}>
+      ${titleBlock}${descriptionBlock}<FormLayout hasMargin>
+        ${this.fieldsBlock}
+      </FormLayout>
+      <Button intent="primary" type="submit" disabled={isSubmitting} loading={isSubmitting}>${this.submitLabel}</Button>
     </form>
   )
 }`

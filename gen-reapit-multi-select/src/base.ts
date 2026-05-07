@@ -34,22 +34,3 @@ export const ReapitMultiSelectBase = toGqlOperationProjectionBase<EnrichmentSche
     return join('@', 'forms', 'fields', `${decapitalize(stripped)}MultiSelect.generated.tsx`)
   }
 })
-
-const unwrapPagedItem = (schema: OasSchema | OasRef<'schema'>): OasObject | undefined => {
-  const resolved = schema.isRef() ? schema.resolve() : schema
-  if (resolved.type !== 'object' || !resolved.properties) return undefined
-  const embedded = resolved.properties['_embedded']
-  if (!embedded) return undefined
-  const arr = embedded.isRef() ? embedded.resolve() : embedded
-  if (arr.type !== 'array' || !arr.items) return undefined
-  const item = arr.items.isRef() ? arr.items.resolve() : arr.items
-  if (item.type !== 'object') return undefined
-  return item as OasObject
-}
-
-const hasScalarStringField = (obj: OasObject, name: string): boolean => {
-  const prop = obj.properties?.[name]
-  if (!prop) return false
-  const resolved = prop.isRef() ? prop.resolve() : prop
-  return resolved.type === 'string'
-}

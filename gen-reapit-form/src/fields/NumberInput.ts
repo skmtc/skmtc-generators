@@ -1,5 +1,6 @@
 import { SnippetBase } from '@skmtc/core'
 import type { GenerateContextType } from '@skmtc/core'
+import { labelText } from './labelText.ts'
 
 export type NumberInputArgs = {
   context: GenerateContextType
@@ -28,8 +29,9 @@ export class NumberInput extends SnippetBase {
   }
 
   override toString(): string {
+    const label = labelText(this.label, this.isRequired)
     return `<NumberField lens={lens.focus('${this.path}').defined()}${
-      this.label ? ` label="${this.label}"` : ''
+      label ? ` label="${label}"` : ''
     } />`
   }
 }

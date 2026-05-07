@@ -1,115 +1,95 @@
-import { Identifier, toGeneratorOnlyKey, type GqlOperationProjectionConstructorArgs } from '@skmtc/core'
+import { type GqlOperationProjectionConstructorArgs } from '@skmtc/core'
+import { ReapitGraphqlClient } from '@skmtc/gen-reapit-graphql-client'
 import { ReapitMultiSelectBase } from './base.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
-import denoJson from '../deno.json' with { type: 'json' }
-
-const id = denoJson.name
-
-const stripGetPrefix = (name: string): string => (name.startsWith('Get') ? name.slice(3) : name)
-
-const singularize = (plural: string): string => {
-  if (plural.endsWith('ies') && plural.length > 3) return plural.slice(0, -3) + 'y'
-  if (plural.endsWith('ses') && plural.length > 3) return plural.slice(0, -2)
-  if (plural.endsWith('s') && plural.length > 1) return plural.slice(0, -1)
-  return plural
-}
 
 /**
  * GraphQL Query → Reapit Elements `<MultiSelect>` component generator.
  *
  * Emits a self-contained React component per qualifying query. Uses
  * Reapit Elements v4's native MultiSelect compound (MultiSelect /
- * MultiSelectSelected / MultiSelectUnSelected / MultiSelectChip) so the
- * output looks and behaves like a hand-authored Reapit Elements form
- * field — chip styling, hover states, keyboard nav, theming all come
- * from the library.
+ * MultiSelectSelected / MultiSelectUnSelected / MultiSelectChip) for
+ * UI, and dispatches `gen-reapit-graphql-client` for the data layer
+ * via the operation-reference protocol — so the emitted component
+ * pulls in `useGetX()` (a React Query hook backed by graphql-request)
+ * rather than inlining a fetch + useEffect/useState.
+ *
+ * Adds three bulk-action affordances above the chip list:
+ *   - "X of Y selected" count
+ *   - Select-all (only enabled when there are unselected items)
+ *   - Clear-all (only enabled when something is selected)
+ *
+ * Disambiguates options that share a name by appending the id —
+ * Reapit's gateway returns multiple offices/negotiators with the same
+ * display name, and an undecorated chip list can't tell them apart.
  *
  * Composes with `gen-reapit-form` via the operation-reference protocol
  * with `referenceKind: 'multiselect'`.
  */
 export class ReapitMultiSelect extends ReapitMultiSelectBase {
-  rowTypeName: string
-  queryConstName: string
+  hookName: string
+  fieldName: string
 
   constructor({ context, operation, settings }: GqlOperationProjectionConstructorArgs<EnrichmentSchema>) {
     super({ context, operation, settings })
 
-    const stripped = stripGetPrefix(operation.fieldName)
-    this.rowTypeName = `${singularize(stripped)}MultiSelectRow`
-    this.queryConstName = `${stripped.toUpperCase()}_MULTISELECT_QUERY`
+    this.fieldName = operation.fieldName
+
+    // Dispatch the data-layer generator. The Driver caches by
+    // (toIdentifier, toExportPath), so multiple consumers of the same
+    // query share one emitted hook file with one import per consumer.
+    // destinationPath defaults to this.settings.exportPath via the base.
+    this.hookName = this.insertOperation(ReapitGraphqlClient, operation).toName()
 
     this.register({
       imports: {
-        react: ['useEffect', 'useState'],
+        react: ['useMemo'],
         'react-hook-form': ['useController'],
         '@hookform/lenses': ['Lens'],
         '@reapit/elements': [
+          'Button',
+          'InputError',
           'Label',
           'MultiSelect',
           'MultiSelectSelected',
           'MultiSelectUnSelected',
           'MultiSelectChip',
+          'SmallText',
           'elHasGreyChips'
-        ],
-        '@/lib/graphql-client': ['gqlRequest']
-      }
-    })
-
-    this.defineAndRegister({
-      identifier: Identifier.createType(this.rowTypeName),
-      value: {
-        generatorKey: toGeneratorOnlyKey({ generatorId: id }),
-        toString: () => `{ id: string | null; name: string | null }`
-      }
-    })
-
-    const queryBody = `query ${stripped}MultiSelect {
-  ${operation.fieldName}(pageSize: 1000) {
-    _embedded { id name }
-  }
-}`
-    this.defineAndRegister({
-      identifier: Identifier.createVariable(this.queryConstName),
-      value: {
-        generatorKey: toGeneratorOnlyKey({ generatorId: id }),
-        toString: () => '`\n' + queryBody + '\n`'
+        ]
       }
     })
   }
 
   override toString(): string {
-    const rowType = this.rowTypeName
-    const queryConst = this.queryConstName
-    const fieldName = this.operation.fieldName
-
     return `({ lens, label }: { lens: Lens<string[]>; label?: string }) => {
   const { field, fieldState } = useController(lens.interop())
   const selected: string[] = Array.isArray(field.value) ? field.value : []
 
-  const [options, setOptions] = useState<${rowType}[]>([])
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
+  // pageSize: 1000 because v4 MultiSelect renders all options inline.
+  // For unbounded entity sets, prefer gen-reapit-searchable-dropdown
+  // which fires one query per keystroke.
+  const { data, isLoading, error } = ${this.hookName}({ pageSize: 1000 })
+  const options = data?.${this.fieldName}._embedded ?? []
 
-  useEffect(() => {
-    let cancelled = false
-    setLoading(true)
-    gqlRequest<{ ${fieldName}: { _embedded: ${rowType}[] | null } }>(${queryConst})
-      .then(data => {
-        if (cancelled) return
-        setOptions(data.${fieldName}._embedded ?? [])
-        setError(null)
-      })
-      .catch((err: unknown) => {
-        if (cancelled) return
-        setError(err instanceof Error ? err.message : 'Failed to load options')
-      })
-      .finally(() => {
-        if (cancelled) return
-        setLoading(false)
-      })
-    return () => { cancelled = true }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  // Build id → display label, decorating duplicate names with the id
+  // so a list with multiple "Barbuck"s doesn't render indistinguishable
+  // chips. Computed at render time from the option set so the rule
+  // reflects the current data exactly.
+  const labelByValue = useMemo(() => {
+    const nameCounts = new Map<string, number>()
+    for (const o of options) {
+      if (o && o.name) nameCounts.set(o.name, (nameCounts.get(o.name) ?? 0) + 1)
+    }
+    const map = new Map<string, string>()
+    for (const o of options) {
+      if (!o || o.id == null) continue
+      const name = o.name ?? o.id
+      const ambiguous = o.name != null && (nameCounts.get(o.name) ?? 0) > 1
+      map.set(o.id, ambiguous ? \`\${name} (\${o.id})\` : name)
+    }
+    return map
+  }, [options])
 
   const toggle = (value: string) => {
     if (selected.includes(value)) {
@@ -119,16 +99,48 @@ export class ReapitMultiSelect extends ReapitMultiSelectBase {
     }
   }
 
-  const selectedOptions = options.filter(o => o.id !== null && selected.includes(o.id))
-  const unselectedOptions = options.filter(o => o.id !== null && !selected.includes(o.id))
+  const selectAll = () => {
+    const allIds = options
+      .map(o => (o ? o.id : null))
+      .filter((id): id is string => id != null)
+    field.onChange(allIds)
+  }
+
+  const clearAll = () => field.onChange([])
+
+  const selectedOptions = options.filter(o => o && o.id != null && selected.includes(o.id))
+  const unselectedOptions = options.filter(o => o && o.id != null && !selected.includes(o.id))
 
   return (
     <>
       {label && <Label>{label}</Label>}
+      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.25rem' }}>
+        <SmallText hasNoMargin hasGreyText>
+          {selected.length} of {options.length} selected
+        </SmallText>
+        <Button
+          type="button"
+          intent="default"
+          buttonSize="small"
+          disabled={unselectedOptions.length === 0 || isLoading}
+          onClick={selectAll}
+        >
+          Select all
+        </Button>
+        <Button
+          type="button"
+          intent="default"
+          buttonSize="small"
+          disabled={selected.length === 0}
+          onClick={clearAll}
+        >
+          Clear all
+        </Button>
+      </div>
       <MultiSelect>
         <MultiSelectSelected role="listbox" aria-label={\`Selected \${label ?? ''}\`.trim()}>
           {selectedOptions.length === 0 ? (
-            <p>{loading ? 'Loading…' : 'Please select from the options below'}</p>
+            <p>{isLoading ? 'Loading…' : 'Please select from the options below'}</p>
           ) : (
             selectedOptions.map(opt => (
               <MultiSelectChip
@@ -137,7 +149,7 @@ export class ReapitMultiSelect extends ReapitMultiSelectBase {
                 checked
                 onChange={() => toggle(opt.id ?? '')}
               >
-                {opt.name ?? opt.id}
+                {labelByValue.get(opt.id ?? '') ?? opt.id}
               </MultiSelectChip>
             ))
           )}
@@ -152,16 +164,16 @@ export class ReapitMultiSelect extends ReapitMultiSelectBase {
                 checked={false}
                 onChange={() => toggle(opt.id ?? '')}
               >
-                {opt.name ?? opt.id}
+                {labelByValue.get(opt.id ?? '') ?? opt.id}
               </MultiSelectChip>
             ))}
           </MultiSelectUnSelected>
         )}
       </MultiSelect>
-      {error && <p style={{ color: '#b00', fontSize: '0.8125rem' }}>{error}</p>}
-      {fieldState.error && (
-        <p style={{ color: '#b00', fontSize: '0.8125rem' }}>{fieldState.error.message}</p>
+      {error && (
+        <InputError message={error instanceof Error ? error.message : 'Failed to load options'} />
       )}
+      {fieldState.error?.message && <InputError message={fieldState.error.message} />}
     </>
   )
 }`

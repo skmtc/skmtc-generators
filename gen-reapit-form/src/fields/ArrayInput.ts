@@ -1,5 +1,6 @@
 import { SnippetBase } from '@skmtc/core'
 import type { GenerateContextType } from '@skmtc/core'
+import { labelText } from './labelText.ts'
 
 export type ArrayInputArgs = {
   context: GenerateContextType
@@ -41,8 +42,9 @@ export class ArrayInput extends SnippetBase {
   }
 
   override toString(): string {
+    const label = labelText(this.label, this.isRequired)
     return `<ArrayStringField lens={lens.focus('${this.path}').defined()}${
-      this.label ? ` label="${this.label}"` : ''
+      label ? ` label="${label}"` : ''
     } />`
   }
 }

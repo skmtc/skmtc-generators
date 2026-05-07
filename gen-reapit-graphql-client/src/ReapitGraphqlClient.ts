@@ -1,94 +1,18 @@
 import {
   capitalize,
   Identifier,
-  isCustomValue,
   OasObject,
   synthesizeArgsObject,
   toGeneratorOnlyKey,
-  type GqlOperationProjectionConstructorArgs,
-  type OasRef,
-  type OasSchema
+  type GqlOperationProjectionConstructorArgs
 } from '@skmtc/core'
 import { TsProjection } from '@skmtc/gen-typescript'
 import { ReapitGraphqlClientBase } from './base.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
+import { toSelection } from './selection/toSelection.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
 const id = denoJson.name
-
-/**
- * Walk an OAS schema and emit a GraphQL selection set string.
- *
- * Stops at:
- *  - scalar leaves (just emits the field name)
- *  - refs already on the visited path (cycle break)
- *  - `maxDepth` (defensive cap for deep schemas)
- *  - unions (skipped — v1 doesn't generate inline fragments)
- *
- * For Reapit's typical response shapes (paged result with `_embedded:
- * [Model]`, plus pagination scalars at the parent), this produces a
- * usable selection set without the consumer needing to specify one.
- * Deeper / wider selections are a future enrichment.
- */
-const emitSelectionSet = (
-  schema: OasSchema | OasRef<'schema'>,
-  visited: Set<string> = new Set(),
-  depth: number = 0,
-  maxDepth: number = 4
-): string => {
-  if (depth >= maxDepth) return ''
-
-  let resolved: OasSchema = schema as OasSchema
-  let nextVisited = visited
-  if ((schema as OasRef<'schema'>).isRef && (schema as OasRef<'schema'>).isRef()) {
-    const refName = (schema as OasRef<'schema'>).toRefName()
-    if (visited.has(refName)) return ''
-    nextVisited = new Set(visited)
-    nextVisited.add(refName)
-    resolved = (schema as OasRef<'schema'>).resolve()
-  }
-
-  if (resolved.type === 'object' && resolved.properties) {
-    const fields: string[] = []
-    for (const [name, propSchema] of Object.entries(resolved.properties)) {
-      // CustomValue-shaped properties carry no GraphQL field shape — emit
-      // just the field name so the selection set stays valid.
-      if (isCustomValue(propSchema)) {
-        fields.push(name)
-        continue
-      }
-      const propResolved = propSchema.isRef() ? propSchema.resolve() : propSchema
-
-      if (propResolved.type === 'object') {
-        const sub = emitSelectionSet(propSchema, nextVisited, depth + 1, maxDepth)
-        if (sub) fields.push(`${name} { ${sub} }`)
-      } else if (propResolved.type === 'array' && propResolved.items) {
-        const items = propResolved.items
-        const itemsResolved = items.isRef() ? items.resolve() : items
-        if (itemsResolved.type === 'object') {
-          const sub = emitSelectionSet(items, nextVisited, depth + 1, maxDepth)
-          if (sub) fields.push(`${name} { ${sub} }`)
-        } else {
-          // scalar or enum array — just the field name
-          fields.push(name)
-        }
-      } else if (propResolved.type === 'union') {
-        // skip — would require inline fragments. v1 limitation.
-        continue
-      } else {
-        // scalar or enum
-        fields.push(name)
-      }
-    }
-    return fields.join(' ')
-  }
-
-  if (resolved.type === 'array' && resolved.items) {
-    return emitSelectionSet(resolved.items, nextVisited, depth, maxDepth)
-  }
-
-  return ''
-}
 
 /**
  * GraphQL operation → React Query hook + TypedDocumentNode.
@@ -110,7 +34,11 @@ export class ReapitGraphqlClient extends ReapitGraphqlClientBase {
   variablesTypeName: string | null
   documentConstName: string
 
-  constructor({ context, operation, settings }: GqlOperationProjectionConstructorArgs<EnrichmentSchema>) {
+  constructor({
+    context,
+    operation,
+    settings
+  }: GqlOperationProjectionConstructorArgs<EnrichmentSchema>) {
     super({ context, operation, settings })
 
     const fieldName = operation.fieldName
@@ -154,9 +82,9 @@ export class ReapitGraphqlClient extends ReapitGraphqlClientBase {
       ? `(${operation.arguments.map(a => `${a.name}: $${a.name}`).join(', ')})`
       : ''
 
-    const selection = emitSelectionSet(operation.returnType)
+    const selection = toSelection({ schema: operation.returnType })
     const documentBody = `${operation.rootKind} ${capitalize(fieldName)}${argsDecl} {
-  ${fieldName}${argsPass}${selection ? ` { ${selection} }` : ''}
+  ${fieldName}${argsPass}${selection.asDocumentSuffix()}
 }`
 
     this.documentConstName = `${capitalize(fieldName)}Document`

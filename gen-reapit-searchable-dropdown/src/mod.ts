@@ -1,23 +1,31 @@
-import { toGqlOperationEntry, type OasObject, type OasRef, type OasSchema } from '@skmtc/core'
+import {
+  toGqlOperationEntry,
+  type GqlOperation,
+  type OasObject,
+  type OasRef,
+  type OasSchema
+} from '@skmtc/core'
 import { ReapitSearchableDropdown } from './ReapitSearchableDropdown.ts'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
 /**
- * gen-reapit-searchable-dropdown: emits one `<XMultiLookupField>` per
- * GraphQL **Query** root field whose return type is a paged result
- * carrying `_embedded: [T]` with scalar `id` and `name` properties.
+ * gen-reapit-searchable-dropdown: emits one search-driven multi-select
+ * component per qualifying GraphQL **Query** root field.
  *
- * Output is a thin file under `@/forms/fields/<name>Lookup.generated.tsx`
- * wrapping the consumer-provided `<SearchableMultiLookup>` widget — the
- * generator owns the per-query slice (search wiring, GraphQL query
- * string, row-type alias) and delegates UI/state complexity to the
- * widget.
+ * Three predicates gate inclusion:
+ *  - root kind is `query`
+ *  - return type is the Reapit paged shape (`{ _embedded: [T] }` with
+ *    `T.id` and `T.name` both scalar strings)
+ *  - the operation accepts a `name: String` argument used for filtering
  *
- * Designed to be dispatched by form generators via the operation-reference
- * protocol (`context.insertOperation`), but `isSupported` is *broad* so
- * the generator also produces files standalone for any qualifying query
- * the outer loop visits.
+ * The third gate is what differentiates this from `gen-reapit-multi-select`:
+ * a query without a name filter can't be searched against, so it falls
+ * outside this generator's scope.
+ *
+ * Designed for dispatch by `gen-reapit-form` via the operation-reference
+ * protocol with `referenceKind: 'searchable'`. Output goes to
+ * `@/forms/fields/<name>Lookup.generated.tsx`.
  */
 export const reapitSearchableDropdownEntry = toGqlOperationEntry<EnrichmentSchema>({
   id: denoJson.name,
@@ -26,19 +34,15 @@ export const reapitSearchableDropdownEntry = toGqlOperationEntry<EnrichmentSchem
     if (operation.rootKind !== 'query') return false
     const inner = unwrapPagedItem(operation.returnType)
     if (!inner) return false
-    return hasScalarStringField(inner, 'id') && hasScalarStringField(inner, 'name')
+    if (!hasScalarStringField(inner, 'id')) return false
+    if (!hasScalarStringField(inner, 'name')) return false
+    return hasNameStringArgument(operation)
   },
 
   transform({ context, operation, acc }) {
     context.insertOperation({ projection: ReapitSearchableDropdown, operation })
     return acc
   },
-
-  toPreviewModule: ({ operation }) => ({
-    name: ReapitSearchableDropdown.toIdentifier(operation).name,
-    exportPath: ReapitSearchableDropdown.toExportPath(operation),
-    group: 'forms'
-  }),
 
   toEnrichmentSchema
 })
@@ -52,7 +56,7 @@ const unwrapPagedItem = (schema: OasSchema | OasRef<'schema'>): OasObject | unde
   if (arr.type !== 'array' || !arr.items) return undefined
   const item = arr.items.isRef() ? arr.items.resolve() : arr.items
   if (item.type !== 'object') return undefined
-  return item as OasObject
+  return item
 }
 
 const hasScalarStringField = (obj: OasObject, name: string): boolean => {
@@ -61,3 +65,8 @@ const hasScalarStringField = (obj: OasObject, name: string): boolean => {
   const resolved = prop.isRef() ? prop.resolve() : prop
   return resolved.type === 'string'
 }
+
+const hasNameStringArgument = (operation: GqlOperation): boolean =>
+  operation.arguments.some(
+    arg => arg.name === 'name' && arg.gqlType.startsWith('String')
+  )
