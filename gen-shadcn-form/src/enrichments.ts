@@ -1,5 +1,20 @@
 import * as v from 'valibot'
-import { formFieldItem } from '@skmtc/core'
+import { moduleExport } from '@skmtc/core'
+
+// Per-field override carried by the form's `fields[]` enrichment.
+// `id` matches the field's argument/property name; everything else
+// is optional. `references` opts the field into the operation-
+// reference dispatch protocol — see gen-shadcn-select.
+export const formFieldItem = v.object({
+  id: v.string(),
+  accessorPath: v.optional(v.array(v.string())),
+  input: v.optional(moduleExport),
+  label: v.optional(v.string()),
+  placeholder: v.optional(v.string()),
+  references: v.optional(v.string())
+})
+
+export type FieldSchema = v.InferOutput<typeof formFieldItem>
 
 export const formPropertiesSchema = v.optional(
   v.object({
@@ -9,8 +24,6 @@ export const formPropertiesSchema = v.optional(
     fields: v.optional(v.array(formFieldItem))
   })
 )
-
-export type FieldSchema = v.InferOutput<typeof formFieldItem>
 
 export const formSchema = v.optional(
   v.object({

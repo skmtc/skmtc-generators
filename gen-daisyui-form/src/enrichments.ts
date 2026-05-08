@@ -1,10 +1,20 @@
 import * as v from 'valibot'
-import { formFieldItem } from '@skmtc/core'
+import { moduleExport } from '@skmtc/core/ModuleExport'
 
-// Only fields covered by the canonical core/types/Enrichments.ts `formItem`
-// schema survive the central client.json validation. DaisyUI-specific
-// options (size, submitColor, layout, showCard) are read from the
-// `x-daisy-form` operation extension instead — see DaisyForm.ts.
+// Per-field override. DaisyUI-specific options (size, submitColor,
+// layout, showCard) live on the `x-daisy-form` operation extension
+// instead, since those are *operation-level* concerns rather than
+// per-field.
+export const formFieldItem = v.object({
+  id: v.string(),
+  accessorPath: v.optional(v.array(v.string())),
+  input: v.optional(moduleExport),
+  label: v.optional(v.string()),
+  placeholder: v.optional(v.string())
+})
+
+export type FormFieldItem = v.InferOutput<typeof formFieldItem>
+
 export const formPropertiesSchema = v.optional(
   v.object({
     title: v.optional(v.string()),
@@ -13,6 +23,8 @@ export const formPropertiesSchema = v.optional(
     fields: v.optional(v.array(formFieldItem))
   })
 )
+
+export type FormItem = v.InferOutput<typeof formPropertiesSchema>
 
 export const formSchema = v.optional(
   v.object({

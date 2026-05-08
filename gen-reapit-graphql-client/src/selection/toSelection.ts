@@ -87,9 +87,7 @@ export const toSelection = ({
     case 'number':
     case 'integer':
     case 'boolean':
-    case 'void':
     case 'unknown':
-    case 'custom':
       return new ScalarSelection()
     default: {
       const _exhaustive: never = unwrapped

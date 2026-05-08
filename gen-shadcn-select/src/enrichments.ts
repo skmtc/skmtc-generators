@@ -1,5 +1,15 @@
-import { inputItem } from '@skmtc/core'
 import * as v from 'valibot'
+import { moduleExport } from '@skmtc/core'
+
+// Per-input override for the standalone select component.
+// `formatter` references a consumer-side option renderer.
+export const inputItem = v.object({
+  id: v.string(),
+  accessorPath: v.array(v.string()),
+  formatter: moduleExport
+})
+
+export type InputItem = v.InferOutput<typeof inputItem>
 
 export const enrichmentSchema = v.optional(
   v.object({

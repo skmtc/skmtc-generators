@@ -78,12 +78,12 @@ export const schemaToField = (args: SchemaToFieldArgs): Stringable => {
   // 1. Reference-backed dispatch. Fires whenever the override at this
   //    path carries a `references` field — works at any nesting level,
   //    not just top-level, since overrides are looked up by full path.
-  if (override?.references) {
+  if (override?.references && context.document.type === 'gql') {
     const kind: ReferenceKind = isReferenceKind(override.referenceKind)
       ? override.referenceKind
       : 'searchable'
     const Projection = KIND_TO_PROJECTION[kind]
-    const queryOp = context.gqlDocument.operations.find(
+    const queryOp = context.document.value.operations.find(
       op =>
         op.rootKind === 'query' &&
         op.fieldName === override.references &&

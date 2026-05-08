@@ -162,7 +162,11 @@ type GetReferencedOperationArgs = {
 }
 
 const getReferencedOperation = ({ context, references }: GetReferencedOperationArgs) => {
-  const operation = context.oasDocument.operations.find(operation => {
+  invariant(
+    context.document.type === 'oas',
+    `Expected OAS document for shadcn-form reference '${references}'`
+  )
+  const operation = context.document.value.operations.find(operation => {
     return (
       operation.tags?.includes(references) && ShadcnSelectInput.isSupported({ context, operation })
     )
