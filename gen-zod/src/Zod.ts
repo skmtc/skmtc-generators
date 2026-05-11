@@ -87,6 +87,7 @@ export const toZodValue: SchemaToValueFn = ({
       return new ZodBoolean({
         context,
         modifiers,
+        schema,
         destinationPath,
         generatorKey,
       });
