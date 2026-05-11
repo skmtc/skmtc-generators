@@ -1,6 +1,6 @@
 {
   "name": "@skmtc/gen-shadcn-table",
-  "version": "0.0.53",
+  "version": "0.0.54",
   "exports": "./mod.ts",
   "imports": {
     "@skmtc/gen-tanstack-query-supabase-zod": "jsr:@skmtc/gen-tanstack-query-supabase-zod@^0.0.53",

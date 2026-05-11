@@ -1,6 +1,6 @@
 {
   "name": "@skmtc/gen-graphql-operation",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "exports": "./mod.ts",
   "imports": {
     "@skmtc/core": "jsr:@skmtc/core@^0.3.1",

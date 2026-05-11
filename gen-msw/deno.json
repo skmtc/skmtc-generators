@@ -1,6 +1,6 @@
 {
   "name": "@skmtc/gen-msw",
-  "version": "0.0.53",
+  "version": "0.0.54",
   "exports": "./mod.ts",
   "tasks": {
     "test": "deno test --allow-env --allow-sys --allow-read || true",

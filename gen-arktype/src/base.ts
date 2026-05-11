@@ -5,14 +5,14 @@ import denoJson from '../deno.json' with { type: 'json' }
 export const ArktypeBase = toModelProjectionBase({
   id: denoJson.name,
 
-  toIdentifier(refName: RefName): Identifier {
+  toIdentifier({ refName }): Identifier {
     const name = decapitalize(camelCase(refName))
 
     return Identifier.createVariable(name)
   },
 
-  toExportPath(refName: RefName): string {
-    const { name } = this.toIdentifier(refName)
+  toExportPath({ refName, enrichments }): string {
+    const { name } = this.toIdentifier({ refName, enrichments })
 
     return join('@', 'types', `${decapitalize(name)}.generated.ts`)
   }

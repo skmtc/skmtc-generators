@@ -1,5 +1,8 @@
 import { ShadcnSelectApiBase } from './base.ts'
-import type { OasOperationProjectionConstructorArgs, OasOperation } from '@skmtc/core'
+import type {
+  OasOperationProjectionConstructorArgs,
+  ToOasOperationIdentifierArgs
+} from '@skmtc/core'
 import type { EnrichmentSchema } from './enrichments.ts'
 import { Identifier, CustomValue } from '@skmtc/core'
 import { ShadcnSelectInput } from './ShadcnSelectInput.ts'
@@ -41,8 +44,8 @@ export class ShadcnSelectField extends ShadcnSelectApiBase {
     })
   }
 
-  static override toIdentifier(operation: OasOperation) {
-    const name = ShadcnSelectApiBase.toIdentifier(operation)
+  static override toIdentifier({ operation, enrichments }: ToOasOperationIdentifierArgs<EnrichmentSchema>) {
+    const name = ShadcnSelectApiBase.toIdentifier({ operation, enrichments })
 
     return Identifier.createVariable(`${name}Field`)
   }

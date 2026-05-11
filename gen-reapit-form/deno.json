@@ -1,6 +1,6 @@
 {
   "name": "@skmtc/gen-reapit-form",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "imports": {
     "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@^0.0.53",
     "@skmtc/gen-zod": "jsr:@skmtc/gen-zod@^0.0.53",

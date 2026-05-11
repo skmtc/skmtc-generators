@@ -6,10 +6,11 @@ import denoJson from '../deno.json' with { type: 'json' }
 export const expressEntry = toOasOperationEntry({
   id: denoJson.name,
   transform: ({ context, operation }) => {
+    const enrichments = ExpressApp.toEnrichments({ operation, context })
     const app =
       context.findDefinition({
         name: 'app',
-        exportPath: ExpressApp.toExportPath(operation)
+        exportPath: ExpressApp.toExportPath({ operation, enrichments })
       }) ?? context.insertOperation({ projection: ExpressApp, operation: operation }).definition
 
     invariant(app?.value instanceof ExpressApp, 'app must be an instance of ExpressApp')

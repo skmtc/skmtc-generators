@@ -16,17 +16,20 @@ export const ShadcnSelectApiEntry = toOasOperationEntry<EnrichmentSchema>({
     context.insertOperation({ projection: ShadcnSelectField, operation: operation })
   },
 
-  toPreviewModule: ({ operation }) => ({
-    name: ShadcnSelectApiBase.toIdentifier(operation).name,
-    exportPath: ShadcnSelectApiBase.toExportPath(operation),
-    group: 'inputs'
-  }),
+  toPreviewModule: ({ context, operation }) => {
+    const enrichments = ShadcnSelectApiBase.toEnrichments({ operation, context })
+    return {
+      name: ShadcnSelectApiBase.toIdentifier({ operation, enrichments }).name,
+      exportPath: ShadcnSelectApiBase.toExportPath({ operation, enrichments })
+    }
+  },
 
-  toMappingModule: ({ operation }) => ({
-    name: ShadcnSelectField.toIdentifier(operation).name,
-    exportPath: ShadcnSelectField.toExportPath(operation),
-    group: 'inputs',
-    itemType: 'input',
-    schema: 'string'
-  })
+  toMappingModule: ({ context, operation }) => {
+    const enrichments = ShadcnSelectField.toEnrichments({ operation, context })
+    return {
+      name: ShadcnSelectField.toIdentifier({ operation, enrichments }).name,
+      exportPath: ShadcnSelectField.toExportPath({ operation, enrichments }),
+      schema: 'string'
+    }
+  }
 })

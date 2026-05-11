@@ -2,7 +2,11 @@ import { List, Identifier, capitalize } from '@skmtc/core'
 import { TsProjection } from '@skmtc/gen-typescript'
 import invariant from 'tiny-invariant'
 import { TableColumn } from './TableColumn.ts'
-import type { ListArray, OasOperation, OasOperationProjectionConstructorArgs } from '@skmtc/core'
+import type {
+  ListArray,
+  OasOperationProjectionConstructorArgs,
+  ToOasOperationIdentifierArgs
+} from '@skmtc/core'
 import { toListKeyAndItem } from '@skmtc/gen-tanstack-query-supabase-zod'
 import { ShadcnTableBase } from './base.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
@@ -18,7 +22,9 @@ export class TanstackColumns extends ShadcnTableBase {
 
     const rowTypeDefinition = this.insertNormalizedModel(TsProjection, {
       schema,
-      fallbackName: capitalize(`${ShadcnTableBase.toIdentifier(operation).name}RowType`)
+      fallbackName: capitalize(
+        `${ShadcnTableBase.toIdentifier({ operation, enrichments: settings.enrichments }).name}RowType`
+      )
     })
 
     const columns = settings.enrichments?.table?.columns?.map(column => {
@@ -41,7 +47,7 @@ export class TanstackColumns extends ShadcnTableBase {
     })
   }
 
-  static override toIdentifier(_operation: OasOperation) {
+  static override toIdentifier(_args: ToOasOperationIdentifierArgs<EnrichmentSchema>) {
     return Identifier.createVariable(`columns`)
   }
 

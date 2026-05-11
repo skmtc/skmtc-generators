@@ -1,6 +1,6 @@
 {
   "name": "@skmtc/gen-tanstack-query-supabase-zod",
-  "version": "0.0.53",
+  "version": "0.0.54",
   "exports": "./mod.ts",
   "imports": {
     "@skmtc/gen-zod": "jsr:@skmtc/gen-zod@^0.0.53",

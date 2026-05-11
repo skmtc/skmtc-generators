@@ -17,11 +17,13 @@ export const ShadcnFormEntry = toOasOperationEntry<EnrichmentSchema>({
     context.insertOperation({ projection: ShadcnForm, operation: operation })
   },
 
-  toPreviewModule: ({ operation }) => ({
-    name: ShadcnForm.toIdentifier(operation).name,
-    exportPath: ShadcnForm.toExportPath(operation),
-    group: 'forms'
-  }),
+  toPreviewModule: ({ context, operation }) => {
+    const enrichments = ShadcnForm.toEnrichments({ operation, context })
+    return {
+      name: ShadcnForm.toIdentifier({ operation, enrichments }).name,
+      exportPath: ShadcnForm.toExportPath({ operation, enrichments })
+    }
+  },
 
   toEnrichmentSchema
 })

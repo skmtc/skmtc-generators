@@ -9,14 +9,14 @@ export const ShadcnTableBase = toOasOperationProjectionBase<EnrichmentSchema>({
 
   toEnrichmentSchema,
 
-  toIdentifier(operation): Identifier {
+  toIdentifier({ operation }): Identifier {
     const name = `${camelCase(operation.path, { upperFirst: true })}Table`
 
     return Identifier.createVariable(name)
   },
 
-  toExportPath(operation): string {
-    const { name } = this.toIdentifier(operation)
+  toExportPath({ operation, enrichments }): string {
+    const { name } = this.toIdentifier({ operation, enrichments })
 
     return join('@', 'tables', `${name}.generated.tsx`)
   }

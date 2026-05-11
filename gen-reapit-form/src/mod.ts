@@ -29,11 +29,13 @@ export const reapitFormEntry = toGqlOperationEntry<EnrichmentSchema>({
     return acc
   },
 
-  toPreviewModule: ({ operation }) => ({
-    name: ReapitForm.toIdentifier(operation).name,
-    exportPath: ReapitForm.toExportPath(operation),
-    group: 'forms'
-  }),
+  toPreviewModule: ({ context, operation }) => {
+    const enrichments = ReapitForm.toEnrichments({ operation, context })
+    return {
+      name: ReapitForm.toIdentifier({ operation, enrichments }).name,
+      exportPath: ReapitForm.toExportPath({ operation, enrichments })
+    }
+  },
 
   toEnrichmentSchema
 })

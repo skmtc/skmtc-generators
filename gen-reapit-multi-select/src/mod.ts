@@ -32,11 +32,13 @@ export const reapitMultiSelectEntry = toGqlOperationEntry<EnrichmentSchema>({
     return acc
   },
 
-  toPreviewModule: ({ operation }) => ({
-    name: ReapitMultiSelect.toIdentifier(operation).name,
-    exportPath: ReapitMultiSelect.toExportPath(operation),
-    group: 'forms'
-  }),
+  toPreviewModule: ({ context, operation }) => {
+    const enrichments = ReapitMultiSelect.toEnrichments({ operation, context })
+    return {
+      name: ReapitMultiSelect.toIdentifier({ operation, enrichments }).name,
+      exportPath: ReapitMultiSelect.toExportPath({ operation, enrichments })
+    }
+  },
 
   toEnrichmentSchema
 })

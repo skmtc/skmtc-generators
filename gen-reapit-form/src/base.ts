@@ -8,14 +8,14 @@ export const ReapitFormBase = toGqlOperationProjectionBase<EnrichmentSchema>({
 
   toEnrichmentSchema,
 
-  toIdentifier(operation): Identifier {
+  toIdentifier({ operation }): Identifier {
     const name = `${capitalize(camelCase(operation.fieldName))}Form`
 
     return Identifier.createVariable(name)
   },
 
-  toExportPath(operation): string {
-    const { name } = this.toIdentifier(operation)
+  toExportPath({ operation, enrichments }): string {
+    const { name } = this.toIdentifier({ operation, enrichments })
 
     return join('@', 'forms', `${name}.generated.tsx`)
   }

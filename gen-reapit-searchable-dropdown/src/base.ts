@@ -13,13 +13,13 @@ export const ReapitSearchableDropdownBase = toGqlOperationProjectionBase<Enrichm
 
   toEnrichmentSchema,
 
-  toIdentifier(operation): Identifier {
+  toIdentifier({ operation }): Identifier {
     // GetOffices → OfficesMultiLookupField, GetNegotiators → NegotiatorsMultiLookupField
     const stripped = stripGetPrefix(operation.fieldName)
     return Identifier.createVariable(`${stripped}MultiLookupField`)
   },
 
-  toExportPath(operation): string {
+  toExportPath({ operation, enrichments }): string {
     const stripped = stripGetPrefix(operation.fieldName)
     return join('@', 'forms', 'fields', `${decapitalize(stripped)}Lookup.generated.tsx`)
   }

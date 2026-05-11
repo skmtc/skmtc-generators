@@ -1,7 +1,7 @@
 {
   "imports": {
-    "@skmtc/core": "jsr:@skmtc/core@^0.3.1",
-    "@skmtc/core/parsers/graphql": "jsr:@skmtc/core@^0.3.1/parsers/graphql",
+    "@skmtc/core": "jsr:@skmtc/core@^0.3.5",
+    "@skmtc/core/parsers/graphql": "jsr:@skmtc/core@^0.3.5/parsers/graphql",
     "@std/log": "jsr:@std/log@^0.224.6",
     "@std/fmt/colors": "jsr:@std/fmt@^1.0.0/colors",
     "@std/path/normalize": "jsr:@std/path@^1.1.2/normalize",

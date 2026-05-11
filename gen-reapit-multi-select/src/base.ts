@@ -24,12 +24,12 @@ export const ReapitMultiSelectBase = toGqlOperationProjectionBase<EnrichmentSche
 
   toEnrichmentSchema,
 
-  toIdentifier(operation): Identifier {
+  toIdentifier({ operation }): Identifier {
     const stripped = stripGetPrefix(operation.fieldName)
     return Identifier.createVariable(`${stripped}MultiSelectField`)
   },
 
-  toExportPath(operation): string {
+  toExportPath({ operation, enrichments }): string {
     const stripped = stripGetPrefix(operation.fieldName)
     return join('@', 'forms', 'fields', `${decapitalize(stripped)}MultiSelect.generated.tsx`)
   }

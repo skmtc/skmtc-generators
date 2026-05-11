@@ -5,7 +5,8 @@ import denoJson from '../deno.json' with { type: 'json' }
 export const MswBase = toOasOperationProjectionBase({
   id: denoJson.name,
 
-  toIdentifier({ method, path }): Identifier {
+  toIdentifier({ operation }): Identifier {
+    const { method, path } = operation
     const name = `${method}${camelCase(path, { upperFirst: true })}Handler`
 
     return Identifier.createVariable(name)

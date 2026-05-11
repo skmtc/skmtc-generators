@@ -10,7 +10,7 @@ export const ExpressAppBase = toOasOperationProjectionBase({
     return Identifier.createVariable('app')
   },
 
-  toExportPath(operation): string {
+  toExportPath({ operation, enrichments }): string {
     const firstSegment = toFirstSegment(operation)
 
     return join('@', `${firstSegment}`, `routes.generated.ts`)

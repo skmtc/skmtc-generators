@@ -8,15 +8,15 @@ export const ShadcnFormBase = toOasOperationProjectionBase<EnrichmentSchema>({
 
   toEnrichmentSchema,
 
-  toIdentifier(operation): Identifier {
+  toIdentifier({ operation }): Identifier {
     const verb = capitalize(toMethodVerb(operation.method))
     const name = `${verb}${camelCase(operation.path, { upperFirst: true })}Form`
 
     return Identifier.createVariable(name)
   },
 
-  toExportPath(operation): string {
-    const { name } = this.toIdentifier(operation)
+  toExportPath({ operation, enrichments }): string {
+    const { name } = this.toIdentifier({ operation, enrichments })
 
     return join('@', 'forms', `${name}.generated.tsx`)
   }

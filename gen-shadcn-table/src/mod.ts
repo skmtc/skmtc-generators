@@ -17,9 +17,11 @@ export const ShadcnTableEntry = toOasOperationEntry<EnrichmentSchema>({
     context.insertOperation({ projection: ShadcnTable, operation: operation })
   },
 
-  toPreviewModule: ({ operation }) => ({
-    name: ShadcnTable.toIdentifier(operation).name,
-    exportPath: ShadcnTable.toExportPath(operation),
-    group: 'tables'
-  })
+  toPreviewModule: ({ context, operation }) => {
+    const enrichments = ShadcnTable.toEnrichments({ operation, context })
+    return {
+      name: ShadcnTable.toIdentifier({ operation, enrichments }).name,
+      exportPath: ShadcnTable.toExportPath({ operation, enrichments })
+    }
+  }
 })
