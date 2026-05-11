@@ -68,7 +68,10 @@ export const toTsValue: SchemaToValueFn = ({
       { type: 'integer' },
       integerSchema => new TsInteger({ context, integerSchema, modifiers, generatorKey })
     )
-    .with({ type: 'boolean' }, () => new TsBoolean({ context, modifiers, generatorKey }))
+    .with(
+      { type: 'boolean' },
+      booleanSchema => new TsBoolean({ context, booleanSchema, modifiers, generatorKey })
+    )
     .with({ type: 'void' }, () => new TsVoid({ context, generatorKey }))
     .with(
       { type: 'string' },

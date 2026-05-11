@@ -5,14 +5,14 @@ import { join } from '@std/path'
 export const TypescriptBase = toModelProjectionBase({
   id: '@skmtc/gen-typescript',
 
-  toIdentifier(refName: RefName): Identifier {
+  toIdentifier({ refName }): Identifier {
     const name = capitalize(camelCase(refName))
 
     return Identifier.createType(name)
   },
 
-  toExportPath(refName: RefName): string {
-    const { name } = this.toIdentifier(refName)
+  toExportPath({ refName, enrichments }): string {
+    const { name } = this.toIdentifier({ refName, enrichments })
 
     return join('@', 'types', `${decapitalize(name)}.generated.ts`)
   }
