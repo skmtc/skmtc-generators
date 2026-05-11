@@ -1,11 +1,11 @@
 {
   "name": "@skmtc/gen-graphql-operation",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "exports": "./mod.ts",
   "imports": {
-    "@skmtc/core": "jsr:@skmtc/core@^0.3.1",
-    "@skmtc/core/parsers/graphql": "jsr:@skmtc/core@^0.3.1/parsers/graphql",
-    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@^0.0.53",
+    "@skmtc/core": "jsr:@skmtc/core@0.3.7",
+    "@skmtc/core/parsers/graphql": "jsr:@skmtc/core@0.3.7/parsers/graphql",
+    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.0.55",
     "@std/assert": "jsr:@std/assert@^1.0.10",
     "@std/testing": "jsr:@std/testing@^1.0.8",
     "@std/log": "jsr:@std/log@^0.224.6",

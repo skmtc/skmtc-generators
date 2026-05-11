@@ -1,9 +1,9 @@
 {
   "name": "@skmtc/gen-daisyui-form",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "imports": {
-    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@^0.0.53",
-    "@skmtc/gen-zod": "jsr:@skmtc/gen-zod@^0.0.53"
+    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.0.55",
+    "@skmtc/gen-zod": "jsr:@skmtc/gen-zod@0.0.55"
   },
   "exports": "./mod.ts",
   "tasks": {

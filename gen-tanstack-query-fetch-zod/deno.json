@@ -1,10 +1,10 @@
 {
   "name": "@skmtc/gen-tanstack-query-fetch-zod",
-  "version": "0.0.54",
+  "version": "0.0.55",
   "exports": "./mod.ts",
   "imports": {
-    "@skmtc/gen-zod": "jsr:@skmtc/gen-zod@^0.0.53",
-    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@^0.0.53"
+    "@skmtc/gen-zod": "jsr:@skmtc/gen-zod@0.0.55",
+    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.0.55"
   },
   "tasks": {
     "test": "deno test --allow-env --allow-sys --allow-read || true",
