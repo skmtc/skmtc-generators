@@ -16,18 +16,12 @@ export const formFieldItem = v.object({
 
 export type FieldSchema = v.InferOutput<typeof formFieldItem>
 
-export const formPropertiesSchema = v.optional(
+export const formSchema = v.optional(
   v.object({
     title: v.optional(v.string()),
     description: v.optional(v.string()),
     submitLabel: v.optional(v.string()),
     fields: v.optional(v.array(formFieldItem))
-  })
-)
-
-export const formSchema = v.optional(
-  v.object({
-    form: formPropertiesSchema
   })
 )
 

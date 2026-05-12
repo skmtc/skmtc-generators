@@ -8,4 +8,10 @@
 | ID | Time | T | Title | Read |
 |----|------|---|-------|------|
 | #18751 | 11:07 AM | ✅ | Configured all monorepo packages to publish to local JSR instance | ~480 |
+
+### May 11, 2026
+
+| ID | Time | T | Title | Read |
+|----|------|---|-------|------|
+| #20425 | 6:59 PM | 🔵 | gen-shadcn-form local package at 0.0.55 with peer dependencies on matching version generators | ~609 |
 </claude-mem-context>

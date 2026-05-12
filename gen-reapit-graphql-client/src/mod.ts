@@ -12,7 +12,7 @@ import denoJson from '../deno.json' with { type: 'json' }
  *   Mutation.CreateContact → useCreateContact() returning useMutation<...>
  *
  * Output is a self-contained `.generated.ts` per operation:
- *   - Variables type (synthesised from operation.arguments)
+ *   - Variables type (synthesized from operation.arguments)
  *   - Result type (TS Projection on operation.returnType)
  *   - TypedDocumentNode constant (string cast)
  *   - The hook itself

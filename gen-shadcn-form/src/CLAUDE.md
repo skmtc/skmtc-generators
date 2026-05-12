@@ -8,4 +8,12 @@
 | ID | Time | T | Title | Read |
 |----|------|---|-------|------|
 | #19181 | 9:27 PM | 🔵 | Generator registration architecture separates artifact definitions from import statements | ~461 |
+
+### May 12, 2026
+
+| ID | Time | T | Title | Read |
+|----|------|---|-------|------|
+| #20647 | 8:39 AM | 🔵 | SKMTC generator configuration via ProjectionBase pattern | ~200 |
+| #20646 | " | 🔵 | SKMTC generator composition pattern - ShadcnForm implementation | ~693 |
+| #20645 | " | 🔵 | SKMTC form generation schema-to-component mapping | ~567 |
 </claude-mem-context>

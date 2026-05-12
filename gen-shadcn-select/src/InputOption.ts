@@ -16,7 +16,7 @@ export class InputOption extends SnippetBase {
     super({ context })
 
     this.formatter = formatter
-    // TODO: Create helper function to safely serialise the accessor path
+    // TODO: Create helper function to safely serialize the accessor path
 
     this.accessorPath =
       accessorPath?.length > 0 ? [itemName, ...accessorPath].join('.') : [itemName, 'id'].join('.')

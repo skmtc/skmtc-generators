@@ -6,7 +6,7 @@ import { labelText } from './labelText.ts'
  * HTML input types we discriminate between for string fields. Maps
  * directly onto the `type` attribute the underlying `<input>` carries —
  * affects mobile keyboard, browser-native validation, and the date
- * picker behaviour. Adding a new type here only requires extending the
+ * picker behavior. Adding a new type here only requires extending the
  * union; the StringField widget on the consumer side forwards `type`
  * verbatim.
  */

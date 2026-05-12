@@ -20,7 +20,7 @@ export class Column extends SnippetBase {
       },
       destinationPath
     })
-    // TODO: Create helper function to safely serialise the accessor path
+    // TODO: Create helper function to safely serialize the accessor path
   }
 
   override toString(): string {

@@ -1,12 +1,12 @@
 {
   "name": "@skmtc/gen-reapit-graphql-client",
-  "version": "0.0.6",
+  "version": "0.0.57",
   "exports": "./mod.ts",
   "imports": {
-    "@skmtc/core": "jsr:@skmtc/core@0.3.7",
-    "@skmtc/core/parsers/graphql": "jsr:@skmtc/core@0.3.7/parsers/graphql",
-    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.0.55",
-    "@skmtc/gen-graphql-operation": "jsr:@skmtc/gen-graphql-operation@0.0.6"
+    "@skmtc/core": "jsr:@skmtc/core@0.4.2",
+    "@skmtc/core/parsers/graphql": "jsr:@skmtc/core@0.4.2/parsers/graphql",
+    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@^0.0.57",
+    "@skmtc/gen-graphql-operation": "jsr:@skmtc/gen-graphql-operation@^0.0.57"
   },
   "tasks": {
     "publish": "JSR_URL=https://jsr.skmtc.dev/ deno publish --allow-slow-types --allow-dirty --token=$JSR_AUTH_TOKEN"

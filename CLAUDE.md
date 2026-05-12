@@ -74,3 +74,5 @@ When modifying generators:
 1. Each generator's test command includes necessary permissions (--allow-env, --allow-sys, --allow-read)
 2. Generators use the package name from `deno.json` as their identifier
 3. The main `deno.json` imports all generators locally and provides a unified publish task
+
+Use US English spelling in code, prose and documentation

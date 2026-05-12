@@ -36,7 +36,7 @@ export type SchemaToFieldArgs = {
    * Per-field enrichment overrides, keyed by dotted accessor path.
    * Lookups happen at every level of the recursion, so an override at
    * `primaryAddress.type` applies to that nested field while leaving
-   * sibling addresses' `type` fields with the default humanised label.
+   * sibling addresses' `type` fields with the default humanized label.
    *
    * Override fields (`label`, `references`, `referenceKind`,
    * `placeholder`) all read from the canonical `formFieldItem` schema
@@ -208,7 +208,7 @@ const isReferenceKind = (value: string | undefined): value is ReferenceKind =>
  *
  * Future: add an explicit `inputType` field to the canonical
  * `formFieldItem` enrichment so consumers can override per-field
- * (e.g. a "Url" string that this heuristic doesn't recognise).
+ * (e.g. a "Url" string that this heuristic doesn't recognize).
  */
 const inferStringInputType = (
   path: string,
@@ -223,7 +223,7 @@ const inferStringInputType = (
 }
 
 /**
- * Humanise the last segment of a dotted accessor path. Leading
+ * Humanize the last segment of a dotted accessor path. Leading
  * underscores stripped, camelCase boundaries split into words, first
  * letter title-cased.
  *   - `dateOfBirth` → "Date Of Birth"

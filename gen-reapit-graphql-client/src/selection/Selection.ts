@@ -6,7 +6,7 @@
  *   - {@link ObjectSelection} — a sub-selection with `{ ... }` children
  *   - {@link EmptySelection}  — sentinel meaning "skip this field"
  *
- * Discriminated by behaviour rather than a `kind` tag: the parent uses
+ * Discriminated by behavior rather than a `kind` tag: the parent uses
  * `isEmpty` to decide whether to include a child at all, and `withName`
  * to render it once included. Scalars and objects implement those two
  * methods differently — that's the whole protocol.

@@ -93,7 +93,7 @@ export class ShadcnForm extends ShadcnFormBase {
   }
 
   override toString(): string {
-    const { title, description, submitLabel } = this.settings.enrichments?.form ?? {}
+    const { title, description, submitLabel } = this.settings.enrichments ?? {}
 
     return `(${this.parameter}) => {
   const form = useForm<Required<${this.tsRequestBodyName}>>({

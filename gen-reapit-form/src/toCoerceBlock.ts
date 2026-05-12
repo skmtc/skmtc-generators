@@ -1,7 +1,7 @@
 import type { CustomValue, OasObject, OasRef, OasSchema } from '@skmtc/core'
 
 /**
- * Synthesise a JS object-literal expression that maps form values
+ * Synthesize a JS object-literal expression that maps form values
  * (RHF-stored) to the GraphQL submit shape.
  *
  * The form's field components are typed against non-null lenses via
