@@ -58,7 +58,7 @@ The repository uses Deno workspaces with the following generators:
 Each generator follows a consistent pattern:
 
 1. **Entry Point**: Each generator exports a default entry function (e.g., `typescriptEntry`, `zodEntry`) from `src/mod.ts`
-2. **Main Insertable**: A main class (e.g., `TsInsertable`, `ZodInsertable`) that handles the transformation
+2. **Main Projection**: A main class (e.g., `TsProjection`, `ZodProjection`) that handles the transformation
 3. **Type Classes**: Individual classes for each output type (e.g., `TsString`, `TsObject`, `ZodString`, `ZodObject`)
 4. **Base Class**: Most generators have a base class with common functionality for identifier and export path generation
 

@@ -21,7 +21,7 @@ OpenAPI to TypeScript type definitions generator for [Skmtc](https://skm.tc).
 ### Install Skmtc
 
 ```bash
-deno install -g -A --unstable-worker-options jsr:@skmtc/cli@0.0.405 -n skmtc -f
+deno install -g -A --unstable-worker-options jsr:@skmtc/cli -n skmtc -f
 ```
 
 **Skmtc** runs on [Deno](https://deno.com). You can install it using 

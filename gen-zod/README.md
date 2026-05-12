@@ -24,7 +24,7 @@ OpenAPI to [Zod](https://zod.dev/) schema generator for [Skmtc](https://skm.tc).
 ### Install Skmtc
 
 ```bash
-deno install -g -A --unstable-worker-options jsr:@skmtc/cli@0.0.405 -n skmtc -f
+deno install -g -A --unstable-worker-options jsr:@skmtc/cli -n skmtc -f
 ```
 
 **Skmtc** runs on [Deno](https://deno.com). You can install it using
@@ -93,7 +93,7 @@ skmtc generate <project name> <path or url to openapi schema>
 ```typescript
 import { z } from "zod";
 
-export const User = z.object({
+export const user = z.object({
   id: z.string(),
   age: z.number(),
   score: z.number().int(),
@@ -135,7 +135,7 @@ Properties not in the `required` array become optional:
 <td valign="top">
 
 ```typescript
-export const Profile = z.object({
+export const profile = z.object({
   username: z.string(),
   bio: z.string().optional(),
   website: z.string().optional(),
@@ -175,8 +175,8 @@ Single enum values become literals, multiple values become z.enum:
 <td valign="top">
 
 ```typescript
-export const Status = z.enum(["active", "inactive", "pending"]);
-export const Role = z.literal("admin");
+export const status = z.enum(["active", "inactive", "pending"]);
+export const role = z.literal("admin");
 ```
 
 </td>
@@ -213,8 +213,8 @@ export const Role = z.literal("admin");
 <td valign="top">
 
 ```typescript
-export const Tags = z.array(z.string());
-export const Matrix = z.array(z.array(z.number()));
+export const tags = z.array(z.string());
+export const matrix = z.array(z.array(z.number()));
 ```
 
 </td>
@@ -255,7 +255,7 @@ export const Matrix = z.array(z.array(z.number()));
 <td valign="top">
 
 ```typescript
-export const Company = z.object({
+export const company = z.object({
   name: z.string(),
   address: z.object({
     street: z.string(),
@@ -298,7 +298,7 @@ export const Company = z.object({
 <td valign="top">
 
 ```typescript
-export const Article = z.object({
+export const article = z.object({
   title: z.string(),
   publishedAt: z.string().nullable(),
 });
@@ -353,9 +353,9 @@ export const Article = z.object({
 <td valign="top">
 
 ```typescript
-export const StringOrNumber = z.union([z.string(), z.number()]);
+export const stringOrNumber = z.union([z.string(), z.number()]);
 
-export const Pet = z.discriminatedUnion("type", [
+export const pet = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("cat"),
     meow: z.boolean(),
@@ -402,9 +402,9 @@ export const Pet = z.discriminatedUnion("type", [
 <td valign="top">
 
 ```typescript
-export const Metadata = z.record(z.string(), z.string());
+export const metadata = z.record(z.string(), z.string());
 
-export const Config = z.object({ id: z.string() }).and(
+export const config = z.object({ id: z.string() }).and(
   z.record(z.string(), z.number()),
 );
 ```
@@ -440,7 +440,7 @@ export const Config = z.object({ id: z.string() }).and(
 <td valign="top">
 
 ```typescript
-export const Category = z.object({
+export const category = z.object({
   name: z.string(),
   parent: z.lazy(() => Category).optional(),
 });
@@ -474,9 +474,9 @@ Schema names are automatically converted to PascalCase:
 <td valign="top">
 
 ```typescript
-export const UserProfile = z.string();
-export const ApiResponse = z.number();
-export const MyType = z.boolean();
+export const userProfile = z.string();
+export const apiResponse = z.number();
+export const myType = z.boolean();
 ```
 
 </td>

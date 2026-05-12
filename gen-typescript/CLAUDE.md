@@ -30,7 +30,7 @@ This is a TypeScript code generator for the Skmtc framework. It transforms schem
 
 ### Core Components
 
-The generator follows a pattern where each TypeScript type has its own class (e.g., `TsString`, `TsArray`, `TsObject`) that extends from `TypescriptBase`. The main entry point is `typescriptEntry` which uses `TsInsertable` to generate types.
+The generator has two layers: one **Projection** class (`TsProjection`, extending `TypescriptBase` from `src/base.ts`) orchestrates per-model emission and is the cache-key-bearing artifact, and per-variant **Snippet** classes (`TsString`, `TsArray`, `TsObject`, `TsUnion`, `TsNumber`, `TsInteger`, `TsBoolean`, `TsRef`, `TsNull`, `TsNever`, `TsVoid`, `TsUnknown`, all extending `SnippetBase`) handle the inline rendering for each schema variant. The main entry point is `typescriptEntry` from `src/mod.ts`, which dispatches to `TsProjection`.
 
 ### Key Files
 
@@ -38,7 +38,8 @@ The generator follows a pattern where each TypeScript type has its own class (e.
 - `src/mod.ts` - Contains the generator entry point (`typescriptEntry`)
 - `src/base.ts` - Base class `TypescriptBase` with common functionality for identifier and export path generation
 - `src/Ts.ts` - Contains `toTsValue` function that maps schema types to their corresponding TypeScript generator classes
-- `src/TsInsertable.ts` - Main insertable class that generates TypeScript types from schemas
+- `src/TsProjection.ts` - The Projection class that orchestrates per-model TS type generation
+- `src/TsString.ts`, `src/TsArray.ts`, `src/TsObject.ts`, etc. - per-variant Snippet classes (one per schema kind)
 
 ### Type Mapping
 
