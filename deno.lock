@@ -136,31 +136,13 @@
       },
       "gen-graphql-operation": {
         "dependencies": [
-          "jsr:@skmtc/core@0.4.3",
+          "jsr:@skmtc/core@0.4.4",
           "jsr:@skmtc/gen-typescript@^0.0.57",
           "jsr:@std/assert@^1.0.10",
           "jsr:@std/fmt@1",
           "jsr:@std/log@~0.224.6",
           "jsr:@std/path@^1.1.2",
           "jsr:@std/testing@^1.0.8",
-          "npm:@types/lodash-es@4.17.12",
-          "npm:graphql@^16.9.0",
-          "npm:lodash-es@4.17.21",
-          "npm:openapi-types@^12.1.3",
-          "npm:tiny-invariant@^1.3.3",
-          "npm:ts-pattern@^5.8.0",
-          "npm:valibot@1.1.0"
-        ]
-      },
-      "gen-graphql-typed-document-node": {
-        "dependencies": [
-          "jsr:@skmtc/core@0.4.3",
-          "jsr:@skmtc/gen-graphql-operation@^0.0.57",
-          "jsr:@skmtc/gen-typescript@^0.0.57",
-          "jsr:@std/assert@^1.0.10",
-          "jsr:@std/fmt@1",
-          "jsr:@std/log@~0.224.6",
-          "jsr:@std/path@^1.1.2",
           "npm:@types/lodash-es@4.17.12",
           "npm:graphql@^16.9.0",
           "npm:lodash-es@4.17.21",

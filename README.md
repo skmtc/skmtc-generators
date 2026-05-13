@@ -18,8 +18,6 @@
 | ![](assets/shadcnui.svg) | Shadcn Select | [@skmtc/gen-shadcn-select](https://github.com/skmtc/skmtc-generators/tree/main/gen-shadcn-select) | 🚀 Now |
 | ![](assets/shadcnui.svg) | Shadcn Table | [@skmtc/gen-shadcn-table](https://github.com/skmtc/skmtc-generators/tree/main/gen-shadcn-table) | 🚀 Now |
 | | DaisyUI Form | [@skmtc/gen-daisyui-form](https://github.com/skmtc/skmtc-generators/tree/main/gen-daisyui-form) | 🚀 Now |
-| | GraphQL Operation | [@skmtc/gen-graphql-operation](https://github.com/skmtc/skmtc-generators/tree/main/gen-graphql-operation) | 🚀 Now |
-| | GraphQL Typed Document Node | [@skmtc/gen-graphql-typed-document-node](https://github.com/skmtc/skmtc-generators/tree/main/gen-graphql-typed-document-node) | 🚀 Now |
 | | Reapit Form | [@skmtc/gen-reapit-form](https://github.com/skmtc/skmtc-generators/tree/main/gen-reapit-form) | 🚀 Now |
 | | Reapit GraphQL Client | [@skmtc/gen-reapit-graphql-client](https://github.com/skmtc/skmtc-generators/tree/main/gen-reapit-graphql-client) | 🚀 Now |
 | | Reapit Multi-Select | [@skmtc/gen-reapit-multi-select](https://github.com/skmtc/skmtc-generators/tree/main/gen-reapit-multi-select) | 🚀 Now |

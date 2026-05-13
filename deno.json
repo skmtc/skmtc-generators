@@ -24,8 +24,6 @@
     "@skmtc/gen-zod": "./gen-zod/mod.ts",
     "@skmtc/gen-arktype": "./gen-arktype/mod.ts",
     "@skmtc/gen-daisyui-form": "./gen-daisyui-form/mod.ts",
-    "@skmtc/gen-graphql-operation": "./gen-graphql-operation/mod.ts",
-    "@skmtc/gen-graphql-typed-document-node": "./gen-graphql-typed-document-node/mod.ts",
     "@skmtc/gen-reapit-form": "./gen-reapit-form/mod.ts",
     "@skmtc/gen-reapit-searchable-dropdown": "./gen-reapit-searchable-dropdown/mod.ts",
     "@skmtc/gen-reapit-multi-select": "./gen-reapit-multi-select/mod.ts",
@@ -39,7 +37,7 @@
   "tasks": {
     "test": "deno task --cwd=gen-typescript test && deno task --cwd=gen-zod test && deno task --cwd=gen-valibot test && deno task --cwd=gen-arktype test",
     "check": "deno check gen-typescript/mod.ts && deno check gen-zod/mod.ts && deno check gen-valibot/mod.ts && deno check gen-arktype/mod.ts && deno check gen-msw/mod.ts && deno check gen-shadcn-form/mod.ts && deno check gen-shadcn-select/mod.ts && deno check gen-shadcn-table/mod.ts && deno check gen-supabase-hono/mod.ts && deno check gen-express/mod.ts && deno check gen-tanstack-query-fetch-zod/mod.ts && deno check gen-tanstack-query-supabase-zod/mod.ts",
-    "publish": "deno task --cwd=gen-typescript publish && deno task --cwd=gen-zod publish && deno task --cwd=gen-valibot publish && deno task --cwd=gen-arktype publish && deno task --cwd=gen-msw publish && deno task --cwd=gen-supabase-hono publish && deno task --cwd=gen-express publish && deno task --cwd=gen-tanstack-query-fetch-zod publish && deno task --cwd=gen-tanstack-query-supabase-zod publish && deno task --cwd=gen-daisyui-form publish && deno task --cwd=gen-reapit-form publish && deno task --cwd=gen-graphql-operation publish && deno task --cwd=gen-shadcn-form publish && deno task --cwd=gen-shadcn-select publish && deno task --cwd=gen-shadcn-table publish && deno task --cwd=gen-graphql-typed-document-node publish"
+    "publish": "deno task --cwd=gen-typescript publish && deno task --cwd=gen-zod publish && deno task --cwd=gen-valibot publish && deno task --cwd=gen-arktype publish && deno task --cwd=gen-msw publish && deno task --cwd=gen-supabase-hono publish && deno task --cwd=gen-express publish && deno task --cwd=gen-tanstack-query-fetch-zod publish && deno task --cwd=gen-tanstack-query-supabase-zod publish && deno task --cwd=gen-daisyui-form publish && deno task --cwd=gen-reapit-form publish && deno task --cwd=gen-shadcn-form publish && deno task --cwd=gen-shadcn-select publish && deno task --cwd=gen-shadcn-table publish"
   },
   "nodeModulesDir": "none",
   "workspace": [
@@ -56,8 +54,6 @@
     "./gen-supabase-hono",
     "./gen-express",
     "./gen-daisyui-form",
-    "./gen-graphql-operation",
-    "./gen-graphql-typed-document-node",
     "./gen-reapit-form",
     "./gen-reapit-searchable-dropdown",
     "./gen-reapit-multi-select",
