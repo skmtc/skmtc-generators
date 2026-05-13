@@ -7,17 +7,17 @@ import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
 /**
- * gen-reapit-multi-select: emits one `<XMultiSelectField>` per qualifying
- * GraphQL Query (paged result with `_embedded: [{ id, name }]`). Output
- * is a self-contained React component — the emitted file owns the
- * GraphQL query, RHF wiring, selected-chip rendering (Reapit `<Chip>`),
- * and the unselected-options checkbox list. No hand-written widget is
- * required in the consumer.
+ * gen-reapit-multi-select: produces one `<XMultiSelectField>` per
+ * qualifying GraphQL Query (paged result with `_embedded: [{ id, name }]`).
+ * Output is a self-contained React component — the generated file owns
+ * the GraphQL query, RHF wiring, selected-chip rendering (Reapit
+ * `<Chip>`), and the unselected-options checkbox list. No hand-written
+ * widget is required in the consumer.
  *
  * Sibling to `gen-reapit-searchable-dropdown` — same predicate, same
- * dispatch protocol, different output shape. The form generator picks
- * which producer to dispatch via the per-field `referenceKind`
- * enrichment (`'multiselect' | 'searchable'`).
+ * operation-reference protocol, different output shape. The form
+ * generator picks which producer to insert via the per-field
+ * `referenceKind` enrichment (`'multiselect' | 'searchable'`).
  */
 export const reapitMultiSelectEntry = toGqlOperationEntry<EnrichmentSchema>({
   id: denoJson.name,

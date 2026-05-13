@@ -109,7 +109,8 @@ export class ReapitForm extends ReapitFormBase {
     this.fieldsBlock = fieldLines.join('\n')
 
     // Synthesize a per-form transform from RHF-stored values → GraphQL
-    // submit shape. Walks the same args structure as the field dispatch.
+    // submit shape. Walks the same args structure as the field-rendering
+    // switch.
     this.coerceBlock = toCoerceBlock(args)
 
     // Sibling type alias: `export type XxxArgs = z.infer<typeof xxxSchema>`.

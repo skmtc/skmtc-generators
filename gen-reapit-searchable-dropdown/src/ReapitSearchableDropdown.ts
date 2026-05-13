@@ -7,9 +7,9 @@ import type { EnrichmentSchema } from './enrichments.ts'
  * GraphQL Query → Reapit Elements `<ControlledSearchableDropdown>`
  * component generator.
  *
- * Emits a self-contained search-driven multi-select per qualifying
+ * Produces a self-contained search-driven multi-select per qualifying
  * query. The data layer is delegated to `gen-reapit-graphql-client` via
- * the operation-reference protocol — the emitted file pulls in the
+ * the operation-reference protocol — the generated file pulls in the
  * `useGetX` hook (a debounced React Query call backed by graphql-request)
  * and binds it to the dropdown's `value` / `resultsList` props. Selected
  * items render as removable Reapit `<Chip hasClose>` elements above
@@ -35,9 +35,9 @@ export class ReapitSearchableDropdown extends ReapitSearchableDropdownBase {
 
     this.fieldName = operation.fieldName
 
-    // Dispatch the data-layer generator. The Driver caches by
+    // Insert the data-layer generator. The Driver caches by
     // (toIdentifier, toExportPath), so multiple consumers of the same
-    // query share one emitted hook file with one import per consumer.
+    // query share one hook file with one import per consumer.
     this.hookName = this.insertOperation(ReapitGraphqlClient, operation).toName()
 
     this.register({

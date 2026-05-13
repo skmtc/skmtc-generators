@@ -23,7 +23,7 @@ import denoJson from '../deno.json' with { type: 'json' }
  * a query without a name filter can't be searched against, so it falls
  * outside this generator's scope.
  *
- * Designed for dispatch by `gen-reapit-form` via the operation-reference
+ * Designed to be inserted by `gen-reapit-form` via the operation-reference
  * protocol with `referenceKind: 'searchable'`. Output goes to
  * `@/forms/fields/<name>Lookup.generated.tsx`.
  */

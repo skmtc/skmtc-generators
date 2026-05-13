@@ -20,8 +20,8 @@ import denoJson from '../deno.json' with { type: 'json' }
  * `isSupported` is broad — every Query and Mutation in the schema gets a
  * hook. Mirrors the canonical `gen-tanstack-query-supabase-zod` pattern:
  * generators are cheap, consumers tree-shake what they don't use, and
- * narrow scoping requires every consumer to dispatch via insertOperation
- * which adds friction without saving meaningful work.
+ * narrow scoping requires every consumer to call `insertOperation`
+ * themselves — friction without saving meaningful work.
  */
 export const reapitGraphqlClientEntry = toGqlOperationEntry<EnrichmentSchema>({
   id: denoJson.name,

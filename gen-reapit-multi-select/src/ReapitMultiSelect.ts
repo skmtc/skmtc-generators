@@ -6,13 +6,13 @@ import type { EnrichmentSchema } from './enrichments.ts'
 /**
  * GraphQL Query → Reapit Elements `<MultiSelect>` component generator.
  *
- * Emits a self-contained React component per qualifying query. Uses
+ * Produces a self-contained React component per qualifying query. Uses
  * Reapit Elements v4's native MultiSelect compound (MultiSelect /
  * MultiSelectSelected / MultiSelectUnSelected / MultiSelectChip) for
- * UI, and dispatches `gen-reapit-graphql-client` for the data layer
- * via the operation-reference protocol — so the emitted component
- * pulls in `useGetX()` (a React Query hook backed by graphql-request)
- * rather than inlining a fetch + useEffect/useState.
+ * UI, and inserts `gen-reapit-graphql-client` for the data layer via
+ * the operation-reference protocol — so the rendered component pulls
+ * in `useGetX()` (a React Query hook backed by graphql-request) rather
+ * than inlining a fetch + useEffect/useState.
  *
  * Adds three bulk-action affordances above the chip list:
  *   - "X of Y selected" count
@@ -35,9 +35,9 @@ export class ReapitMultiSelect extends ReapitMultiSelectBase {
 
     this.fieldName = operation.fieldName
 
-    // Dispatch the data-layer generator. The Driver caches by
+    // Insert the data-layer generator. The Driver caches by
     // (toIdentifier, toExportPath), so multiple consumers of the same
-    // query share one emitted hook file with one import per consumer.
+    // query share one hook file with one import per consumer.
     // destinationPath defaults to this.settings.exportPath via the base.
     this.hookName = this.insertOperation(ReapitGraphqlClient, operation).toName()
 

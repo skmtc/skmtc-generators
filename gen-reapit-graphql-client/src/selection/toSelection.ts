@@ -12,7 +12,7 @@ type ToSelectionArgs = {
 /**
  * SKMTC sometimes models `$ref + nullable` as a one-member union
  * (see skill §16: "single-member intersection unwrap"). Walk past those
- * wrappers before dispatching, so the discriminator switch sees the
+ * wrappers before the switch, so the discriminator switch sees the
  * underlying schema. Narrowing flows through `.isRef()` (type predicate)
  * and `.type === 'union'` (discriminator on OasSchema), so no `as`
  * casts are needed.
@@ -32,7 +32,8 @@ const unwrap = (
 }
 
 /**
- * Dispatch an OAS schema to the appropriate {@link Selection} variant.
+ * Switch on an OAS schema and return the appropriate {@link Selection}
+ * variant.
  *
  * Mirrors the shape of `gen-zod`'s `toZodValue`: an exhaustive switch
  * over `schema.type` with a `_exhaustive: never` floor that turns a
@@ -42,7 +43,7 @@ const unwrap = (
  *
  * Refs resolve at this layer with cycle break; depth-limit stops
  * unbounded recursion through self-referential types. Both happen
- * before the switch so the dispatcher only ever sees a concrete
+ * before the switch so the match arms only ever see a concrete
  * schema object.
  */
 export const toSelection = ({

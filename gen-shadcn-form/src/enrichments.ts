@@ -4,7 +4,7 @@ import { moduleExport } from '@skmtc/core'
 // Per-field override carried by the form's `fields[]` enrichment.
 // `id` matches the field's argument/property name; everything else
 // is optional. `references` opts the field into the operation-
-// reference dispatch protocol — see gen-shadcn-select.
+// reference protocol — see gen-shadcn-select.
 export const formFieldItem = v.object({
   id: v.string(),
   accessorPath: v.optional(v.array(v.string())),

@@ -10,9 +10,9 @@ type ObjectSelectionArgs = {
 }
 
 /**
- * Sub-selection over an object's properties. Constructed once at
- * dispatch time; recursion into property schemas happens here, not in
- * `toString`. Empty children (cycles, depth-exhausted, multi-member
+ * Sub-selection over an object's properties. Constructed once when
+ * `toSelection` runs; recursion into property schemas happens here, not
+ * in `toString`. Empty children (cycles, depth-exhausted, multi-member
  * unions) are kept in the entry list and filtered out at render time
  * — this preserves source order without losing the entry, which makes
  * future enrichment-driven overrides easier to slot in.
@@ -26,7 +26,7 @@ export class ObjectSelection extends Selection {
     const properties = schema.properties ?? {}
     this.entries = Object.entries(properties).map(([name, propSchema]) => {
       // CustomValue is a separate branch — it doesn't share the OAS
-      // schema discriminator, so handle it before dispatching.
+      // schema discriminator, so handle it before the switch.
       if (isCustomValue(propSchema)) {
         return [name, new ScalarSelection()] as [string, Selection]
       }

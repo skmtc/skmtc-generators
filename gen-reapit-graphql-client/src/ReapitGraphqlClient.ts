@@ -25,7 +25,7 @@ const id = denoJson.name
  *   - The hook (useQuery for queries, useMutation for mutations)
  *
  * Consumers (forms, lists, custom inputs) compose against this
- * generator via `context.insertOperation` and call the emitted hook
+ * generator via `context.insertOperation` and call the produced hook
  * by name. The Driver dedupes — N consumers of the same operation
  * yield one hook file with N correctly-registered import statements.
  */

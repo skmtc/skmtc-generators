@@ -19,7 +19,7 @@ import type { CustomValue, OasObject, OasRef, OasSchema } from '@skmtc/core'
  *   - boolean (any)    →   `accessor ?? false`    (least-surprise UX)
  *   - object           →   recurse, optional wrapped in ternary
  *   - array            →   `accessor` (no per-element coercion in v1)
- *   - ref              →   resolve, then dispatch
+ *   - ref              →   resolve, then re-enter the switch
  */
 export const toCoerceBlock = (args: OasObject): string => {
   return toObjectExpr('values', args)

@@ -4,7 +4,7 @@ import { labelText } from './labelText.ts'
 
 export type LookupInputArgs = {
   context: GenerateContextType
-  /** The variable name of the dispatched lookup component (e.g. `OfficesMultiLookupField`). */
+  /** The variable name of the inserted lookup component (e.g. `OfficesMultiLookupField`). */
   componentName: string
   /** Lens path expressed as dotted property names, e.g. `officeIds`. */
   path: string

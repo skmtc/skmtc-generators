@@ -309,10 +309,11 @@ Deno.test('types.md line 171 - Extends type', () => {
     enum: [false]
   }
   // Friction #17 fix: a `{type: 'boolean', enum: [false]}` schema
-  // now emits the TS literal type `false`, not the wider `boolean`.
+  // now produces the TS literal type `false`, not the wider `boolean`.
   // The previous expectation (`'boolean'`) captured the lossy
-  // pre-fix behavior as documentation; with the dispatch boundary
-  // now threading `enums` through, the literal type is preserved.
+  // pre-fix behavior as documentation; with the schemaToValueFn → per-
+  // Snippet boundary now threading `enums` through, the literal type
+  // is preserved.
   assertEquals(jsonSchemaToTs(jsonSchema), 'false')
 })
 

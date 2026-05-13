@@ -1,0 +1,72 @@
+{
+  "packages": {
+    "@skmtc/gen-arktype": {
+      "version": "0.0.58",
+      "hash": "4a2b8f8e65061c7392dc34be1b13a25cedd9654ad1e83fdc3db1e97c0659f216"
+    },
+    "@skmtc/gen-daisyui-form": {
+      "version": "0.0.58",
+      "hash": "48524c77d680ef418618d667bfba699bb10524209c369d75b68508af79bff17c"
+    },
+    "@skmtc/gen-express": {
+      "version": "0.0.59",
+      "hash": "5b7966a03a995efb238fadfcf7fdbbb5a2f3eed80c09238bd4befa07984759de"
+    },
+    "@skmtc/gen-msw": {
+      "version": "0.0.59",
+      "hash": "8609dd3ffbb0bf643e0c4cbced205227ffffd25f8cfccdd75f2cf44a22be6fee"
+    },
+    "@skmtc/gen-reapit-form": {
+      "version": "0.0.58",
+      "hash": "f76ec09f712fe6ef45d488e08af9b2b5ee431c1ddbe46885f9b85e6568e248c2"
+    },
+    "@skmtc/gen-reapit-graphql-client": {
+      "version": "0.0.59",
+      "hash": "76c86b521b30defe32f0d46876fe96084d3cf3aafff29d28b410422ea7a21be5"
+    },
+    "@skmtc/gen-reapit-multi-select": {
+      "version": "0.0.58",
+      "hash": "845509172a0701fc1844e0eff87476260bca521cd6c68965f8a491c992ffc3ca"
+    },
+    "@skmtc/gen-reapit-searchable-dropdown": {
+      "version": "0.0.58",
+      "hash": "310b807ec8e4d55ff9a1c03eea6adaed96d528e1424c646ca1ba90297f9dae0f"
+    },
+    "@skmtc/gen-shadcn-form": {
+      "version": "0.0.58",
+      "hash": "555855a6549853104e4f3a9fb8daa39868de4b7ced3d81260cca732d4e9d8d7e"
+    },
+    "@skmtc/gen-shadcn-select": {
+      "version": "0.0.58",
+      "hash": "a91aae8b07337db1ede852b80b1a36d1020a1bd0df0b20c21cdf6aa3e4327a99"
+    },
+    "@skmtc/gen-shadcn-table": {
+      "version": "0.0.58",
+      "hash": "d1213d9d984a511c4ae2dd3274dc7e18543c8480cb8dfd6efd6436a2bb6d0174"
+    },
+    "@skmtc/gen-supabase-hono": {
+      "version": "0.0.59",
+      "hash": "09c17f40d6951e9c75ef31457f886610c003db1d5fdb4861d5f5e56915b76e63"
+    },
+    "@skmtc/gen-tanstack-query-fetch-zod": {
+      "version": "0.0.58",
+      "hash": "afda5ac9aab45a858769b1d7b3cbc15c095e2a796c0d4b90916bfbb38a58bd1c"
+    },
+    "@skmtc/gen-tanstack-query-supabase-zod": {
+      "version": "0.0.58",
+      "hash": "052137efc1f668b3eafe909d28d8c044d6841a3b12d8e0f0b824616ed68b9aa8"
+    },
+    "@skmtc/gen-typescript": {
+      "version": "0.0.58",
+      "hash": "c686c59f91ed0edd4b6095cb03aff783c8d85cfcb58a0e26236d643ae9ea4dde"
+    },
+    "@skmtc/gen-valibot": {
+      "version": "0.0.58",
+      "hash": "4fa7c0bfbd7932a2abb8f27f01c5b459345fa5fce55375aa50ee8d498fe8b1b7"
+    },
+    "@skmtc/gen-zod": {
+      "version": "0.0.58",
+      "hash": "05f15306577cf5ea329b92ff64eb4a9b717c52a235cd3b0dc6e8246c8ba7b1c3"
+    }
+  }
+}

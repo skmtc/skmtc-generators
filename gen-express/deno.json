@@ -1,10 +1,10 @@
 {
   "name": "@skmtc/gen-express",
-  "version": "0.0.58",
+  "version": "0.0.59",
   "exports": "./mod.ts",
   "imports": {
-    "@skmtc/gen-valibot": "jsr:@skmtc/gen-valibot@^0.0.57",
-    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@^0.0.57"
+    "@skmtc/gen-valibot": "jsr:@skmtc/gen-valibot@0.0.58",
+    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.0.58"
   },
   "tasks": {
     "test": "deno test --allow-env --allow-sys --allow-read || true",
