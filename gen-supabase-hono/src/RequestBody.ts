@@ -21,7 +21,7 @@ export class RequestBody extends SnippetBase {
       return
     }
 
-    const insertedRequestBody = context.insertNormalisedModel(ZodProjection, {
+    const insertedRequestBody = context.insertNormalizedModel(ZodProjection, {
       schema: requestBodySchema,
       fallbackName: decapitalize(`${serviceName}RequestBody`),
       destinationPath

@@ -1,6 +1,6 @@
 {
   "name": "@skmtc/gen-express",
-  "version": "0.0.57",
+  "version": "0.0.58",
   "exports": "./mod.ts",
   "imports": {
     "@skmtc/gen-valibot": "jsr:@skmtc/gen-valibot@^0.0.57",

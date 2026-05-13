@@ -20,7 +20,7 @@ export class RequestBody extends SnippetBase {
       return
     }
 
-    const insertedRequestBody = context.insertNormalisedModel(ValibotProjection, {
+    const insertedRequestBody = context.insertNormalizedModel(ValibotProjection, {
       schema: requestBodySchema,
       fallbackName: decapitalize(`${serviceName}RequestBody`),
       destinationPath

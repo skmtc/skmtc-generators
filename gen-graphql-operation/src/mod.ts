@@ -49,7 +49,7 @@ const emitOperation = (context: GenerateContextType, operation: GqlOperation): v
   // so it picks up the same scalar/format mapping as everything else.
   const argsObject = synthesizeArgsObject(operation)
   if (argsObject !== undefined) {
-    context.insertNormalisedModel(
+    context.insertNormalizedModel(
       TsProjection,
       {
         schema: argsObject,
@@ -95,7 +95,7 @@ type EmitResultArgs = {
  *
  * For ref returns, inserts the referenced model via `TsProjection` and
  * emits a `type FooResult = ReferencedType` alias plus the import.
- * For inline returns, routes the schema through `insertNormalisedModel`
+ * For inline returns, routes the schema through `insertNormalizedModel`
  * to materialize a TS type alias under the `Result` name.
  */
 const emitResult = ({
@@ -129,9 +129,9 @@ const emitResult = ({
       ]
     })
   } else {
-    // Inline schema — synthesize a TS type via insertNormalisedModel
+    // Inline schema — synthesize a TS type via insertNormalizedModel
     // under the result name itself.
-    context.insertNormalisedModel(
+    context.insertNormalizedModel(
       TsProjection,
       {
         schema: returnType,
