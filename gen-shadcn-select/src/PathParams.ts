@@ -17,7 +17,8 @@ export class PathParams extends ShadcnSelectApiBase {
 
     const { name: tableName } = ShadcnSelectApiBase.toIdentifier({
       operation,
-      enrichments: settings.enrichments
+      enrichments: settings.enrichments,
+      variant: settings.variant
     })
 
     this.pathParamsTsName = capitalize(`${tableName}PathParams`)

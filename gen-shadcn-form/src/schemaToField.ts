@@ -168,7 +168,8 @@ const getReferencedOperation = ({ context, references }: GetReferencedOperationA
   )
   const operation = context.document.value.operations.find(operation => {
     return (
-      operation.tags?.includes(references) && ShadcnSelectInput.isSupported({ context, operation })
+      operation.tags?.includes(references) &&
+      ShadcnSelectInput.isSupported({ context, operation, variant: 'main' })
     )
   })
 

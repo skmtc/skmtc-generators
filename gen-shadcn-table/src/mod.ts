@@ -13,15 +13,15 @@ export const ShadcnTableEntry = toOasOperationEntry<EnrichmentSchema>({
     return operation.method === 'get' && isListResponse(operation)
   },
 
-  transform: ({ context, operation }) => {
-    context.insertOperation({ projection: ShadcnTable, operation: operation })
+  transform: ({ context, operation, variant }) => {
+    context.insertOperation({ projection: ShadcnTable, operation, variant })
   },
 
-  toPreviewModule: ({ context, operation }) => {
-    const enrichments = ShadcnTable.toEnrichments({ operation, context })
+  toPreviewModule: ({ context, operation, variant }) => {
+    const enrichments = ShadcnTable.toEnrichments({ operation, context, variant })
     return {
-      name: ShadcnTable.toIdentifier({ operation, enrichments }).name,
-      exportPath: ShadcnTable.toExportPath({ operation, enrichments })
+      name: ShadcnTable.toIdentifier({ operation, enrichments, variant }).name,
+      exportPath: ShadcnTable.toExportPath({ operation, enrichments, variant })
     }
   }
 })

@@ -26,17 +26,17 @@ export const reapitMultiSelectEntry = toGqlOperationEntry<EnrichmentSchema>({
     return ReapitMultiSelect.isSupported({ context, operation })
   },
 
-  transform({ context, operation, acc }) {
+  transform({ context, operation, acc, variant }) {
     if (!ReapitMultiSelect.isSupported({ context, operation })) return acc
-    context.insertOperation({ projection: ReapitMultiSelect, operation })
+    context.insertOperation({ projection: ReapitMultiSelect, operation, variant })
     return acc
   },
 
-  toPreviewModule: ({ context, operation }) => {
-    const enrichments = ReapitMultiSelect.toEnrichments({ operation, context })
+  toPreviewModule: ({ context, operation, variant }) => {
+    const enrichments = ReapitMultiSelect.toEnrichments({ operation, context, variant })
     return {
-      name: ReapitMultiSelect.toIdentifier({ operation, enrichments }).name,
-      exportPath: ReapitMultiSelect.toExportPath({ operation, enrichments })
+      name: ReapitMultiSelect.toIdentifier({ operation, enrichments, variant }).name,
+      exportPath: ReapitMultiSelect.toExportPath({ operation, enrichments, variant })
     }
   },
 

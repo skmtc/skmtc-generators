@@ -44,8 +44,12 @@ export class ShadcnSelectField extends ShadcnSelectApiBase {
     })
   }
 
-  static override toIdentifier({ operation, enrichments }: ToOasOperationIdentifierArgs<EnrichmentSchema>) {
-    const name = ShadcnSelectApiBase.toIdentifier({ operation, enrichments })
+  static override toIdentifier({
+    operation,
+    enrichments,
+    variant
+  }: ToOasOperationIdentifierArgs<EnrichmentSchema>) {
+    const name = ShadcnSelectApiBase.toIdentifier({ operation, enrichments, variant })
 
     return Identifier.createVariable(`${name}Field`)
   }

@@ -13,15 +13,19 @@ export const ShadcnFormEntry = toOasOperationEntry<EnrichmentSchema>({
     )
   },
 
-  transform({ context, operation }) {
-    context.insertOperation({ projection: ShadcnForm, operation: operation })
+  transform({ context, operation, variant }) {
+    // Thread the engine's variant through to the Driver so the form's
+    // ContentSettings carries it. Without this, every variant would
+    // construct as `'main'` and collide on the second variant via the
+    // `Registered definition mismatch` integrity check.
+    context.insertOperation({ projection: ShadcnForm, operation, variant })
   },
 
-  toPreviewModule: ({ context, operation }) => {
-    const enrichments = ShadcnForm.toEnrichments({ operation, context })
+  toPreviewModule: ({ context, operation, variant }) => {
+    const enrichments = ShadcnForm.toEnrichments({ operation, context, variant })
     return {
-      name: ShadcnForm.toIdentifier({ operation, enrichments }).name,
-      exportPath: ShadcnForm.toExportPath({ operation, enrichments })
+      name: ShadcnForm.toIdentifier({ operation, enrichments, variant }).name,
+      exportPath: ShadcnForm.toExportPath({ operation, enrichments, variant })
     }
   },
 

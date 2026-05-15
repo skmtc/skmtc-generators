@@ -23,7 +23,7 @@ export class TanstackColumns extends ShadcnTableBase {
     const rowTypeDefinition = this.insertNormalizedModel(TsProjection, {
       schema,
       fallbackName: capitalize(
-        `${ShadcnTableBase.toIdentifier({ operation, enrichments: settings.enrichments }).name}RowType`
+        `${ShadcnTableBase.toIdentifier({ operation, enrichments: settings.enrichments, variant: settings.variant }).name}RowType`
       )
     })
 

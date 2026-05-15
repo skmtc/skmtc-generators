@@ -1,6 +1,6 @@
 {
   "name": "@skmtc/gen-arktype",
-  "version": "0.0.58",
+  "version": "0.0.59",
   "exports": "./mod.ts",
   "tasks": {
     "test": "deno test --allow-env --allow-sys --allow-read",
@@ -10,5 +10,7 @@
     "coverage:check": "deno coverage coverage --detailed",
     "publish": "JSR_URL=https://jsr.skmtc.dev/ deno publish --allow-slow-types --allow-dirty --token=$JSR_AUTH_TOKEN"
   },
-  "imports": {}
+  "imports": {
+    "@skmtc/core": "jsr:@skmtc/core@0.5.1"
+  }
 }

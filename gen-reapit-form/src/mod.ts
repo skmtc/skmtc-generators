@@ -20,20 +20,20 @@ export const reapitFormEntry = toGqlOperationEntry<EnrichmentSchema>({
     return operation.rootKind === 'mutation' && synthesizeArgsObject(operation) !== undefined
   },
 
-  transform({ context, operation, acc }) {
+  transform({ context, operation, acc, variant }) {
     if (operation.rootKind !== 'mutation') return acc
     if (synthesizeArgsObject(operation) === undefined) return acc
 
-    context.insertOperation({ projection: ReapitForm, operation })
+    context.insertOperation({ projection: ReapitForm, operation, variant })
 
     return acc
   },
 
-  toPreviewModule: ({ context, operation }) => {
-    const enrichments = ReapitForm.toEnrichments({ operation, context })
+  toPreviewModule: ({ context, operation, variant }) => {
+    const enrichments = ReapitForm.toEnrichments({ operation, context, variant })
     return {
-      name: ReapitForm.toIdentifier({ operation, enrichments }).name,
-      exportPath: ReapitForm.toExportPath({ operation, enrichments })
+      name: ReapitForm.toIdentifier({ operation, enrichments, variant }).name,
+      exportPath: ReapitForm.toExportPath({ operation, enrichments, variant })
     }
   },
 

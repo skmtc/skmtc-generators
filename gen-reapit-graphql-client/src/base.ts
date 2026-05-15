@@ -27,8 +27,8 @@ export const ReapitGraphqlClientBase = toGqlOperationProjectionBase<EnrichmentSc
     return Identifier.createVariable(`use${capitalize(operation.fieldName)}`)
   },
 
-  toExportPath({ operation, enrichments }): string {
-    const { name } = this.toIdentifier({ operation, enrichments })
+  toExportPath({ operation, enrichments, variant }): string {
+    const { name } = this.toIdentifier({ operation, enrichments, variant })
     return join('@', 'services', 'graphql', `${name}.generated.ts`)
   }
 })

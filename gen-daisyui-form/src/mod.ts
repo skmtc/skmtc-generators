@@ -13,15 +13,15 @@ export const daisyFormEntry = toOasOperationEntry<EnrichmentSchema>({
     )
   },
 
-  transform({ context, operation }) {
-    context.insertOperation({ projection: DaisyForm, operation: operation })
+  transform({ context, operation, variant }) {
+    context.insertOperation({ projection: DaisyForm, operation, variant })
   },
 
-  toPreviewModule: ({ context, operation }) => {
-    const enrichments = DaisyForm.toEnrichments({ operation, context })
+  toPreviewModule: ({ context, operation, variant }) => {
+    const enrichments = DaisyForm.toEnrichments({ operation, context, variant })
     return {
-      name: DaisyForm.toIdentifier({ operation, enrichments }).name,
-      exportPath: DaisyForm.toExportPath({ operation, enrichments })
+      name: DaisyForm.toIdentifier({ operation, enrichments, variant }).name,
+      exportPath: DaisyForm.toExportPath({ operation, enrichments, variant })
     }
   },
 
