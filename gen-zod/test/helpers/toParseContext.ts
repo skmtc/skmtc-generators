@@ -20,7 +20,7 @@ export const toParseContext = ({ schemas }: ToParseContextArgs = {}) => {
   };
 
   return new ParseContext({
-    documentObject,
+    input: { type: "oas", value: documentObject },
     logger: new log.Logger("test", "ERROR"),
     silent: true,
   });

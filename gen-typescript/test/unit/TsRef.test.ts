@@ -106,7 +106,7 @@ Deno.test('TsRef - recursive reference', () => {
         refType: 'schema',
         $ref: '#/components/schemas/Category'
       },
-      oasDocument
+      parseContext
     ),
 
     required: true,

@@ -1,6 +1,7 @@
 import { GenerateContext, type GenerateContextType, ParseContext, StackTrail } from '@skmtc/core'
 import type { OpenAPIV3 } from 'openapi-types'
 import * as log from 'jsr:@std/log@^0.224.0'
+import { typescriptEntry } from '../../src/mod.ts'
 
 /**
  * Creates a mock GenerateContext for testing
@@ -29,28 +30,23 @@ export function createMockContext(): GenerateContextType {
 
   // Create ParseContext
   const parseContext = new ParseContext({
-    documentObject,
+    input: { type: 'oas', value: documentObject },
     logger,
     silent: true
   })
 
-  // Parse to get OasDocument
-  const oasDocument = parseContext.parse(stackTrail)
+  // Parse to get the SkmtcParsedDocument
+  const document = parseContext.parse(stackTrail)
 
   // Create GenerateContext
   const generateContext = new GenerateContext({
-    oasDocument,
+    document,
     settings: undefined,
     logger,
     captureCurrentResult: () => {},
-    // @ts-expect-error - mock implementation
     toGeneratorConfigMap: () => ({
-      '@skmtc/gen-typescript': {
-        entry: null as any,
-        operationProjections: {},
-        modelProjections: {},
-        enrichments: undefined
-      }
+      // @ts-expect-error - factory-emitted transform is monomorphic over Acc
+      '@skmtc/gen-typescript': typescriptEntry
     })
   })
 

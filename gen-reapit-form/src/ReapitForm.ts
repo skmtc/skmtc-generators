@@ -28,10 +28,9 @@ const id = denoJson.name
  *     `export const <FormName> = (...) => { ... }`.
  *
  * Field components are imported from `@/forms/fields`, which the
- * consumer copies once from this package's `template/` directory.
- * Each generated `<XxxField>` accepts a typed lens (`Lens<T>`) plus
- * presentational props — its appearance is consumer-controlled and
- * never overwritten by re-runs.
+ * consumer provides. Each generated `<XxxField>` accepts a typed
+ * lens (`Lens<T>`) plus presentational props — its appearance is
+ * consumer-controlled and never overwritten by re-runs.
  */
 export class ReapitForm extends ReapitFormBase {
   zodArgsName: string

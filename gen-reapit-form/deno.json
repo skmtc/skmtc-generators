@@ -1,13 +1,12 @@
 {
   "name": "@skmtc/gen-reapit-form",
-  "version": "0.0.59",
+  "version": "0.0.61",
   "imports": {
-    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.0.59",
-    "@skmtc/gen-zod": "jsr:@skmtc/gen-zod@0.0.59",
-    "@skmtc/gen-reapit-searchable-dropdown": "jsr:@skmtc/gen-reapit-searchable-dropdown@0.0.59",
-    "@skmtc/gen-reapit-multi-select": "jsr:@skmtc/gen-reapit-multi-select@0.0.59",
-    "@skmtc/core": "jsr:@skmtc/core@0.5.1",
-    "@skmtc/core/parsers/graphql": "jsr:@skmtc/core@0.5.1/parsers/graphql"
+    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.0.62",
+    "@skmtc/gen-zod": "jsr:@skmtc/gen-zod@0.0.60",
+    "@skmtc/gen-reapit-searchable-dropdown": "jsr:@skmtc/gen-reapit-searchable-dropdown@0.0.60",
+    "@skmtc/gen-reapit-multi-select": "jsr:@skmtc/gen-reapit-multi-select@0.0.60",
+    "@skmtc/core": "jsr:@skmtc/core@0.6.3"
   },
   "exports": "./mod.ts",
   "tasks": {

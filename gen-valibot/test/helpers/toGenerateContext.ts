@@ -1,14 +1,15 @@
 import { GenerateContext, OasDocument } from '@skmtc/core'
+import type { SkmtcParsedDocument } from '@skmtc/core'
 import * as log from 'jsr:@std/log@0.224/logger'
 import { valibotEntry } from '../../src/mod.ts'
 
 type ToGenerateContextArgs = {
-  oasDocument?: OasDocument
+  oasDocument?: SkmtcParsedDocument
 }
 
 export const toGenerateContext = ({ oasDocument }: ToGenerateContextArgs = {}) => {
   const context = new GenerateContext({
-    document: { type: 'oas', value: oasDocument ?? new OasDocument() },
+    document: oasDocument ?? { type: 'oas', value: new OasDocument() },
     settings: undefined,
     logger: new log.Logger('test', 'ERROR'),
     captureCurrentResult: () => {},
