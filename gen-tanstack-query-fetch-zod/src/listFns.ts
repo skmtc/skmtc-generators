@@ -42,7 +42,13 @@ export const isListResponse = (operation: OasOperation) => {
   try {
     const { schema } = toListKeyAndItem(operation)
 
-    return Boolean(schema)
+    // Only treat as a list when items are full records. A singular-item
+    // response (e.g. /resource/{id}) may contain a scalar array property
+    // like `tags: string[]` that toListKeyAndItem returns as the "list" —
+    // that's not a list of rows and shouldn't drive table/select dispatch.
+    const itemType = schema?.resolve().type
+
+    return itemType === 'object'
   } catch (error) {
     return false
   }

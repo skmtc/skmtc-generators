@@ -1,12 +1,12 @@
 {
   "name": "@skmtc/gen-shadcn-select",
-  "version": "0.0.60",
+  "version": "0.0.61",
   "exports": "./mod.ts",
   "imports": {
-    "@skmtc/gen-tanstack-query-supabase-zod": "jsr:@skmtc/gen-tanstack-query-supabase-zod@0.0.60",
-    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.0.62",
-    "@skmtc/gen-zod": "jsr:@skmtc/gen-zod@0.0.60",
-    "@skmtc/core": "jsr:@skmtc/core@0.6.3"
+    "@skmtc/gen-tanstack-query-supabase-zod": "jsr:@skmtc/gen-tanstack-query-supabase-zod@0.0.61",
+    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.0.63",
+    "@skmtc/gen-zod": "jsr:@skmtc/gen-zod@0.0.61",
+    "@skmtc/core": "jsr:@skmtc/core@0.6.4"
   },
   "tasks": {
     "test": "deno test --allow-env --allow-sys --allow-read || true",
