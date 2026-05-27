@@ -5,7 +5,7 @@
     "@skmtc/gen-tanstack-query-supabase-zod": "jsr:@skmtc/gen-tanstack-query-supabase-zod@0.0.61",
     "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.0.63",
     "@skmtc/gen-zod": "jsr:@skmtc/gen-zod@0.0.61",
-    "@skmtc/core": "jsr:@skmtc/core@0.6.4"
+    "@skmtc/core": "jsr:@skmtc/core@0.6.7"
   },
   "exports": "./mod.ts",
   "tasks": {

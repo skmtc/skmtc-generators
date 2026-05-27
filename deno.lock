@@ -1,20 +1,73 @@
 {
   "version": "5",
   "specifiers": {
+    "jsr:@skmtc/core@0.6.7": "0.6.7",
+    "jsr:@skmtc/core@~0.6.7": "0.6.7",
+    "jsr:@std/assert@1": "1.0.19",
+    "jsr:@std/fmt@1": "1.0.10",
+    "jsr:@std/fmt@^1.0.5": "1.0.10",
+    "jsr:@std/fs@^1.0.11": "1.0.24",
     "jsr:@std/internal@^1.0.12": "1.0.13",
+    "jsr:@std/io@~0.225.2": "0.225.3",
+    "jsr:@std/log@0.224": "0.224.14",
+    "jsr:@std/log@~0.224.6": "0.224.14",
+    "jsr:@std/path@^1.0.9": "1.1.4",
     "jsr:@std/path@^1.1.2": "1.1.4",
     "npm:@babel/helper-validator-identifier@7.22.20": "7.22.20",
+    "npm:@babel/helper-validator-identifier@7.27.1": "7.27.1",
+    "npm:@types/babel__helper-validator-identifier@7.15.2": "7.15.2",
     "npm:@types/lodash-es@4.17.12": "4.17.12",
     "npm:graphql@^16.9.0": "16.14.0",
     "npm:lodash-es@4.17.21": "4.17.21",
     "npm:openapi-types@^12.1.3": "12.1.3",
+    "npm:tiny-invariant@1.3.3": "1.3.3",
     "npm:tiny-invariant@^1.3.3": "1.3.3",
     "npm:ts-pattern@^5.8.0": "5.9.0",
     "npm:valibot@1.1.0": "1.1.0"
   },
   "jsr": {
+    "@skmtc/core@0.6.7": {
+      "integrity": "d4e451bd7960bff57dead8d889c47e5808fee4c5cdca6710ce50380971d1fc5b",
+      "dependencies": [
+        "jsr:@skmtc/core@~0.6.7",
+        "jsr:@std/fmt@1",
+        "jsr:@std/log@~0.224.6",
+        "jsr:@std/path@^1.0.9",
+        "npm:@babel/helper-validator-identifier@7.27.1",
+        "npm:@types/babel__helper-validator-identifier",
+        "npm:@types/lodash-es",
+        "npm:graphql",
+        "npm:lodash-es",
+        "npm:openapi-types",
+        "npm:tiny-invariant@1.3.3",
+        "npm:valibot"
+      ]
+    },
+    "@std/assert@1.0.19": {
+      "integrity": "eaada96ee120cb980bc47e040f82814d786fe8162ecc53c91d8df60b8755991e",
+      "dependencies": [
+        "jsr:@std/internal"
+      ]
+    },
+    "@std/fmt@1.0.10": {
+      "integrity": "90dfba288802ac6de82fb31d0917eb9e4450b9925b954d5e51fc29ac07419db5"
+    },
+    "@std/fs@1.0.24": {
+      "integrity": "f3061b45b81673a2bece689da041df32d174be064c89eb6397fb5718d3fb7877"
+    },
     "@std/internal@1.0.13": {
       "integrity": "2f9546691d4ac2d32859c82dff284aaeac980ddeca38430d07941e7e288725c0"
+    },
+    "@std/io@0.225.3": {
+      "integrity": "27b07b591384d12d7b568f39e61dff966b8230559122df1e9fd11cc068f7ddd1"
+    },
+    "@std/log@0.224.14": {
+      "integrity": "257f7adceee3b53bb2bc86c7242e7d1bc59729e57d4981c4a7e5b876c808f05e",
+      "dependencies": [
+        "jsr:@std/fmt@^1.0.5",
+        "jsr:@std/fs",
+        "jsr:@std/io"
+      ]
     },
     "@std/path@1.1.4": {
       "integrity": "1d2d43f39efb1b42f0b1882a25486647cb851481862dc7313390b2bb044314b5",
@@ -26,6 +79,12 @@
   "npm": {
     "@babel/helper-validator-identifier@7.22.20": {
       "integrity": "sha512-Y4OZ+ytlatR8AI+8KZfKuL5urKp7qey08ha31L8b3BwewJAoJamTzyvxPR/5D+KkdJCGPq/+8TukHBlY10FX9A=="
+    },
+    "@babel/helper-validator-identifier@7.27.1": {
+      "integrity": "sha512-D2hP9eA+Sqx1kBZgzxZh0y1trbuU+JoDkiEwqhQ36nodYqJwyEIhPSdMNd7lOm/4io72luTPWH20Yda0xOuUow=="
+    },
+    "@types/babel__helper-validator-identifier@7.15.2": {
+      "integrity": "sha512-l3dkwCt890NFhMwPKXbxsWXC0Por0/+KaFIiQP1j38/vWSH2P3Tn6m+IuJHkx2SBI3VLFqincFe9JtBk2NFHOw=="
     },
     "@types/lodash-es@4.17.12": {
       "integrity": "sha512-0NgftHUcV4v34VhXm8QBSftKVXtbkBG3ViCjs6+eJ5a6y6Mi/jiFGPc1sC7QK+9BFhWrURE3EOggmWaSxL9OzQ==",
@@ -57,7 +116,7 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@skmtc/core@0.6.4",
+      "jsr:@skmtc/core@0.6.7",
       "jsr:@std/fmt@1",
       "jsr:@std/log@~0.224.6",
       "jsr:@std/path@^1.1.2",
@@ -72,32 +131,32 @@
     "members": {
       "gen-arktype": {
         "dependencies": [
-          "jsr:@skmtc/core@0.6.4"
+          "jsr:@skmtc/core@0.6.7"
         ]
       },
       "gen-daisyui-form": {
         "dependencies": [
-          "jsr:@skmtc/core@0.6.4",
+          "jsr:@skmtc/core@0.6.7",
           "jsr:@skmtc/gen-typescript@0.0.63",
           "jsr:@skmtc/gen-zod@0.0.61"
         ]
       },
       "gen-express": {
         "dependencies": [
-          "jsr:@skmtc/core@0.6.4",
+          "jsr:@skmtc/core@0.6.7",
           "jsr:@skmtc/gen-typescript@0.0.63",
           "jsr:@skmtc/gen-valibot@0.0.61"
         ]
       },
       "gen-msw": {
         "dependencies": [
-          "jsr:@skmtc/core@0.6.4",
+          "jsr:@skmtc/core@0.6.7",
           "jsr:@skmtc/gen-typescript@0.0.63"
         ]
       },
       "gen-reapit-form": {
         "dependencies": [
-          "jsr:@skmtc/core@0.6.4",
+          "jsr:@skmtc/core@0.6.7",
           "jsr:@skmtc/gen-reapit-multi-select@0.0.61",
           "jsr:@skmtc/gen-reapit-searchable-dropdown@0.0.61",
           "jsr:@skmtc/gen-typescript@0.0.63",
@@ -106,23 +165,23 @@
       },
       "gen-reapit-graphql-client": {
         "dependencies": [
-          "jsr:@skmtc/core@0.6.4",
+          "jsr:@skmtc/core@0.6.7",
           "jsr:@skmtc/gen-typescript@0.0.63"
         ]
       },
       "gen-reapit-multi-select": {
         "dependencies": [
-          "jsr:@skmtc/core@0.6.4"
+          "jsr:@skmtc/core@0.6.7"
         ]
       },
       "gen-reapit-searchable-dropdown": {
         "dependencies": [
-          "jsr:@skmtc/core@0.6.4"
+          "jsr:@skmtc/core@0.6.7"
         ]
       },
       "gen-shadcn-form": {
         "dependencies": [
-          "jsr:@skmtc/core@0.6.4",
+          "jsr:@skmtc/core@0.6.7",
           "jsr:@skmtc/gen-tanstack-query-supabase-zod@0.0.61",
           "jsr:@skmtc/gen-typescript@0.0.63",
           "jsr:@skmtc/gen-zod@0.0.61"
@@ -130,7 +189,7 @@
       },
       "gen-shadcn-select": {
         "dependencies": [
-          "jsr:@skmtc/core@0.6.4",
+          "jsr:@skmtc/core@0.6.7",
           "jsr:@skmtc/gen-tanstack-query-supabase-zod@0.0.61",
           "jsr:@skmtc/gen-typescript@0.0.63",
           "jsr:@skmtc/gen-zod@0.0.61"
@@ -138,7 +197,7 @@
       },
       "gen-shadcn-table": {
         "dependencies": [
-          "jsr:@skmtc/core@0.6.4",
+          "jsr:@skmtc/core@0.6.7",
           "jsr:@skmtc/gen-tanstack-query-supabase-zod@0.0.61",
           "jsr:@skmtc/gen-typescript@0.0.63",
           "jsr:@skmtc/gen-zod@0.0.61"
@@ -146,38 +205,38 @@
       },
       "gen-supabase-hono": {
         "dependencies": [
-          "jsr:@skmtc/core@0.6.4",
+          "jsr:@skmtc/core@0.6.7",
           "jsr:@skmtc/gen-typescript@0.0.63",
           "jsr:@skmtc/gen-zod@0.0.61"
         ]
       },
       "gen-tanstack-query-fetch-zod": {
         "dependencies": [
-          "jsr:@skmtc/core@0.6.4",
+          "jsr:@skmtc/core@0.6.7",
           "jsr:@skmtc/gen-typescript@0.0.63",
           "jsr:@skmtc/gen-zod@0.0.61"
         ]
       },
       "gen-tanstack-query-supabase-zod": {
         "dependencies": [
-          "jsr:@skmtc/core@0.6.4",
+          "jsr:@skmtc/core@0.6.7",
           "jsr:@skmtc/gen-typescript@0.0.63",
           "jsr:@skmtc/gen-zod@0.0.61"
         ]
       },
       "gen-typescript": {
         "dependencies": [
-          "jsr:@skmtc/core@0.6.4"
+          "jsr:@skmtc/core@0.6.7"
         ]
       },
       "gen-valibot": {
         "dependencies": [
-          "jsr:@skmtc/core@0.6.4"
+          "jsr:@skmtc/core@0.6.7"
         ]
       },
       "gen-zod": {
         "dependencies": [
-          "jsr:@skmtc/core@0.6.4"
+          "jsr:@skmtc/core@0.6.7"
         ]
       }
     }

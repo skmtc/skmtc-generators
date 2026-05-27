@@ -1,6 +1,6 @@
 {
   "imports": {
-    "@skmtc/core": "jsr:@skmtc/core@0.6.4",
+    "@skmtc/core": "jsr:@skmtc/core@0.6.7",
     "@std/log": "jsr:@std/log@^0.224.6",
     "@std/fmt/colors": "jsr:@std/fmt@^1.0.0/colors",
     "@std/path/normalize": "jsr:@std/path@^1.1.2/normalize",

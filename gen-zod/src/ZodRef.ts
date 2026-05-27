@@ -21,13 +21,18 @@ export class ZodRef extends SnippetBase {
   ) {
     super({
       context,
-      generatorKey: toModelGeneratorKey({ generatorId: zodEntry.id, refName }),
+      generatorKey: toModelGeneratorKey({
+        generatorId: zodEntry.id,
+        refName,
+        variant: "main",
+      }),
     });
 
     if (context.modelDepth[`${zodEntry.id}:${refName}`] > 0) {
       const settings = context.toModelContentSettings({
         refName,
         projection: ZodProjection,
+        variant: "main",
       });
 
       context.register({
@@ -45,6 +50,7 @@ export class ZodRef extends SnippetBase {
         destinationPath,
         rootRef,
         projection: ZodProjection,
+        variant: "main",
       });
 
       this.name = settings.identifier.name;

@@ -11,8 +11,8 @@ export const ValibotBase = toModelProjectionBase({
     return Identifier.createVariable(name)
   },
 
-  toExportPath({ refName, enrichments }): string {
-    const { name } = this.toIdentifier({ refName, enrichments })
+  toExportPath({ refName, enrichments, variant }): string {
+    const { name } = this.toIdentifier({ refName, enrichments, variant })
 
     return join('@', 'types', `${decapitalize(name)}.generated.ts`)
   }

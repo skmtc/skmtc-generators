@@ -20,13 +20,18 @@ export class TsRef extends SnippetBase {
   constructor({ context, refName, modifiers, destinationPath, rootRef }: TsRefConstructorProps) {
     super({
       context,
-      generatorKey: toModelGeneratorKey({ generatorId: typescriptEntry.id, refName })
+      generatorKey: toModelGeneratorKey({
+        generatorId: typescriptEntry.id,
+        refName,
+        variant: 'main'
+      })
     })
 
     if (context.modelDepth[`${typescriptEntry.id}:${refName}`] > 0) {
       const settings = context.toModelContentSettings({
         refName,
-        projection: TsProjection
+        projection: TsProjection,
+        variant: 'main'
       })
 
       this.name = settings.identifier.name
@@ -38,7 +43,8 @@ export class TsRef extends SnippetBase {
         refName,
         destinationPath,
         projection: TsProjection,
-        rootRef
+        rootRef,
+        variant: 'main'
       })
 
       this.name = tsDriver.settings.identifier.name
