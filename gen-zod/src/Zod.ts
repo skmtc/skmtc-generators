@@ -12,8 +12,27 @@ import { ZodUnknown } from "./ZodUnknown.ts";
 import { toGeneratorOnlyKey, toRefName } from "@skmtc/core";
 import { zodEntry } from "./mod.ts";
 import type { TypeSystemCustom } from "@skmtc/core";
+import { SnippetBase } from "@skmtc/core";
 
-export const toZodValue: SchemaToValueFn = ({
+/**
+ * Wraps {@link toZodValueInner} to stamp each produced snippet with the JSON
+ * pointer of the schema node it was built from (`schema.toLocation()` —
+ * property-level when `schema` is an object property). This is the
+ * fine-grained attribution the gen-map uses to trace a span back to its
+ * exact schema fragment. No-op when attribution is disabled (`toLocation()`
+ * returns `undefined`).
+ */
+export const toZodValue: SchemaToValueFn = (args) => {
+  const value = toZodValueInner(args);
+  const location =
+    "toLocation" in args.schema ? args.schema.toLocation() : undefined;
+  if (location !== undefined && value instanceof SnippetBase) {
+    value.schemaPointer = location;
+  }
+  return value;
+};
+
+const toZodValueInner: SchemaToValueFn = ({
   schema,
   destinationPath,
   required,

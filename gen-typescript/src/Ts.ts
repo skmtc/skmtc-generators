@@ -11,9 +11,26 @@ import { TsBoolean } from './TsBoolean.ts'
 import { TsVoid } from './TsVoid.ts'
 import { TsUnknown } from './TsUnknown.ts'
 import { toGeneratorOnlyKey, toRefName } from '@skmtc/core'
+import { SnippetBase } from '@skmtc/core'
 import { typescriptEntry } from './mod.ts'
 
-export const toTsValue: SchemaToValueFn = ({
+/**
+ * Wraps {@link toTsValueInner} to stamp each produced snippet with the JSON
+ * pointer of the schema node it was built from (`schema.toLocation()` —
+ * property-level when `schema` is an object property), the fine-grained
+ * attribution the gen-map uses to trace a span to its exact schema fragment.
+ * No-op when attribution is disabled (`toLocation()` returns `undefined`).
+ */
+export const toTsValue: SchemaToValueFn = (args) => {
+  const value = toTsValueInner(args)
+  const location = 'toLocation' in args.schema ? args.schema.toLocation() : undefined
+  if (location !== undefined && value instanceof SnippetBase) {
+    value.schemaPointer = location
+  }
+  return value
+}
+
+const toTsValueInner: SchemaToValueFn = ({
   schema,
   destinationPath,
   required,
