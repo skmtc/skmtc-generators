@@ -16,7 +16,7 @@ export class ArktypeInteger extends SnippetBase {
   modifiers: Modifiers
   
   constructor({ context, integerSchema, generatorKey, destinationPath, modifiers }: ArktypeIntegerArgs) {
-    super({ context, generatorKey })
+    super({ context, generatorKey, schema: integerSchema })
     
     this.format = integerSchema.format
     this.modifiers = modifiers

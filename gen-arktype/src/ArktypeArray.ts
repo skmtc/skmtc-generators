@@ -1,8 +1,11 @@
+import type { OasRef, OasSchema } from '@skmtc/core'
 import { SnippetBase, type TypeSystemValue, type GenerateContextType, type Modifiers, type GeneratorKey, type RefName } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
 import { toArktypeValue } from './Arktype.ts'
 
 type ArktypeArrayArgs = {
+  /** Originating schema node — for fine-grained attribution. */
+  schema?: OasSchema | OasRef<'schema'>
   context: GenerateContextType
   modifiers: Modifiers
   items: any
@@ -16,8 +19,8 @@ export class ArktypeArray extends SnippetBase {
   items: TypeSystemValue
   modifiers: Modifiers
   
-  constructor({ context, items, modifiers, destinationPath, generatorKey, rootRef }: ArktypeArrayArgs) {
-    super({ context, generatorKey })
+  constructor({ context, items, modifiers, destinationPath, generatorKey, rootRef, schema }: ArktypeArrayArgs) {
+    super({ context, generatorKey, schema })
     
     this.modifiers = modifiers
     context.register({ imports: { arktype: ['type'] }, destinationPath })

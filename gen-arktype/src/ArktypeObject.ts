@@ -22,7 +22,7 @@ export class ArktypeObject extends SnippetBase {
   private hasPropertiesAndAdditional: boolean
   
   constructor({ context, objectSchema, modifiers, destinationPath, generatorKey, rootRef }: ArktypeObjectArgs) {
-    super({ context, generatorKey })
+    super({ context, generatorKey, schema: objectSchema })
     
     this.modifiers = modifiers
     this.required = objectSchema.required || []

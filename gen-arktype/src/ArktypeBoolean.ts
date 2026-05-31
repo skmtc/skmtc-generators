@@ -1,8 +1,11 @@
+import type { OasRef, OasSchema } from '@skmtc/core'
 import { SnippetBase } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
 import type { Modifiers, GeneratorKey, GenerateContextType } from '@skmtc/core'
 
 type ArktypeBooleanArgs = {
+  /** Originating schema node — for fine-grained attribution. */
+  schema?: OasSchema | OasRef<'schema'>
   context: GenerateContextType
   modifiers: Modifiers
   destinationPath: string
@@ -13,8 +16,8 @@ export class ArktypeBoolean extends SnippetBase {
   type = 'boolean' as const
   modifiers: Modifiers
   
-  constructor({ context, generatorKey, destinationPath, modifiers }: ArktypeBooleanArgs) {
-    super({ context, generatorKey })
+  constructor({ context, generatorKey, destinationPath, modifiers, schema }: ArktypeBooleanArgs) {
+    super({ context, generatorKey, schema })
     
     this.modifiers = modifiers
     context.register({ imports: { arktype: ['type'] }, destinationPath })

@@ -1,3 +1,4 @@
+import type { OasRef, OasSchema } from '@skmtc/core'
 import { SnippetBase, camelCase, decapitalize } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
 import type {
@@ -9,6 +10,8 @@ import type {
 } from '@skmtc/core'
 
 type ArktypeRefArgs = {
+  /** Originating schema node — for fine-grained attribution. */
+  schema?: OasSchema | OasRef<'schema'>
   context: GenerateContextType
   destinationPath: string
   refName: RefName
@@ -25,8 +28,8 @@ export class ArktypeRef extends SnippetBase {
   destinationPath: string
   rootRef?: RefName
 
-  constructor({ context, refName, destinationPath, modifiers, generatorKey, rootRef }: ArktypeRefArgs) {
-    super({ context, generatorKey })
+  constructor({ context, refName, destinationPath, modifiers, generatorKey, rootRef, schema }: ArktypeRefArgs) {
+    super({ context, generatorKey, schema })
 
     this.name = decapitalize(camelCase(refName))
     this.refName = refName

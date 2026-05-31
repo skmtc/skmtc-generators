@@ -18,7 +18,7 @@ export class ArktypeString extends SnippetBase {
   modifiers: Modifiers
   
   constructor({ context, stringSchema, generatorKey, destinationPath, modifiers }: ArktypeStringArgs) {
-    super({ context, generatorKey })
+    super({ context, generatorKey, schema: stringSchema })
 
     this.enums = stringSchema.enums
     this.format = stringSchema.format

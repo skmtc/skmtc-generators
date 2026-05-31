@@ -1,8 +1,11 @@
+import type { OasRef, OasSchema } from '@skmtc/core'
 import { SnippetBase, type TypeSystemValue, type GenerateContextType, type Modifiers, type GeneratorKey, type RefName } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
 import { toArktypeValue } from './Arktype.ts'
 
 type ArktypeUnionArgs = {
+  /** Originating schema node — for fine-grained attribution. */
+  schema?: OasSchema | OasRef<'schema'>
   context: GenerateContextType
   members: any[]
   discriminator?: any
@@ -18,8 +21,8 @@ export class ArktypeUnion extends SnippetBase {
   discriminator: any
   modifiers: Modifiers
   
-  constructor({ context, members, discriminator, modifiers, destinationPath, generatorKey, rootRef }: ArktypeUnionArgs) {
-    super({ context, generatorKey })
+  constructor({ context, members, discriminator, modifiers, destinationPath, generatorKey, rootRef, schema }: ArktypeUnionArgs) {
+    super({ context, generatorKey, schema })
     
     this.discriminator = discriminator
     this.modifiers = modifiers

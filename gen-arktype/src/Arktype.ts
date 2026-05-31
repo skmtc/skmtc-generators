@@ -37,11 +37,20 @@ export const toArktypeValue: SchemaToValueFn = ({
         refName: toRefName(ref.$ref),
         modifiers,
         generatorKey,
-        rootRef
+        rootRef,
+        schema: ref
       })
     })
-    .with({ type: 'array' }, ({ items }) => {
-      return new ArktypeArray({ context, destinationPath, modifiers, items, generatorKey, rootRef })
+    .with({ type: 'array' }, arraySchema => {
+      return new ArktypeArray({
+        context,
+        destinationPath,
+        modifiers,
+        items: arraySchema.items,
+        generatorKey,
+        rootRef,
+        schema: arraySchema
+      })
     })
     .with({ type: 'object' }, objectSchema => {
       return new ArktypeObject({
@@ -53,27 +62,30 @@ export const toArktypeValue: SchemaToValueFn = ({
         rootRef
       })
     })
-    .with({ type: 'union' }, ({ members, discriminator }) => {
+    .with({ type: 'union' }, unionSchema => {
       return new ArktypeUnion({
         context,
         destinationPath,
-        members,
-        discriminator,
+        members: unionSchema.members,
+        discriminator: unionSchema.discriminator,
         modifiers,
         generatorKey,
-        rootRef
+        rootRef,
+        schema: unionSchema
       })
     })
     .with(
       { type: 'number' },
-      () => new ArktypeNumber({ context, modifiers, destinationPath, generatorKey })
+      numberSchema =>
+        new ArktypeNumber({ context, modifiers, destinationPath, generatorKey, schema: numberSchema })
     )
     .with({ type: 'integer' }, integerSchema => {
       return new ArktypeInteger({ context, integerSchema, modifiers, destinationPath, generatorKey })
     })
     .with(
       { type: 'boolean' },
-      () => new ArktypeBoolean({ context, modifiers, destinationPath, generatorKey })
+      booleanSchema =>
+        new ArktypeBoolean({ context, modifiers, destinationPath, generatorKey, schema: booleanSchema })
     )
     .with({ type: 'void' }, () => new ArktypeVoid({ context, destinationPath, generatorKey }))
     .with(
@@ -81,6 +93,10 @@ export const toArktypeValue: SchemaToValueFn = ({
       stringSchema =>
         new ArktypeString({ context, stringSchema, modifiers, destinationPath, generatorKey })
     )
-    .with({ type: 'unknown' }, () => new ArktypeUnknown({ context, destinationPath, generatorKey }))
+    .with(
+      { type: 'unknown' },
+      unknownSchema =>
+        new ArktypeUnknown({ context, destinationPath, generatorKey, schema: unknownSchema })
+    )
     .exhaustive()
 }
