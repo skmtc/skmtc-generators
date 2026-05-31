@@ -40,7 +40,7 @@ export class ValibotObject extends SnippetBase {
     modifiers,
     rootRef
   }: ValibotObjectProps) {
-    super({ context, generatorKey })
+    super({ context, generatorKey, schema: objectSchema })
 
     this.modifiers = modifiers
 

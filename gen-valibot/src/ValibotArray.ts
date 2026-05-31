@@ -15,6 +15,8 @@ type ValibotArrayArgs = {
   context: GenerateContextType
   destinationPath: string
   items: OasSchema | OasRef<'schema'>
+  /** The originating array schema node — for fine-grained attribution. */
+  schema?: OasSchema | OasRef<'schema'>
   modifiers: Modifiers
   generatorKey: GeneratorKey
   rootRef?: RefName
@@ -31,9 +33,10 @@ export class ValibotArray extends SnippetBase {
     destinationPath,
     items,
     modifiers,
-    rootRef
+    rootRef,
+    schema
   }: ValibotArrayArgs) {
-    super({ context, generatorKey })
+    super({ context, generatorKey, schema })
 
     this.modifiers = modifiers
 

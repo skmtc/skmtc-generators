@@ -5,6 +5,8 @@ import type {
   GeneratorKey,
   RefName,
   Modifiers,
+  OasRef,
+  OasSchema,
   TypeSystemValue
 } from '@skmtc/core'
 
@@ -15,6 +17,8 @@ type ValibotRefArgs = {
   modifiers: Modifiers
   generatorKey: GeneratorKey
   rootRef?: RefName
+  /** The originating ref schema node — for fine-grained attribution. */
+  schema?: OasSchema | OasRef<'schema'>
 }
 
 export class ValibotRef extends SnippetBase {
@@ -31,9 +35,10 @@ export class ValibotRef extends SnippetBase {
     destinationPath,
     modifiers,
     generatorKey,
-    rootRef
+    rootRef,
+    schema
   }: ValibotRefArgs) {
-    super({ context, generatorKey })
+    super({ context, generatorKey, schema })
 
     this.name = decapitalize(camelCase(refName))
     this.refName = refName

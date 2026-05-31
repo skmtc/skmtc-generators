@@ -14,8 +14,8 @@ export class ValibotInteger extends SnippetBase {
   type = 'integer' as const
   modifiers: Modifiers
 
-  constructor({ context, generatorKey, destinationPath, modifiers }: ValibotIntegerArgs) {
-    super({ context, generatorKey })
+  constructor({ context, generatorKey, destinationPath, modifiers, integerSchema }: ValibotIntegerArgs) {
+    super({ context, generatorKey, schema: integerSchema })
 
     this.modifiers = modifiers
 

@@ -23,7 +23,7 @@ export class ValibotString extends SnippetBase {
     destinationPath,
     modifiers
   }: ValibotStringArgs) {
-    super({ context, generatorKey })
+    super({ context, generatorKey, schema: stringSchema })
 
     this.enums = stringSchema.enums
     this.format = stringSchema.format
