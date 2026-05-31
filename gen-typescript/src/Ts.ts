@@ -11,26 +11,18 @@ import { TsBoolean } from './TsBoolean.ts'
 import { TsVoid } from './TsVoid.ts'
 import { TsUnknown } from './TsUnknown.ts'
 import { toGeneratorOnlyKey, toRefName } from '@skmtc/core'
-import { SnippetBase } from '@skmtc/core'
 import { typescriptEntry } from './mod.ts'
 
 /**
- * Wraps {@link toTsValueInner} to stamp each produced snippet with the JSON
- * pointer of the schema node it was built from (`schema.toLocation()` —
- * property-level when `schema` is an object property), the fine-grained
- * attribution the gen-map uses to trace a span to its exact schema fragment.
- * No-op when attribution is disabled (`toLocation()` returns `undefined`).
+ * Maps a parsed schema node to its TypeScript snippet. Fine-grained
+ * attribution is captured via the `schema` constructor arg threaded into
+ * each snippet (and on to `SnippetBase`, which records the schema's
+ * `stackTrail`) — no router-level wrapper. The originating node is passed to
+ * every snippet, including the ones that otherwise receive only decomposed
+ * parts (`items` / `members` / `refName`) or nothing (`number` / `unknown`).
+ * `void` takes none — `OasVoid` is not part of the `OasSchema` union.
  */
-export const toTsValue: SchemaToValueFn = (args) => {
-  const value = toTsValueInner(args)
-  const location = 'toLocation' in args.schema ? args.schema.toLocation() : undefined
-  if (location !== undefined && value instanceof SnippetBase) {
-    value.schemaPointer = location
-  }
-  return value
-}
-
-const toTsValueInner: SchemaToValueFn = ({
+export const toTsValue: SchemaToValueFn = ({
   schema,
   destinationPath,
   required,
@@ -53,11 +45,20 @@ const toTsValueInner: SchemaToValueFn = ({
         destinationPath,
         refName: toRefName(ref.$ref),
         modifiers,
-        rootRef
+        rootRef,
+        schema: ref
       })
     })
-    .with({ type: 'array' }, ({ items }) => {
-      return new TsArray({ context, destinationPath, modifiers, items, generatorKey, rootRef })
+    .with({ type: 'array' }, arraySchema => {
+      return new TsArray({
+        context,
+        destinationPath,
+        modifiers,
+        items: arraySchema.items,
+        generatorKey,
+        rootRef,
+        schema: arraySchema
+      })
     })
     .with({ type: 'object' }, matched => {
       return new TsObject({
@@ -69,18 +70,22 @@ const toTsValueInner: SchemaToValueFn = ({
         rootRef
       })
     })
-    .with({ type: 'union' }, ({ members, discriminator }) => {
+    .with({ type: 'union' }, unionSchema => {
       return new TsUnion({
         context,
         destinationPath,
-        members,
-        discriminator,
+        members: unionSchema.members,
+        discriminator: unionSchema.discriminator,
         modifiers,
         generatorKey,
-        rootRef
+        rootRef,
+        schema: unionSchema
       })
     })
-    .with({ type: 'number' }, () => new TsNumber({ context, modifiers, generatorKey }))
+    .with(
+      { type: 'number' },
+      numberSchema => new TsNumber({ context, modifiers, generatorKey, schema: numberSchema })
+    )
     .with(
       { type: 'integer' },
       integerSchema => new TsInteger({ context, integerSchema, modifiers, generatorKey })
@@ -94,6 +99,9 @@ const toTsValueInner: SchemaToValueFn = ({
       { type: 'string' },
       stringSchema => new TsString({ context, stringSchema, modifiers, generatorKey })
     )
-    .with({ type: 'unknown' }, () => new TsUnknown({ context, generatorKey }))
+    .with(
+      { type: 'unknown' },
+      unknownSchema => new TsUnknown({ context, generatorKey, schema: unknownSchema })
+    )
     .exhaustive()
 }

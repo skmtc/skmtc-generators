@@ -40,7 +40,7 @@ export class TsObject extends SnippetBase {
     modifiers,
     rootRef
   }: TsObjectProps) {
-    super({ context, generatorKey })
+    super({ context, generatorKey, schema: value })
 
     this.modifiers = modifiers
 

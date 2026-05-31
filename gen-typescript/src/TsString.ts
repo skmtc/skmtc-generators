@@ -17,7 +17,7 @@ export class TsString extends SnippetBase {
   enums: string[] | (string | null)[] | undefined
   modifiers: Modifiers
   constructor({ context, stringSchema, generatorKey, modifiers }: TsStringArgs) {
-    super({ context, generatorKey })
+    super({ context, generatorKey, schema: stringSchema })
 
     this.enums = stringSchema.enums
     this.format = stringSchema.format

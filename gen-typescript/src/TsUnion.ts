@@ -16,6 +16,8 @@ type TsUnionArgs = {
   context: GenerateContextType
   destinationPath: string
   members: (OasSchema | OasRef<'schema'>)[]
+  /** The originating union schema node — for fine-grained attribution. */
+  schema?: OasSchema | OasRef<'schema'>
   discriminator?: OasDiscriminator
   modifiers: Modifiers
   generatorKey: GeneratorKey
@@ -35,9 +37,10 @@ export class TsUnion extends SnippetBase {
     members,
     discriminator,
     modifiers,
-    rootRef
+    rootRef,
+    schema
   }: TsUnionArgs) {
-    super({ context, generatorKey })
+    super({ context, generatorKey, schema })
 
     this.members = members.map(member => {
       return toTsValue({

@@ -17,7 +17,7 @@ export class TsInteger extends SnippetBase {
   enums?: number[] | (number | null)[]
 
   constructor({ context, integerSchema, generatorKey, modifiers }: TsIntegerArgs) {
-    super({ context, generatorKey })
+    super({ context, generatorKey, schema: integerSchema })
 
     this.format = integerSchema.format
     this.enums = integerSchema.enums

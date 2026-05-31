@@ -15,6 +15,8 @@ type TsArrayArgs = {
   context: GenerateContextType
   destinationPath: string
   items: OasSchema | OasRef<'schema'>
+  /** The originating array schema node — for fine-grained attribution. */
+  schema?: OasSchema | OasRef<'schema'>
   modifiers: Modifiers
   generatorKey: GeneratorKey
   rootRef?: RefName
@@ -25,8 +27,10 @@ export class TsArray extends SnippetBase {
   items: TypeSystemValue
   modifiers: Modifiers
 
-  constructor({ context, generatorKey, destinationPath, items, modifiers, rootRef }: TsArrayArgs) {
-    super({ context, generatorKey })
+  constructor(
+    { context, generatorKey, destinationPath, items, modifiers, rootRef, schema }: TsArrayArgs
+  ) {
+    super({ context, generatorKey, schema })
 
     this.modifiers = modifiers
 

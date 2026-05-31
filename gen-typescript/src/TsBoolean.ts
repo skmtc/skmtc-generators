@@ -27,7 +27,7 @@ export class TsBoolean extends SnippetBase {
   enums?: boolean[] | (boolean | null)[]
 
   constructor({ context, modifiers, booleanSchema, generatorKey }: TsBooleanArgs) {
-    super({ context, generatorKey })
+    super({ context, generatorKey, schema: booleanSchema })
 
     this.modifiers = modifiers
     this.enums = booleanSchema.enums
