@@ -1,5 +1,5 @@
 import { SnippetBase } from '@skmtc/core'
-import type { GenerateContextType } from '@skmtc/core'
+import type { GenerateContextType, OasRef, OasSchema } from '@skmtc/core'
 
 type NumberInputArgs = {
   context: GenerateContextType
@@ -8,6 +8,8 @@ type NumberInputArgs = {
   placeholder?: string
   skipLabel?: boolean
   destinationPath: string
+  /** The originating property schema node — for fine-grained attribution. */
+  schema?: OasSchema | OasRef<'schema'>
 }
 
 export class NumberInput extends SnippetBase {
@@ -16,8 +18,10 @@ export class NumberInput extends SnippetBase {
   placeholder?: string
   skipLabel?: boolean
 
-  constructor({ context, name, label, placeholder, destinationPath, skipLabel }: NumberInputArgs) {
-    super({ context })
+  constructor(
+    { context, name, label, placeholder, destinationPath, skipLabel, schema }: NumberInputArgs
+  ) {
+    super({ context, schema })
 
     this.name = name
     this.label = label

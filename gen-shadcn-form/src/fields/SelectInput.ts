@@ -1,5 +1,11 @@
 import { List, SnippetBase } from '@skmtc/core'
-import type { GenerateContextType, ListLines, Stringable } from '@skmtc/core'
+import type {
+  GenerateContextType,
+  ListLines,
+  OasRef,
+  OasSchema,
+  Stringable
+} from '@skmtc/core'
 
 type SelectInputArgs = {
   context: GenerateContextType
@@ -9,6 +15,8 @@ type SelectInputArgs = {
   skipLabel?: boolean
   destinationPath: string
   enums: string[]
+  /** The originating property schema node — for fine-grained attribution. */
+  schema?: OasSchema | OasRef<'schema'>
 }
 
 export class SelectInput extends SnippetBase {
@@ -25,9 +33,10 @@ export class SelectInput extends SnippetBase {
     placeholder,
     destinationPath,
     skipLabel,
-    enums
+    enums,
+    schema
   }: SelectInputArgs) {
-    super({ context })
+    super({ context, schema })
 
     this.name = name
     this.label = label ?? name

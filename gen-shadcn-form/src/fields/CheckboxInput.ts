@@ -1,5 +1,5 @@
 import { SnippetBase } from '@skmtc/core'
-import type { GenerateContextType } from '@skmtc/core'
+import type { GenerateContextType, OasRef, OasSchema } from '@skmtc/core'
 
 type CheckboxInputArgs = {
   context: GenerateContextType
@@ -8,6 +8,8 @@ type CheckboxInputArgs = {
   placeholder?: string
   skipLabel?: boolean
   destinationPath: string
+  /** The originating property schema node — for fine-grained attribution. */
+  schema?: OasSchema | OasRef<'schema'>
 }
 
 export class CheckboxInput extends SnippetBase {
@@ -21,9 +23,10 @@ export class CheckboxInput extends SnippetBase {
     label,
     placeholder,
     destinationPath,
-    skipLabel
+    skipLabel,
+    schema
   }: CheckboxInputArgs) {
-    super({ context })
+    super({ context, schema })
 
     this.name = name
     this.label = label ?? name

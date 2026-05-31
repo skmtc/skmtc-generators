@@ -34,7 +34,7 @@ export class Table extends SnippetBase {
     destinationPath,
     topLevelSchema
   }: TableArgs) {
-    super({ context })
+    super({ context, schema })
 
     const resolvedSchema = schema.resolve()
 

@@ -96,7 +96,8 @@ export const schemaToField = ({
       name,
       label: label ?? getLabel({ schema, name }),
       destinationPath,
-      skipLabel
+      skipLabel,
+      schema
     })
   }
 
@@ -106,7 +107,8 @@ export const schemaToField = ({
       name,
       label: label ?? getLabel({ schema, name }),
       destinationPath,
-      skipLabel
+      skipLabel,
+      schema
     })
   }
 
@@ -116,7 +118,8 @@ export const schemaToField = ({
       name,
       label: label ?? getLabel({ schema, name }),
       destinationPath,
-      skipLabel
+      skipLabel,
+      schema
     })
   }
 
@@ -132,12 +135,22 @@ export const schemaToField = ({
         label: label ?? getLabel({ schema, name }),
         destinationPath,
         skipLabel,
-        enums
+        enums,
+        schema
       })
     }
   }
 
-  return new StringInput({ context, name, label, destinationPath, skipLabel })
+  // `schema` may still be a CustomValue here (type 'custom'), which has no
+  // schema-document location — pass it only when it's a real schema node.
+  return new StringInput({
+    context,
+    name,
+    label,
+    destinationPath,
+    skipLabel,
+    schema: schema.type === 'custom' ? undefined : schema
+  })
 }
 
 type GetLabelArgs = {
