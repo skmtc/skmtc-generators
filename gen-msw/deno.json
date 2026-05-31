@@ -12,6 +12,6 @@
   },
   "imports": {
     "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.0.64",
-    "@skmtc/core": "jsr:@skmtc/core@0.6.7"
+    "@skmtc/core": "jsr:@skmtc/core@0.6.10"
   }
 }

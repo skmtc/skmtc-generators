@@ -5,7 +5,7 @@
   "imports": {
     "@skmtc/gen-zod": "jsr:@skmtc/gen-zod@0.0.62",
     "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.0.64",
-    "@skmtc/core": "jsr:@skmtc/core@0.6.7"
+    "@skmtc/core": "jsr:@skmtc/core@0.6.10"
   },
   "tasks": {
     "test": "deno test --allow-env --allow-sys --allow-read || true",

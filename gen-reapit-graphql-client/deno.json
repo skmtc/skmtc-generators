@@ -3,7 +3,7 @@
   "version": "0.0.63",
   "exports": "./mod.ts",
   "imports": {
-    "@skmtc/core": "jsr:@skmtc/core@0.6.7",
+    "@skmtc/core": "jsr:@skmtc/core@0.6.10",
     "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.0.64"
   },
   "tasks": {
