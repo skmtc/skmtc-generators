@@ -33,7 +33,7 @@ export class ObjectInput extends SnippetBase {
     destinationPath,
     topLevelSchema
   }: ObjectInputArgs) {
-    super({ context })
+    super({ context, schema })
 
     invariant(schema.type === 'object', 'ObjectInput: expected object schema')
 

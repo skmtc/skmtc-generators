@@ -64,7 +64,8 @@ export const schemaToField = (args: SchemaToFieldArgs): Stringable => {
       name,
       label: label ?? getLabel({ schema, name }),
       destinationPath,
-      skipLabel
+      skipLabel,
+      schema
     })
   }
 
@@ -74,7 +75,8 @@ export const schemaToField = (args: SchemaToFieldArgs): Stringable => {
       name,
       label: label ?? getLabel({ schema, name }),
       destinationPath,
-      skipLabel
+      skipLabel,
+      schema
     })
   }
 
@@ -84,7 +86,8 @@ export const schemaToField = (args: SchemaToFieldArgs): Stringable => {
       name,
       label: label ?? getLabel({ schema, name }),
       destinationPath,
-      skipLabel
+      skipLabel,
+      schema
     })
   }
 
@@ -99,7 +102,8 @@ export const schemaToField = (args: SchemaToFieldArgs): Stringable => {
         label: label ?? getLabel({ schema, name }),
         destinationPath,
         skipLabel,
-        enums
+        enums,
+        schema
       })
     }
 
@@ -110,17 +114,20 @@ export const schemaToField = (args: SchemaToFieldArgs): Stringable => {
       label: label ?? getLabel({ schema, name }),
       destinationPath,
       skipLabel,
-      multiline: isMultiline
+      multiline: isMultiline,
+      schema
     })
   }
 
-  // Fallback: treat unknown types as a plain text input.
+  // Fallback: treat unknown types as a plain text input. `schema` may be a
+  // CustomValue here (no schema-document location) — pass it only when real.
   return new StringInput({
     context,
     name,
     label: label ?? getLabel({ schema, name }),
     destinationPath,
-    skipLabel
+    skipLabel,
+    schema: schema.type === 'custom' ? undefined : schema
   })
 }
 
