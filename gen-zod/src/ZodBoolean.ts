@@ -32,7 +32,7 @@ export class ZodBoolean extends SnippetBase {
     { context, modifiers, schema, destinationPath, generatorKey }:
       ZodBooleanArgs,
   ) {
-    super({ context, generatorKey });
+    super({ context, generatorKey, schema });
 
     this.modifiers = modifiers;
     this.enums = schema.enums;

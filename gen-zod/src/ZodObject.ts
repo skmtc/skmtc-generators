@@ -39,7 +39,7 @@ export class ZodObject extends SnippetBase {
     modifiers,
     rootRef,
   }: ZodObjectProps) {
-    super({ context, generatorKey });
+    super({ context, generatorKey, schema: objectSchema });
 
     this.modifiers = modifiers;
 

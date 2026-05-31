@@ -15,6 +15,8 @@ type ZodArrayArgs = {
   context: GenerateContextType;
   destinationPath: string;
   items: OasSchema | OasRef<"schema">;
+  /** The originating array schema node — for fine-grained attribution. */
+  schema?: OasSchema | OasRef<"schema">;
   modifiers: Modifiers;
   generatorKey: GeneratorKey;
   rootRef?: RefName;
@@ -26,10 +28,10 @@ export class ZodArray extends SnippetBase {
   modifiers: Modifiers;
 
   constructor(
-    { context, generatorKey, destinationPath, items, modifiers, rootRef }:
+    { context, generatorKey, destinationPath, items, modifiers, rootRef, schema }:
       ZodArrayArgs,
   ) {
-    super({ context, generatorKey });
+    super({ context, generatorKey, schema });
 
     this.modifiers = modifiers;
 

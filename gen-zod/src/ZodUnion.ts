@@ -16,6 +16,8 @@ type ZodUnionArgs = {
   context: GenerateContextType;
   destinationPath: string;
   members: (OasSchema | OasRef<"schema">)[];
+  /** The originating union schema node — for fine-grained attribution. */
+  schema?: OasSchema | OasRef<"schema">;
   discriminator?: OasDiscriminator;
   modifiers: Modifiers;
   generatorKey: GeneratorKey;
@@ -36,8 +38,9 @@ export class ZodUnion extends SnippetBase {
     discriminator,
     modifiers,
     rootRef,
+    schema,
   }: ZodUnionArgs) {
-    super({ context, generatorKey });
+    super({ context, generatorKey, schema });
 
     this.members = members.map((member) => {
       return toZodValue({

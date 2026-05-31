@@ -12,27 +12,16 @@ import { ZodUnknown } from "./ZodUnknown.ts";
 import { toGeneratorOnlyKey, toRefName } from "@skmtc/core";
 import { zodEntry } from "./mod.ts";
 import type { TypeSystemCustom } from "@skmtc/core";
-import { SnippetBase } from "@skmtc/core";
 
 /**
- * Wraps {@link toZodValueInner} to stamp each produced snippet with the JSON
- * pointer of the schema node it was built from (`schema.toLocation()` —
- * property-level when `schema` is an object property). This is the
- * fine-grained attribution the gen-map uses to trace a span back to its
- * exact schema fragment. No-op when attribution is disabled (`toLocation()`
- * returns `undefined`).
+ * Maps a parsed schema node to its Zod snippet. Fine-grained attribution
+ * is captured via the `schema` constructor arg threaded into each snippet
+ * (and on to `SnippetBase`, which records the schema's `stackTrail`) — no
+ * router-level wrapper. The originating node is passed to every snippet,
+ * including the ones that otherwise receive only decomposed parts
+ * (`items` / `members` / `refName`) or nothing (`void` / `unknown`).
  */
-export const toZodValue: SchemaToValueFn = (args) => {
-  const value = toZodValueInner(args);
-  const location =
-    "toLocation" in args.schema ? args.schema.toLocation() : undefined;
-  if (location !== undefined && value instanceof SnippetBase) {
-    value.schemaPointer = location;
-  }
-  return value;
-};
-
-const toZodValueInner: SchemaToValueFn = ({
+export const toZodValue: SchemaToValueFn = ({
   schema,
   destinationPath,
   required,
@@ -57,6 +46,7 @@ const toZodValueInner: SchemaToValueFn = ({
         refName: toRefName(schema.$ref),
         modifiers,
         rootRef,
+        schema,
       });
     case "array":
       return new ZodArray({
@@ -66,6 +56,7 @@ const toZodValueInner: SchemaToValueFn = ({
         items: schema.items,
         generatorKey,
         rootRef,
+        schema,
       });
     case "object":
       return new ZodObject({
@@ -85,6 +76,7 @@ const toZodValueInner: SchemaToValueFn = ({
         modifiers,
         generatorKey,
         rootRef,
+        schema,
       });
     case "number":
       return new ZodNumber({
@@ -121,7 +113,7 @@ const toZodValueInner: SchemaToValueFn = ({
         generatorKey,
       });
     case "unknown":
-      return new ZodUnknown({ context, destinationPath, generatorKey });
+      return new ZodUnknown({ context, destinationPath, generatorKey, schema });
     default: {
       // Exhaustiveness check - if SchemaType is properly defined, this should never happen
       const _exhaustive: never = schema;

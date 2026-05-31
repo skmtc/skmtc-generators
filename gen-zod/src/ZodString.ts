@@ -27,7 +27,7 @@ export class ZodString extends SnippetBase {
     { context, stringSchema, generatorKey, destinationPath, modifiers }:
       ZodStringArgs,
   ) {
-    super({ context, generatorKey });
+    super({ context, generatorKey, schema: stringSchema });
 
     this.enums = stringSchema.enums;
     this.format = stringSchema.format;

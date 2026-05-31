@@ -1,5 +1,11 @@
 import { SnippetBase, ModelDriver, toModelGeneratorKey } from "@skmtc/core";
-import type { GenerateContextType, Modifiers, RefName } from "@skmtc/core";
+import type {
+  GenerateContextType,
+  Modifiers,
+  OasRef,
+  OasSchema,
+  RefName,
+} from "@skmtc/core";
 import { applyModifiers } from "./applyModifiers.ts";
 import { ZodProjection } from "./ZodProjection.ts";
 import { zodEntry } from "./mod.ts";
@@ -9,6 +15,8 @@ type ConstructorProps = {
   modifiers: Modifiers;
   refName: RefName;
   rootRef?: RefName;
+  /** The originating ref schema node — for fine-grained attribution. */
+  schema?: OasSchema | OasRef<"schema">;
 };
 
 export class ZodRef extends SnippetBase {
@@ -17,7 +25,8 @@ export class ZodRef extends SnippetBase {
   name: string;
   terminal: boolean;
   constructor(
-    { context, refName, destinationPath, modifiers, rootRef }: ConstructorProps,
+    { context, refName, destinationPath, modifiers, rootRef, schema }:
+      ConstructorProps,
   ) {
     super({
       context,
@@ -26,6 +35,7 @@ export class ZodRef extends SnippetBase {
         refName,
         variant: "main",
       }),
+      schema,
     });
 
     if (context.modelDepth[`${zodEntry.id}:${refName}`] > 0) {

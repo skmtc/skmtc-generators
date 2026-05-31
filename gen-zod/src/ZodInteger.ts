@@ -27,7 +27,7 @@ export class ZodInteger extends SnippetBase {
     { context, schema, modifiers, destinationPath, generatorKey }:
       ZodIntegerArgs,
   ) {
-    super({ context, generatorKey });
+    super({ context, generatorKey, schema });
 
     this.format = schema.format;
     this.enums = schema.enums;

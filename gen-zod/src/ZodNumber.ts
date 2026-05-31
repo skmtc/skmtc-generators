@@ -26,7 +26,7 @@ export class ZodNumber extends SnippetBase {
     { context, modifiers, schema, destinationPath, generatorKey }:
       ZodNumberArgs,
   ) {
-    super({ context, generatorKey });
+    super({ context, generatorKey, schema });
 
     this.modifiers = modifiers;
     this.enums = schema.enums;
