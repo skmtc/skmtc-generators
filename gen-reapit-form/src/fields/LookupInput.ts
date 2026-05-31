@@ -1,8 +1,10 @@
 import { SnippetBase } from '@skmtc/core'
-import type { GenerateContextType } from '@skmtc/core'
+import type { GenerateContextType, OasRef, OasSchema } from '@skmtc/core'
 import { labelText } from './labelText.ts'
 
 export type LookupInputArgs = {
+  /** Originating property schema node — for fine-grained attribution. */
+  schema?: OasSchema | OasRef<'schema'>
   context: GenerateContextType
   /** The variable name of the inserted lookup component (e.g. `OfficesMultiLookupField`). */
   componentName: string
@@ -25,8 +27,8 @@ export class LookupInput extends SnippetBase {
   readonly label: string | undefined
   readonly isRequired: boolean
 
-  constructor({ context, componentName, path, label, isRequired }: LookupInputArgs) {
-    super({ context })
+  constructor({ context, componentName, path, label, isRequired, schema }: LookupInputArgs) {
+    super({ context, schema })
     this.componentName = componentName
     this.path = path
     this.label = label

@@ -100,7 +100,8 @@ export const schemaToField = (args: SchemaToFieldArgs): Stringable => {
         componentName: inserted.toName(),
         path,
         label,
-        isRequired
+        isRequired,
+        schema: schema.type === 'custom' ? undefined : schema
       }))
     }
     // Reference set but no producer claims the operation — fall through
@@ -140,15 +141,15 @@ export const schemaToField = (args: SchemaToFieldArgs): Stringable => {
     )
 
     // SectionInput owns its own grid wrapping (Subtitle in InputWrapFull).
-    return new SectionInput({ context, label, children, destinationPath })
+    return new SectionInput({ context, label, children, destinationPath, schema })
   }
 
   if (schema.type === 'boolean') {
-    return wrap(new CheckboxInput({ context, path, label, destinationPath }))
+    return wrap(new CheckboxInput({ context, path, label, destinationPath, schema }))
   }
 
   if (schema.type === 'integer' || schema.type === 'number') {
-    return wrap(new NumberInput({ context, path, label, isRequired, destinationPath }))
+    return wrap(new NumberInput({ context, path, label, isRequired, destinationPath, schema }))
   }
 
   if (schema.type === 'string') {
@@ -158,14 +159,14 @@ export const schemaToField = (args: SchemaToFieldArgs): Stringable => {
       if (typeof value === 'string') enumValues.push(value)
     }
     if (enumValues.length > 0) {
-      return wrap(new SelectInput({ context, path, label, isRequired, destinationPath, enums: enumValues }))
+      return wrap(new SelectInput({ context, path, label, isRequired, destinationPath, enums: enumValues, schema }))
     }
     if (schema.format === 'multiline' || schema.format === 'JSON') {
       // GraphQL custom scalars (including `JSON`) arrive as strings with
       // `format: <ScalarName>` (see core/parsers/graphql/toScalarType).
       // JSON-bearing fields want multi-line UX; the form's coerce step
       // re-parses the string before submit (see toCoerceBlock).
-      return wrap(new TextAreaInput({ context, path, label, isRequired, destinationPath }))
+      return wrap(new TextAreaInput({ context, path, label, isRequired, destinationPath, schema }))
     }
     return wrap(new StringInput({
       context,
@@ -173,7 +174,8 @@ export const schemaToField = (args: SchemaToFieldArgs): Stringable => {
       label,
       isRequired,
       destinationPath,
-      inputType: inferStringInputType(path, schema.format)
+      inputType: inferStringInputType(path, schema.format),
+      schema
     }))
   }
 
@@ -186,15 +188,15 @@ export const schemaToField = (args: SchemaToFieldArgs): Stringable => {
     if (items) {
       const resolved = items.isRef() ? items.resolve() : items
       if (resolved.type === 'string') {
-        return wrap(new ArrayInput({ context, path, label, isRequired, destinationPath }))
+        return wrap(new ArrayInput({ context, path, label, isRequired, destinationPath, schema }))
       }
     }
-    return wrap(new StringInput({ context, path, label, isRequired, destinationPath }))
+    return wrap(new StringInput({ context, path, label, isRequired, destinationPath, schema }))
   }
 
   // Unknown scalars (e.g. GraphQL custom scalars like JSON) fall back to a
   // string field so the consumer notices and decides how to enrich.
-  return wrap(new StringInput({ context, path, label, isRequired, destinationPath }))
+  return wrap(new StringInput({ context, path, label, isRequired, destinationPath, schema }))
 }
 
 const isReferenceKind = (value: string | undefined): value is ReferenceKind =>

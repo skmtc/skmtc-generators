@@ -1,5 +1,5 @@
 import { SnippetBase } from '@skmtc/core'
-import type { GenerateContextType } from '@skmtc/core'
+import type { GenerateContextType, OasRef, OasSchema } from '@skmtc/core'
 import { labelText } from './labelText.ts'
 
 /**
@@ -13,6 +13,8 @@ import { labelText } from './labelText.ts'
 export type StringInputType = 'text' | 'email' | 'tel' | 'date'
 
 export type StringInputArgs = {
+  /** Originating property schema node — for fine-grained attribution. */
+  schema?: OasSchema | OasRef<'schema'>
   context: GenerateContextType
   /** Lens path expressed as dotted property names, e.g. `input.title`. */
   path: string
@@ -30,8 +32,8 @@ export class StringInput extends SnippetBase {
   readonly isRequired: boolean
   readonly inputType: StringInputType
 
-  constructor({ context, path, label, isRequired, destinationPath, inputType = 'text' }: StringInputArgs) {
-    super({ context })
+  constructor({ context, path, label, isRequired, destinationPath, inputType = 'text', schema }: StringInputArgs) {
+    super({ context, schema })
     this.path = path
     this.label = label
     this.isRequired = isRequired

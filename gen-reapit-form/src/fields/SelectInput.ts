@@ -1,8 +1,10 @@
 import { SnippetBase, List } from '@skmtc/core'
-import type { GenerateContextType, ListLines, Stringable } from '@skmtc/core'
+import type { GenerateContextType, ListLines, OasRef, OasSchema, Stringable } from '@skmtc/core'
 import { labelText } from './labelText.ts'
 
 export type SelectInputArgs = {
+  /** Originating property schema node — for fine-grained attribution. */
+  schema?: OasSchema | OasRef<'schema'>
   context: GenerateContextType
   path: string
   label: string | undefined
@@ -27,8 +29,8 @@ export class SelectInput extends SnippetBase {
   readonly isRequired: boolean
   readonly options: ListLines<Stringable>
 
-  constructor({ context, path, label, isRequired, destinationPath, enums }: SelectInputArgs) {
-    super({ context })
+  constructor({ context, path, label, isRequired, destinationPath, enums, schema }: SelectInputArgs) {
+    super({ context, schema })
     this.path = path
     this.label = label
     this.isRequired = isRequired

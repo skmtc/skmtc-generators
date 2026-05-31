@@ -1,7 +1,9 @@
-import { SnippetBase, type GenerateContextType, type Stringable } from '@skmtc/core'
+import { SnippetBase, type GenerateContextType, type OasRef, type OasSchema, type Stringable } from '@skmtc/core'
 import { InputWrapper } from './InputWrapper.ts'
 
 export type SectionInputArgs = {
+  /** Originating property schema node — for fine-grained attribution. */
+  schema?: OasSchema | OasRef<'schema'>
   context: GenerateContextType
   label: string
   children: Stringable[]
@@ -26,8 +28,8 @@ export class SectionInput extends SnippetBase {
   readonly children: Stringable[]
   private readonly headingWrap: InputWrapper
 
-  constructor({ context, label, children, destinationPath }: SectionInputArgs) {
-    super({ context })
+  constructor({ context, label, children, destinationPath, schema }: SectionInputArgs) {
+    super({ context, schema })
     this.label = label
     this.children = children
 

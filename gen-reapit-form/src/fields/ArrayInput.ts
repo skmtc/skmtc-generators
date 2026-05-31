@@ -1,8 +1,10 @@
 import { SnippetBase } from '@skmtc/core'
-import type { GenerateContextType } from '@skmtc/core'
+import type { GenerateContextType, OasRef, OasSchema } from '@skmtc/core'
 import { labelText } from './labelText.ts'
 
 export type ArrayInputArgs = {
+  /** Originating property schema node — for fine-grained attribution. */
+  schema?: OasSchema | OasRef<'schema'>
   context: GenerateContextType
   /** Lens path expressed as dotted property names, e.g. `officeIds`. */
   path: string
@@ -29,8 +31,8 @@ export class ArrayInput extends SnippetBase {
   readonly label: string | undefined
   readonly isRequired: boolean
 
-  constructor({ context, path, label, isRequired, destinationPath }: ArrayInputArgs) {
-    super({ context })
+  constructor({ context, path, label, isRequired, destinationPath, schema }: ArrayInputArgs) {
+    super({ context, schema })
     this.path = path
     this.label = label
     this.isRequired = isRequired

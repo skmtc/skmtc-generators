@@ -1,8 +1,10 @@
 import { SnippetBase } from '@skmtc/core'
-import type { GenerateContextType } from '@skmtc/core'
+import type { GenerateContextType, OasRef, OasSchema } from '@skmtc/core'
 import { labelText } from './labelText.ts'
 
 export type NumberInputArgs = {
+  /** Originating property schema node — for fine-grained attribution. */
+  schema?: OasSchema | OasRef<'schema'>
   context: GenerateContextType
   path: string
   label: string | undefined
@@ -16,8 +18,8 @@ export class NumberInput extends SnippetBase {
   readonly label: string | undefined
   readonly isRequired: boolean
 
-  constructor({ context, path, label, isRequired, destinationPath }: NumberInputArgs) {
-    super({ context })
+  constructor({ context, path, label, isRequired, destinationPath, schema }: NumberInputArgs) {
+    super({ context, schema })
     this.path = path
     this.label = label
     this.isRequired = isRequired
