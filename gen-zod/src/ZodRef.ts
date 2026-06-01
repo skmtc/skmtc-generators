@@ -1,4 +1,4 @@
-import { SnippetBase, ModelDriver, toModelGeneratorKey } from "@skmtc/core";
+import { ModelDriver, SnippetBase, toModelGeneratorKey } from "@skmtc/core";
 import type {
   GenerateContextType,
   Modifiers,
@@ -39,6 +39,14 @@ export class ZodRef extends SnippetBase {
     });
 
     if (context.modelDepth[`${zodEntry.id}:${refName}`] > 0) {
+      // A back-reference to a model still open on the build stack: this is a
+      // recursive cycle, rendered below as `z.lazy(() => …)`. Bump the depth
+      // so the enclosing `ZodProjection` — whose own `resolveSchemaRefOnce`
+      // set this key to 1 — can detect recursion as `> 1` and annotate the
+      // export with `z.ZodType<…>` to break TS's circular inference.
+      // `ModelDriver` resets the key to 0 after the model finishes building.
+      context.modelDepth[`${zodEntry.id}:${refName}`]++;
+
       const settings = context.toModelContentSettings({
         refName,
         projection: ZodProjection,
