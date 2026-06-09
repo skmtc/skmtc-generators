@@ -1,6 +1,6 @@
 {
   "name": "@skmtc/gen-msw",
-  "version": "0.0.64",
+  "version": "0.0.65",
   "exports": "./mod.ts",
   "tasks": {
     "test": "deno test --allow-env --allow-sys --allow-read || true",
@@ -11,8 +11,8 @@
     "publish": "JSR_URL=https://jsr.skmtc.dev/ deno publish --allow-slow-types --allow-dirty --token=$JSR_AUTH_TOKEN"
   },
   "imports": {
-    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.0.65",
-    "@skmtc/core": "jsr:@skmtc/core@0.7.0",
-    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.0.2"
+    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.0.66",
+    "@skmtc/core": "jsr:@skmtc/core@0.7.1",
+    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.0.3"
   }
 }

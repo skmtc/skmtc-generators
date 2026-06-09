@@ -1,4 +1,4 @@
-import { TypescriptSnippet } from '@skmtc/lang-typescript'
+import { SnippetBase } from '@skmtc/core'
 import { match, P } from 'ts-pattern'
 import { applyModifiers } from './applyModifiers.ts'
 import type { Modifiers, GeneratorKey, GenerateContextType, OasString } from '@skmtc/core'
@@ -11,7 +11,7 @@ type ArktypeStringArgs = {
   generatorKey: GeneratorKey
 }
 
-export class ArktypeString extends TypescriptSnippet {
+export class ArktypeString extends SnippetBase {
   type = 'string' as const
   format: string | undefined
   enums: string[] | (string | null)[] | undefined

@@ -7,7 +7,6 @@ import type { OasSchema, OasRef, OasObject, OasOperationProjectionConstructorArg
 import invariant from 'tiny-invariant'
 import { ZodProjection } from '@skmtc/gen-zod'
 import { FormFields } from './FormFields.ts'
-import { typescript } from '@skmtc/lang-typescript'
 import { join } from 'node:path'
 
 export class ShadcnForm extends ShadcnFormBase {
@@ -74,12 +73,10 @@ export class ShadcnForm extends ShadcnFormBase {
       fallbackName: capitalize(`${settings.identifier.name}PathParams`)
     })
 
-    context.register({
-      imports: typescript.toImports({
+    this.registerInto(join('@', 'demo.tsx'), {
+      imports: {
         [this.settings.exportPath]: [this.settings.identifier.name]
-      }),
-      destinationPath: join('@', 'demo.tsx'),
-      createFile: path => typescript.createFile({ path, settings: context.settings })
+      }
     })
 
     this.register({

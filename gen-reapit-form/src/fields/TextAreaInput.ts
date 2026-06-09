@@ -1,4 +1,4 @@
-import { TypescriptSnippet } from '@skmtc/lang-typescript'
+import { SnippetBase } from '@skmtc/core'
 import type { GenerateContextType, OasRef, OasSchema } from '@skmtc/core'
 import { labelText } from './labelText.ts'
 
@@ -13,7 +13,7 @@ export type TextAreaInputArgs = {
 }
 
 /** Multi-line text. Emits `<TextAreaField lens={lens.focus(path)} />`. */
-export class TextAreaInput extends TypescriptSnippet {
+export class TextAreaInput extends SnippetBase {
   readonly path: string
   readonly label: string | undefined
   readonly isRequired: boolean

@@ -1,4 +1,4 @@
-import { TypescriptSnippet } from '@skmtc/lang-typescript'
+import { SnippetBase } from '@skmtc/core'
 import type { GenerateContextType, OasRef, OasSchema } from '@skmtc/core'
 
 type CheckboxInputArgs = {
@@ -12,7 +12,7 @@ type CheckboxInputArgs = {
   schema?: OasSchema | OasRef<'schema'>
 }
 
-export class CheckboxInput extends TypescriptSnippet {
+export class CheckboxInput extends SnippetBase {
   name: string
   label: string | undefined
   placeholder?: string

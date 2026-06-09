@@ -1,4 +1,4 @@
-import { TypescriptSnippet } from '@skmtc/lang-typescript'
+import { SnippetBase } from '@skmtc/core'
 import type { GenerateContextType, OasRef, OasSchema } from '@skmtc/core'
 
 type StringInputArgs = {
@@ -12,7 +12,7 @@ type StringInputArgs = {
   schema?: OasSchema | OasRef<'schema'>
 }
 
-export class StringInput extends TypescriptSnippet {
+export class StringInput extends SnippetBase {
   name: string
   label: string | undefined
   placeholder?: string

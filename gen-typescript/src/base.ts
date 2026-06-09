@@ -1,11 +1,9 @@
 import { capitalize, decapitalize, Identifier, toModelProjectionBase, camelCase } from '@skmtc/core'
 import type { RefName } from '@skmtc/core'
-import { typescript } from '@skmtc/lang-typescript'
 import { join } from '@std/path'
 
 export const TypescriptBase = toModelProjectionBase({
   id: '@skmtc/gen-typescript',
-  lang: typescript,
 
   toIdentifier({ refName }): Identifier {
     const name = capitalize(camelCase(refName))

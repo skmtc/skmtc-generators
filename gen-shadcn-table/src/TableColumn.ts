@@ -1,6 +1,5 @@
 import type { GenerateContextType, ListObject, Stringable, ModuleExport } from '@skmtc/core'
-import { CustomValue, Definition, Identifier, List } from '@skmtc/core'
-import { TypescriptSnippet } from '@skmtc/lang-typescript'
+import { CustomValue, Definition, Identifier, List, SnippetBase } from '@skmtc/core'
 import { Column } from './Column.ts'
 type ConstructorArgs = {
   context: GenerateContextType
@@ -11,7 +10,7 @@ type ConstructorArgs = {
   objectName: string
 }
 
-export class TableColumn extends TypescriptSnippet {
+export class TableColumn extends SnippetBase {
   label: string | undefined
   name: string
   properties: ListObject<Stringable>

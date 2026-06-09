@@ -1,5 +1,4 @@
-import { type TypeSystemValue, type GenerateContextType, type Modifiers, type GeneratorKey, type OasObject, type RefName, type TypeSystemRecord, type TypeSystemObjectProperties, handleKey, isEmpty } from '@skmtc/core'
-import { TypescriptSnippet } from '@skmtc/lang-typescript'
+import { type TypeSystemValue, type GenerateContextType, type Modifiers, type GeneratorKey, type OasObject, type RefName, type TypeSystemRecord, type TypeSystemObjectProperties, handleKey, isEmpty, SnippetBase } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
 import { toArktypeValue } from './Arktype.ts'
 
@@ -12,7 +11,7 @@ type ArktypeObjectArgs = {
   rootRef?: RefName
 }
 
-export class ArktypeObject extends TypescriptSnippet {
+export class ArktypeObject extends SnippetBase {
   type = 'object' as const
   recordProperties: TypeSystemRecord | null
   objectProperties: TypeSystemObjectProperties | null

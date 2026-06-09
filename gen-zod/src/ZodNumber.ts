@@ -4,7 +4,7 @@ import {
   type Modifiers,
   type OasNumber,
 } from "@skmtc/core";
-import { TypescriptSnippet } from "@skmtc/lang-typescript";
+import { SnippetBase } from "@skmtc/core";
 import { applyModifiers } from "./applyModifiers.ts";
 import { List } from "@skmtc/core";
 import { ZodConstraint } from "./ZodConstraints.ts";
@@ -17,7 +17,7 @@ type ZodNumberArgs = {
   generatorKey: GeneratorKey;
 };
 
-export class ZodNumber extends TypescriptSnippet {
+export class ZodNumber extends SnippetBase {
   type = "number" as const;
   modifiers: Modifiers;
   enums?: number[] | (number | null)[];

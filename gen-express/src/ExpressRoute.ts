@@ -1,5 +1,4 @@
-import { camelCase, decapitalize, toPathParams, List } from '@skmtc/core'
-import { TypescriptSnippet } from '@skmtc/lang-typescript'
+import { camelCase, decapitalize, toPathParams, List, SnippetBase } from '@skmtc/core'
 import type { GenerateContextType, OasOperation, ListObject } from '@skmtc/core'
 import { RequestBody } from './RequestBody.ts'
 import { Response } from './Response.ts'
@@ -12,7 +11,7 @@ type ExpressRouteArgs = {
   destinationPath: string
 }
 
-export class ExpressRoute extends TypescriptSnippet {
+export class ExpressRoute extends SnippetBase {
   operation: OasOperation
   pathParams: ListObject<string>
   queryParams: ListObject<string>

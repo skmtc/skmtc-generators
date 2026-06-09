@@ -5,6 +5,7 @@ import {
   type OasRef,
   type OasSchema
 } from '@skmtc/core'
+import { typescript } from '@skmtc/lang-typescript'
 import { ReapitSearchableDropdown } from './ReapitSearchableDropdown.ts'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
@@ -29,6 +30,7 @@ import denoJson from '../deno.json' with { type: 'json' }
  */
 export const reapitSearchableDropdownEntry = toGqlOperationEntry<EnrichmentSchema>({
   id: denoJson.name,
+  lang: typescript,
 
   isSupported({ operation }): boolean {
     if (operation.rootKind !== 'query') return false

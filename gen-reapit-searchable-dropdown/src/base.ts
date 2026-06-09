@@ -1,5 +1,4 @@
 import { Identifier, toGqlOperationProjectionBase } from '@skmtc/core'
-import { typescript } from '@skmtc/lang-typescript'
 import { join } from '@std/path'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
@@ -11,7 +10,6 @@ const decapitalize = (name: string): string =>
 
 export const ReapitSearchableDropdownBase = toGqlOperationProjectionBase<EnrichmentSchema>({
   id: denoJson.name,
-  lang: typescript,
 
   toEnrichmentSchema,
 

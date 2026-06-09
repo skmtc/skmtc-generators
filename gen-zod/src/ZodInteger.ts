@@ -1,4 +1,4 @@
-import { TypescriptSnippet } from "@skmtc/lang-typescript";
+import { SnippetBase } from "@skmtc/core";
 import { applyModifiers } from "./applyModifiers.ts";
 import type {
   GenerateContextType,
@@ -17,7 +17,7 @@ type ZodIntegerArgs = {
   generatorKey: GeneratorKey;
 };
 
-export class ZodInteger extends TypescriptSnippet {
+export class ZodInteger extends SnippetBase {
   type = "integer" as const;
   modifiers: Modifiers;
   format?: "int32" | "int64";

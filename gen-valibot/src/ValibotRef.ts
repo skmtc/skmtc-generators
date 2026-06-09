@@ -1,5 +1,4 @@
-import { camelCase, decapitalize } from '@skmtc/core'
-import { TypescriptSnippet } from '@skmtc/lang-typescript'
+import { camelCase, decapitalize, SnippetBase } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
 import type {
   GenerateContextType,
@@ -22,7 +21,7 @@ type ValibotRefArgs = {
   schema?: OasSchema | OasRef<'schema'>
 }
 
-export class ValibotRef extends TypescriptSnippet {
+export class ValibotRef extends SnippetBase {
   type = 'ref' as const
   name: string
   refName: RefName

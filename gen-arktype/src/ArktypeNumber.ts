@@ -1,5 +1,5 @@
 import type { OasRef, OasSchema } from '@skmtc/core'
-import { TypescriptSnippet } from '@skmtc/lang-typescript'
+import { SnippetBase } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
 import type { Modifiers, GeneratorKey, GenerateContextType } from '@skmtc/core'
 
@@ -12,7 +12,7 @@ type ArktypeNumberArgs = {
   generatorKey: GeneratorKey
 }
 
-export class ArktypeNumber extends TypescriptSnippet {
+export class ArktypeNumber extends SnippetBase {
   type = 'number' as const
   modifiers: Modifiers
   

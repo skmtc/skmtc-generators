@@ -1,4 +1,4 @@
-import { TypescriptSnippet } from '@skmtc/lang-typescript'
+import { SnippetBase } from '@skmtc/core'
 import type { GenerateContextType, OasRef, OasSchema } from '@skmtc/core'
 import { labelText } from './labelText.ts'
 
@@ -26,7 +26,7 @@ export type ArrayInputArgs = {
  * generator-private enrichment (see skmtc-generator skill, "Generator-
  * private enrichments").
  */
-export class ArrayInput extends TypescriptSnippet {
+export class ArrayInput extends SnippetBase {
   readonly path: string
   readonly label: string | undefined
   readonly isRequired: boolean

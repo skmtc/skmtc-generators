@@ -1,4 +1,5 @@
 import { toOasOperationEntry } from '@skmtc/core'
+import { typescript } from '@skmtc/lang-typescript'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import { isListResponse } from '@skmtc/gen-tanstack-query-supabase-zod'
 import { ShadcnTable } from './ShadcnTable.ts'
@@ -6,6 +7,7 @@ import denoJson from '../deno.json' with { type: 'json' }
 
 export const ShadcnTableEntry = toOasOperationEntry<EnrichmentSchema>({
   id: denoJson.name,
+  lang: typescript,
 
   toEnrichmentSchema,
 

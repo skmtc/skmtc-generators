@@ -1,4 +1,4 @@
-import { TypescriptSnippet } from '@skmtc/lang-typescript'
+import { SnippetBase } from '@skmtc/core'
 import type { GenerateContextType, ModuleExport } from '@skmtc/core'
 
 type InputOptionProps = {
@@ -9,7 +9,7 @@ type InputOptionProps = {
   destinationPath: string
 }
 
-export class InputOption extends TypescriptSnippet {
+export class InputOption extends SnippetBase {
   formatter: ModuleExport | undefined
   accessorPath: string
   constructor({ context, itemName, formatter, accessorPath, destinationPath }: InputOptionProps) {

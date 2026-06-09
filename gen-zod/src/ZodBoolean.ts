@@ -5,7 +5,7 @@ import {
   type Modifiers,
   type OasBoolean,
 } from "@skmtc/core";
-import { TypescriptSnippet } from "@skmtc/lang-typescript";
+import { SnippetBase } from "@skmtc/core";
 
 type ZodBooleanArgs = {
   context: GenerateContextType;
@@ -23,7 +23,7 @@ type ZodBooleanArgs = {
   generatorKey: GeneratorKey;
 };
 
-export class ZodBoolean extends TypescriptSnippet {
+export class ZodBoolean extends SnippetBase {
   type = "boolean" as const;
   modifiers: Modifiers;
   enums?: boolean[] | (boolean | null)[];

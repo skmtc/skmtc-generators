@@ -1,4 +1,4 @@
-import { TypescriptSnippet } from '@skmtc/lang-typescript'
+import { SnippetBase } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
 import type { Modifiers, GeneratorKey, GenerateContextType, OasInteger } from '@skmtc/core'
 
@@ -10,7 +10,7 @@ type ArktypeIntegerArgs = {
   generatorKey: GeneratorKey
 }
 
-export class ArktypeInteger extends TypescriptSnippet {
+export class ArktypeInteger extends SnippetBase {
   type = 'integer' as const
   format: string | undefined
   modifiers: Modifiers

@@ -1,4 +1,4 @@
-import { TypescriptSnippet } from "@skmtc/lang-typescript";
+import { SnippetBase } from "@skmtc/core";
 import type {
   GenerateContextType,
   GeneratorKey,
@@ -24,7 +24,7 @@ type ZodUnionArgs = {
   rootRef?: RefName;
 };
 
-export class ZodUnion extends TypescriptSnippet {
+export class ZodUnion extends SnippetBase {
   type = "union" as const;
   members: TypeSystemValue[];
   discriminator: string | undefined;

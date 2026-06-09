@@ -4,7 +4,7 @@ import {
   type OasRef,
   type OasSchema,
 } from "@skmtc/core";
-import { TypescriptSnippet } from "@skmtc/lang-typescript";
+import { SnippetBase } from "@skmtc/core";
 
 type ConstructorArgs = {
   context: GenerateContextType;
@@ -18,7 +18,7 @@ type ConstructorArgs = {
   schema?: OasSchema | OasRef<"schema">;
 };
 
-export class ZodUnknown extends TypescriptSnippet {
+export class ZodUnknown extends SnippetBase {
   type = "unknown" as const;
 
   constructor({ context, destinationPath, generatorKey, schema }: ConstructorArgs) {

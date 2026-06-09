@@ -1,5 +1,5 @@
 import type { OasRef, OasSchema } from '@skmtc/core'
-import { TypescriptSnippet } from '@skmtc/lang-typescript'
+import { SnippetBase } from '@skmtc/core'
 import type { GeneratorKey, GenerateContextType } from '@skmtc/core'
 
 type ArktypeUnknownArgs = {
@@ -10,7 +10,7 @@ type ArktypeUnknownArgs = {
   generatorKey: GeneratorKey
 }
 
-export class ArktypeUnknown extends TypescriptSnippet {
+export class ArktypeUnknown extends SnippetBase {
   type = 'unknown' as const
   
   constructor({ context, generatorKey, destinationPath, schema }: ArktypeUnknownArgs) {

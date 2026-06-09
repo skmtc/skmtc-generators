@@ -1,5 +1,5 @@
 import { ModelDriver, toModelGeneratorKey } from "@skmtc/core";
-import { TypescriptSnippet } from "@skmtc/lang-typescript";
+import { SnippetBase } from "@skmtc/core";
 import type {
   GenerateContextType,
   Modifiers,
@@ -20,7 +20,7 @@ type ConstructorProps = {
   schema?: OasSchema | OasRef<"schema">;
 };
 
-export class ZodRef extends TypescriptSnippet {
+export class ZodRef extends SnippetBase {
   type = "ref" as const;
   modifiers: Modifiers;
   name: string;

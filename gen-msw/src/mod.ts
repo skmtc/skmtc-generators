@@ -6,6 +6,7 @@ import denoJson from '../deno.json' with { type: 'json' }
 
 export const MswEntry = toOasOperationEntry({
   id: denoJson.name,
+  lang: typescript,
 
   transform: ({ context, operation }) => {
     const insertedRoute = context.insertOperation({ projection: MockRoute, operation: operation })
@@ -29,7 +30,7 @@ export const MswEntry = toOasOperationEntry({
       identifier: Identifier.createVariable('toRoutesList'),
       value: new MockRoutesList({ context }),
       destinationPath: exportPath,
-      lang: typescript
+      generatorId: denoJson.name
     })
 
     routesList.value.add(route)
