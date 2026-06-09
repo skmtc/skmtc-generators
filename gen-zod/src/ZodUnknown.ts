@@ -1,10 +1,10 @@
 import {
-  SnippetBase,
   type GenerateContextType,
   type GeneratorKey,
   type OasRef,
   type OasSchema,
 } from "@skmtc/core";
+import { TypescriptSnippet } from "@skmtc/lang-typescript";
 
 type ConstructorArgs = {
   context: GenerateContextType;
@@ -18,13 +18,13 @@ type ConstructorArgs = {
   schema?: OasSchema | OasRef<"schema">;
 };
 
-export class ZodUnknown extends SnippetBase {
+export class ZodUnknown extends TypescriptSnippet {
   type = "unknown" as const;
 
   constructor({ context, destinationPath, generatorKey, schema }: ConstructorArgs) {
     super({ context, generatorKey, schema });
 
-    context.register({ imports: { zod: ["z"] }, destinationPath });
+    this.register({ imports: { zod: ["z"] }, destinationPath });
   }
 
   override toString(): string {

@@ -1,10 +1,10 @@
 import {
-  SnippetBase,
   type GenerateContextType,
   type GeneratorKey,
   type Modifiers,
   type OasNumber,
 } from "@skmtc/core";
+import { TypescriptSnippet } from "@skmtc/lang-typescript";
 import { applyModifiers } from "./applyModifiers.ts";
 import { List } from "@skmtc/core";
 import { ZodConstraint } from "./ZodConstraints.ts";
@@ -17,7 +17,7 @@ type ZodNumberArgs = {
   generatorKey: GeneratorKey;
 };
 
-export class ZodNumber extends SnippetBase {
+export class ZodNumber extends TypescriptSnippet {
   type = "number" as const;
   modifiers: Modifiers;
   enums?: number[] | (number | null)[];
@@ -69,7 +69,7 @@ export class ZodNumber extends SnippetBase {
       );
     }
 
-    context.register({ imports: { zod: ["z"] }, destinationPath });
+    this.register({ imports: { zod: ["z"] }, destinationPath });
   }
 
   override toString(): string {

@@ -1,4 +1,5 @@
 import { SnippetBase, handleKey, isEmpty } from "@skmtc/core";
+import { TypescriptSnippet } from "@skmtc/lang-typescript";
 import type {
   CustomValue,
   GenerateContextType,
@@ -25,7 +26,7 @@ type ZodObjectProps = {
   rootRef?: RefName;
 };
 
-export class ZodObject extends SnippetBase {
+export class ZodObject extends TypescriptSnippet {
   type = "object" as const;
   recordProperties: TypeSystemRecord | null;
   objectProperties: TypeSystemObjectProperties | null;
@@ -69,7 +70,7 @@ export class ZodObject extends SnippetBase {
       })
       : null;
 
-    context.register({ imports: { zod: ["z"] }, destinationPath });
+    this.register({ imports: { zod: ["z"] }, destinationPath });
   }
 
   override toString(): string {

@@ -1,4 +1,4 @@
-import { SnippetBase } from "@skmtc/core";
+import { TypescriptSnippet } from "@skmtc/lang-typescript";
 import type {
   GenerateContextType,
   GeneratorKey,
@@ -24,7 +24,7 @@ type ZodUnionArgs = {
   rootRef?: RefName;
 };
 
-export class ZodUnion extends SnippetBase {
+export class ZodUnion extends TypescriptSnippet {
   type = "union" as const;
   members: TypeSystemValue[];
   discriminator: string | undefined;
@@ -55,7 +55,7 @@ export class ZodUnion extends SnippetBase {
     this.discriminator = discriminator?.propertyName;
     this.modifiers = modifiers;
 
-    context.register({ imports: { zod: ["z"] }, destinationPath });
+    this.register({ imports: { zod: ["z"] }, destinationPath });
   }
 
   override toString(): string {

@@ -1,4 +1,4 @@
-import { SnippetBase } from "@skmtc/core";
+import { TypescriptSnippet } from "@skmtc/lang-typescript";
 import { applyModifiers } from "./applyModifiers.ts";
 import type {
   GenerateContextType,
@@ -17,7 +17,7 @@ type ZodStringArgs = {
   generatorKey: GeneratorKey;
 };
 
-export class ZodString extends SnippetBase {
+export class ZodString extends TypescriptSnippet {
   type = "string" as const;
   format: string | undefined;
   enums: string[] | (string | null)[] | undefined;
@@ -58,7 +58,7 @@ export class ZodString extends SnippetBase {
 
     this.modifiers = modifiers;
 
-    context.register({ imports: { zod: ["z"] }, destinationPath });
+    this.register({ imports: { zod: ["z"] }, destinationPath });
   }
 
   override toString(): string {

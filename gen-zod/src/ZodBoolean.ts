@@ -1,11 +1,11 @@
 import { applyModifiers } from "./applyModifiers.ts";
 import {
-  SnippetBase,
   type GenerateContextType,
   type GeneratorKey,
   type Modifiers,
   type OasBoolean,
 } from "@skmtc/core";
+import { TypescriptSnippet } from "@skmtc/lang-typescript";
 
 type ZodBooleanArgs = {
   context: GenerateContextType;
@@ -23,7 +23,7 @@ type ZodBooleanArgs = {
   generatorKey: GeneratorKey;
 };
 
-export class ZodBoolean extends SnippetBase {
+export class ZodBoolean extends TypescriptSnippet {
   type = "boolean" as const;
   modifiers: Modifiers;
   enums?: boolean[] | (boolean | null)[];
@@ -37,7 +37,7 @@ export class ZodBoolean extends SnippetBase {
     this.modifiers = modifiers;
     this.enums = schema.enums;
 
-    context.register({ imports: { zod: ["z"] }, destinationPath });
+    this.register({ imports: { zod: ["z"] }, destinationPath });
   }
 
   override toString(): string {

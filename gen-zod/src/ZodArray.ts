@@ -1,4 +1,4 @@
-import { SnippetBase } from "@skmtc/core";
+import { TypescriptSnippet } from "@skmtc/lang-typescript";
 import type {
   GenerateContextType,
   GeneratorKey,
@@ -22,7 +22,7 @@ type ZodArrayArgs = {
   rootRef?: RefName;
 };
 
-export class ZodArray extends SnippetBase {
+export class ZodArray extends TypescriptSnippet {
   type = "array" as const;
   items: TypeSystemValue;
   modifiers: Modifiers;
@@ -43,7 +43,7 @@ export class ZodArray extends SnippetBase {
       rootRef,
     });
 
-    context.register({ imports: { zod: ["z"] }, destinationPath });
+    this.register({ imports: { zod: ["z"] }, destinationPath });
   }
 
   override toString(): string {
