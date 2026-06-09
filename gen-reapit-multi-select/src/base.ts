@@ -5,6 +5,7 @@ import {
   type OasRef,
   type OasSchema
 } from '@skmtc/core'
+import { typescript } from '@skmtc/lang-typescript'
 import { join } from '@std/path'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
@@ -21,6 +22,7 @@ const decapitalize = (name: string): string =>
 // addressed identity collisions are impossible.
 export const ReapitMultiSelectBase = toGqlOperationProjectionBase<EnrichmentSchema>({
   id: denoJson.name,
+  lang: typescript,
 
   toEnrichmentSchema,
 

@@ -1,4 +1,5 @@
-import { camelCase, SnippetBase, decapitalize, toPathParams, List } from '@skmtc/core'
+import { camelCase, decapitalize, toPathParams, List } from '@skmtc/core'
+import { TypescriptSnippet } from '@skmtc/lang-typescript'
 import type { GenerateContextType, OasOperation, ListObject } from '@skmtc/core'
 import { RequestBody } from './RequestBody.ts'
 import { Response } from './Response.ts'
@@ -11,7 +12,7 @@ type SupabaseRouteArgs = {
   destinationPath: string
 }
 
-export class SupabaseRoute extends SnippetBase {
+export class SupabaseRoute extends TypescriptSnippet {
   operation: OasOperation
   pathParams: ListObject<string>
   queryParams: ListObject<string>
@@ -76,7 +77,7 @@ export class SupabaseRoute extends SnippetBase {
 
     const firstSegment = toFirstSegment(operation)
 
-    context.register({
+    this.register({
       imports: {
         [`@/${firstSegment}/services.ts`]: [serviceName],
         '@/_shared/middleware.ts': ['withSupabase']
@@ -85,7 +86,7 @@ export class SupabaseRoute extends SnippetBase {
     })
 
     if (this.withBearerAuth) {
-      context.register({
+      this.register({
         imports: { '@/_shared/middleware.ts': ['withClaims'] },
         destinationPath
       })

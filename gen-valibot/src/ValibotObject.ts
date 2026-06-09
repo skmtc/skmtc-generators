@@ -1,4 +1,5 @@
 import { SnippetBase, isEmpty } from '@skmtc/core'
+import { TypescriptSnippet } from '@skmtc/lang-typescript'
 import type {
   GenerateContextType,
   GeneratorKey,
@@ -26,7 +27,7 @@ type ValibotObjectProps = {
   rootRef?: RefName
 }
 
-export class ValibotObject extends SnippetBase {
+export class ValibotObject extends TypescriptSnippet {
   type = 'object' as const
   recordProperties: TypeSystemRecord | null
   objectProperties: TypeSystemObjectProperties | null
@@ -70,7 +71,7 @@ export class ValibotObject extends SnippetBase {
         })
       : null
 
-    context.register({ imports: { valibot: [{ '*': 'v' }] }, destinationPath })
+    this.register({ imports: { valibot: [{ '*': 'v' }] }, destinationPath })
   }
 
   override toString(): string {

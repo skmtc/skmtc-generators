@@ -1,4 +1,5 @@
-import { SnippetBase, type GenerateContextType, type Stringable } from '@skmtc/core'
+import type { GenerateContextType, Stringable } from '@skmtc/core'
+import { TypescriptSnippet } from '@skmtc/lang-typescript'
 
 const COMPONENT_BY_SIZE = {
   default: 'InputWrap',
@@ -24,7 +25,7 @@ export type InputWrapperArgs = {
  * the entire row, used for section headings (Subtitle) and any field
  * that shouldn't share a row.
  */
-export class InputWrapper extends SnippetBase {
+export class InputWrapper extends TypescriptSnippet {
   readonly child: Stringable
   readonly size: InputWrapperSize
 

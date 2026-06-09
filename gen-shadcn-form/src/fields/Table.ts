@@ -1,4 +1,5 @@
 import { List, SnippetBase } from '@skmtc/core'
+import { TypescriptSnippet } from '@skmtc/lang-typescript'
 import type {
   CustomValue,
   EntryList,
@@ -70,7 +71,7 @@ type SimpleTableArgs = {
   topLevelSchema: OasSchema | OasRef<'schema'>
 }
 
-export class SimpleTable extends SnippetBase {
+export class SimpleTable extends TypescriptSnippet {
   name: string
   headers: ListArray<Stringable>
   label: string | undefined
@@ -133,7 +134,7 @@ type ObjectTableArgs = {
   topLevelSchema: OasSchema | OasRef<'schema'>
 }
 
-export class ObjectTable extends SnippetBase {
+export class ObjectTable extends TypescriptSnippet {
   name: string
   headers: ListArray<Stringable>
   label: string | undefined
@@ -207,7 +208,7 @@ type SimpleTableRowRenderArgs = {
   topLevelSchema: OasSchema | OasRef<'schema'>
 }
 
-class SimpleTableRowRender extends SnippetBase {
+class SimpleTableRowRender extends TypescriptSnippet {
   parentName: string
   cells: ListLines<Stringable>
   rowType: TypeSystemValue
@@ -274,7 +275,7 @@ type TableObjectRowRenderArgs = {
   topLevelSchema: OasSchema | OasRef<'schema'>
 }
 
-class TableObjectRowRender extends SnippetBase {
+class TableObjectRowRender extends TypescriptSnippet {
   parentName: string
   cells: ListLines<Stringable>
   rowType: TypeSystemValue

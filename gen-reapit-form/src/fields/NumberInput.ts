@@ -1,4 +1,4 @@
-import { SnippetBase } from '@skmtc/core'
+import { TypescriptSnippet } from '@skmtc/lang-typescript'
 import type { GenerateContextType, OasRef, OasSchema } from '@skmtc/core'
 import { labelText } from './labelText.ts'
 
@@ -13,7 +13,7 @@ export type NumberInputArgs = {
 }
 
 /** Numeric input. Emits `<NumberField lens={lens.focus(path)} />`. */
-export class NumberInput extends SnippetBase {
+export class NumberInput extends TypescriptSnippet {
   readonly path: string
   readonly label: string | undefined
   readonly isRequired: boolean

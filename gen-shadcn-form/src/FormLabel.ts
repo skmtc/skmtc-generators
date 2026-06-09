@@ -1,11 +1,12 @@
-import { SnippetBase, type GenerateContextType } from '@skmtc/core'
+import type { GenerateContextType } from '@skmtc/core'
+import { TypescriptSnippet } from '@skmtc/lang-typescript'
 
 type FormLabelArgs = {
   context: GenerateContextType
   label: string | undefined
   destinationPath: string
 }
-export class FormLabel extends SnippetBase {
+export class FormLabel extends TypescriptSnippet {
   label: string | undefined
   destinationPath: string
   constructor({ context, label, destinationPath }: FormLabelArgs) {

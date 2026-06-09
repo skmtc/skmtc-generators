@@ -1,4 +1,4 @@
-import { SnippetBase } from '@skmtc/core'
+import { TypescriptSnippet } from '@skmtc/lang-typescript'
 import { applyModifiers } from './applyModifiers.ts'
 import type { Modifiers, GeneratorKey, GenerateContextType, OasInteger } from '@skmtc/core'
 
@@ -10,7 +10,7 @@ type ValibotIntegerArgs = {
   generatorKey: GeneratorKey
 }
 
-export class ValibotInteger extends SnippetBase {
+export class ValibotInteger extends TypescriptSnippet {
   type = 'integer' as const
   modifiers: Modifiers
 
@@ -19,7 +19,7 @@ export class ValibotInteger extends SnippetBase {
 
     this.modifiers = modifiers
 
-    context.register({ imports: { valibot: [{ '*': 'v' }] }, destinationPath })
+    this.register({ imports: { valibot: [{ '*': 'v' }] }, destinationPath })
   }
 
   override toString(): string {

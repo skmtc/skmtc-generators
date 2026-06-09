@@ -1,4 +1,4 @@
-import { SnippetBase } from '@skmtc/core'
+import { TypescriptSnippet } from '@skmtc/lang-typescript'
 import type { GenerateContextType, OasRef, OasSchema } from '@skmtc/core'
 import { labelText } from './labelText.ts'
 
@@ -26,7 +26,7 @@ export type StringInputArgs = {
 }
 
 /** Single-line text. Emits `<StringField lens={lens.focus(path)} />`. */
-export class StringInput extends SnippetBase {
+export class StringInput extends TypescriptSnippet {
   readonly path: string
   readonly label: string | undefined
   readonly isRequired: boolean

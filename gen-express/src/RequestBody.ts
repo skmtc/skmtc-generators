@@ -1,4 +1,5 @@
-import { SnippetBase, decapitalize } from '@skmtc/core'
+import { decapitalize } from '@skmtc/core'
+import { TypescriptSnippet } from '@skmtc/lang-typescript'
 import type { GenerateContextType, OasSchema, OasRef } from '@skmtc/core'
 import { ValibotProjection } from '@skmtc/gen-valibot'
 
@@ -9,7 +10,7 @@ type RequestBodyArgs = {
   requestBodySchema: OasSchema | OasRef<'schema'> | undefined
 }
 
-export class RequestBody extends SnippetBase {
+export class RequestBody extends TypescriptSnippet {
   valibotRequestBodyName: string | null
 
   constructor({ context, serviceName, destinationPath, requestBodySchema }: RequestBodyArgs) {
@@ -29,7 +30,7 @@ export class RequestBody extends SnippetBase {
     this.valibotRequestBodyName = insertedRequestBody.identifier.name
 
     // Register valibot import
-    context.register({
+    this.register({
       imports: {
         valibot: ['*', 'v']
       },

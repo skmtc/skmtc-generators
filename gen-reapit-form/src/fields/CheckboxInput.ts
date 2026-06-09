@@ -1,4 +1,4 @@
-import { SnippetBase } from '@skmtc/core'
+import { TypescriptSnippet } from '@skmtc/lang-typescript'
 import type { GenerateContextType, OasRef, OasSchema } from '@skmtc/core'
 
 export type CheckboxInputArgs = {
@@ -11,7 +11,7 @@ export type CheckboxInputArgs = {
 }
 
 /** Boolean checkbox. Emits `<CheckboxField lens={lens.focus(path)} />`. */
-export class CheckboxInput extends SnippetBase {
+export class CheckboxInput extends TypescriptSnippet {
   readonly path: string
   readonly label: string | undefined
 

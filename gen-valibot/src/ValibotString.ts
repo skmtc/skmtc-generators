@@ -1,4 +1,4 @@
-import { SnippetBase } from '@skmtc/core'
+import { TypescriptSnippet } from '@skmtc/lang-typescript'
 import { match, P } from 'ts-pattern'
 import { applyModifiers } from './applyModifiers.ts'
 import type { Modifiers, GeneratorKey, GenerateContextType, OasString } from '@skmtc/core'
@@ -11,7 +11,7 @@ type ValibotStringArgs = {
   generatorKey: GeneratorKey
 }
 
-export class ValibotString extends SnippetBase {
+export class ValibotString extends TypescriptSnippet {
   type = 'string' as const
   format: string | undefined
   enums: string[] | (string | null)[] | undefined
@@ -29,7 +29,7 @@ export class ValibotString extends SnippetBase {
     this.format = stringSchema.format
     this.modifiers = modifiers
 
-    context.register({ imports: { valibot: [{ '*': 'v' }] }, destinationPath })
+    this.register({ imports: { valibot: [{ '*': 'v' }] }, destinationPath })
   }
 
   override toString(): string {

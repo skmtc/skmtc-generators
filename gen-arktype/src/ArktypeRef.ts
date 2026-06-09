@@ -1,5 +1,6 @@
 import type { OasRef, OasSchema } from '@skmtc/core'
-import { SnippetBase, camelCase, decapitalize } from '@skmtc/core'
+import { camelCase, decapitalize } from '@skmtc/core'
+import { TypescriptSnippet } from '@skmtc/lang-typescript'
 import { applyModifiers } from './applyModifiers.ts'
 import type {
   GenerateContextType,
@@ -20,7 +21,7 @@ type ArktypeRefArgs = {
   rootRef?: RefName
 }
 
-export class ArktypeRef extends SnippetBase {
+export class ArktypeRef extends TypescriptSnippet {
   type = 'ref' as const
   name: string
   refName: RefName
@@ -37,7 +38,7 @@ export class ArktypeRef extends SnippetBase {
     this.destinationPath = destinationPath
     this.rootRef = rootRef
 
-    context.register({ imports: { arktype: ['type'] }, destinationPath })
+    this.register({ imports: { arktype: ['type'] }, destinationPath })
   }
 
   override toString(): string {

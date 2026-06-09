@@ -5,6 +5,7 @@ import type {
 } from '@skmtc/core'
 import type { EnrichmentSchema } from './enrichments.ts'
 import { Identifier, CustomValue } from '@skmtc/core'
+import { typescript } from '@skmtc/lang-typescript'
 import { ShadcnSelectInput } from './ShadcnSelectInput.ts'
 export class ShadcnSelectField extends ShadcnSelectApiBase {
   propsTypeName: string
@@ -25,6 +26,7 @@ export class ShadcnSelectField extends ShadcnSelectApiBase {
     this.selectName = this.insertOperation(ShadcnSelectInput, operation).toName()
 
     context.defineAndRegister({
+      lang: typescript,
       identifier: Identifier.createType(this.propsTypeName),
       value: new CustomValue({ context, value: propsTypeValue }),
       destinationPath: settings.exportPath

@@ -1,9 +1,11 @@
 import { decapitalize, Identifier, toModelProjectionBase, type RefName, camelCase } from '@skmtc/core'
+import { typescript } from '@skmtc/lang-typescript'
 import { join } from '@std/path'
 import denoJson from '../deno.json' with { type: 'json' }
 
 export const ValibotBase = toModelProjectionBase({
   id: denoJson.name,
+  lang: typescript,
 
   toIdentifier({ refName }): Identifier {
     const name = decapitalize(camelCase(refName))

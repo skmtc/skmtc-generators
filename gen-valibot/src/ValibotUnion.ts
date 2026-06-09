@@ -1,4 +1,4 @@
-import { SnippetBase } from '@skmtc/core'
+import { TypescriptSnippet } from '@skmtc/lang-typescript'
 import type {
   GenerateContextType,
   GeneratorKey,
@@ -24,7 +24,7 @@ type ValibotUnionArgs = {
   rootRef?: RefName
 }
 
-export class ValibotUnion extends SnippetBase {
+export class ValibotUnion extends TypescriptSnippet {
   type = 'union' as const
   members: TypeSystemValue[]
   discriminator: string | undefined
@@ -49,7 +49,7 @@ export class ValibotUnion extends SnippetBase {
     this.discriminator = discriminator?.propertyName
     this.modifiers = modifiers
 
-    context.register({ imports: { valibot: [{ '*': 'v' }] }, destinationPath })
+    this.register({ imports: { valibot: [{ '*': 'v' }] }, destinationPath })
   }
 
   override toString(): string {

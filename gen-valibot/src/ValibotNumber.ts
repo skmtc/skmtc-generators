@@ -1,4 +1,4 @@
-import { SnippetBase } from '@skmtc/core'
+import { TypescriptSnippet } from '@skmtc/lang-typescript'
 import { applyModifiers } from './applyModifiers.ts'
 import type {
   Modifiers,
@@ -17,7 +17,7 @@ type ValibotNumberArgs = {
   schema?: OasSchema | OasRef<'schema'>
 }
 
-export class ValibotNumber extends SnippetBase {
+export class ValibotNumber extends TypescriptSnippet {
   type = 'number' as const
   modifiers: Modifiers
 
@@ -26,7 +26,7 @@ export class ValibotNumber extends SnippetBase {
 
     this.modifiers = modifiers
 
-    context.register({ imports: { valibot: [{ '*': 'v' }] }, destinationPath })
+    this.register({ imports: { valibot: [{ '*': 'v' }] }, destinationPath })
   }
 
   override toString(): string {

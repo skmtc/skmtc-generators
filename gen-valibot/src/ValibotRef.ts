@@ -1,4 +1,5 @@
-import { SnippetBase, camelCase, decapitalize } from '@skmtc/core'
+import { camelCase, decapitalize } from '@skmtc/core'
+import { TypescriptSnippet } from '@skmtc/lang-typescript'
 import { applyModifiers } from './applyModifiers.ts'
 import type {
   GenerateContextType,
@@ -21,7 +22,7 @@ type ValibotRefArgs = {
   schema?: OasSchema | OasRef<'schema'>
 }
 
-export class ValibotRef extends SnippetBase {
+export class ValibotRef extends TypescriptSnippet {
   type = 'ref' as const
   name: string
   refName: RefName
@@ -46,7 +47,7 @@ export class ValibotRef extends SnippetBase {
     this.destinationPath = destinationPath
     this.rootRef = rootRef
 
-    context.register({ imports: { valibot: [{ '*': 'v' }] }, destinationPath })
+    this.register({ imports: { valibot: [{ '*': 'v' }] }, destinationPath })
   }
 
   override toString(): string {

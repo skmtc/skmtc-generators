@@ -1,4 +1,5 @@
-import { SnippetBase, List } from '@skmtc/core'
+import { List } from '@skmtc/core'
+import { TypescriptSnippet } from '@skmtc/lang-typescript'
 import type { GenerateContextType, ListLines, OasRef, OasSchema, Stringable } from '@skmtc/core'
 import { labelText } from './labelText.ts'
 
@@ -23,7 +24,7 @@ export type SelectInputArgs = {
  * `<EnumNameSelectField>` and `gen-reapit-form` defers to that
  * generator.
  */
-export class SelectInput extends SnippetBase {
+export class SelectInput extends TypescriptSnippet {
   readonly path: string
   readonly label: string | undefined
   readonly isRequired: boolean

@@ -1,4 +1,5 @@
 import { Identifier, toOasOperationEntry } from '@skmtc/core'
+import { typescript } from '@skmtc/lang-typescript'
 import { MockRoute } from './MockRoute.ts'
 import { MockRoutesList } from './MockRoutesList.ts'
 import denoJson from '../deno.json' with { type: 'json' }
@@ -27,7 +28,8 @@ export const MswEntry = toOasOperationEntry({
     const routesList = context.defineAndRegister({
       identifier: Identifier.createVariable('toRoutesList'),
       value: new MockRoutesList({ context }),
-      destinationPath: exportPath
+      destinationPath: exportPath,
+      lang: typescript
     })
 
     routesList.value.add(route)

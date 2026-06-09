@@ -1,4 +1,5 @@
-import { camelCase, SnippetBase, decapitalize, toPathParams, List } from '@skmtc/core'
+import { camelCase, decapitalize, toPathParams, List } from '@skmtc/core'
+import { TypescriptSnippet } from '@skmtc/lang-typescript'
 import type { GenerateContextType, OasOperation, ListObject } from '@skmtc/core'
 import { RequestBody } from './RequestBody.ts'
 import { Response } from './Response.ts'
@@ -11,7 +12,7 @@ type ExpressRouteArgs = {
   destinationPath: string
 }
 
-export class ExpressRoute extends SnippetBase {
+export class ExpressRoute extends TypescriptSnippet {
   operation: OasOperation
   pathParams: ListObject<string>
   queryParams: ListObject<string>
@@ -77,7 +78,7 @@ export class ExpressRoute extends SnippetBase {
     // Register imports for services
     const firstSegment = toFirstSegment(operation)
 
-    context.register({
+    this.register({
       imports: {
         [`@/${firstSegment}/services.ts`]: [this.serviceName]
       },
@@ -86,7 +87,7 @@ export class ExpressRoute extends SnippetBase {
 
     // Register auth middleware if needed
     if (this.withAuth) {
-      context.register({
+      this.register({
         imports: {
           '@/_shared/middleware.ts': ['authMiddleware']
         },

@@ -1,5 +1,5 @@
 import type { OasRef, OasSchema } from '@skmtc/core'
-import { SnippetBase } from '@skmtc/core'
+import { TypescriptSnippet } from '@skmtc/lang-typescript'
 import { applyModifiers } from './applyModifiers.ts'
 import type { Modifiers, GeneratorKey, GenerateContextType } from '@skmtc/core'
 
@@ -12,7 +12,7 @@ type ArktypeNumberArgs = {
   generatorKey: GeneratorKey
 }
 
-export class ArktypeNumber extends SnippetBase {
+export class ArktypeNumber extends TypescriptSnippet {
   type = 'number' as const
   modifiers: Modifiers
   
@@ -20,7 +20,7 @@ export class ArktypeNumber extends SnippetBase {
     super({ context, generatorKey, schema })
     
     this.modifiers = modifiers
-    context.register({ imports: { arktype: ['type'] }, destinationPath })
+    this.register({ imports: { arktype: ['type'] }, destinationPath })
   }
 
   override toString(): string {
