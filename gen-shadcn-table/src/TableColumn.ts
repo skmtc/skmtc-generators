@@ -1,5 +1,5 @@
 import type { GenerateContextType, Stringable, ModuleExport } from '@skmtc/core'
-import { CustomValue, Definition } from '@skmtc/core'
+import { CustomValue } from '@skmtc/core'
 import { TsSnippet, List, createVariable, TsDefinition, type ListObject } from '@skmtc/lang-typescript'
 import { Column } from './Column.ts'
 type ConstructorArgs = {
