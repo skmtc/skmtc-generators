@@ -2,6 +2,7 @@ import type { ModelProjectionConstructorArgs, SchemaToValueFn } from '@skmtc/cor
 import { createDataClass, type KtAnnotation } from '@skmtc/lang-kotlin'
 import { KtDataClassBase } from './base.ts'
 import { KtDataClassValue } from './KtDataClassValue.ts'
+import { toSealedMembership } from './sealedMembership.ts'
 
 /**
  * `components.schemas` object-with-properties → `data class`. The Driver
@@ -30,13 +31,23 @@ export class KtDataClassProjection extends KtDataClassBase {
       objectSchema: schema,
       destinationPath: settings.exportPath,
       className: settings.identifier.name,
-      rootRef
+      rootRef,
+      sealedParents: toSealedMembership(context).get(refName) ?? []
     })
   }
 
   /** The `KtAnnotated` protocol — `KtDefinition` reads this off the Definition's value. */
   get annotations(): KtAnnotation[] {
     return this.value.annotations
+  }
+
+  /** The `KtSupertyped` protocol — the claiming sealed parents' names,
+   * rendered by `KtDefinition` as ` : Animal` after the parameter list.
+   * Name-only by design: the parent's own transform visit generates its
+   * Definition, and same-package suppression makes the bare name correct
+   * (spec 22 §2.4). */
+  get supertypes(): string[] {
+    return this.value.supertypes
   }
 
   /**

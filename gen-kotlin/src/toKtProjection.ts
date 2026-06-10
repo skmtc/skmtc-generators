@@ -2,16 +2,21 @@ import { isEmpty } from '@skmtc/core'
 import type { GenerateContextType, ModelProjection, OasRef, OasSchema, RefName } from '@skmtc/core'
 import { KtDataClassProjection } from './KtDataClassProjection.ts'
 import { KtEnumClassProjection } from './KtEnumClassProjection.ts'
+import { KtSealedInterfaceProjection } from './KtSealedInterfaceProjection.ts'
 import { KtTypeAliasProjection } from './KtTypeAliasProjection.ts'
+import { isSealedUnion } from './sealedMembership.ts'
 import { peekSchema } from './Kt.ts'
 import { toEnumValues } from './toEnumEntryName.ts'
 
 /**
- * The common static surface of gen-kotlin's three projection classes —
- * what the dispatch returns and `insertModel` / `ModelDriver` accept.
+ * The common static surface of gen-kotlin's projection classes — what
+ * the dispatch returns and `insertModel` / `ModelDriver` accept.
  */
 export type KtProjection = ModelProjection<
-  KtDataClassProjection | KtEnumClassProjection | KtTypeAliasProjection,
+  | KtDataClassProjection
+  | KtEnumClassProjection
+  | KtSealedInterfaceProjection
+  | KtTypeAliasProjection,
   undefined
 >
 
@@ -30,8 +35,9 @@ export type KtProjection = ModelProjection<
  *
  * - object with properties → `data class`
  * - string with enums → `enum class`
- * - everything else (primitives, arrays, maps, empty objects, unions,
- *   top-level refs) → `typealias`
+ * - qualifying discriminated union (`isSealedUnion`) → `sealed interface`
+ * - everything else (primitives, arrays, maps, empty objects,
+ *   non-qualifying unions, top-level refs) → `typealias`
  */
 export const toKtProjection = (
   context: GenerateContextType,
@@ -48,6 +54,8 @@ export const toKtProjection = (
         : KtTypeAliasProjection
     case 'string':
       return toEnumValues(schema.enums).length > 0 ? KtEnumClassProjection : KtTypeAliasProjection
+    case 'union':
+      return isSealedUnion(context, schema) ? KtSealedInterfaceProjection : KtTypeAliasProjection
     default:
       return KtTypeAliasProjection
   }

@@ -8,6 +8,8 @@ import {
   type KtParameterArgs
 } from '@skmtc/lang-kotlin'
 import { toKtValue } from './Kt.ts'
+import { toKtModelName } from './base.ts'
+import type { SealedParent } from './sealedMembership.ts'
 
 type KtDataClassValueArgs = {
   context: GenerateContextType
@@ -16,6 +18,11 @@ type KtDataClassValueArgs = {
   /** The generated class's name — the prefix for synthesized nested-class names. */
   className: string
   rootRef?: RefName
+  /** The sealed parents claiming this class (spec 22 §2.4) — drives the
+   * supertype clause, the `@SerialName` wire tag, and the
+   * discriminator-property omission. Empty/absent for non-members and
+   * for synthesized inline siblings (inline schemas have no refName). */
+  sealedParents?: SealedParent[]
 }
 
 /**
@@ -34,19 +41,64 @@ type KtDataClassValueArgs = {
  */
 export class KtDataClassValue extends KtSnippet {
   annotations = [new KtAnnotation('Serializable')]
+  /** The `KtSupertyped` protocol input — the claiming sealed parents'
+   * class names, rendered by `KtDefinition` as ` : Animal, Pet`. */
+  supertypes: string[]
   parameterList: KtParameterList
 
-  constructor({ context, objectSchema, destinationPath, className, rootRef }: KtDataClassValueArgs) {
+  constructor({
+    context,
+    objectSchema,
+    destinationPath,
+    className,
+    rootRef,
+    sealedParents = []
+  }: KtDataClassValueArgs) {
     super({ context, stackTrail: objectSchema.stackTrail.clone() })
+
+    this.supertypes = sealedParents.map(parent => toKtModelName(parent.parentRefName))
+
+    if (sealedParents.length > 0) {
+      // One @SerialName per class: every claiming parent must agree on
+      // the wire tag. A wire format that names one class two ways has no
+      // single right answer — fail the item loudly (spec 22 §2.4).
+      const tags = [...new Set(sealedParents.map(parent => parent.tag))]
+      const [tag] = tags
+
+      if (tags.length > 1 || tag === undefined) {
+        throw new Error(
+          `@skmtc/gen-kotlin: '${className}' is claimed by sealed parents with conflicting ` +
+            `wire tags (${tags.join(', ')}) — a Kotlin class carries one @SerialName`
+        )
+      }
+
+      this.annotations.push(new KtAnnotation('SerialName', [`"${tag}"`]))
+      this.register({
+        imports: { 'kotlinx.serialization': ['SerialName'] },
+        destinationPath
+      })
+    }
 
     const { properties, required = [] } = objectSchema
 
-    if (!properties || Object.keys(properties).length === 0) {
+    // The kotlinx class discriminator carries the tag; a serialized
+    // property may not collide with it, so members OMIT each claiming
+    // parent's discriminator property (spec 22, decision 2 —
+    // scratch-proved to round-trip).
+    const omittedProperties = new Set(sealedParents.map(parent => parent.discriminatorPropertyName))
+
+    const propertyEntries = Object.entries(properties ?? {}).filter(
+      ([key]) => !omittedProperties.has(key)
+    )
+
+    if (propertyEntries.length === 0) {
       // `data class` requires at least one constructor parameter; the
       // dispatch routes empty objects to a `JsonObject` typealias before
       // ever reaching this class.
       throw new Error(
-        `@skmtc/gen-kotlin: '${className}' has no properties — a Kotlin data class needs at least one`
+        `@skmtc/gen-kotlin: '${className}' has no properties` +
+          `${omittedProperties.size > 0 ? ' (after discriminator-property omission)' : ''}` +
+          ` — a Kotlin data class needs at least one`
       )
     }
 
@@ -55,7 +107,7 @@ export class KtDataClassValue extends KtSnippet {
       destinationPath
     })
 
-    const parameters: KtParameterArgs[] = Object.entries(properties).map(([key, property]) => {
+    const parameters: KtParameterArgs[] = propertyEntries.map(([key, property]) => {
       const isRequired = required.includes(key)
       const propertyName = sanitizePropertyName(camelCase(key))
       const annotations: KtAnnotation[] = []

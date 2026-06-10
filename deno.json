@@ -27,7 +27,6 @@
     "@skmtc/gen-reapit-multi-select": "./gen-reapit-multi-select/mod.ts",
     "@skmtc/gen-reapit-graphql-client": "./gen-reapit-graphql-client/mod.ts",
     "@skmtc/gen-kotlin": "./gen-kotlin/mod.ts",
-    "@skmtc/lang-kotlin": "../skmtc/deno/lang-kotlin/mod.ts",
     "@std/path": "jsr:@std/path@^1.1.2",
     "openapi-types": "npm:openapi-types@^12.1.3",
     "tiny-invariant": "npm:tiny-invariant@^1.3.3",

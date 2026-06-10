@@ -2,7 +2,7 @@
   "version": "5",
   "specifiers": {
     "jsr:@skmtc/core@0.9.0": "0.9.0",
-    "jsr:@skmtc/lang-kotlin@0.1.0": "0.1.0",
+    "jsr:@skmtc/lang-kotlin@0.2.0": "0.2.0",
     "jsr:@skmtc/lang-typescript@0.2.1": "0.2.1",
     "jsr:@std/assert@1": "1.0.19",
     "jsr:@std/fmt@1": "1.0.10",
@@ -15,7 +15,6 @@
     "jsr:@std/log@~0.224.6": "0.224.14",
     "jsr:@std/path@^1.0.9": "1.1.5",
     "jsr:@std/path@^1.1.2": "1.1.5",
-    "npm:@babel/helper-validator-identifier@7.27.1": "7.27.1",
     "npm:@types/babel__helper-validator-identifier@7.15.2": "7.15.2",
     "npm:@types/lodash-es@4.17.12": "4.17.12",
     "npm:graphql@^16.9.0": "16.14.0",
@@ -41,8 +40,8 @@
         "npm:valibot"
       ]
     },
-    "@skmtc/lang-kotlin@0.1.0": {
-      "integrity": "3189a710d7ba0e357b1d10e1f74a0bdd7b1ce422b8296c5e24758ce3082f595b",
+    "@skmtc/lang-kotlin@0.2.0": {
+      "integrity": "082754bb409fb33c4d0b1dce8858db7b10043a32074f65b2374b75f7537edb2d",
       "dependencies": [
         "jsr:@skmtc/core",
         "jsr:@std/path@^1.0.9"
@@ -53,7 +52,6 @@
       "dependencies": [
         "jsr:@skmtc/core",
         "jsr:@std/path@^1.0.9",
-        "npm:@babel/helper-validator-identifier",
         "npm:@types/babel__helper-validator-identifier"
       ]
     },
@@ -91,9 +89,6 @@
     }
   },
   "npm": {
-    "@babel/helper-validator-identifier@7.27.1": {
-      "integrity": "sha512-D2hP9eA+Sqx1kBZgzxZh0y1trbuU+JoDkiEwqhQ36nodYqJwyEIhPSdMNd7lOm/4io72luTPWH20Yda0xOuUow=="
-    },
     "@types/babel__helper-validator-identifier@7.15.2": {
       "integrity": "sha512-l3dkwCt890NFhMwPKXbxsWXC0Por0/+KaFIiQP1j38/vWSH2P3Tn6m+IuJHkx2SBI3VLFqincFe9JtBk2NFHOw=="
     },
@@ -165,7 +160,7 @@
       "gen-kotlin": {
         "dependencies": [
           "jsr:@skmtc/core@0.9.0",
-          "jsr:@skmtc/lang-kotlin@0.1.0"
+          "jsr:@skmtc/lang-kotlin@0.2.0"
         ]
       },
       "gen-msw": {

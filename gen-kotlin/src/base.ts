@@ -3,13 +3,14 @@ import {
   toModelProjectionBase,
   createDataClass,
   createEnumClass,
+  createSealedInterface,
   createTypeAlias
 } from '@skmtc/lang-kotlin'
 import { join } from '@std/path'
 import { getBasePackage } from './basePackage.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
-/** PascalCase model name from a schema refName — shared by all three bases. */
+/** PascalCase model name from a schema refName — shared by all the bases. */
 export const toKtModelName = (refName: string): string => {
   return capitalize(camelCase(refName))
 }
@@ -63,6 +64,18 @@ export const KtTypeAliasBase = toModelProjectionBase({
 
   toIdentifier({ refName }) {
     return createTypeAlias(toKtModelName(refName))
+  },
+
+  toExportPath({ refName }) {
+    return toKtModelExportPath(toKtModelName(refName))
+  }
+})
+
+export const KtSealedInterfaceBase = toModelProjectionBase({
+  id: denoJson.name,
+
+  toIdentifier({ refName }) {
+    return createSealedInterface(toKtModelName(refName))
   },
 
   toExportPath({ refName }) {

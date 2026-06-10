@@ -187,3 +187,173 @@ Deno.test('e2e - keyword properties backtick-escape without a rename annotation'
       ')\n'
   )
 })
+
+// --- Milestone B: sealed-interface oneOf (spec 22) ---------------------
+
+const sealedDocumentObject: OpenAPIV3.Document = {
+  openapi: '3.0.0',
+  info: { title: 'Sealed Fixture API', version: '1.0.0' },
+  paths: {},
+  components: {
+    schemas: {
+      Animal: {
+        oneOf: [
+          { $ref: '#/components/schemas/Dog' },
+          { $ref: '#/components/schemas/Cat' }
+        ],
+        discriminator: {
+          propertyName: 'petType',
+          mapping: {
+            dog: '#/components/schemas/Dog',
+            cat: '#/components/schemas/Cat'
+          }
+        }
+      },
+      Dog: {
+        type: 'object',
+        properties: {
+          petType: { type: 'string' },
+          name: { type: 'string' },
+          barkVolume: { type: 'integer', format: 'int64' }
+        },
+        required: ['petType', 'name']
+      },
+      Cat: {
+        type: 'object',
+        properties: {
+          petType: { type: 'string' },
+          name: { type: 'string' },
+          huntingSkill: { type: 'string' }
+        },
+        required: ['petType', 'name']
+      },
+      User: {
+        type: 'object',
+        properties: {
+          user_id: { type: 'string' },
+          name: { type: 'string' }
+        },
+        required: ['user_id', 'name']
+      },
+      SingleWrapper: {
+        oneOf: [{ $ref: '#/components/schemas/User' }]
+      },
+      NonQualifying: {
+        oneOf: [{ $ref: '#/components/schemas/Dog' }, { type: 'string' }]
+      }
+    }
+  }
+}
+
+const runSealedFixture = () => {
+  return toArtifacts({
+    traceId: 'gen-kotlin-e2e-sealed',
+    spanId: 'fixture',
+    startAt: Date.now(),
+    document: { type: 'oas', value: sealedDocumentObject },
+    settings: { basePath: './app/src/main/kotlin' },
+    stackTrail: new StackTrail([]),
+    silent: true,
+    toGeneratorConfigMap: () => ({
+      // @ts-expect-error - factory-emitted transform is monomorphic over Acc
+      '@skmtc/gen-kotlin': kotlinEntry
+    })
+  })
+}
+
+Deno.test('e2e sealed - a qualifying discriminated union renders the annotated sealed interface', () => {
+  const { artifacts, manifest } = runSealedFixture()
+
+  assertEquals(manifest.parseIssues.filter(issue => issue.level === 'error'), [])
+
+  assertEquals(
+    artifacts['app/src/main/kotlin/com/example/api/Animal.generated.kt'],
+    'package com.example.api\n' +
+      '\n' +
+      'import kotlinx.serialization.ExperimentalSerializationApi\n' +
+      'import kotlinx.serialization.Serializable\n' +
+      'import kotlinx.serialization.json.JsonClassDiscriminator\n' +
+      '\n' +
+      '@OptIn(ExperimentalSerializationApi::class)\n' +
+      '@Serializable\n' +
+      '@JsonClassDiscriminator("petType")\n' +
+      'sealed interface Animal\n'
+  )
+})
+
+Deno.test('e2e sealed - members carry the supertype clause, the wire tag, and omit the discriminator property', () => {
+  const { artifacts } = runSealedFixture()
+
+  assertEquals(
+    artifacts['app/src/main/kotlin/com/example/api/Dog.generated.kt'],
+    'package com.example.api\n' +
+      '\n' +
+      'import kotlinx.serialization.SerialName\n' +
+      'import kotlinx.serialization.Serializable\n' +
+      '\n' +
+      '@Serializable\n' +
+      '@SerialName("dog")\n' +
+      'data class Dog(\n' +
+      '    val name: String,\n' +
+      '    val barkVolume: Long? = null\n' +
+      ') : Animal\n'
+  )
+
+  assertEquals(
+    artifacts['app/src/main/kotlin/com/example/api/Cat.generated.kt'],
+    'package com.example.api\n' +
+      '\n' +
+      'import kotlinx.serialization.SerialName\n' +
+      'import kotlinx.serialization.Serializable\n' +
+      '\n' +
+      '@Serializable\n' +
+      '@SerialName("cat")\n' +
+      'data class Cat(\n' +
+      '    val name: String,\n' +
+      '    val huntingSkill: String? = null\n' +
+      ') : Animal\n'
+  )
+})
+
+Deno.test('e2e sealed - a single-member union collapses at parse (core semantics); non-qualifying unions keep JsonElement', () => {
+  const { artifacts } = runSealedFixture()
+
+  // Core's parse collapses `oneOf: [X]` into X itself before the
+  // generator runs — SingleWrapper arrives as User's (dereferenced)
+  // object shape and renders as a structural copy, not an alias.
+  assertEquals(
+    artifacts['app/src/main/kotlin/com/example/api/SingleWrapper.generated.kt'],
+    'package com.example.api\n' +
+      '\n' +
+      'import kotlinx.serialization.SerialName\n' +
+      'import kotlinx.serialization.Serializable\n' +
+      '\n' +
+      '@Serializable\n' +
+      'data class SingleWrapper(\n' +
+      '    @SerialName("user_id") val userId: String,\n' +
+      '    val name: String\n' +
+      ')\n'
+  )
+
+  assertEquals(
+    artifacts['app/src/main/kotlin/com/example/api/NonQualifying.generated.kt'],
+    'package com.example.api\n' +
+      '\n' +
+      'import kotlinx.serialization.json.JsonElement\n' +
+      '\n' +
+      'typealias NonQualifying = JsonElement\n'
+  )
+})
+
+Deno.test('e2e sealed - the artifact set is exactly the six schemas', () => {
+  const { artifacts } = runSealedFixture()
+
+  assertEquals(Object.keys(artifacts).sort(), [
+    'app/src/main/kotlin/com/example/api/Animal.generated.kt',
+    'app/src/main/kotlin/com/example/api/Cat.generated.kt',
+    'app/src/main/kotlin/com/example/api/Dog.generated.kt',
+    'app/src/main/kotlin/com/example/api/NonQualifying.generated.kt',
+    'app/src/main/kotlin/com/example/api/SingleWrapper.generated.kt',
+    'app/src/main/kotlin/com/example/api/User.generated.kt'
+  ])
+})
