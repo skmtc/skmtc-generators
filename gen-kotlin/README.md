@@ -7,7 +7,14 @@ classes from `components.schemas`.
 |---|---|
 | object with properties | `@Serializable data class` |
 | string with enums | `@Serializable enum class` (CONSTANT_CASE entries, `@SerialName` wire values) |
-| everything else (primitives, arrays, maps, empty objects, `oneOf`) | `typealias` (`oneOf` → `JsonElement` in v1) |
+| qualifying discriminated `oneOf` | `@Serializable sealed interface` + `@JsonClassDiscriminator`; members gain ` : Parent`, a `@SerialName` wire tag, and OMIT the discriminator property |
+| everything else (primitives, arrays, maps, empty objects, non-qualifying `oneOf`) | `typealias` (non-qualifying `oneOf` → `JsonElement`) |
+
+A `oneOf` **qualifies** when it has a `discriminator`, at least two
+members, all members are `$ref`s, and all targets are
+object-with-properties schemas. Closed polymorphism is automatic —
+`Json.decodeFromString<Animal>(...)` dispatches on the discriminator
+with no `SerializersModule`.
 
 Inline (nested) objects and string enums synthesize named siblings in
 the same file — Kotlin has no anonymous shapes. Optional properties
@@ -34,11 +41,19 @@ file's `package` directive is derived from its path.
 The consumer project needs `kotlinx-serialization` (plugin +
 runtime) on its classpath.
 
-## v1 limits (documented, deliberate)
+## Limits (documented, deliberate)
 
-- `oneOf` → `typealias Name = JsonElement` — the sealed-interface
-  treatment (discriminator wiring, inverse membership) is the named
-  follow-up.
+- Non-qualifying `oneOf` → `typealias Name = JsonElement`:
+  undiscriminated unions, inline or primitive members, and inline
+  unions of any shape (no refName → can never be sealed). Single-member
+  `oneOf`s collapse at parse (core semantics) and never reach the
+  generator.
+- Sealed membership derives from the document, not the
+  `skip`/`include`-filtered set — skipping a parent while generating
+  its members leaves a dangling ` : Parent` that fails the consumer
+  compile.
+- A member claimed by several unions must get the SAME wire tag from
+  each (one `@SerialName` per class) — conflicting tags fail the item.
 - An object with BOTH `properties` and `additionalProperties` keeps
   the properties; the additional-properties channel is dropped.
 - Integer enums are not modeled (`Int`/`Long`).
@@ -48,5 +63,6 @@ runtime) on its classpath.
   text only; non-builtin types also need their import wired via a
   cloned generator.
 
-Architecture notes: `skmtc/notes/lang/19-kotlin-architecture.md`.
+Architecture notes: `skmtc/notes/lang/19-kotlin-architecture.md` +
+`skmtc/notes/lang/22-kotlin-sealed-oneof-architecture.md`.
 Language layer: [`@skmtc/lang-kotlin`](https://jsr.io/@skmtc/lang-kotlin).
