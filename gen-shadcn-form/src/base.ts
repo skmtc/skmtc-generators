@@ -1,11 +1,5 @@
-import {
-  camelCase,
-  capitalize,
-  Identifier,
-  toMethodVerb,
-  withVariant
-} from '@skmtc/core'
-import { toOasOperationProjectionBase } from '@skmtc/lang-typescript'
+import { camelCase, capitalize, Identifier, toMethodVerb, withVariant } from '@skmtc/core'
+import { toOasOperationProjectionBase, createVariable } from '@skmtc/lang-typescript'
 import { join } from '@std/path'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
@@ -24,7 +18,7 @@ export const ShadcnFormBase = toOasOperationProjectionBase<EnrichmentSchema>({
     // sibling Projections derive their fallbackName from
     // `settings.identifier.name`, so the variant suffix flows through
     // every model name the form constructs.
-    return Identifier.createVariable(withVariant(base, variant))
+    return createVariable(withVariant(base, variant))
   },
 
   toExportPath({ operation, enrichments, variant }): string {

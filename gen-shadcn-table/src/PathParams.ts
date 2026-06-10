@@ -1,7 +1,8 @@
+import { List, type ListObject } from '@skmtc/lang-typescript'
 import { ShadcnTableBase } from './base.ts'
 import { TsProjection } from '@skmtc/gen-typescript'
-import { List, capitalize, isEmpty } from '@skmtc/core'
-import type { OasOperationProjectionConstructorArgs, ListObject } from '@skmtc/core'
+import { capitalize, isEmpty } from '@skmtc/core'
+import type { OasOperationProjectionConstructorArgs } from '@skmtc/core'
 import type { EnrichmentSchema } from './enrichments.ts'
 
 export class PathParams extends ShadcnTableBase {

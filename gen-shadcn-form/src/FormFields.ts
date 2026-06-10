@@ -1,5 +1,6 @@
-import type { OasOperationProjectionConstructorArgs, ListLines, Stringable } from '@skmtc/core'
-import { List, SnippetBase } from '@skmtc/core'
+import { List, type ListLines } from '@skmtc/lang-typescript'
+import type { OasOperationProjectionConstructorArgs, Stringable } from '@skmtc/core'
+import { SnippetBase } from '@skmtc/core'
 import invariant from 'tiny-invariant'
 import { schemaToField, getLabel } from './schemaToField.ts'
 import type { EnrichmentSchema } from './enrichments.ts'

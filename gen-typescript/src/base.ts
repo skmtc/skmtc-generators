@@ -1,6 +1,6 @@
 import { capitalize, decapitalize, Identifier, camelCase } from '@skmtc/core'
 import type { RefName } from '@skmtc/core'
-import { toModelProjectionBase } from '@skmtc/lang-typescript'
+import { toModelProjectionBase, createType } from '@skmtc/lang-typescript'
 import { join } from '@std/path'
 
 export const TypescriptBase = toModelProjectionBase({
@@ -9,7 +9,7 @@ export const TypescriptBase = toModelProjectionBase({
   toIdentifier({ refName }): Identifier {
     const name = capitalize(camelCase(refName))
 
-    return Identifier.createType(name)
+    return createType(name)
   },
 
   toExportPath({ refName, enrichments, variant }): string {

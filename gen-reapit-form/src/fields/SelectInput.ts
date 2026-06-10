@@ -1,6 +1,5 @@
-import { List } from '@skmtc/core'
-import type { GenerateContextType, ListLines, OasRef, OasSchema, Stringable } from '@skmtc/core'
-import { TsSnippet } from '@skmtc/lang-typescript'
+import type { GenerateContextType, OasRef, OasSchema, Stringable } from '@skmtc/core'
+import { TsSnippet, List, type ListLines } from '@skmtc/lang-typescript'
 import { labelText } from './labelText.ts'
 
 export type SelectInputArgs = {

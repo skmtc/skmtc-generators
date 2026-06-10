@@ -1,15 +1,7 @@
 import { camelCase, decapitalize } from '@skmtc/core'
 import { TsSnippet } from '@skmtc/lang-typescript'
 import { applyModifiers } from './applyModifiers.ts'
-import type {
-  GenerateContextType,
-  GeneratorKey,
-  RefName,
-  Modifiers,
-  OasRef,
-  OasSchema,
-  TypeSystemValue
-} from '@skmtc/core'
+import type { GenerateContextType, GeneratorKey, RefName, Modifiers, OasRef, OasSchema, TypeSystemValue } from '@skmtc/core'
 
 type ValibotRefArgs = {
   context: GenerateContextType

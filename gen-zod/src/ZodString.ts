@@ -1,12 +1,6 @@
-import { TsSnippet } from "@skmtc/lang-typescript";
+import { TsSnippet, List } from '@skmtc/lang-typescript'
 import { applyModifiers } from "./applyModifiers.ts";
-import type {
-  GenerateContextType,
-  GeneratorKey,
-  Modifiers,
-  OasString,
-} from "@skmtc/core";
-import { List } from "@skmtc/core";
+import type { GenerateContextType, GeneratorKey, Modifiers, OasString } from '@skmtc/core'
 import { ZodConstraint } from "./ZodConstraints.ts";
 
 type ZodStringArgs = {

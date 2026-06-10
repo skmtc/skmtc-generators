@@ -1,7 +1,4 @@
-import {
-  type GenerateContextType,
-  type GeneratorKey,
-} from "@skmtc/core";
+import { type GenerateContextType, type GeneratorKey } from '@skmtc/core'
 import { TsSnippet } from "@skmtc/lang-typescript";
 
 // Note: `OasVoid` is not part of the `OasSchema` union, so it can't flow

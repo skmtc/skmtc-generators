@@ -1,8 +1,4 @@
-import {
-  synthesizeArgsObject,
-  toGqlOperationEntry,
-  type IsSupportedGqlOperationConfigArgs
-} from '@skmtc/core'
+import { synthesizeArgsObject, toGqlOperationEntry, type IsSupportedGqlOperationConfigArgs } from '@skmtc/core'
 import { ReapitForm } from './ReapitForm.ts'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }

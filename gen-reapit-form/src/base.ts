@@ -1,5 +1,5 @@
 import { camelCase, capitalize, Identifier } from '@skmtc/core'
-import { toGqlOperationProjectionBase } from '@skmtc/lang-typescript'
+import { toGqlOperationProjectionBase, createVariable } from '@skmtc/lang-typescript'
 import { join } from '@std/path'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
@@ -12,7 +12,7 @@ export const ReapitFormBase = toGqlOperationProjectionBase<EnrichmentSchema>({
   toIdentifier({ operation }): Identifier {
     const name = `${capitalize(camelCase(operation.fieldName))}Form`
 
-    return Identifier.createVariable(name)
+    return createVariable(name)
   },
 
   toExportPath({ operation, enrichments, variant }): string {

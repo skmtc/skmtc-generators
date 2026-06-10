@@ -1,5 +1,5 @@
 import { Identifier, type OasObject, type OasRef, type OasSchema } from '@skmtc/core'
-import { toGqlOperationProjectionBase } from '@skmtc/lang-typescript'
+import { toGqlOperationProjectionBase, createVariable } from '@skmtc/lang-typescript'
 import { join } from '@std/path'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
@@ -21,7 +21,7 @@ export const ReapitMultiSelectBase = toGqlOperationProjectionBase<EnrichmentSche
 
   toIdentifier({ operation }): Identifier {
     const stripped = stripGetPrefix(operation.fieldName)
-    return Identifier.createVariable(`${stripped}MultiSelectField`)
+    return createVariable(`${stripped}MultiSelectField`)
   },
 
   toExportPath({ operation, enrichments }): string {

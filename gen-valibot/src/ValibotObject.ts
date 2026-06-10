@@ -1,18 +1,6 @@
 import { SnippetBase, isEmpty } from '@skmtc/core'
 import { TsSnippet } from '@skmtc/lang-typescript'
-import type {
-  GenerateContextType,
-  GeneratorKey,
-  OasRef,
-  OasSchema,
-  OasObject,
-  CustomValue,
-  RefName,
-  TypeSystemObjectProperties,
-  TypeSystemRecord,
-  TypeSystemValue,
-  Modifiers
-} from '@skmtc/core'
+import type { GenerateContextType, GeneratorKey, OasRef, OasSchema, OasObject, CustomValue, RefName, TypeSystemObjectProperties, TypeSystemRecord, TypeSystemValue, Modifiers } from '@skmtc/core'
 import { toValibotValue } from './Valibot.ts'
 import { applyModifiers } from './applyModifiers.ts'
 import { ValibotUnknown } from './ValibotUnknown.ts'

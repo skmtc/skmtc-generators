@@ -1,12 +1,6 @@
-import { ModelDriver, toModelGeneratorKey } from "@skmtc/core";
+import { ModelDriver, toModelGeneratorKey } from '@skmtc/core'
 import { TsSnippet } from "@skmtc/lang-typescript";
-import type {
-  GenerateContextType,
-  Modifiers,
-  OasRef,
-  OasSchema,
-  RefName,
-} from "@skmtc/core";
+import type { GenerateContextType, Modifiers, OasRef, OasSchema, RefName } from '@skmtc/core'
 import { applyModifiers } from "./applyModifiers.ts";
 import { ZodProjection } from "./ZodProjection.ts";
 import { zodEntry } from "./mod.ts";

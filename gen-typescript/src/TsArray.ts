@@ -1,13 +1,5 @@
 import { TsSnippet } from '@skmtc/lang-typescript'
-import type {
-  TypeSystemValue,
-  OasSchema,
-  Modifiers,
-  GeneratorKey,
-  GenerateContextType,
-  OasRef,
-  RefName
-} from '@skmtc/core'
+import type { TypeSystemValue, OasSchema, Modifiers, GeneratorKey, GenerateContextType, OasRef, RefName } from '@skmtc/core'
 import { toTsValue } from './Ts.ts'
 import { applyModifiers } from './applyModifiers.ts'
 

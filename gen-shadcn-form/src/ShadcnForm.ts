@@ -1,5 +1,6 @@
+import { FunctionParameter } from '@skmtc/lang-typescript'
 import { TanstackQuery } from '@skmtc/gen-tanstack-query-supabase-zod'
-import { CustomValue, decapitalize, FunctionParameter, capitalize } from '@skmtc/core'
+import { CustomValue, decapitalize, capitalize } from '@skmtc/core'
 import { TsProjection } from '@skmtc/gen-typescript'
 import { ShadcnFormBase } from './base.ts'
 import type { EnrichmentSchema } from './enrichments.ts'

@@ -1,5 +1,5 @@
 import { camelCase, capitalize, Identifier, toMethodVerb } from '@skmtc/core'
-import { toOasOperationProjectionBase } from '@skmtc/lang-typescript'
+import { toOasOperationProjectionBase, createVariable } from '@skmtc/lang-typescript'
 import { join } from '@std/path'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
@@ -13,7 +13,7 @@ export const DaisyFormBase = toOasOperationProjectionBase<EnrichmentSchema>({
     const verb = capitalize(toMethodVerb(operation.method))
     const name = `${verb}${camelCase(operation.path, { upperFirst: true })}Form`
 
-    return Identifier.createVariable(name)
+    return createVariable(name)
   },
 
   toExportPath({ operation, enrichments, variant }): string {

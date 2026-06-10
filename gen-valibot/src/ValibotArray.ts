@@ -1,15 +1,7 @@
 import { TsSnippet } from '@skmtc/lang-typescript'
 import { toValibotValue } from './Valibot.ts'
 import { applyModifiers } from './applyModifiers.ts'
-import type {
-  GenerateContextType,
-  GeneratorKey,
-  RefName,
-  TypeSystemValue,
-  Modifiers,
-  OasRef,
-  OasSchema
-} from '@skmtc/core'
+import type { GenerateContextType, GeneratorKey, RefName, TypeSystemValue, Modifiers, OasRef, OasSchema } from '@skmtc/core'
 
 type ValibotArrayArgs = {
   context: GenerateContextType

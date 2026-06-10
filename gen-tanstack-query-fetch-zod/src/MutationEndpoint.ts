@@ -1,4 +1,5 @@
-import { List, OasVoid, toEndpointName, capitalize, type ListArray } from '@skmtc/core'
+import { List, type ListArray } from '@skmtc/lang-typescript'
+import { OasVoid, toEndpointName, capitalize } from '@skmtc/core'
 import type { OasOperationProjectionConstructorArgs } from '@skmtc/core'
 import { MutationFn } from './MutationFn.ts'
 import { TanstackQueryBase } from './base.ts'

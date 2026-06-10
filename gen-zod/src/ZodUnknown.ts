@@ -1,9 +1,4 @@
-import {
-  type GenerateContextType,
-  type GeneratorKey,
-  type OasRef,
-  type OasSchema,
-} from "@skmtc/core";
+import { type GenerateContextType, type GeneratorKey, type OasRef, type OasSchema } from '@skmtc/core'
 import { TsSnippet } from "@skmtc/lang-typescript";
 
 type ConstructorArgs = {

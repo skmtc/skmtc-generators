@@ -1,5 +1,5 @@
-import type { OasOperationProjectionConstructorArgs, ListArray, OasOperation, ListLines } from '@skmtc/core'
-import { List } from '@skmtc/core'
+import { List, type ListArray, type ListLines } from '@skmtc/lang-typescript'
+import type { OasOperationProjectionConstructorArgs, OasOperation } from '@skmtc/core'
 import { SupabaseHonoBase } from './base.ts'
 import { SupabaseRoute } from './SupabaseRoute.ts'
 

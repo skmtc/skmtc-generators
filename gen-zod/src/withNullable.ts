@@ -1,4 +1,4 @@
-import type { Modifiers, Stringable } from "@skmtc/core";
+import type { Modifiers, Stringable } from '@skmtc/core'
 
 export const withNullable = (
   value: Stringable,

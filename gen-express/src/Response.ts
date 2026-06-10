@@ -1,5 +1,6 @@
+import type { ListObject } from '@skmtc/lang-typescript'
 import { SnippetBase } from '@skmtc/core'
-import type { GenerateContextType, ListObject } from '@skmtc/core'
+import type { GenerateContextType } from '@skmtc/core'
 
 type ResponseArgs = {
   context: GenerateContextType

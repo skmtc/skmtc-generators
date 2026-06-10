@@ -1,5 +1,5 @@
-import type { Stringable } from "@skmtc/core";
-import type { Modifiers } from "@skmtc/core";
+import type { Stringable } from '@skmtc/core'
+import type { Modifiers } from '@skmtc/core'
 
 export const withOptional = (
   value: Stringable,

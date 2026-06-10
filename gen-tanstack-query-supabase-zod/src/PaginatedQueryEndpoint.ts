@@ -1,5 +1,5 @@
-import type { OasOperationProjectionConstructorArgs, Stringable, ListArray } from '@skmtc/core'
-import { List } from '@skmtc/core'
+import { List, type ListArray } from '@skmtc/lang-typescript'
+import type { OasOperationProjectionConstructorArgs, Stringable } from '@skmtc/core'
 import { PaginatedQueryFn } from './PaginatedQueryFn.ts'
 import { TanstackQueryBase } from './base.ts'
 

@@ -1,11 +1,8 @@
 import { ShadcnSelectApiBase } from './base.ts'
-import type {
-  OasOperationProjectionConstructorArgs,
-  ToOasOperationIdentifierArgs
-} from '@skmtc/core'
+import type { OasOperationProjectionConstructorArgs, ToOasOperationIdentifierArgs } from '@skmtc/core'
 import type { EnrichmentSchema } from './enrichments.ts'
-import { Identifier, CustomValue } from '@skmtc/core'
-import { defineAndRegister } from '@skmtc/lang-typescript'
+import { CustomValue } from '@skmtc/core'
+import { defineAndRegister, createVariable, createType } from '@skmtc/lang-typescript'
 import { ShadcnSelectInput } from './ShadcnSelectInput.ts'
 export class ShadcnSelectField extends ShadcnSelectApiBase {
   propsTypeName: string
@@ -26,7 +23,7 @@ export class ShadcnSelectField extends ShadcnSelectApiBase {
     this.selectName = this.insertOperation(ShadcnSelectInput, operation).toName()
 
     defineAndRegister(context, {
-      identifier: Identifier.createType(this.propsTypeName),
+      identifier: createType(this.propsTypeName),
       value: new CustomValue({ context, value: propsTypeValue }),
       destinationPath: settings.exportPath
     })
@@ -52,7 +49,7 @@ export class ShadcnSelectField extends ShadcnSelectApiBase {
   }: ToOasOperationIdentifierArgs<EnrichmentSchema>) {
     const name = ShadcnSelectApiBase.toIdentifier({ operation, enrichments, variant })
 
-    return Identifier.createVariable(`${name}Field`)
+    return createVariable(`${name}Field`)
   }
 
   override toString(): string {

@@ -1,5 +1,5 @@
-import { Identifier, toOasOperationEntry } from '@skmtc/core'
-import { defineAndRegister } from '@skmtc/lang-typescript'
+import { toOasOperationEntry } from '@skmtc/core'
+import { defineAndRegister, createVariable } from '@skmtc/lang-typescript'
 import { MockRoute } from './MockRoute.ts'
 import { MockRoutesList } from './MockRoutesList.ts'
 import denoJson from '../deno.json' with { type: 'json' }
@@ -26,7 +26,7 @@ export const MswEntry = toOasOperationEntry({
     }
 
     const routesList = defineAndRegister(context, {
-      identifier: Identifier.createVariable('toRoutesList'),
+      identifier: createVariable('toRoutesList'),
       value: new MockRoutesList({ context }),
       destinationPath: exportPath
     })

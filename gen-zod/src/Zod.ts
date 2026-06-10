@@ -3,15 +3,15 @@ import { ZodArray } from "./ZodArray.ts";
 import { ZodRef } from "./ZodRef.ts";
 import { ZodObject } from "./ZodObject.ts";
 import { ZodUnion } from "./ZodUnion.ts";
-import type { Modifiers, SchemaToValueFn } from "@skmtc/core";
+import type { Modifiers, SchemaToValueFn } from '@skmtc/core'
 import { ZodNumber } from "./ZodNumber.ts";
 import { ZodInteger } from "./ZodInteger.ts";
 import { ZodBoolean } from "./ZodBoolean.ts";
 import { ZodVoid } from "./ZodVoid.ts";
 import { ZodUnknown } from "./ZodUnknown.ts";
-import { toGeneratorOnlyKey, toRefName } from "@skmtc/core";
+import { toGeneratorOnlyKey, toRefName } from '@skmtc/core'
 import { zodEntry } from "./mod.ts";
-import type { TypeSystemCustom } from "@skmtc/core";
+import type { TypeSystemCustom } from '@skmtc/core'
 
 /**
  * Maps a parsed schema node to its Zod snippet. Fine-grained attribution

@@ -1,10 +1,5 @@
 import { TsSnippet } from '@skmtc/lang-typescript'
-import type {
-  GeneratorKey,
-  GenerateContextType,
-  OasRef,
-  OasSchema
-} from '@skmtc/core'
+import type { GeneratorKey, GenerateContextType, OasRef, OasSchema } from '@skmtc/core'
 
 type ValibotUnknownArgs = {
   context: GenerateContextType

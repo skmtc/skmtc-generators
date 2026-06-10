@@ -1,12 +1,5 @@
-import {
-  capitalize,
-  Identifier,
-  OasObject,
-  synthesizeArgsObject,
-  toGeneratorOnlyKey,
-  type GqlOperationProjectionConstructorArgs
-} from '@skmtc/core'
-import { defineAndRegister } from '@skmtc/lang-typescript'
+import { capitalize, OasObject, synthesizeArgsObject, toGeneratorOnlyKey, type GqlOperationProjectionConstructorArgs } from '@skmtc/core'
+import { defineAndRegister, createVariable } from '@skmtc/lang-typescript'
 import { TsProjection } from '@skmtc/gen-typescript'
 import { ReapitGraphqlClientBase } from './base.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
@@ -91,7 +84,7 @@ export class ReapitGraphqlClient extends ReapitGraphqlClientBase {
     this.documentConstName = `${capitalize(fieldName)}Document`
 
     defineAndRegister(context, {
-      identifier: Identifier.createVariable(this.documentConstName),
+      identifier: createVariable(this.documentConstName),
       destinationPath: this.settings.exportPath,
       value: {
         generatorKey: toGeneratorOnlyKey({ generatorId: id }),

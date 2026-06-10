@@ -1,12 +1,6 @@
 import { TsSnippet } from '@skmtc/lang-typescript'
 import { applyModifiers } from './applyModifiers.ts'
-import type {
-  Modifiers,
-  GeneratorKey,
-  GenerateContextType,
-  OasRef,
-  OasSchema
-} from '@skmtc/core'
+import type { Modifiers, GeneratorKey, GenerateContextType, OasRef, OasSchema } from '@skmtc/core'
 
 type ValibotBooleanArgs = {
   context: GenerateContextType

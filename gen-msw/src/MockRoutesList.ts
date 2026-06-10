@@ -1,5 +1,6 @@
-import type { Stringable, GenerateContextType, ListArray } from '@skmtc/core'
-import { SnippetBase, List } from '@skmtc/core'
+import { List, type ListArray } from '@skmtc/lang-typescript'
+import type { Stringable, GenerateContextType } from '@skmtc/core'
+import { SnippetBase } from '@skmtc/core'
 
 type ConstructorArgs = {
   context: GenerateContextType

@@ -1,5 +1,5 @@
 import { Identifier, camelCase } from '@skmtc/core'
-import { toOasOperationProjectionBase } from '@skmtc/lang-typescript'
+import { toOasOperationProjectionBase, createVariable } from '@skmtc/lang-typescript'
 import { join } from '@std/path'
 import type { EnrichmentSchema } from './enrichments.ts'
 import { toEnrichmentSchema } from './enrichments.ts'
@@ -13,7 +13,7 @@ export const ShadcnTableBase = toOasOperationProjectionBase<EnrichmentSchema>({
   toIdentifier({ operation }): Identifier {
     const name = `${camelCase(operation.path, { upperFirst: true })}Table`
 
-    return Identifier.createVariable(name)
+    return createVariable(name)
   },
 
   toExportPath({ operation, enrichments, variant }): string {

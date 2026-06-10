@@ -1,18 +1,6 @@
-import { SnippetBase, handleKey, isEmpty } from '@skmtc/core'
-import { TsSnippet } from '@skmtc/lang-typescript'
-import type {
-  GenerateContextType,
-  OasRef,
-  GeneratorKey,
-  OasSchema,
-  OasObject,
-  CustomValue,
-  RefName,
-  TypeSystemObjectProperties,
-  TypeSystemRecord,
-  TypeSystemValue,
-  Modifiers
-} from '@skmtc/core'
+import { SnippetBase, isEmpty } from '@skmtc/core'
+import { TsSnippet, handleKey } from '@skmtc/lang-typescript'
+import type { GenerateContextType, OasRef, GeneratorKey, OasSchema, OasObject, CustomValue, RefName, TypeSystemObjectProperties, TypeSystemRecord, TypeSystemValue, Modifiers } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
 import { toTsValue } from './Ts.ts'
 import { TsUnknown } from './TsUnknown.ts'

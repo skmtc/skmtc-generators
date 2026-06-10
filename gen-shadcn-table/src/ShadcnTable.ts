@@ -1,3 +1,4 @@
+import { createVariable } from '@skmtc/lang-typescript'
 import invariant from 'tiny-invariant'
 import type { OasOperationProjectionConstructorArgs } from '@skmtc/core'
 import { TanstackColumns } from './TanstackColumns.ts'
@@ -5,7 +6,6 @@ import { TanstackQuery, toListKeyAndItem } from '@skmtc/gen-tanstack-query-supab
 import { ShadcnTableBase } from './base.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
 import { PathParams } from './PathParams.ts'
-import { Identifier } from '@skmtc/core'
 
 export class ShadcnTable extends ShadcnTableBase {
   columnsName: string
@@ -33,7 +33,7 @@ export class ShadcnTable extends ShadcnTableBase {
       operation,
       settings: {
         ...settings,
-        identifier: Identifier.createVariable('pathParams')
+        identifier: createVariable('pathParams')
       }
     })
 

@@ -1,6 +1,6 @@
-import type { GenerateContextType, ListObject, Stringable, ModuleExport } from '@skmtc/core'
-import { CustomValue, Definition, Identifier, List } from '@skmtc/core'
-import { TsSnippet } from '@skmtc/lang-typescript'
+import type { GenerateContextType, Stringable, ModuleExport } from '@skmtc/core'
+import { CustomValue, Definition } from '@skmtc/core'
+import { TsSnippet, List, createVariable, TsDefinition, type ListObject } from '@skmtc/lang-typescript'
 import { Column } from './Column.ts'
 type ConstructorArgs = {
   context: GenerateContextType
@@ -33,9 +33,9 @@ export class TableColumn extends TsSnippet {
       value: `createColumnHelper<${objectName}>()`
     })
 
-    const columnHelperDefinition = new Definition({
+    const columnHelperDefinition = new TsDefinition({
       context: this.context,
-      identifier: Identifier.createVariable('columnHelper'),
+      identifier: createVariable('columnHelper'),
       value: columHelper,
       noExport: true
     })

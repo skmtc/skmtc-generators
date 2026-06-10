@@ -1,12 +1,6 @@
-import {
-  List,
-  capitalize,
-  toPathTemplate,
-  FunctionParameter,
-  decapitalize,
-  OasVoid
-} from '@skmtc/core'
-import type { ListObject, OasOperationProjectionConstructorArgs } from '@skmtc/core'
+import { List, toPathTemplate, FunctionParameter, type ListObject } from '@skmtc/lang-typescript'
+import { capitalize, decapitalize, OasVoid } from '@skmtc/core'
+import type { OasOperationProjectionConstructorArgs } from '@skmtc/core'
 import { TanstackQueryBase } from './base.ts'
 import { TsProjection } from '@skmtc/gen-typescript'
 import { ZodProjection } from '@skmtc/gen-zod'

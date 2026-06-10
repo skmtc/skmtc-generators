@@ -1,6 +1,5 @@
-import { List } from '@skmtc/core'
-import type { ListLines, OasSchema, Stringable, OasRef, GenerateContextType } from '@skmtc/core'
-import { TsSnippet } from '@skmtc/lang-typescript'
+import type { OasSchema, Stringable, OasRef, GenerateContextType } from '@skmtc/core'
+import { TsSnippet, List, type ListLines } from '@skmtc/lang-typescript'
 import { schemaToField, getLabel } from '../schemaToField.ts'
 import invariant from 'tiny-invariant'
 import { FormLabel } from '../FormLabel.ts'

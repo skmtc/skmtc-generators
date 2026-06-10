@@ -1,10 +1,4 @@
-import {
-  toGqlOperationEntry,
-  type GqlOperation,
-  type OasObject,
-  type OasRef,
-  type OasSchema
-} from '@skmtc/core'
+import { toGqlOperationEntry, type GqlOperation, type OasObject, type OasRef, type OasSchema } from '@skmtc/core'
 import { ReapitSearchableDropdown } from './ReapitSearchableDropdown.ts'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }

@@ -1,10 +1,5 @@
-import {
-  type TypeSystemValue,
-  type GenerateContextType,
-  type RefName,
-  type ContentSettings,
-  Identifier
-} from '@skmtc/core'
+import { type TypeSystemValue, type GenerateContextType, type RefName, type ContentSettings } from '@skmtc/core'
+import { createVariable } from '@skmtc/lang-typescript'
 import { toValibotValue } from './Valibot.ts'
 import { ValibotBase } from './base.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
@@ -37,7 +32,7 @@ export class ValibotProjection extends ValibotBase {
     return toValibotValue(...args)
   }
 
-  static createIdentifier = Identifier.createVariable
+  static createIdentifier = createVariable
 
   override toString() {
     return `${this.value}`

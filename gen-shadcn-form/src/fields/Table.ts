@@ -1,16 +1,5 @@
-import { List } from '@skmtc/core'
-import { TsSnippet } from '@skmtc/lang-typescript'
-import type {
-  CustomValue,
-  EntryList,
-  GenerateContextType,
-  ListArray,
-  ListLines,
-  OasRef,
-  OasSchema,
-  Stringable,
-  TypeSystemValue
-} from '@skmtc/core'
+import { TsSnippet, List, type EntryList, type ListArray, type ListLines } from '@skmtc/lang-typescript'
+import type { CustomValue, GenerateContextType, OasRef, OasSchema, Stringable, TypeSystemValue } from '@skmtc/core'
 import { OasObject } from '@skmtc/core'
 import { getLabel, schemaToField } from '../schemaToField.ts'
 import { toTsValue } from '@skmtc/gen-typescript'

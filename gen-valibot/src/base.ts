@@ -1,5 +1,5 @@
 import { decapitalize, Identifier, type RefName, camelCase } from '@skmtc/core'
-import { toModelProjectionBase } from '@skmtc/lang-typescript'
+import { toModelProjectionBase, createVariable } from '@skmtc/lang-typescript'
 import { join } from '@std/path'
 import denoJson from '../deno.json' with { type: 'json' }
 
@@ -9,7 +9,7 @@ export const ValibotBase = toModelProjectionBase({
   toIdentifier({ refName }): Identifier {
     const name = decapitalize(camelCase(refName))
 
-    return Identifier.createVariable(name)
+    return createVariable(name)
   },
 
   toExportPath({ refName, enrichments, variant }): string {

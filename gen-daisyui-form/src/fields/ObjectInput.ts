@@ -1,13 +1,5 @@
-import { List } from '@skmtc/core'
-import type {
-  GenerateContextType,
-  ListLines,
-  OasObject,
-  OasRef,
-  OasSchema,
-  Stringable
-} from '@skmtc/core'
-import { TsSnippet } from '@skmtc/lang-typescript'
+import type { GenerateContextType, OasObject, OasRef, OasSchema, Stringable } from '@skmtc/core'
+import { TsSnippet, List, type ListLines } from '@skmtc/lang-typescript'
 import invariant from 'tiny-invariant'
 import { schemaToField, getLabel } from '../schemaToField.ts'
 

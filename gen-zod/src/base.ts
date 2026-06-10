@@ -1,10 +1,5 @@
-import {
-  camelCase,
-  decapitalize,
-  Identifier,
-  type RefName,
-} from "@skmtc/core";
-import { toModelProjectionBase } from "@skmtc/lang-typescript";
+import { camelCase, decapitalize, Identifier, type RefName } from '@skmtc/core'
+import { toModelProjectionBase, createVariable } from '@skmtc/lang-typescript'
 import { join } from "@std/path";
 import denoJson from "../deno.json" with { type: "json" };
 
@@ -14,7 +9,7 @@ export const ZodBase = toModelProjectionBase({
   toIdentifier({ refName }): Identifier {
     const name = decapitalize(camelCase(refName));
 
-    return Identifier.createVariable(name);
+    return createVariable(name);
   },
 
   toExportPath({ refName, enrichments, variant }): string {

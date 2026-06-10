@@ -1,13 +1,5 @@
 import { TsSnippet } from "@skmtc/lang-typescript";
-import type {
-  GenerateContextType,
-  GeneratorKey,
-  Modifiers,
-  OasRef,
-  OasSchema,
-  RefName,
-  TypeSystemValue,
-} from "@skmtc/core";
+import type { GenerateContextType, GeneratorKey, Modifiers, OasRef, OasSchema, RefName, TypeSystemValue } from '@skmtc/core'
 import { toZodValue } from "./Zod.ts";
 import { applyModifiers } from "./applyModifiers.ts";
 

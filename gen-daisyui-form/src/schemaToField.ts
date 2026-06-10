@@ -1,11 +1,4 @@
-import type {
-  CustomValue,
-  GenerateContextType,
-  OasObject,
-  OasRef,
-  OasSchema,
-  Stringable
-} from '@skmtc/core'
+import type { CustomValue, GenerateContextType, OasObject, OasRef, OasSchema, Stringable } from '@skmtc/core'
 import { StringInput } from './fields/StringInput.ts'
 import { NumberInput } from './fields/NumberInput.ts'
 import { IntegerInput } from './fields/IntegerInput.ts'

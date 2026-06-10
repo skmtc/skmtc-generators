@@ -1,18 +1,6 @@
-import { handleKey, isEmpty } from "@skmtc/core";
-import { TsSnippet } from "@skmtc/lang-typescript";
-import type {
-  CustomValue,
-  GenerateContextType,
-  GeneratorKey,
-  Modifiers,
-  OasObject,
-  OasRef,
-  OasSchema,
-  RefName,
-  TypeSystemObjectProperties,
-  TypeSystemRecord,
-  TypeSystemValue,
-} from "@skmtc/core";
+import { isEmpty } from '@skmtc/core'
+import { TsSnippet, handleKey } from '@skmtc/lang-typescript'
+import type { CustomValue, GenerateContextType, GeneratorKey, Modifiers, OasObject, OasRef, OasSchema, RefName, TypeSystemObjectProperties, TypeSystemRecord, TypeSystemValue } from '@skmtc/core'
 import { toZodValue } from "./Zod.ts";
 import { applyModifiers } from "./applyModifiers.ts";
 import { ZodUnknown } from "./ZodUnknown.ts";

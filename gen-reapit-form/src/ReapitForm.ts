@@ -1,12 +1,6 @@
-import {
-  Identifier,
-  toGeneratorOnlyKey,
-  synthesizeArgsObject,
-  capitalize,
-  decapitalize
-} from '@skmtc/core'
+import { toGeneratorOnlyKey, synthesizeArgsObject, capitalize, decapitalize } from '@skmtc/core'
 import type { GqlOperationProjectionConstructorArgs, OasObject } from '@skmtc/core'
-import { defineAndRegister } from '@skmtc/lang-typescript'
+import { defineAndRegister, createType } from '@skmtc/lang-typescript'
 import { ZodProjection } from '@skmtc/gen-zod'
 import invariant from 'tiny-invariant'
 import denoJson from '../deno.json' with { type: 'json' }
@@ -118,7 +112,7 @@ export class ReapitForm extends ReapitFormBase {
     // sibling content in the same file, not the operation's primary
     // Definition (which is the class itself).
     defineAndRegister(context, {
-      identifier: Identifier.createType(this.tsArgsName),
+      identifier: createType(this.tsArgsName),
       destinationPath: settings.exportPath,
       value: {
         generatorKey: toGeneratorOnlyKey({ generatorId: id }),

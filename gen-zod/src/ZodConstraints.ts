@@ -1,4 +1,4 @@
-import { SnippetBase, type GenerateContextType } from "@skmtc/core";
+import { SnippetBase, type GenerateContextType } from '@skmtc/core'
 
 type ZodConstraintArgs = {
   context: GenerateContextType;

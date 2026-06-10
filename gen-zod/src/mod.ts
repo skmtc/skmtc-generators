@@ -1,4 +1,4 @@
-import { toModelEntry } from "@skmtc/core";
+import { toModelEntry } from '@skmtc/core'
 import { ZodProjection } from "./ZodProjection.ts";
 import denoJson from "../deno.json" with { type: "json" };
 

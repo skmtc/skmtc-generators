@@ -1,9 +1,4 @@
-import type {
-  GeneratorKey,
-  Modifiers,
-  GenerateContextType,
-  OasBoolean
-} from '@skmtc/core'
+import type { GeneratorKey, Modifiers, GenerateContextType, OasBoolean } from '@skmtc/core'
 import { TsSnippet } from '@skmtc/lang-typescript'
 import { applyModifiers } from './applyModifiers.ts'
 

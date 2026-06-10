@@ -1,8 +1,8 @@
 import type { ContentSettings, TypeSystemValue, GenerateContextType, RefName } from '@skmtc/core'
+import { createType } from '@skmtc/lang-typescript'
 import { toTsValue } from './Ts.ts'
 import { TypescriptBase } from './base.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
-import { Identifier } from '@skmtc/core'
 
 type ConstructorArgs = {
   context: GenerateContextType
@@ -31,7 +31,7 @@ export class TsProjection extends TypescriptBase {
     return toTsValue(...args)
   }
 
-  static createIdentifier = Identifier.createType
+  static createIdentifier = createType
 
   override toString() {
     return `${this.value}`

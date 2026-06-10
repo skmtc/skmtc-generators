@@ -1,12 +1,5 @@
-import {
-  camelCase,
-  capitalize,
-  type ContentSettings,
-  type GenerateContextType,
-  Identifier,
-  type RefName,
-  type TypeSystemValue,
-} from "@skmtc/core";
+import { camelCase, capitalize, type ContentSettings, type GenerateContextType, type RefName, type TypeSystemValue } from '@skmtc/core'
+import { createVariable } from '@skmtc/lang-typescript'
 import { toZodValue } from "./Zod.ts";
 import { ZodBase } from "./base.ts";
 import type { EnrichmentSchema } from "./enrichments.ts";
@@ -60,7 +53,7 @@ export class ZodProjection extends ZodBase {
     return toZodValue(...args);
   };
 
-  static createIdentifier = Identifier.createVariable;
+  static createIdentifier = createVariable;
 
   override toString() {
     return `${this.value}`;
