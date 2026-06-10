@@ -1,4 +1,4 @@
-import { SnippetBase } from "@skmtc/core";
+import { TsSnippet } from "@skmtc/lang-typescript";
 import type {
   GenerateContextType,
   GeneratorKey,
@@ -22,7 +22,7 @@ type ZodArrayArgs = {
   rootRef?: RefName;
 };
 
-export class ZodArray extends SnippetBase {
+export class ZodArray extends TsSnippet {
   type = "array" as const;
   items: TypeSystemValue;
   modifiers: Modifiers;
@@ -31,7 +31,7 @@ export class ZodArray extends SnippetBase {
     { context, generatorKey, destinationPath, items, modifiers, rootRef, schema }:
       ZodArrayArgs,
   ) {
-    super({ context, generatorKey, schema });
+    super({ context, generatorKey, stackTrail: schema?.stackTrail.clone() });
 
     this.modifiers = modifiers;
 

@@ -1,4 +1,4 @@
-import { SnippetBase } from "@skmtc/core";
+import { TsSnippet } from "@skmtc/lang-typescript";
 import type {
   GenerateContextType,
   GeneratorKey,
@@ -24,7 +24,7 @@ type ZodUnionArgs = {
   rootRef?: RefName;
 };
 
-export class ZodUnion extends SnippetBase {
+export class ZodUnion extends TsSnippet {
   type = "union" as const;
   members: TypeSystemValue[];
   discriminator: string | undefined;
@@ -40,7 +40,7 @@ export class ZodUnion extends SnippetBase {
     rootRef,
     schema,
   }: ZodUnionArgs) {
-    super({ context, generatorKey, schema });
+    super({ context, generatorKey, stackTrail: schema?.stackTrail.clone() });
 
     this.members = members.map((member) => {
       return toZodValue({

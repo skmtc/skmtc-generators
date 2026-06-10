@@ -1,4 +1,4 @@
-import { SnippetBase } from "@skmtc/core";
+import { TsSnippet } from "@skmtc/lang-typescript";
 import { applyModifiers } from "./applyModifiers.ts";
 import type {
   GenerateContextType,
@@ -17,7 +17,7 @@ type ZodIntegerArgs = {
   generatorKey: GeneratorKey;
 };
 
-export class ZodInteger extends SnippetBase {
+export class ZodInteger extends TsSnippet {
   type = "integer" as const;
   modifiers: Modifiers;
   format?: "int32" | "int64";
@@ -27,7 +27,7 @@ export class ZodInteger extends SnippetBase {
     { context, schema, modifiers, destinationPath, generatorKey }:
       ZodIntegerArgs,
   ) {
-    super({ context, generatorKey, schema });
+    super({ context, generatorKey, stackTrail: schema.stackTrail.clone() });
 
     this.format = schema.format;
     this.enums = schema.enums;

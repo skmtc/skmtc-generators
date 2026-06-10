@@ -1,5 +1,5 @@
 import { ModelDriver, toModelGeneratorKey } from "@skmtc/core";
-import { SnippetBase } from "@skmtc/core";
+import { TsSnippet } from "@skmtc/lang-typescript";
 import type {
   GenerateContextType,
   Modifiers,
@@ -20,7 +20,7 @@ type ConstructorProps = {
   schema?: OasSchema | OasRef<"schema">;
 };
 
-export class ZodRef extends SnippetBase {
+export class ZodRef extends TsSnippet {
   type = "ref" as const;
   modifiers: Modifiers;
   name: string;
@@ -36,7 +36,7 @@ export class ZodRef extends SnippetBase {
         refName,
         variant: "main",
       }),
-      schema,
+      stackTrail: schema?.stackTrail.clone(),
     });
 
     if (context.modelDepth[`${zodEntry.id}:${refName}`] > 0) {

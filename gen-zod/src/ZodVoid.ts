@@ -2,7 +2,7 @@ import {
   type GenerateContextType,
   type GeneratorKey,
 } from "@skmtc/core";
-import { SnippetBase } from "@skmtc/core";
+import { TsSnippet } from "@skmtc/lang-typescript";
 
 // Note: `OasVoid` is not part of the `OasSchema` union, so it can't flow
 // through `SnippetBase.schema`. A void snippet inherits its ancestor /
@@ -13,7 +13,7 @@ type ConstructorArgs = {
   destinationPath: string;
 };
 
-export class ZodVoid extends SnippetBase {
+export class ZodVoid extends TsSnippet {
   type = "void" as const;
 
   constructor({ context, generatorKey, destinationPath }: ConstructorArgs) {

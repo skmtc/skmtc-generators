@@ -3,8 +3,8 @@ import {
   decapitalize,
   Identifier,
   type RefName,
-  toModelProjectionBase,
 } from "@skmtc/core";
+import { toModelProjectionBase } from "@skmtc/lang-typescript";
 import { join } from "@std/path";
 import denoJson from "../deno.json" with { type: "json" };
 

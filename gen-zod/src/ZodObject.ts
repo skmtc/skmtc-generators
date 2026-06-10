@@ -1,4 +1,5 @@
-import { SnippetBase, handleKey, isEmpty } from "@skmtc/core";
+import { handleKey, isEmpty } from "@skmtc/core";
+import { TsSnippet } from "@skmtc/lang-typescript";
 import type {
   CustomValue,
   GenerateContextType,
@@ -25,7 +26,7 @@ type ZodObjectProps = {
   rootRef?: RefName;
 };
 
-export class ZodObject extends SnippetBase {
+export class ZodObject extends TsSnippet {
   type = "object" as const;
   recordProperties: TypeSystemRecord | null;
   objectProperties: TypeSystemObjectProperties | null;
@@ -39,7 +40,7 @@ export class ZodObject extends SnippetBase {
     modifiers,
     rootRef,
   }: ZodObjectProps) {
-    super({ context, generatorKey, schema: objectSchema });
+    super({ context, generatorKey, stackTrail: objectSchema.stackTrail.clone() });
 
     this.modifiers = modifiers;
 
@@ -100,7 +101,7 @@ type ZodObjectPropertiesArgs = {
   rootRef?: RefName;
 };
 
-class ZodObjectProperties extends SnippetBase {
+class ZodObjectProperties extends TsSnippet {
   properties: Record<string, TypeSystemValue>;
   required: string[];
 
@@ -153,7 +154,7 @@ type ZodRecordArgs = {
   rootRef?: RefName;
 };
 
-class ZodRecord extends SnippetBase {
+class ZodRecord extends TsSnippet {
   value: TypeSystemValue | "true";
 
   constructor(

@@ -4,7 +4,7 @@ import {
   type Modifiers,
   type OasNumber,
 } from "@skmtc/core";
-import { SnippetBase } from "@skmtc/core";
+import { TsSnippet } from "@skmtc/lang-typescript";
 import { applyModifiers } from "./applyModifiers.ts";
 import { List } from "@skmtc/core";
 import { ZodConstraint } from "./ZodConstraints.ts";
@@ -17,7 +17,7 @@ type ZodNumberArgs = {
   generatorKey: GeneratorKey;
 };
 
-export class ZodNumber extends SnippetBase {
+export class ZodNumber extends TsSnippet {
   type = "number" as const;
   modifiers: Modifiers;
   enums?: number[] | (number | null)[];
@@ -26,7 +26,7 @@ export class ZodNumber extends SnippetBase {
     { context, modifiers, schema, destinationPath, generatorKey }:
       ZodNumberArgs,
   ) {
-    super({ context, generatorKey, schema });
+    super({ context, generatorKey, stackTrail: schema.stackTrail.clone() });
 
     this.modifiers = modifiers;
     this.enums = schema.enums;
