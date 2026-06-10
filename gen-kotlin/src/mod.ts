@@ -49,7 +49,7 @@ export const toKotlinEntry = (options: KotlinEntryOptions) => {
     transform({ context, refName }) {
       const schema = context.resolveSchemaRefOnce(refName, denoJson.name)
 
-      context.insertModel(toKtProjection(schema), refName)
+      context.insertModel(toKtProjection(context, schema), refName)
     }
   })
 }
