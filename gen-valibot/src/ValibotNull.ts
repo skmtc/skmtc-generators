@@ -1,4 +1,4 @@
-import { SnippetBase } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
 import type { GeneratorKey, GenerateContextType } from '@skmtc/core'
 
 type ValibotNullArgs = {
@@ -7,7 +7,7 @@ type ValibotNullArgs = {
   generatorKey: GeneratorKey
 }
 
-export class ValibotNull extends SnippetBase {
+export class ValibotNull extends TsSnippet {
   type = 'null' as const
 
   constructor({ context, generatorKey, destinationPath }: ValibotNullArgs) {

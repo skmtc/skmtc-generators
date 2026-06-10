@@ -1,4 +1,4 @@
-import { SnippetBase } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
 import type {
   TypeSystemValue,
   OasSchema,
@@ -22,7 +22,7 @@ type TsArrayArgs = {
   rootRef?: RefName
 }
 
-export class TsArray extends SnippetBase {
+export class TsArray extends TsSnippet {
   type = 'array' as const
   items: TypeSystemValue
   modifiers: Modifiers
@@ -30,7 +30,7 @@ export class TsArray extends SnippetBase {
   constructor(
     { context, generatorKey, destinationPath, items, modifiers, rootRef, schema }: TsArrayArgs
   ) {
-    super({ context, generatorKey, schema })
+    super({ context, generatorKey, stackTrail: schema?.stackTrail.clone() })
 
     this.modifiers = modifiers
 

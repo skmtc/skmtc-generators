@@ -6,6 +6,7 @@ import {
   toGeneratorOnlyKey,
   type GqlOperationProjectionConstructorArgs
 } from '@skmtc/core'
+import { defineAndRegister } from '@skmtc/lang-typescript'
 import { TsProjection } from '@skmtc/gen-typescript'
 import { ReapitGraphqlClientBase } from './base.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
@@ -89,8 +90,9 @@ export class ReapitGraphqlClient extends ReapitGraphqlClientBase {
 
     this.documentConstName = `${capitalize(fieldName)}Document`
 
-    this.defineAndRegister({
+    defineAndRegister(context, {
       identifier: Identifier.createVariable(this.documentConstName),
+      destinationPath: this.settings.exportPath,
       value: {
         generatorKey: toGeneratorOnlyKey({ generatorId: id }),
         // The cast-string approach: emit a plain query string typed as

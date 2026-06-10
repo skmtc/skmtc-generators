@@ -1,4 +1,4 @@
-import { SnippetBase, List } from '@skmtc/core'
+import { List } from '@skmtc/core'
 import type {
   GenerateContextType,
   ListLines,
@@ -6,6 +6,7 @@ import type {
   OasSchema,
   Stringable
 } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
 
 type SelectInputArgs = {
   context: GenerateContextType
@@ -20,7 +21,7 @@ type SelectInputArgs = {
   schema?: OasSchema | OasRef<'schema'>
 }
 
-export class SelectInput extends SnippetBase {
+export class SelectInput extends TsSnippet {
   name: string
   label: string | undefined
   placeholder?: string
@@ -38,7 +39,7 @@ export class SelectInput extends SnippetBase {
     size,
     schema
   }: SelectInputArgs) {
-    super({ context, schema })
+    super({ context, stackTrail: schema?.stackTrail.clone() })
 
     this.name = name
     this.label = label ?? name

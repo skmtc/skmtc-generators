@@ -1,5 +1,5 @@
 import type { OasRef, OasSchema } from '@skmtc/core'
-import { SnippetBase } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
 import { applyModifiers } from './applyModifiers.ts'
 import type { Modifiers, GeneratorKey, GenerateContextType } from '@skmtc/core'
 
@@ -12,12 +12,12 @@ type ArktypeBooleanArgs = {
   generatorKey: GeneratorKey
 }
 
-export class ArktypeBoolean extends SnippetBase {
+export class ArktypeBoolean extends TsSnippet {
   type = 'boolean' as const
   modifiers: Modifiers
   
   constructor({ context, generatorKey, destinationPath, modifiers, schema }: ArktypeBooleanArgs) {
-    super({ context, generatorKey, schema })
+    super({ context, generatorKey, stackTrail: schema?.stackTrail.clone() })
     
     this.modifiers = modifiers
     this.register({ imports: { arktype: ['type'] }, destinationPath })

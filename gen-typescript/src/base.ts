@@ -1,5 +1,6 @@
-import { capitalize, decapitalize, Identifier, toModelProjectionBase, camelCase } from '@skmtc/core'
+import { capitalize, decapitalize, Identifier, camelCase } from '@skmtc/core'
 import type { RefName } from '@skmtc/core'
+import { toModelProjectionBase } from '@skmtc/lang-typescript'
 import { join } from '@std/path'
 
 export const TypescriptBase = toModelProjectionBase({

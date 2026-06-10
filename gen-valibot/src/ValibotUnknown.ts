@@ -1,4 +1,4 @@
-import { SnippetBase } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
 import type {
   GeneratorKey,
   GenerateContextType,
@@ -17,11 +17,11 @@ type ValibotUnknownArgs = {
   schema?: OasSchema | OasRef<'schema'>
 }
 
-export class ValibotUnknown extends SnippetBase {
+export class ValibotUnknown extends TsSnippet {
   type = 'unknown' as const
 
   constructor({ context, generatorKey, destinationPath, schema }: ValibotUnknownArgs) {
-    super({ context, generatorKey, schema })
+    super({ context, generatorKey, stackTrail: schema?.stackTrail.clone() })
 
     this.register({ imports: { valibot: [{ '*': 'v' }] }, destinationPath })
   }

@@ -1,5 +1,5 @@
 import * as v from 'valibot'
-import { moduleExport } from '@skmtc/core/ModuleExport'
+import { moduleExport } from '@skmtc/core'
 
 // Per-field override. DaisyUI-specific options (size, submitColor,
 // layout, showCard) live on the `x-daisy-form` operation extension

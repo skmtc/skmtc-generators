@@ -1,4 +1,5 @@
-import { capitalize, Identifier, toEndpointName, toOasOperationProjectionBase } from '@skmtc/core'
+import { capitalize, Identifier, toEndpointName } from '@skmtc/core'
+import { toOasOperationProjectionBase } from '@skmtc/lang-typescript'
 import { join } from '@std/path'
 import denoJson from '../deno.json' with { type: 'json' }
 

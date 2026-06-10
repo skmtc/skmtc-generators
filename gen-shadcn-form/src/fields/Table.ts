@@ -1,4 +1,5 @@
-import { List, SnippetBase } from '@skmtc/core'
+import { List } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
 import type {
   CustomValue,
   EntryList,
@@ -24,7 +25,7 @@ type TableArgs = {
   topLevelSchema: OasSchema | OasRef<'schema'>
 }
 
-export class Table extends SnippetBase {
+export class Table extends TsSnippet {
   constructor({
     context,
     label,
@@ -34,7 +35,7 @@ export class Table extends SnippetBase {
     destinationPath,
     topLevelSchema
   }: TableArgs) {
-    super({ context, schema })
+    super({ context, stackTrail: schema.stackTrail.clone() })
 
     const resolvedSchema = schema.resolve()
 
@@ -70,7 +71,7 @@ type SimpleTableArgs = {
   topLevelSchema: OasSchema | OasRef<'schema'>
 }
 
-export class SimpleTable extends SnippetBase {
+export class SimpleTable extends TsSnippet {
   name: string
   headers: ListArray<Stringable>
   label: string | undefined
@@ -133,7 +134,7 @@ type ObjectTableArgs = {
   topLevelSchema: OasSchema | OasRef<'schema'>
 }
 
-export class ObjectTable extends SnippetBase {
+export class ObjectTable extends TsSnippet {
   name: string
   headers: ListArray<Stringable>
   label: string | undefined
@@ -207,7 +208,7 @@ type SimpleTableRowRenderArgs = {
   topLevelSchema: OasSchema | OasRef<'schema'>
 }
 
-class SimpleTableRowRender extends SnippetBase {
+class SimpleTableRowRender extends TsSnippet {
   parentName: string
   cells: ListLines<Stringable>
   rowType: TypeSystemValue
@@ -274,7 +275,7 @@ type TableObjectRowRenderArgs = {
   topLevelSchema: OasSchema | OasRef<'schema'>
 }
 
-class TableObjectRowRender extends SnippetBase {
+class TableObjectRowRender extends TsSnippet {
   parentName: string
   cells: ListLines<Stringable>
   rowType: TypeSystemValue

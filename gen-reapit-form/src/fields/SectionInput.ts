@@ -1,5 +1,5 @@
-import { SnippetBase } from '@skmtc/core'
 import type { GenerateContextType, OasRef, OasSchema, Stringable } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
 import { InputWrapper } from './InputWrapper.ts'
 
 export type SectionInputArgs = {
@@ -24,13 +24,13 @@ export type SectionInputArgs = {
  * entire form-grid row; children are already InputWrap-wrapped by
  * `schemaToField` so they slot into the grid naturally.
  */
-export class SectionInput extends SnippetBase {
+export class SectionInput extends TsSnippet {
   readonly label: string
   readonly children: Stringable[]
   private readonly headingWrap: InputWrapper
 
   constructor({ context, label, children, destinationPath, schema }: SectionInputArgs) {
-    super({ context, schema })
+    super({ context, stackTrail: schema?.stackTrail.clone() })
     this.label = label
     this.children = children
 

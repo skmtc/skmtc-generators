@@ -2,7 +2,8 @@ import { type GenerateContextType, SnippetBase, type GeneratorKey } from '@skmtc
 
 type ConstructorArgs = {
   context: GenerateContextType
-  generatorKey: GeneratorKey
+  /** Optional attribution (gen-maps) input */
+  generatorKey?: GeneratorKey
 }
 
 export class TsNever extends SnippetBase {

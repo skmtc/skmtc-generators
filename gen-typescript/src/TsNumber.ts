@@ -5,7 +5,7 @@ import type {
   OasRef,
   OasSchema
 } from '@skmtc/core'
-import { SnippetBase } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
 import { applyModifiers } from './applyModifiers.ts'
 
 type TsNumberArgs = {
@@ -16,12 +16,12 @@ type TsNumberArgs = {
   schema?: OasSchema | OasRef<'schema'>
 }
 
-export class TsNumber extends SnippetBase {
+export class TsNumber extends TsSnippet {
   type = 'number' as const
   modifiers: Modifiers
 
   constructor({ context, modifiers, generatorKey, schema }: TsNumberArgs) {
-    super({ context, generatorKey, schema })
+    super({ context, generatorKey, stackTrail: schema?.stackTrail.clone() })
 
     this.modifiers = modifiers
   }

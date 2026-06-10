@@ -1,4 +1,5 @@
-import { Identifier, toOasOperationProjectionBase, camelCase } from '@skmtc/core'
+import { Identifier, camelCase } from '@skmtc/core'
+import { toOasOperationProjectionBase } from '@skmtc/lang-typescript'
 import { join } from '@std/path'
 import type { EnrichmentSchema } from './enrichments.ts'
 import { toEnrichmentSchema } from './enrichments.ts'

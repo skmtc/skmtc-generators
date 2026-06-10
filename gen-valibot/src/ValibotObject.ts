@@ -1,4 +1,5 @@
 import { SnippetBase, isEmpty } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
 import type {
   GenerateContextType,
   GeneratorKey,
@@ -26,7 +27,7 @@ type ValibotObjectProps = {
   rootRef?: RefName
 }
 
-export class ValibotObject extends SnippetBase {
+export class ValibotObject extends TsSnippet {
   type = 'object' as const
   recordProperties: TypeSystemRecord | null
   objectProperties: TypeSystemObjectProperties | null
@@ -40,7 +41,7 @@ export class ValibotObject extends SnippetBase {
     modifiers,
     rootRef
   }: ValibotObjectProps) {
-    super({ context, generatorKey, schema: objectSchema })
+    super({ context, generatorKey, stackTrail: objectSchema.stackTrail.clone() })
 
     this.modifiers = modifiers
 

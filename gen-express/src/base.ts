@@ -1,4 +1,5 @@
-import { Identifier, toOasOperationProjectionBase } from '@skmtc/core'
+import { Identifier } from '@skmtc/core'
+import { toOasOperationProjectionBase } from '@skmtc/lang-typescript'
 import { join } from '@std/path'
 import { toFirstSegment } from './toFirstSegment.ts'
 import denoJson from '../deno.json' with { type: 'json' }

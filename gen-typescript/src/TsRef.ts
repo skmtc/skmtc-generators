@@ -1,4 +1,5 @@
-import { ModelDriver, toModelGeneratorKey, SnippetBase } from '@skmtc/core'
+import { ModelDriver, toModelGeneratorKey } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
 import type {
   GenerateContextType,
   Modifiers,
@@ -20,7 +21,7 @@ type TsRefConstructorProps = {
   schema?: OasSchema | OasRef<'schema'>
 }
 
-export class TsRef extends SnippetBase {
+export class TsRef extends TsSnippet {
   type = 'ref' as const
   name: string
   modifiers: Modifiers
@@ -35,7 +36,7 @@ export class TsRef extends SnippetBase {
         refName,
         variant: 'main'
       }),
-      schema
+      stackTrail: schema?.stackTrail.clone()
     })
 
     if (context.modelDepth[`${typescriptEntry.id}:${refName}`] > 0) {

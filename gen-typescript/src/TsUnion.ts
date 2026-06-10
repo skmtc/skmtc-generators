@@ -1,4 +1,4 @@
-import { SnippetBase } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
 import type {
   GenerateContextType,
   GeneratorKey,
@@ -24,7 +24,7 @@ type TsUnionArgs = {
   rootRef?: RefName
 }
 
-export class TsUnion extends SnippetBase {
+export class TsUnion extends TsSnippet {
   type = 'union' as const
   members: TypeSystemValue[]
   discriminator: string | undefined
@@ -40,7 +40,7 @@ export class TsUnion extends SnippetBase {
     rootRef,
     schema
   }: TsUnionArgs) {
-    super({ context, generatorKey, schema })
+    super({ context, generatorKey, stackTrail: schema?.stackTrail.clone() })
 
     this.members = members.map(member => {
       return toTsValue({

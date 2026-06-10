@@ -15,9 +15,9 @@ import { typescriptEntry } from './mod.ts'
 
 /**
  * Maps a parsed schema node to its TypeScript snippet. Fine-grained
- * attribution is captured via the `schema` constructor arg threaded into
- * each snippet (and on to `SnippetBase`, which records the schema's
- * `stackTrail`) — no router-level wrapper. The originating node is passed to
+ * attribution is captured via each snippet's super call, which snapshots the
+ * schema's `stackTrail` (`stackTrail: schema.stackTrail.clone()`) — no
+ * router-level wrapper. The originating node is passed to
  * every snippet, including the ones that otherwise receive only decomposed
  * parts (`items` / `members` / `refName`) or nothing (`number` / `unknown`).
  * `void` takes none — `OasVoid` is not part of the `OasSchema` union.

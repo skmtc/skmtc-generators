@@ -1,5 +1,4 @@
 import { toGqlOperationEntry, type IsSupportedGqlOperationConfigArgs } from '@skmtc/core'
-import { typescript } from '@skmtc/lang-typescript'
 import { ReapitGraphqlClient } from './ReapitGraphqlClient.ts'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
@@ -26,16 +25,14 @@ import denoJson from '../deno.json' with { type: 'json' }
  */
 export const reapitGraphqlClientEntry = toGqlOperationEntry<EnrichmentSchema>({
   id: denoJson.name,
-  lang: typescript,
 
   isSupported({ operation }: IsSupportedGqlOperationConfigArgs<EnrichmentSchema>): boolean {
     return operation.rootKind === 'query' || operation.rootKind === 'mutation'
   },
 
-  transform({ context, operation, acc }) {
-    if (operation.rootKind !== 'query' && operation.rootKind !== 'mutation') return acc
+  transform({ context, operation }) {
+    if (operation.rootKind !== 'query' && operation.rootKind !== 'mutation') return
     context.insertOperation({ projection: ReapitGraphqlClient, operation })
-    return acc
   },
 
   toEnrichmentSchema

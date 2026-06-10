@@ -1,4 +1,5 @@
-import { decapitalize, Identifier, toModelProjectionBase, type RefName, camelCase } from '@skmtc/core'
+import { decapitalize, Identifier, type RefName, camelCase } from '@skmtc/core'
+import { toModelProjectionBase } from '@skmtc/lang-typescript'
 import { join } from '@std/path'
 import denoJson from '../deno.json' with { type: 'json' }
 

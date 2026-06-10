@@ -1,4 +1,4 @@
-import { SnippetBase } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
 import { applyModifiers } from './applyModifiers.ts'
 import type {
   Modifiers,
@@ -17,12 +17,12 @@ type ValibotBooleanArgs = {
   schema?: OasSchema | OasRef<'schema'>
 }
 
-export class ValibotBoolean extends SnippetBase {
+export class ValibotBoolean extends TsSnippet {
   type = 'boolean' as const
   modifiers: Modifiers
 
   constructor({ context, generatorKey, destinationPath, modifiers, schema }: ValibotBooleanArgs) {
-    super({ context, generatorKey, schema })
+    super({ context, generatorKey, stackTrail: schema?.stackTrail.clone() })
 
     this.modifiers = modifiers
 

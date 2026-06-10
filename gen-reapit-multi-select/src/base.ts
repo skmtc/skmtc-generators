@@ -1,10 +1,5 @@
-import {
-  Identifier,
-  toGqlOperationProjectionBase,
-  type OasObject,
-  type OasRef,
-  type OasSchema
-} from '@skmtc/core'
+import { Identifier, type OasObject, type OasRef, type OasSchema } from '@skmtc/core'
+import { toGqlOperationProjectionBase } from '@skmtc/lang-typescript'
 import { join } from '@std/path'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }

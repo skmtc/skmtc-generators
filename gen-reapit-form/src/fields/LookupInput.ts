@@ -1,5 +1,5 @@
-import { SnippetBase } from '@skmtc/core'
 import type { GenerateContextType, OasRef, OasSchema } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
 import { labelText } from './labelText.ts'
 
 export type LookupInputArgs = {
@@ -21,14 +21,14 @@ export type LookupInputArgs = {
  * file by the Driver during `context.insertOperation` — so no
  * `register()` call is needed here.
  */
-export class LookupInput extends SnippetBase {
+export class LookupInput extends TsSnippet {
   readonly componentName: string
   readonly path: string
   readonly label: string | undefined
   readonly isRequired: boolean
 
   constructor({ context, componentName, path, label, isRequired, schema }: LookupInputArgs) {
-    super({ context, schema })
+    super({ context, stackTrail: schema?.stackTrail.clone() })
     this.componentName = componentName
     this.path = path
     this.label = label

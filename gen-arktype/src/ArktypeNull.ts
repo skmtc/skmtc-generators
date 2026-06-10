@@ -1,4 +1,4 @@
-import { SnippetBase } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
 import type { GeneratorKey, GenerateContextType } from '@skmtc/core'
 
 type ArktypeNullArgs = {
@@ -7,7 +7,7 @@ type ArktypeNullArgs = {
   generatorKey: GeneratorKey
 }
 
-export class ArktypeNull extends SnippetBase {
+export class ArktypeNull extends TsSnippet {
   type = 'null' as const
   
   constructor({ context, generatorKey, destinationPath }: ArktypeNullArgs) {

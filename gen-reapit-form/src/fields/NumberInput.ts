@@ -1,5 +1,5 @@
-import { SnippetBase } from '@skmtc/core'
 import type { GenerateContextType, OasRef, OasSchema } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
 import { labelText } from './labelText.ts'
 
 export type NumberInputArgs = {
@@ -13,13 +13,13 @@ export type NumberInputArgs = {
 }
 
 /** Numeric input. Emits `<NumberField lens={lens.focus(path)} />`. */
-export class NumberInput extends SnippetBase {
+export class NumberInput extends TsSnippet {
   readonly path: string
   readonly label: string | undefined
   readonly isRequired: boolean
 
   constructor({ context, path, label, isRequired, destinationPath, schema }: NumberInputArgs) {
-    super({ context, schema })
+    super({ context, stackTrail: schema?.stackTrail.clone() })
     this.path = path
     this.label = label
     this.isRequired = isRequired

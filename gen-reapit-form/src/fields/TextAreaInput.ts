@@ -1,5 +1,5 @@
-import { SnippetBase } from '@skmtc/core'
 import type { GenerateContextType, OasRef, OasSchema } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
 import { labelText } from './labelText.ts'
 
 export type TextAreaInputArgs = {
@@ -13,13 +13,13 @@ export type TextAreaInputArgs = {
 }
 
 /** Multi-line text. Emits `<TextAreaField lens={lens.focus(path)} />`. */
-export class TextAreaInput extends SnippetBase {
+export class TextAreaInput extends TsSnippet {
   readonly path: string
   readonly label: string | undefined
   readonly isRequired: boolean
 
   constructor({ context, path, label, isRequired, destinationPath, schema }: TextAreaInputArgs) {
-    super({ context, schema })
+    super({ context, stackTrail: schema?.stackTrail.clone() })
     this.path = path
     this.label = label
     this.isRequired = isRequired

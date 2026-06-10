@@ -1,4 +1,4 @@
-import { SnippetBase, List } from '@skmtc/core'
+import { List } from '@skmtc/core'
 import type {
   GenerateContextType,
   ListLines,
@@ -7,6 +7,7 @@ import type {
   OasSchema,
   Stringable
 } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
 import invariant from 'tiny-invariant'
 import { schemaToField, getLabel } from '../schemaToField.ts'
 
@@ -20,7 +21,7 @@ type ObjectInputArgs = {
   topLevelSchema: OasSchema | OasRef<'schema'>
 }
 
-export class ObjectInput extends SnippetBase {
+export class ObjectInput extends TsSnippet {
   name: string
   label: string | undefined
   fields: ListLines<Stringable>
@@ -33,7 +34,7 @@ export class ObjectInput extends SnippetBase {
     destinationPath,
     topLevelSchema
   }: ObjectInputArgs) {
-    super({ context, schema })
+    super({ context, stackTrail: schema.stackTrail.clone() })
 
     invariant(schema.type === 'object', 'ObjectInput: expected object schema')
 

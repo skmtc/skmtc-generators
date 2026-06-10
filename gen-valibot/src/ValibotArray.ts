@@ -1,4 +1,4 @@
-import { SnippetBase } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
 import { toValibotValue } from './Valibot.ts'
 import { applyModifiers } from './applyModifiers.ts'
 import type {
@@ -22,7 +22,7 @@ type ValibotArrayArgs = {
   rootRef?: RefName
 }
 
-export class ValibotArray extends SnippetBase {
+export class ValibotArray extends TsSnippet {
   type = 'array' as const
   items: TypeSystemValue
   modifiers: Modifiers
@@ -36,7 +36,7 @@ export class ValibotArray extends SnippetBase {
     rootRef,
     schema
   }: ValibotArrayArgs) {
-    super({ context, generatorKey, schema })
+    super({ context, generatorKey, stackTrail: schema?.stackTrail.clone() })
 
     this.modifiers = modifiers
 

@@ -1,4 +1,4 @@
-import { SnippetBase } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
 import { match, P } from 'ts-pattern'
 import { applyModifiers } from './applyModifiers.ts'
 import { getCustomScalar } from './scalars.ts'
@@ -11,13 +11,13 @@ type TsStringArgs = {
   generatorKey: GeneratorKey
 }
 
-export class TsString extends SnippetBase {
+export class TsString extends TsSnippet {
   type = 'string' as const
   format: string | undefined
   enums: string[] | (string | null)[] | undefined
   modifiers: Modifiers
   constructor({ context, stringSchema, generatorKey, modifiers }: TsStringArgs) {
-    super({ context, generatorKey, schema: stringSchema })
+    super({ context, generatorKey, stackTrail: stringSchema.stackTrail.clone() })
 
     this.enums = stringSchema.enums
     this.format = stringSchema.format

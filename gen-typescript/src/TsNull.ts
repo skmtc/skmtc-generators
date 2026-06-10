@@ -3,7 +3,8 @@ import { SnippetBase } from '@skmtc/core'
 
 type ConstructorArgs = {
   context: GenerateContextType
-  generatorKey: GeneratorKey
+  /** Optional attribution (gen-maps) input */
+  generatorKey?: GeneratorKey
 }
 
 export class TsNull extends SnippetBase {

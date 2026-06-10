@@ -1,5 +1,5 @@
-import { SnippetBase } from '@skmtc/core'
 import type { GenerateContextType, OasRef, OasSchema } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
 import { labelText } from './labelText.ts'
 
 export type ArrayInputArgs = {
@@ -26,13 +26,13 @@ export type ArrayInputArgs = {
  * generator-private enrichment (see skmtc-generator skill, "Generator-
  * private enrichments").
  */
-export class ArrayInput extends SnippetBase {
+export class ArrayInput extends TsSnippet {
   readonly path: string
   readonly label: string | undefined
   readonly isRequired: boolean
 
   constructor({ context, path, label, isRequired, destinationPath, schema }: ArrayInputArgs) {
-    super({ context, schema })
+    super({ context, stackTrail: schema?.stackTrail.clone() })
     this.path = path
     this.label = label
     this.isRequired = isRequired

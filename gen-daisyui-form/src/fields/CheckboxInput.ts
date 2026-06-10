@@ -1,5 +1,5 @@
-import { SnippetBase } from '@skmtc/core'
 import type { GenerateContextType, OasRef, OasSchema } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
 
 type CheckboxInputArgs = {
   context: GenerateContextType
@@ -12,14 +12,14 @@ type CheckboxInputArgs = {
   schema?: OasSchema | OasRef<'schema'>
 }
 
-export class CheckboxInput extends SnippetBase {
+export class CheckboxInput extends TsSnippet {
   name: string
   label: string | undefined
   skipLabel?: boolean
   color?: string
 
   constructor({ context, name, label, skipLabel, color, schema }: CheckboxInputArgs) {
-    super({ context, schema })
+    super({ context, stackTrail: schema?.stackTrail.clone() })
 
     this.name = name
     this.label = label ?? name

@@ -1,4 +1,4 @@
-import { SnippetBase } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
 import type {
   GenerateContextType,
   GeneratorKey,
@@ -24,7 +24,7 @@ type ValibotUnionArgs = {
   rootRef?: RefName
 }
 
-export class ValibotUnion extends SnippetBase {
+export class ValibotUnion extends TsSnippet {
   type = 'union' as const
   members: TypeSystemValue[]
   discriminator: string | undefined
@@ -40,7 +40,7 @@ export class ValibotUnion extends SnippetBase {
     rootRef,
     schema
   }: ValibotUnionArgs) {
-    super({ context, generatorKey, schema })
+    super({ context, generatorKey, stackTrail: schema?.stackTrail.clone() })
 
     this.members = members.map(member => {
       return toValibotValue({ destinationPath, schema: member, required: true, context, rootRef })

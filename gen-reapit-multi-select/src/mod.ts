@@ -2,7 +2,6 @@ import {
   toGqlOperationEntry,
   type IsSupportedGqlOperationConfigArgs
 } from '@skmtc/core'
-import { typescript } from '@skmtc/lang-typescript'
 import { ReapitMultiSelect } from './ReapitMultiSelect.ts'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
@@ -22,16 +21,14 @@ import denoJson from '../deno.json' with { type: 'json' }
  */
 export const reapitMultiSelectEntry = toGqlOperationEntry<EnrichmentSchema>({
   id: denoJson.name,
-  lang: typescript,
 
   isSupported({ context, operation }: IsSupportedGqlOperationConfigArgs<EnrichmentSchema>) {
     return ReapitMultiSelect.isSupported({ context, operation })
   },
 
-  transform({ context, operation, acc, variant }) {
-    if (!ReapitMultiSelect.isSupported({ context, operation })) return acc
+  transform({ context, operation, variant }) {
+    if (!ReapitMultiSelect.isSupported({ context, operation })) return
     context.insertOperation({ projection: ReapitMultiSelect, operation, variant })
-    return acc
   },
 
   toPreviewModule: ({ context, operation, variant }) => {

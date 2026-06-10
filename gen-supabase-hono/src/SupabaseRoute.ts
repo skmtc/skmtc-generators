@@ -1,5 +1,6 @@
-import { camelCase, decapitalize, toPathParams, List, SnippetBase } from '@skmtc/core'
+import { camelCase, decapitalize, toPathParams, List } from '@skmtc/core'
 import type { GenerateContextType, OasOperation, ListObject } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
 import { RequestBody } from './RequestBody.ts'
 import { Response } from './Response.ts'
 import { ResponseVoid } from './ResponseVoid.ts'
@@ -11,7 +12,7 @@ type SupabaseRouteArgs = {
   destinationPath: string
 }
 
-export class SupabaseRoute extends SnippetBase {
+export class SupabaseRoute extends TsSnippet {
   operation: OasOperation
   pathParams: ListObject<string>
   queryParams: ListObject<string>

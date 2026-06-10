@@ -1,5 +1,5 @@
-import { SnippetBase } from '@skmtc/core'
 import type { GenerateContextType, ModuleExport } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
 
 type TableColumnProps = {
   context: GenerateContextType
@@ -7,7 +7,7 @@ type TableColumnProps = {
   destinationPath: string
 }
 
-export class Column extends SnippetBase {
+export class Column extends TsSnippet {
   formatter: ModuleExport
   constructor({ context, formatter, destinationPath }: TableColumnProps) {
     super({ context })

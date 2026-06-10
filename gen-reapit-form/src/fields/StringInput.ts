@@ -1,5 +1,5 @@
-import { SnippetBase } from '@skmtc/core'
 import type { GenerateContextType, OasRef, OasSchema } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
 import { labelText } from './labelText.ts'
 
 /**
@@ -26,14 +26,14 @@ export type StringInputArgs = {
 }
 
 /** Single-line text. Emits `<StringField lens={lens.focus(path)} />`. */
-export class StringInput extends SnippetBase {
+export class StringInput extends TsSnippet {
   readonly path: string
   readonly label: string | undefined
   readonly isRequired: boolean
   readonly inputType: StringInputType
 
   constructor({ context, path, label, isRequired, destinationPath, inputType = 'text', schema }: StringInputArgs) {
-    super({ context, schema })
+    super({ context, stackTrail: schema?.stackTrail.clone() })
     this.path = path
     this.label = label
     this.isRequired = isRequired

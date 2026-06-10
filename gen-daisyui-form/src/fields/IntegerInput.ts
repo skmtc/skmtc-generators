@@ -1,5 +1,5 @@
-import { SnippetBase } from '@skmtc/core'
 import type { GenerateContextType, OasRef, OasSchema } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
 
 type IntegerInputArgs = {
   context: GenerateContextType
@@ -13,7 +13,7 @@ type IntegerInputArgs = {
   schema?: OasSchema | OasRef<'schema'>
 }
 
-export class IntegerInput extends SnippetBase {
+export class IntegerInput extends TsSnippet {
   name: string
   label: string | undefined
   placeholder?: string
@@ -21,7 +21,7 @@ export class IntegerInput extends SnippetBase {
   size?: 'xs' | 'sm' | 'md' | 'lg'
 
   constructor({ context, name, label, placeholder, skipLabel, size, schema }: IntegerInputArgs) {
-    super({ context, schema })
+    super({ context, stackTrail: schema?.stackTrail.clone() })
 
     this.name = name
     this.label = label ?? name

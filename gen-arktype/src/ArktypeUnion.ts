@@ -1,5 +1,6 @@
 import type { OasRef, OasSchema } from '@skmtc/core'
-import { type TypeSystemValue, type GenerateContextType, type Modifiers, type GeneratorKey, type RefName, SnippetBase } from '@skmtc/core'
+import type { TypeSystemValue, GenerateContextType, Modifiers, GeneratorKey, RefName } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
 import { applyModifiers } from './applyModifiers.ts'
 import { toArktypeValue } from './Arktype.ts'
 
@@ -15,14 +16,14 @@ type ArktypeUnionArgs = {
   rootRef?: RefName
 }
 
-export class ArktypeUnion extends SnippetBase {
+export class ArktypeUnion extends TsSnippet {
   type = 'union' as const
   members: TypeSystemValue[]
   discriminator: any
   modifiers: Modifiers
   
   constructor({ context, members, discriminator, modifiers, destinationPath, generatorKey, rootRef, schema }: ArktypeUnionArgs) {
-    super({ context, generatorKey, schema })
+    super({ context, generatorKey, stackTrail: schema?.stackTrail.clone() })
     
     this.discriminator = discriminator
     this.modifiers = modifiers

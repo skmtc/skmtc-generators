@@ -1,4 +1,5 @@
 import { SnippetBase, handleKey, isEmpty } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
 import type {
   GenerateContextType,
   OasRef,
@@ -26,7 +27,7 @@ type TsObjectProps = {
   rootRef?: RefName
 }
 
-export class TsObject extends SnippetBase {
+export class TsObject extends TsSnippet {
   type = 'object' as const
   recordProperties: TypeSystemRecord | null
   objectProperties: TypeSystemObjectProperties | null
@@ -40,7 +41,7 @@ export class TsObject extends SnippetBase {
     modifiers,
     rootRef
   }: TsObjectProps) {
-    super({ context, generatorKey, schema: value })
+    super({ context, generatorKey, stackTrail: value.stackTrail.clone() })
 
     this.modifiers = modifiers
 

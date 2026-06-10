@@ -1,5 +1,6 @@
 import type { OasRef, OasSchema } from '@skmtc/core'
-import { type TypeSystemValue, type GenerateContextType, type Modifiers, type GeneratorKey, type RefName, SnippetBase } from '@skmtc/core'
+import type { TypeSystemValue, GenerateContextType, Modifiers, GeneratorKey, RefName } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
 import { applyModifiers } from './applyModifiers.ts'
 import { toArktypeValue } from './Arktype.ts'
 
@@ -14,13 +15,13 @@ type ArktypeArrayArgs = {
   rootRef?: RefName
 }
 
-export class ArktypeArray extends SnippetBase {
+export class ArktypeArray extends TsSnippet {
   type = 'array' as const
   items: TypeSystemValue
   modifiers: Modifiers
   
   constructor({ context, items, modifiers, destinationPath, generatorKey, rootRef, schema }: ArktypeArrayArgs) {
-    super({ context, generatorKey, schema })
+    super({ context, generatorKey, stackTrail: schema?.stackTrail.clone() })
     
     this.modifiers = modifiers
     this.register({ imports: { arktype: ['type'] }, destinationPath })

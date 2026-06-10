@@ -4,7 +4,7 @@ import type {
   GenerateContextType,
   OasBoolean
 } from '@skmtc/core'
-import { SnippetBase } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
 import { applyModifiers } from './applyModifiers.ts'
 
 type TsBooleanArgs = {
@@ -21,13 +21,13 @@ type TsBooleanArgs = {
   generatorKey: GeneratorKey
 }
 
-export class TsBoolean extends SnippetBase {
+export class TsBoolean extends TsSnippet {
   type = 'boolean' as const
   modifiers: Modifiers
   enums?: boolean[] | (boolean | null)[]
 
   constructor({ context, modifiers, booleanSchema, generatorKey }: TsBooleanArgs) {
-    super({ context, generatorKey, schema: booleanSchema })
+    super({ context, generatorKey, stackTrail: booleanSchema.stackTrail.clone() })
 
     this.modifiers = modifiers
     this.enums = booleanSchema.enums

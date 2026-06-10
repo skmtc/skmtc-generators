@@ -1,4 +1,4 @@
-import { SnippetBase } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
 import { applyModifiers } from './applyModifiers.ts'
 import type { OasInteger, GeneratorKey, Modifiers, GenerateContextType } from '@skmtc/core'
 import { match, P } from 'ts-pattern'
@@ -10,14 +10,14 @@ type TsIntegerArgs = {
   generatorKey: GeneratorKey
 }
 
-export class TsInteger extends SnippetBase {
+export class TsInteger extends TsSnippet {
   type = 'integer' as const
   modifiers: Modifiers
   format?: 'int32' | 'int64'
   enums?: number[] | (number | null)[]
 
   constructor({ context, integerSchema, generatorKey, modifiers }: TsIntegerArgs) {
-    super({ context, generatorKey, schema: integerSchema })
+    super({ context, generatorKey, stackTrail: integerSchema.stackTrail.clone() })
 
     this.format = integerSchema.format
     this.enums = integerSchema.enums

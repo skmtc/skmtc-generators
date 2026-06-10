@@ -1,5 +1,6 @@
-import { SnippetBase, List } from '@skmtc/core'
+import { List } from '@skmtc/core'
 import type { ListLines, OasSchema, Stringable, OasRef, GenerateContextType } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
 import { schemaToField, getLabel } from '../schemaToField.ts'
 import invariant from 'tiny-invariant'
 import { FormLabel } from '../FormLabel.ts'
@@ -14,7 +15,7 @@ type ObjectInputArgs = {
   topLevelSchema: OasSchema | OasRef<'schema'>
 }
 
-export class ObjectInput extends SnippetBase {
+export class ObjectInput extends TsSnippet {
   name: string
   label: FormLabel
   placeholder?: string
@@ -28,7 +29,7 @@ export class ObjectInput extends SnippetBase {
     schema: schema,
     topLevelSchema
   }: ObjectInputArgs) {
-    super({ context, schema })
+    super({ context, stackTrail: schema.stackTrail.clone() })
 
     invariant(schema.type === 'object', 'ObjectInput: Expected object schema')
 

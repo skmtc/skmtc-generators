@@ -1,12 +1,10 @@
 import { toOasOperationEntry, type IsSupportedOasOperationConfigArgs } from '@skmtc/core'
-import { typescript } from '@skmtc/lang-typescript'
 import type { EnrichmentSchema } from './enrichments.ts'
 import { toEnrichmentSchema } from './enrichments.ts'
 import { ShadcnForm } from './ShadcnForm.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 export const ShadcnFormEntry = toOasOperationEntry<EnrichmentSchema>({
   id: denoJson.name,
-  lang: typescript,
 
   isSupported({ operation }: IsSupportedOasOperationConfigArgs<EnrichmentSchema>) {
     return (

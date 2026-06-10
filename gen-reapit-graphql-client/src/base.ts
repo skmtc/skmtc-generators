@@ -1,4 +1,5 @@
-import { capitalize, Identifier, toGqlOperationProjectionBase } from '@skmtc/core'
+import { capitalize, Identifier } from '@skmtc/core'
+import { toGqlOperationProjectionBase } from '@skmtc/lang-typescript'
 import { join } from '@std/path'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
