@@ -154,6 +154,11 @@
           "jsr:@skmtc/lang-typescript@0.2.1"
         ]
       },
+      "gen-kotlin": {
+        "dependencies": [
+          "jsr:@skmtc/core@0.9.0"
+        ]
+      },
       "gen-msw": {
         "dependencies": [
           "jsr:@skmtc/core@0.9.0",
