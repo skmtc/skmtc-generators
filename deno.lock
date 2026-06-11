@@ -2,7 +2,7 @@
   "version": "5",
   "specifiers": {
     "jsr:@skmtc/core@0.9.1": "0.9.1",
-    "jsr:@skmtc/lang-csharp@0.2.1": "0.2.1",
+    "jsr:@skmtc/lang-csharp@0.3.0": "0.3.0",
     "jsr:@skmtc/lang-kotlin@0.5.1": "0.5.1",
     "jsr:@skmtc/lang-typescript@0.2.2": "0.2.2",
     "jsr:@std/assert@1": "1.0.19",
@@ -42,8 +42,8 @@
         "npm:valibot"
       ]
     },
-    "@skmtc/lang-csharp@0.2.1": {
-      "integrity": "9abe0025b1dfc5473761794e5d0049e0de2fce302122fa717071be59934fe25d",
+    "@skmtc/lang-csharp@0.3.0": {
+      "integrity": "d7ab17469a849ec563224af47171e2b6349ce9cf950bc02bb6d33a90dfdfe607",
       "dependencies": [
         "jsr:@skmtc/core",
         "jsr:@std/path@^1.0.9"
@@ -157,7 +157,14 @@
       "gen-csharp": {
         "dependencies": [
           "jsr:@skmtc/core@0.9.1",
-          "jsr:@skmtc/lang-csharp@0.2.1"
+          "jsr:@skmtc/lang-csharp@0.3.0"
+        ]
+      },
+      "gen-csharp-aspnet": {
+        "dependencies": [
+          "jsr:@skmtc/core@0.9.1",
+          "jsr:@skmtc/gen-csharp@0.0.4",
+          "jsr:@skmtc/lang-csharp@0.3.0"
         ]
       },
       "gen-daisyui-form": {
