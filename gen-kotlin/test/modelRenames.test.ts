@@ -23,6 +23,7 @@ const documentObject: OpenAPIV3.Document = {
       },
       CreditNote: {
         type: 'object',
+        description: 'A credit note.',
         required: ['id'],
         properties: { id: { type: 'string' } }
       },
@@ -95,6 +96,15 @@ Deno.test('rename hits the identifier, the FILE, and every ref site', () => {
   assertStringIncludes(
     artifacts['app/src/main/kotlin/com/example/api/Wrapper.generated.kt'],
     'val page: CreditNotePage'
+  )
+})
+
+Deno.test('schema descriptions render as class-level KDoc (through the projection mirror)', () => {
+  const { artifacts } = runFixture()
+
+  assertStringIncludes(
+    artifacts['app/src/main/kotlin/com/example/api/CreditNote.generated.kt'],
+    '/** A credit note. */\n@Serializable\ndata class CreditNote('
   )
 })
 

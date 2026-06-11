@@ -42,6 +42,12 @@ export class KtDataClassProjection extends KtDataClassBase {
     return this.value.annotations
   }
 
+  /** The `KtDocumented` protocol, mirrored from the value (the Driver
+   * wraps the PROJECTION — protocol fields must live on it). */
+  get description(): string | undefined {
+    return this.value.description
+  }
+
   /** The `KtSupertyped` protocol — the claiming sealed parents' names,
    * rendered by `KtDefinition` as ` : Animal` after the parameter list.
    * Name-only by design: the parent's own transform visit generates its

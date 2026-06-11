@@ -50,6 +50,12 @@ export class KtSealedInterfaceProjection extends KtSealedInterfaceBase {
     return this.value.annotations
   }
 
+  /** The `KtDocumented` protocol, mirrored from the value (the Driver
+   * wraps the PROJECTION — protocol fields must live on it). */
+  get description(): string | undefined {
+    return this.value.description
+  }
+
   /**
    * Inline (`insertNormalizedModel`) usage is not supported: an inline
    * union has no refName for the membership inversion, so it can never
