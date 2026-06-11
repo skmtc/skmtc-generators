@@ -3,6 +3,7 @@ import { createEnumClass, type KtAnnotation } from '@skmtc/lang-kotlin'
 import { KtEnumClassBase } from './base.ts'
 import { KtEnumEntries } from './KtEnumEntries.ts'
 import { toEnumValues } from './toEnumEntryName.ts'
+import type { ModelEnrichment } from './modelNames.ts'
 
 /**
  * `components.schemas` string-with-enums → `enum class`. Entries are
@@ -12,7 +13,7 @@ import { toEnumValues } from './toEnumEntryName.ts'
 export class KtEnumClassProjection extends KtEnumClassBase {
   value: KtEnumEntries
 
-  constructor({ context, refName, settings }: ModelProjectionConstructorArgs) {
+  constructor({ context, refName, settings }: ModelProjectionConstructorArgs<ModelEnrichment>) {
     super({ context, refName, settings })
 
     const schema = context.resolveSchemaRefOnce(refName, KtEnumClassBase.id)

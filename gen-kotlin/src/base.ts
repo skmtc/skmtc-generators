@@ -8,6 +8,7 @@ import {
 } from '@skmtc/lang-kotlin'
 import { join } from '@std/path'
 import { getBasePackage } from './basePackage.ts'
+import { modelEnrichmentSchema, type ModelEnrichment } from './modelNames.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
 /** PascalCase model name from a schema refName — shared by all the bases. */
@@ -35,50 +36,58 @@ export const toKtModelExportPath = (name: string): string => {
  * so for one refName every class agrees on the `(name, exportPath)`
  * cache key.
  */
-export const KtDataClassBase = toModelProjectionBase({
+export const KtDataClassBase = toModelProjectionBase<ModelEnrichment>({
   id: denoJson.name,
 
-  toIdentifier({ refName }) {
-    return createDataClass(toKtModelName(refName))
+  toEnrichmentSchema: () => modelEnrichmentSchema,
+
+  toIdentifier({ refName, enrichments }) {
+    return createDataClass(enrichments?.name ?? toKtModelName(refName))
   },
 
-  toExportPath({ refName }) {
-    return toKtModelExportPath(toKtModelName(refName))
+  toExportPath({ refName, enrichments }) {
+    return toKtModelExportPath(enrichments?.name ?? toKtModelName(refName))
   }
 })
 
-export const KtEnumClassBase = toModelProjectionBase({
+export const KtEnumClassBase = toModelProjectionBase<ModelEnrichment>({
   id: denoJson.name,
 
-  toIdentifier({ refName }) {
-    return createEnumClass(toKtModelName(refName))
+  toEnrichmentSchema: () => modelEnrichmentSchema,
+
+  toIdentifier({ refName, enrichments }) {
+    return createEnumClass(enrichments?.name ?? toKtModelName(refName))
   },
 
-  toExportPath({ refName }) {
-    return toKtModelExportPath(toKtModelName(refName))
+  toExportPath({ refName, enrichments }) {
+    return toKtModelExportPath(enrichments?.name ?? toKtModelName(refName))
   }
 })
 
-export const KtTypeAliasBase = toModelProjectionBase({
+export const KtTypeAliasBase = toModelProjectionBase<ModelEnrichment>({
   id: denoJson.name,
 
-  toIdentifier({ refName }) {
-    return createTypeAlias(toKtModelName(refName))
+  toEnrichmentSchema: () => modelEnrichmentSchema,
+
+  toIdentifier({ refName, enrichments }) {
+    return createTypeAlias(enrichments?.name ?? toKtModelName(refName))
   },
 
-  toExportPath({ refName }) {
-    return toKtModelExportPath(toKtModelName(refName))
+  toExportPath({ refName, enrichments }) {
+    return toKtModelExportPath(enrichments?.name ?? toKtModelName(refName))
   }
 })
 
-export const KtSealedInterfaceBase = toModelProjectionBase({
+export const KtSealedInterfaceBase = toModelProjectionBase<ModelEnrichment>({
   id: denoJson.name,
 
-  toIdentifier({ refName }) {
-    return createSealedInterface(toKtModelName(refName))
+  toEnrichmentSchema: () => modelEnrichmentSchema,
+
+  toIdentifier({ refName, enrichments }) {
+    return createSealedInterface(enrichments?.name ?? toKtModelName(refName))
   },
 
-  toExportPath({ refName }) {
-    return toKtModelExportPath(toKtModelName(refName))
+  toExportPath({ refName, enrichments }) {
+    return toKtModelExportPath(enrichments?.name ?? toKtModelName(refName))
   }
 })

@@ -4,6 +4,7 @@ import { KtSealedInterfaceBase } from './base.ts'
 import { KtSealedInterfaceValue } from './KtSealedInterfaceValue.ts'
 import { KtDataClassProjection } from './KtDataClassProjection.ts'
 import { isSealedUnion } from './sealedMembership.ts'
+import type { ModelEnrichment } from './modelNames.ts'
 
 /**
  * A qualifying discriminated union (`oneOf`) → `sealed interface`
@@ -19,7 +20,7 @@ import { isSealedUnion } from './sealedMembership.ts'
 export class KtSealedInterfaceProjection extends KtSealedInterfaceBase {
   value: KtSealedInterfaceValue
 
-  constructor({ context, refName, settings }: ModelProjectionConstructorArgs) {
+  constructor({ context, refName, settings }: ModelProjectionConstructorArgs<ModelEnrichment>) {
     super({ context, refName, settings })
 
     const schema = context.resolveSchemaRefOnce(refName, KtSealedInterfaceBase.id)

@@ -3,6 +3,7 @@ import { createDataClass, type KtAnnotation } from '@skmtc/lang-kotlin'
 import { KtDataClassBase } from './base.ts'
 import { KtDataClassValue } from './KtDataClassValue.ts'
 import { toSealedMembership } from './sealedMembership.ts'
+import type { ModelEnrichment } from './modelNames.ts'
 
 /**
  * `components.schemas` object-with-properties → `data class`. The Driver
@@ -14,7 +15,7 @@ import { toSealedMembership } from './sealedMembership.ts'
 export class KtDataClassProjection extends KtDataClassBase {
   value: KtDataClassValue
 
-  constructor({ context, refName, settings, rootRef }: ModelProjectionConstructorArgs) {
+  constructor({ context, refName, settings, rootRef }: ModelProjectionConstructorArgs<ModelEnrichment>) {
     super({ context, refName, settings })
 
     const schema = context.resolveSchemaRefOnce(refName, KtDataClassBase.id)

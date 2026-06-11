@@ -8,6 +8,39 @@ import {
   type KtFunctionParameterArgs
 } from '@skmtc/lang-kotlin'
 import { toKtValue } from '@skmtc/gen-kotlin'
+import denoJson from '../deno.json' with { type: 'json' }
+
+const isRecord = (value: unknown): value is Record<string, unknown> => {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+/**
+ * The consumer-supplied method rename (spec 28):
+ * `enrichments["@skmtc/gen-kotlin-spring"][path][method].main.serviceMethodName`
+ * — `getCreditNote` instead of the derived `getCreditNotesId`. Applies
+ * to BOTH the service signature and the controller (declaration and
+ * delegation call stay in lockstep by construction).
+ */
+const toServiceMethodName = (
+  context: GenerateContextType,
+  operation: OasOperation
+): string | undefined => {
+  const namespace = context.settings?.enrichments?.[denoJson.name]
+
+  if (!isRecord(namespace)) {
+    return undefined
+  }
+
+  const perPath = namespace[operation.path]
+  const perMethod = isRecord(perPath) ? perPath[operation.method] : undefined
+  const main = isRecord(perMethod) ? perMethod.main : undefined
+
+  if (!isRecord(main)) {
+    return undefined
+  }
+
+  return typeof main.serviceMethodName === 'string' ? main.serviceMethodName : undefined
+}
 
 type SpringApiMethodArgs = {
   context: GenerateContextType
@@ -92,7 +125,9 @@ export class SpringApiMethod extends KtSnippet {
   constructor({ context, operation, destinationPath }: SpringApiMethodArgs) {
     super({ context })
 
-    const methodName = `${operation.method}${capitalize(camelCase(operation.path))}`
+    const methodName =
+      toServiceMethodName(context, operation) ??
+      `${operation.method}${capitalize(camelCase(operation.path))}`
     const fallbackBase = capitalize(methodName)
 
     const mapping = toMappingAnnotation(operation.method, operation.path)

@@ -4,7 +4,7 @@
  * gen-kotlin-spring running ALONE (primitive + inline shapes only; the
  * ref-typed worked example beside gen-kotlin is the step-3 e2e).
  */
-import { assertEquals, assertThrows } from 'jsr:@std/assert@^1.0.0'
+import { assertEquals, assertStringIncludes, assertThrows } from 'jsr:@std/assert@^1.0.0'
 import { StackTrail, toArtifacts } from '@skmtc/core'
 import type { OpenAPIV3 } from 'openapi-types'
 import { toKotlinSpringEntry } from '../src/mod.ts'
@@ -207,4 +207,35 @@ Deno.test('basePackage segments are validated up front', () => {
     Error,
     'not a valid Kotlin package name'
   )
+})
+
+Deno.test('serviceMethodName enrichment renames the seam and the delegation in lockstep', () => {
+  const springEntry = toKotlinSpringEntry({ basePackage: 'com.example.spring' })
+
+  const { artifacts } = toArtifacts({
+    traceId: 'gen-kotlin-spring-rename',
+    spanId: 'fixture',
+    startAt: Date.now(),
+    document: { type: 'oas', value: documentObject },
+    settings: {
+      basePath: './server/src/main/kotlin',
+      enrichments: {
+        '@skmtc/gen-kotlin-spring': {
+          '/users/{id}': { get: { main: { serviceMethodName: 'getUser' } } }
+        }
+      }
+    },
+    stackTrail: new StackTrail([]),
+    silent: true,
+    toGeneratorConfigMap: () => ({
+      // @ts-expect-error - the factory-emitted entry is monomorphic over EnrichmentType
+      '@skmtc/gen-kotlin-spring': springEntry
+    })
+  })
+
+  const usersApi = artifacts['server/src/main/kotlin/com/example/spring/UsersApi.generated.kt']
+
+  assertStringIncludes(usersApi, 'fun getUser(id: String, verbose: Boolean?): String')
+  assertStringIncludes(usersApi, ' = service.getUser(id, verbose)')
+  assertEquals(usersApi.includes('getUsersId'), false)
 })

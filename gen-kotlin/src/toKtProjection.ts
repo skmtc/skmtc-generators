@@ -7,6 +7,7 @@ import { KtTypeAliasProjection } from './KtTypeAliasProjection.ts'
 import { isSealedUnion } from './sealedMembership.ts'
 import { peekSchema } from './Kt.ts'
 import { toEnumValues } from './toEnumEntryName.ts'
+import type { ModelEnrichment } from './modelNames.ts'
 
 /**
  * The common static surface of gen-kotlin's projection classes — what
@@ -17,7 +18,7 @@ export type KtProjection = ModelProjection<
   | KtEnumClassProjection
   | KtSealedInterfaceProjection
   | KtTypeAliasProjection,
-  undefined
+  ModelEnrichment
 >
 
 /**

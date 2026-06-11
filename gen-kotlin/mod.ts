@@ -18,6 +18,7 @@ export { KtUnion, KtUnknown } from './src/KtJsonValues.ts'
 export { applyModifiers } from './src/applyModifiers.ts'
 export { toEnumEntryName } from './src/toEnumEntryName.ts'
 export { toKtModelName, toKtModelExportPath, KtDataClassBase, KtEnumClassBase, KtSealedInterfaceBase, KtTypeAliasBase } from './src/base.ts'
+export { toModelAlias, toKtModelDisplayName } from './src/modelNames.ts'
 export { setBasePackage, getBasePackage, resetBasePackage } from './src/basePackage.ts'
 export {
   setCustomScalars,

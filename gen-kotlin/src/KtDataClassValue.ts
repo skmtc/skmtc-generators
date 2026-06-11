@@ -8,7 +8,7 @@ import {
   type KtParameterArgs
 } from '@skmtc/lang-kotlin'
 import { toKtValue } from './Kt.ts'
-import { toKtModelName } from './base.ts'
+import { toKtModelDisplayName } from './modelNames.ts'
 import type { SealedParent } from './sealedMembership.ts'
 
 type KtDataClassValueArgs = {
@@ -56,7 +56,7 @@ export class KtDataClassValue extends KtSnippet {
   }: KtDataClassValueArgs) {
     super({ context, stackTrail: objectSchema.stackTrail.clone() })
 
-    this.supertypes = sealedParents.map(parent => toKtModelName(parent.parentRefName))
+    this.supertypes = sealedParents.map(parent => toKtModelDisplayName(context, parent.parentRefName))
 
     if (sealedParents.length > 0) {
       // One @SerialName per class: every claiming parent must agree on

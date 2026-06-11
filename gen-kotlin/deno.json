@@ -1,6 +1,6 @@
 {
   "name": "@skmtc/gen-kotlin",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "exports": "./mod.ts",
   "tasks": {
     "test": "deno test --allow-env --allow-sys --allow-read",

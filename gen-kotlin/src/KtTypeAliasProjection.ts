@@ -3,6 +3,7 @@ import type { ModelProjectionConstructorArgs, SchemaToValueFn, TypeSystemValue }
 import { createTypeAlias } from '@skmtc/lang-kotlin'
 import { KtTypeAliasBase } from './base.ts'
 import { toKtValue } from './Kt.ts'
+import type { ModelEnrichment } from './modelNames.ts'
 
 /**
  * Every `components.schemas` entry that is neither an object-with-
@@ -14,7 +15,7 @@ import { toKtValue } from './Kt.ts'
 export class KtTypeAliasProjection extends KtTypeAliasBase {
   value: TypeSystemValue
 
-  constructor({ context, refName, settings, rootRef }: ModelProjectionConstructorArgs) {
+  constructor({ context, refName, settings, rootRef }: ModelProjectionConstructorArgs<ModelEnrichment>) {
     super({ context, refName, settings })
 
     const schema = context.resolveSchemaRefOnce(refName, KtTypeAliasBase.id)
