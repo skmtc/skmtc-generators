@@ -181,6 +181,13 @@ const collectParentClaims = (
 
     const claims = membership.get(memberRefName) ?? []
 
+    // Two hint sites may name the SAME synthesized parent (e.g.
+    // ListPrice.structure and PriceResponse.structure both hinting
+    // 'PricingStructure') — one claim per (parent, tag) pair.
+    if (claims.some(claim => claim.parentRefName === parentRefName && claim.tag === tag)) {
+      continue
+    }
+
     claims.push({ parentRefName, tag, discriminatorPropertyName: propertyName })
     membership.set(memberRefName, claims)
   }
