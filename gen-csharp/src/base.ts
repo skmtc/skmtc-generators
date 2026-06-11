@@ -7,6 +7,7 @@ import {
 } from '@skmtc/lang-csharp'
 import { join } from '@std/path'
 import { getBaseNamespace } from './baseNamespace.ts'
+import { modelEnrichmentSchema, type ModelEnrichment } from './modelNames.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
 /** PascalCase model name from a schema refName — shared by all the bases. */
@@ -38,42 +39,49 @@ export const toCsModelExportPath = (name: string): string => {
  * non-declarable refNames produce no artifact at all — ref sites inline
  * the type expression instead.
  *
- * No enrichment schema at CS-A — gen-csharp reads no enrichments yet
- * (renames arrive at CS-D with their declared Valibot schema, the
- * note-30 lesson 5).
+ * The bases declare the CD1 rename enrichment (`main.name` — the
+ * spec-28 port): the alias names the identifier AND the file; insert
+ * sites get it through this channel, name-only sites through
+ * `toCsModelDisplayName` — one rule, two routes.
  */
-export const CsRecordBase = toModelProjectionBase({
+export const CsRecordBase = toModelProjectionBase<ModelEnrichment>({
   id: denoJson.name,
 
-  toIdentifier({ refName }) {
-    return createRecord(toCsModelName(refName))
+  toEnrichmentSchema: () => modelEnrichmentSchema,
+
+  toIdentifier({ refName, enrichments }) {
+    return createRecord(enrichments?.name ?? toCsModelName(refName))
   },
 
-  toExportPath({ refName }) {
-    return toCsModelExportPath(toCsModelName(refName))
+  toExportPath({ refName, enrichments }) {
+    return toCsModelExportPath(enrichments?.name ?? toCsModelName(refName))
   }
 })
 
-export const CsAbstractRecordBase = toModelProjectionBase({
+export const CsAbstractRecordBase = toModelProjectionBase<ModelEnrichment>({
   id: denoJson.name,
 
-  toIdentifier({ refName }) {
-    return createAbstractRecord(toCsModelName(refName))
+  toEnrichmentSchema: () => modelEnrichmentSchema,
+
+  toIdentifier({ refName, enrichments }) {
+    return createAbstractRecord(enrichments?.name ?? toCsModelName(refName))
   },
 
-  toExportPath({ refName }) {
-    return toCsModelExportPath(toCsModelName(refName))
+  toExportPath({ refName, enrichments }) {
+    return toCsModelExportPath(enrichments?.name ?? toCsModelName(refName))
   }
 })
 
-export const CsEnumBase = toModelProjectionBase({
+export const CsEnumBase = toModelProjectionBase<ModelEnrichment>({
   id: denoJson.name,
 
-  toIdentifier({ refName }) {
-    return createEnum(toCsModelName(refName))
+  toEnrichmentSchema: () => modelEnrichmentSchema,
+
+  toIdentifier({ refName, enrichments }) {
+    return createEnum(enrichments?.name ?? toCsModelName(refName))
   },
 
-  toExportPath({ refName }) {
-    return toCsModelExportPath(toCsModelName(refName))
+  toExportPath({ refName, enrichments }) {
+    return toCsModelExportPath(enrichments?.name ?? toCsModelName(refName))
   }
 })

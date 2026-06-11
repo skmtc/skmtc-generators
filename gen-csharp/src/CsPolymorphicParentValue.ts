@@ -1,7 +1,8 @@
 import type { GenerateContextType, OasUnion } from '@skmtc/core'
 import { CsAttribute, CsSnippet } from '@skmtc/lang-csharp'
-import { toCsModelName } from './base.ts'
+import { toCsModelDisplayName } from './modelNames.ts'
 import { toMemberTag } from './polymorphicMembership.ts'
+import { getUnionHint } from './unionHints.ts'
 
 type CsPolymorphicParentValueArgs = {
   context: GenerateContextType
@@ -37,7 +38,12 @@ export class CsPolymorphicParentValue extends CsSnippet {
 
     this.description = unionSchema.description
 
-    const { propertyName = '', mapping = {} } = unionSchema.discriminator ?? {}
+    // A hinted (undiscriminated) union asserts its property through the
+    // enrichment; tags then come from the members' single-valued enum
+    // values (no `mapping` exists by definition — the decision-3 port).
+    const hint = unionSchema.discriminator ? undefined : getUnionHint(context, unionSchema)
+    const { propertyName = hint?.propertyName ?? '', mapping = {} } =
+      unionSchema.discriminator ?? {}
 
     this.attributes = [
       new CsAttribute('JsonPolymorphic', [`TypeDiscriminatorPropertyName = "${propertyName}"`])
@@ -49,8 +55,8 @@ export class CsPolymorphicParentValue extends CsSnippet {
       }
 
       const memberRefName = member.toRefName()
-      const memberName = toCsModelName(memberRefName)
-      const tag = toMemberTag(memberRefName, mapping)
+      const memberName = toCsModelDisplayName(context, memberRefName)
+      const tag = toMemberTag(context, memberRefName, mapping, hint?.propertyName)
 
       this.attributes.push(
         new CsAttribute('JsonDerivedType', [`typeof(${memberName})`, `"${tag}"`])

@@ -10,6 +10,18 @@ export {
   type PolymorphicParent
 } from './src/polymorphicMembership.ts'
 export {
+  getUnionHint,
+  getInvalidUnionHint,
+  markInvalidUnionHint,
+  type UnionHint
+} from './src/unionHints.ts'
+export {
+  modelEnrichmentSchema,
+  toModelAlias,
+  toCsModelDisplayName,
+  type ModelEnrichment
+} from './src/modelNames.ts'
+export {
   toCsProjection,
   toCsProjectionForRef,
   peekSchema,

@@ -9,6 +9,7 @@ import {
 } from '@skmtc/lang-csharp'
 import { toCsValue } from '@skmtc/gen-csharp'
 import { ensureGeneratedResults } from './resultsSupport.ts'
+import { toServiceMethodName } from './enrichments.ts'
 
 type AspnetApiMethodArgs = {
   context: GenerateContextType
@@ -86,7 +87,12 @@ export class AspnetApiMethod extends CsSnippet {
   constructor({ context, operation, destinationPath }: AspnetApiMethodArgs) {
     super({ context })
 
-    const methodName = capitalize(camelCase(`${operation.method}-${operation.path}`))
+    // CD2: the consumer-supplied rename (verbatim, sanitize-checked)
+    // wins over the derived name; seam and controller stay in lockstep.
+    const renamed = toServiceMethodName(context, operation)
+    const methodName = renamed
+      ? sanitizePropertyName(renamed)
+      : capitalize(camelCase(`${operation.method}-${operation.path}`))
     const fallbackBase = methodName
 
     const mapping = toMappingAttribute(operation.method, operation.path)

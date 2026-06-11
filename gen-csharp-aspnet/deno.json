@@ -1,6 +1,6 @@
 {
   "name": "@skmtc/gen-csharp-aspnet",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "exports": "./mod.ts",
   "tasks": {
     "test": "deno test --allow-env --allow-sys --allow-read",
@@ -9,6 +9,6 @@
   "imports": {
     "@skmtc/core": "jsr:@skmtc/core@0.9.1",
     "@skmtc/lang-csharp": "jsr:@skmtc/lang-csharp@0.3.0",
-    "@skmtc/gen-csharp": "jsr:@skmtc/gen-csharp@0.0.4"
+    "@skmtc/gen-csharp": "jsr:@skmtc/gen-csharp@0.1.0"
   }
 }

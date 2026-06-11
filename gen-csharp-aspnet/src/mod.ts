@@ -4,6 +4,8 @@ import { setBaseNamespace } from './baseNamespace.ts'
 import { toApiExportPath, toApiTag, toControllerName, toServiceName } from './apiFile.ts'
 import { AspnetControllerClass, AspnetServiceInterface } from './AspnetApiClasses.ts'
 import { AspnetApiMethod } from './AspnetApiMethod.ts'
+import { ensureApiErrorSupport } from './errorSupport.ts'
+import { operationEnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
 /**
@@ -43,8 +45,10 @@ export type CsharpAspnetEntryOptions = {
 export const toCsharpAspnetEntry = (options: CsharpAspnetEntryOptions) => {
   return toOasOperationEntry({
     id: denoJson.name,
+    toEnrichmentSchema: () => operationEnrichmentSchema,
     transform({ context, operation }) {
       setBaseNamespace(options.baseNamespace)
+      ensureApiErrorSupport(context)
 
       const tag = toApiTag(operation.tags)
       const serviceName = toServiceName(tag)

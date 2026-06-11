@@ -8,7 +8,7 @@ import {
   type CsPropertyArgs
 } from '@skmtc/lang-csharp'
 import { toCsValue } from './Cs.ts'
-import { toCsModelName } from './base.ts'
+import { toCsModelDisplayName } from './modelNames.ts'
 import type { PolymorphicParent } from './polymorphicMembership.ts'
 
 type CsRecordValueArgs = {
@@ -85,7 +85,7 @@ export class CsRecordValue extends CsSnippet {
       // inheritance, and D14 chose abstract records). Unrepresentable
       // input fails the item loudly, never a silently-dropped parent.
       const parentNames = polymorphicParents
-        .map(parent => toCsModelName(parent.parentRefName))
+        .map(parent => toCsModelDisplayName(context, parent.parentRefName))
         .join(', ')
 
       throw new Error(
@@ -94,7 +94,9 @@ export class CsRecordValue extends CsSnippet {
       )
     }
 
-    this.baseTypes = polymorphicParents.map(parent => toCsModelName(parent.parentRefName))
+    this.baseTypes = polymorphicParents.map(parent =>
+      toCsModelDisplayName(context, parent.parentRefName)
+    )
 
     const { properties, required = [], additionalProperties } = objectSchema
 

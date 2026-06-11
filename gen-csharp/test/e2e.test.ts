@@ -571,3 +571,227 @@ Deno.test('e2e polymorphic - non-qualifying unions stay non-declarable and inlin
       '}\n'
   )
 })
+
+// --- Milestone CS-D: model renames (CD1) + union hints (CD3) ------------
+
+Deno.test('e2e renames - the alias names identifier, file, ref sites, and polymorphic sites (CD1)', () => {
+  const { artifacts } = toArtifacts({
+    traceId: 'gen-csharp-e2e',
+    spanId: 'renames',
+    startAt: Date.now(),
+    document: { type: 'oas', value: polymorphicDocumentObject },
+    settings: {
+      basePath: './src',
+      enrichments: {
+        '@skmtc/gen-csharp': {
+          Dog: { main: { name: 'Hound' } }
+        }
+      }
+    },
+    stackTrail: new StackTrail([]),
+    silent: true,
+    toGeneratorConfigMap: () => ({
+      // @ts-expect-error - factory-emitted transform is monomorphic over Acc
+      '@skmtc/gen-csharp': csharpEntry
+    })
+  })
+
+  // The alias names the file…
+  assertEquals(artifacts['src/Acme/Api/Models/Dog.generated.cs'], undefined)
+  const hound = artifacts['src/Acme/Api/Models/Hound.generated.cs']
+
+  // …the identifier (clause intact)…
+  if (!hound.includes('public sealed partial record Hound : Animal')) {
+    throw new Error(`Hound shell missing:\n${hound}`)
+  }
+
+  // …and the parent's name-only [JsonDerivedType] argument, with the
+  // WIRE tag unchanged.
+  const animal = artifacts['src/Acme/Api/Models/Animal.generated.cs']
+  if (!animal.includes('[JsonDerivedType(typeof(Hound), "dog")]')) {
+    throw new Error(`Animal derived-type missing:\n${animal}`)
+  }
+})
+
+const hintedDocumentObject: OpenAPIV3.Document = {
+  openapi: '3.0.0',
+  info: { title: 'Hinted Fixture API', version: '1.0.0' },
+  paths: {},
+  components: {
+    schemas: {
+      // UNDISCRIMINATED top-level union — upgraded by a hint.
+      Pricing: {
+        oneOf: [
+          { $ref: '#/components/schemas/FixedPrice' },
+          { $ref: '#/components/schemas/GraduatedPrice' }
+        ]
+      },
+      FixedPrice: {
+        type: 'object',
+        properties: {
+          pricingType: { type: 'string', enum: ['FIXED'] },
+          amount: { type: 'integer', format: 'int64' }
+        },
+        required: ['pricingType', 'amount']
+      },
+      GraduatedPrice: {
+        type: 'object',
+        properties: {
+          pricingType: { type: 'string', enum: ['GRADUATED'] },
+          tiers: { type: 'array', items: { type: 'integer' } }
+        },
+        required: ['pricingType']
+      },
+      // INLINE undiscriminated union one level under properties —
+      // upgraded by a named hint; the parent is synthesized. Members
+      // are DISTINCT from Pricing's (one base record per C# record).
+      ListPrice: {
+        type: 'object',
+        properties: {
+          structure: {
+            oneOf: [
+              { $ref: '#/components/schemas/TieredPrice' },
+              { $ref: '#/components/schemas/VolumePrice' }
+            ]
+          }
+        },
+        required: ['structure']
+      },
+      TieredPrice: {
+        type: 'object',
+        properties: {
+          pricingType: { type: 'string', enum: ['TIERED'] },
+          tiers: { type: 'array', items: { type: 'integer' } }
+        },
+        required: ['pricingType']
+      },
+      VolumePrice: {
+        type: 'object',
+        properties: {
+          pricingType: { type: 'string', enum: ['VOLUME'] },
+          floor: { type: 'integer', format: 'int64' }
+        },
+        required: ['pricingType']
+      },
+      // A hint whose members do NOT carry the asserted property —
+      // decision 2: the item fails LOUDLY, never a silent fallback.
+      Broken: {
+        type: 'object',
+        properties: {
+          value: {
+            oneOf: [
+              { $ref: '#/components/schemas/FixedPrice' },
+              { $ref: '#/components/schemas/Plain' }
+            ]
+          }
+        },
+        required: ['value']
+      },
+      Plain: {
+        type: 'object',
+        properties: { x: { type: 'string' } },
+        required: ['x']
+      },
+      Survivor: {
+        type: 'object',
+        properties: { ok: { type: 'string' } },
+        required: ['ok']
+      }
+    }
+  }
+}
+
+const runHintedFixture = () => {
+  return toArtifacts({
+    traceId: 'gen-csharp-e2e',
+    spanId: 'hinted',
+    startAt: Date.now(),
+    document: { type: 'oas', value: hintedDocumentObject },
+    settings: {
+      basePath: './src',
+      enrichments: {
+        '@skmtc/gen-csharp': {
+          Pricing: { main: { discriminator: { propertyName: 'pricingType' } } },
+          ListPrice: {
+            main: {
+              properties: {
+                structure: {
+                  name: 'PricingStructure',
+                  discriminator: { propertyName: 'pricingType' }
+                }
+              }
+            }
+          },
+          Broken: {
+            main: {
+              properties: {
+                value: {
+                  name: 'BrokenUnion',
+                  discriminator: { propertyName: 'pricingType' }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    stackTrail: new StackTrail([]),
+    silent: true,
+    toGeneratorConfigMap: () => ({
+      // @ts-expect-error - factory-emitted transform is monomorphic over Acc
+      '@skmtc/gen-csharp': csharpEntry
+    })
+  })
+}
+
+Deno.test('e2e hints - a hinted top-level union renders the parent with single-valued-enum tags (CD3)', () => {
+  const { artifacts } = runHintedFixture()
+
+  assertEquals(
+    artifacts['src/Acme/Api/Models/Pricing.generated.cs'],
+    '// <auto-generated/>\n' +
+      '#nullable enable\n' +
+      '\n' +
+      'using System.Text.Json.Serialization;\n' +
+      '\n' +
+      'namespace Acme.Api.Models;\n' +
+      '\n' +
+      '[JsonPolymorphic(TypeDiscriminatorPropertyName = "pricingType")]\n' +
+      '[JsonDerivedType(typeof(FixedPrice), "FIXED")]\n' +
+      '[JsonDerivedType(typeof(GraduatedPrice), "GRADUATED")]\n' +
+      'public abstract partial record Pricing;\n'
+  )
+
+  // Members carry the clause and omit the asserted property.
+  const fixed = artifacts['src/Acme/Api/Models/FixedPrice.generated.cs']
+  if (!fixed.includes('public sealed partial record FixedPrice : Pricing')) {
+    throw new Error(`FixedPrice clause missing:\n${fixed}`)
+  }
+  if (fixed.includes('PricingType')) {
+    throw new Error(`FixedPrice should omit the discriminator property:\n${fixed}`)
+  }
+})
+
+Deno.test('e2e hints - an inline hinted union synthesizes the named parent and types the property (CD3)', () => {
+  const { artifacts } = runHintedFixture()
+
+  const structure = artifacts['src/Acme/Api/Models/PricingStructure.generated.cs']
+  if (!structure.includes('public abstract partial record PricingStructure;')) {
+    throw new Error(`synthesized parent missing:\n${structure}`)
+  }
+
+  const listPrice = artifacts['src/Acme/Api/Models/ListPrice.generated.cs']
+  if (!listPrice.includes('public required PricingStructure Structure { get; init; }')) {
+    throw new Error(`ListPrice.structure should be typed PricingStructure:\n${listPrice}`)
+  }
+})
+
+Deno.test('e2e hints - an invalid hint fails its item loudly; the run continues (CD3 decision 2)', () => {
+  const { artifacts } = runHintedFixture()
+
+  // Broken's hinted union members don't carry 'pricingType' (Plain) —
+  // the hint is invalid, Broken errors loudly: no artifact. Survivor
+  // proves the run continues.
+  assertEquals(artifacts['src/Acme/Api/Models/Broken.generated.cs'], undefined)
+  assertEquals(artifacts['src/Acme/Api/Models/Survivor.generated.cs'] !== undefined, true)
+})

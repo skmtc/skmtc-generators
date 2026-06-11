@@ -14,3 +14,13 @@ export {
   toApiExportPath
 } from './src/apiFile.ts'
 export { setBaseNamespace, getBaseNamespace, resetBaseNamespace } from './src/baseNamespace.ts'
+export {
+  ensureApiErrorSupport,
+  ApiExceptionValue,
+  ApiExceptionHandlerValue
+} from './src/errorSupport.ts'
+export {
+  operationEnrichmentSchema,
+  toServiceMethodName,
+  type OperationEnrichment
+} from './src/enrichments.ts'

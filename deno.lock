@@ -163,7 +163,7 @@
       "gen-csharp-aspnet": {
         "dependencies": [
           "jsr:@skmtc/core@0.9.1",
-          "jsr:@skmtc/gen-csharp@0.0.4",
+          "jsr:@skmtc/gen-csharp@0.1.0",
           "jsr:@skmtc/lang-csharp@0.3.0"
         ]
       },

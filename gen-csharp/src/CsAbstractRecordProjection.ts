@@ -1,4 +1,5 @@
 import type { ModelProjectionConstructorArgs, SchemaToValueFn } from '@skmtc/core'
+import type { ModelEnrichment } from './modelNames.ts'
 import { createAbstractRecord, type CsAttribute } from '@skmtc/lang-csharp'
 import { CsAbstractRecordBase } from './base.ts'
 import { CsPolymorphicParentValue } from './CsPolymorphicParentValue.ts'
@@ -20,7 +21,7 @@ import { isPolymorphicUnion } from './polymorphicMembership.ts'
 export class CsAbstractRecordProjection extends CsAbstractRecordBase {
   value: CsPolymorphicParentValue
 
-  constructor({ context, refName, settings }: ModelProjectionConstructorArgs) {
+  constructor({ context, refName, settings }: ModelProjectionConstructorArgs<ModelEnrichment>) {
     super({ context, refName, settings })
 
     const schema = context.resolveSchemaRefOnce(refName, CsAbstractRecordBase.id)
