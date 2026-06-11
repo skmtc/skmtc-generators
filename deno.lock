@@ -166,6 +166,7 @@
       "gen-kotlin-spring": {
         "dependencies": [
           "jsr:@skmtc/core@0.9.0",
+          "jsr:@skmtc/gen-kotlin@0.0.4",
           "jsr:@skmtc/lang-kotlin@0.4.0"
         ]
       },
