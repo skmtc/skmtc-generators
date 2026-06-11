@@ -89,7 +89,7 @@ const expectedUsersApi =
   'import org.springframework.web.bind.annotation.RestController\n' +
   '\n' +
   'interface UsersService {\n' +
-  '    fun getUsersId(id: String, verbose: Boolean?): User\n' +
+  '    fun getUsersId(id: String, verbose: Boolean? = null): User\n' +
   '\n' +
   '    fun postUsers(body: CreateUserBody): User\n' +
   '}\n' +

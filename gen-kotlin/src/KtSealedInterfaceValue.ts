@@ -1,6 +1,7 @@
 import { KtAnnotation, KtSnippet } from '@skmtc/lang-kotlin'
 import type { GenerateContextType, OasUnion } from '@skmtc/core'
 import { getUnionHint } from './unionHints.ts'
+import { toKDocText } from './kdocText.ts'
 
 type KtSealedInterfaceValueArgs = {
   context: GenerateContextType
@@ -26,9 +27,12 @@ type KtSealedInterfaceValueArgs = {
  */
 export class KtSealedInterfaceValue extends KtSnippet {
   annotations: KtAnnotation[]
+  description: string | undefined
 
   constructor({ context, unionSchema, destinationPath }: KtSealedInterfaceValueArgs) {
     super({ context, stackTrail: unionSchema.stackTrail.clone() })
+
+    this.description = toKDocText(unionSchema.description)
 
     // A real discriminator, else the consumer-asserted hint (spec 26).
     const propertyName =

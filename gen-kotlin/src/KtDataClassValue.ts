@@ -9,6 +9,7 @@ import {
 } from '@skmtc/lang-kotlin'
 import { toKtValue } from './Kt.ts'
 import { toKtModelDisplayName } from './modelNames.ts'
+import { toKDocText } from './kdocText.ts'
 import type { SealedParent } from './sealedMembership.ts'
 
 type KtDataClassValueArgs = {
@@ -41,6 +42,9 @@ type KtDataClassValueArgs = {
  */
 export class KtDataClassValue extends KtSnippet {
   annotations = [new KtAnnotation('Serializable')]
+  /** The `KtDocumented` protocol input — the schema's `description`,
+   * rendered by `KtDefinition` as a class-level KDoc block. */
+  description: string | undefined
   /** The `KtSupertyped` protocol input — the claiming sealed parents'
    * class names, rendered by `KtDefinition` as ` : Animal, Pet`. */
   supertypes: string[]
@@ -55,6 +59,8 @@ export class KtDataClassValue extends KtSnippet {
     sealedParents = []
   }: KtDataClassValueArgs) {
     super({ context, stackTrail: objectSchema.stackTrail.clone() })
+
+    this.description = toKDocText(objectSchema.description)
 
     this.supertypes = sealedParents.map(parent => toKtModelDisplayName(context, parent.parentRefName))
 

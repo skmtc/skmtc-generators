@@ -139,9 +139,13 @@ export class SpringApiMethod extends KtSnippet {
     const addParameter = (
       name: string,
       type: KtFunctionParameterArgs['type'],
-      annotation: KtAnnotation
+      annotation: KtAnnotation,
+      optional = false
     ) => {
-      serviceParameters.push({ name, type })
+      // Optional params default to null on the SEAM only (named-args
+      // ergonomics for human callers/tests); the controller signature
+      // stays an exact binding and always passes every argument.
+      serviceParameters.push({ name, type, defaultValue: optional ? 'null' : undefined })
       controllerParameters.push({ name, type, annotations: [annotation] })
     }
 
@@ -173,7 +177,8 @@ export class SpringApiMethod extends KtSnippet {
           context,
           fallbackName: `${fallbackBase}${capitalize(camelCase(parameter.name))}`
         }),
-        new KtAnnotation('RequestParam', [`"${parameter.name}"`])
+        new KtAnnotation('RequestParam', [`"${parameter.name}"`]),
+        !(parameter.required ?? false)
       )
     }
 
@@ -194,7 +199,8 @@ export class SpringApiMethod extends KtSnippet {
           context,
           fallbackName: `${fallbackBase}Body`
         }),
-        new KtAnnotation('RequestBody')
+        new KtAnnotation('RequestBody'),
+        !(body.required ?? false)
       )
     }
 
@@ -232,10 +238,14 @@ export class SpringApiMethod extends KtSnippet {
 
     const parameterNames = serviceParameters.map(parameter => parameter.name)
 
+    const summary = operation.summary ?? operation.description
+    const description = summary?.replaceAll('*/', '* /')
+
     this.serviceSignature = new KtFunctionSignature({
       name: methodName,
       parameters: serviceParameters,
-      returnType
+      returnType,
+      description
     })
 
     this.controllerSignature = new KtFunctionSignature({

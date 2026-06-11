@@ -116,7 +116,7 @@ Deno.test('UsersApi accumulates methods in document order — params, body, retu
       'import org.springframework.web.bind.annotation.RestController\n' +
       '\n' +
       'interface UsersService {\n' +
-      '    fun getUsersId(id: String, verbose: Boolean?): String\n' +
+      '    fun getUsersId(id: String, verbose: Boolean? = null): String\n' +
       '\n' +
       '    fun postUsers(body: PostUsersBody)\n' +
       '}\n' +
@@ -235,7 +235,7 @@ Deno.test('serviceMethodName enrichment renames the seam and the delegation in l
 
   const usersApi = artifacts['server/src/main/kotlin/com/example/spring/UsersApi.generated.kt']
 
-  assertStringIncludes(usersApi, 'fun getUser(id: String, verbose: Boolean?): String')
+  assertStringIncludes(usersApi, 'fun getUser(id: String, verbose: Boolean? = null): String')
   assertStringIncludes(usersApi, ' = service.getUser(id, verbose)')
   assertEquals(usersApi.includes('getUsersId'), false)
 })
