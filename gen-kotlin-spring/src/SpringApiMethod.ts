@@ -61,22 +61,33 @@ const toMappingAnnotation = (method: Method, path: string): MappingAnnotation =>
 }
 
 /**
- * One abstract interface method from one OAS operation — a
- * {@link KtFunctionSignature} wrapped with the Spring policy:
- *
- * - name: `${method}${PascalCase(path)}` (`get /users/{id}` →
- *   `getUsersId`; no `operationId` — deterministic per method+path).
- * - mapping annotation above the signature; parameter binding annotations
- *   inline, ALWAYS carrying the explicit wire name (renames are free).
- * - parameter order: path params, query params, then the JSON body.
- * - types via gen-kotlin's value layer — refs insert the DTO peer, the
- *   value owns the nullability `?` (single owner; `KtFunctionParameter`'s
- *   own `nullable` flag stays unset).
- * - return type = the lowest-2xx response's `application/json` schema;
- *   none → no `: T` (Kotlin's implicit `Unit`).
+ * The non-default success statuses a generated controller declares via
+ * `@ResponseStatus` (decision 6): 200 is Spring's default and renders
+ * nothing; anything outside the named map is omitted.
+ */
+const toResponseStatusName = (code: string | undefined): string | undefined => {
+  switch (code) {
+    case '201':
+      return 'CREATED'
+    case '202':
+      return 'ACCEPTED'
+    case '204':
+      return 'NO_CONTENT'
+    default:
+      return undefined
+  }
+}
+
+/**
+ * One operation → the signature PAIR: the abstract service-seam method
+ * and the annotated, delegating controller method. Both are built from
+ * ONE pass over the operation against ONE destination file, so every
+ * type snippet (and any inline-shape sibling it synthesizes) is created
+ * once and shared — the note-25 amendment's invariant.
  */
 export class SpringApiMethod extends KtSnippet {
-  signature: KtFunctionSignature
+  serviceSignature: KtFunctionSignature
+  controllerSignature: KtFunctionSignature
 
   constructor({ context, operation, destinationPath }: SpringApiMethodArgs) {
     super({ context })
@@ -87,38 +98,48 @@ export class SpringApiMethod extends KtSnippet {
     const mapping = toMappingAnnotation(operation.method, operation.path)
     const annotationImports = new Set<string>(mapping.imports)
 
-    const parameters: KtFunctionParameterArgs[] = []
+    const serviceParameters: KtFunctionParameterArgs[] = []
+    const controllerParameters: KtFunctionParameterArgs[] = []
+
+    const addParameter = (
+      name: string,
+      type: KtFunctionParameterArgs['type'],
+      annotation: KtAnnotation
+    ) => {
+      serviceParameters.push({ name, type })
+      controllerParameters.push({ name, type, annotations: [annotation] })
+    }
 
     for (const parameter of operation.toParams(['path'])) {
       annotationImports.add('PathVariable')
 
-      parameters.push({
-        name: sanitizePropertyName(camelCase(parameter.name)),
-        type: toKtValue({
+      addParameter(
+        sanitizePropertyName(camelCase(parameter.name)),
+        toKtValue({
           schema: parameter.toSchema(),
           destinationPath,
           required: true,
           context,
           fallbackName: `${fallbackBase}${capitalize(camelCase(parameter.name))}`
         }),
-        annotations: [new KtAnnotation('PathVariable', [`"${parameter.name}"`])]
-      })
+        new KtAnnotation('PathVariable', [`"${parameter.name}"`])
+      )
     }
 
     for (const parameter of operation.toParams(['query'])) {
       annotationImports.add('RequestParam')
 
-      parameters.push({
-        name: sanitizePropertyName(camelCase(parameter.name)),
-        type: toKtValue({
+      addParameter(
+        sanitizePropertyName(camelCase(parameter.name)),
+        toKtValue({
           schema: parameter.toSchema(),
           destinationPath,
           required: parameter.required ?? false,
           context,
           fallbackName: `${fallbackBase}${capitalize(camelCase(parameter.name))}`
         }),
-        annotations: [new KtAnnotation('RequestParam', [`"${parameter.name}"`])]
-      })
+        new KtAnnotation('RequestParam', [`"${parameter.name}"`])
+      )
     }
 
     const body = operation.toRequestBody(({ schema, requestBody }) => ({
@@ -129,17 +150,17 @@ export class SpringApiMethod extends KtSnippet {
     if (body) {
       annotationImports.add('RequestBody')
 
-      parameters.push({
-        name: 'body',
-        type: toKtValue({
+      addParameter(
+        'body',
+        toKtValue({
           schema: body.schema,
           destinationPath,
           required: body.required ?? false,
           context,
           fallbackName: `${fallbackBase}Body`
         }),
-        annotations: [new KtAnnotation('RequestBody')]
-      })
+        new KtAnnotation('RequestBody')
+      )
     }
 
     const responseSchema = operation.toSuccessResponse()?.resolve().toSchema()
@@ -154,6 +175,19 @@ export class SpringApiMethod extends KtSnippet {
         })
       : undefined
 
+    const controllerAnnotations = [mapping.annotation]
+    const statusName = toResponseStatusName(operation.toSuccessResponseCode())
+
+    if (statusName) {
+      annotationImports.add('ResponseStatus')
+      controllerAnnotations.push(new KtAnnotation('ResponseStatus', [`HttpStatus.${statusName}`]))
+
+      this.register({
+        imports: { 'org.springframework.http': ['HttpStatus'] },
+        destinationPath
+      })
+    }
+
     this.register({
       imports: {
         'org.springframework.web.bind.annotation': [...annotationImports].sort()
@@ -161,15 +195,24 @@ export class SpringApiMethod extends KtSnippet {
       destinationPath
     })
 
-    this.signature = new KtFunctionSignature({
+    const parameterNames = serviceParameters.map(parameter => parameter.name)
+
+    this.serviceSignature = new KtFunctionSignature({
       name: methodName,
-      parameters,
+      parameters: serviceParameters,
+      returnType
+    })
+
+    this.controllerSignature = new KtFunctionSignature({
+      name: methodName,
+      parameters: controllerParameters,
       returnType,
-      annotations: [mapping.annotation]
+      annotations: controllerAnnotations,
+      body: `service.${methodName}(${parameterNames.join(', ')})`
     })
   }
 
   override toString(): string {
-    return `${this.signature}`
+    return `${this.controllerSignature}`
   }
 }

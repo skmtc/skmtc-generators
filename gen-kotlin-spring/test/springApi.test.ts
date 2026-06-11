@@ -106,18 +106,31 @@ Deno.test('UsersApi accumulates methods in document order — params, body, retu
     'package com.example.spring\n' +
       '\n' +
       'import kotlinx.serialization.Serializable\n' +
+      'import org.springframework.http.HttpStatus\n' +
       'import org.springframework.web.bind.annotation.GetMapping\n' +
       'import org.springframework.web.bind.annotation.PathVariable\n' +
       'import org.springframework.web.bind.annotation.PostMapping\n' +
       'import org.springframework.web.bind.annotation.RequestBody\n' +
       'import org.springframework.web.bind.annotation.RequestParam\n' +
+      'import org.springframework.web.bind.annotation.ResponseStatus\n' +
+      'import org.springframework.web.bind.annotation.RestController\n' +
       '\n' +
-      'interface UsersApi {\n' +
+      'interface UsersService {\n' +
+      '    fun getUsersId(id: String, verbose: Boolean?): String\n' +
+      '\n' +
+      '    fun postUsers(body: PostUsersBody)\n' +
+      '}\n' +
+      '\n' +
+      '@RestController\n' +
+      'class UsersController(\n' +
+      '    private val service: UsersService\n' +
+      ') {\n' +
       '    @GetMapping("/users/{id}")\n' +
-      '    fun getUsersId(@PathVariable("id") id: String, @RequestParam("verbose") verbose: Boolean?): String\n' +
+      '    fun getUsersId(@PathVariable("id") id: String, @RequestParam("verbose") verbose: Boolean?): String = service.getUsersId(id, verbose)\n' +
       '\n' +
       '    @PostMapping("/users")\n' +
-      '    fun postUsers(@RequestBody body: PostUsersBody)\n' +
+      '    @ResponseStatus(HttpStatus.CREATED)\n' +
+      '    fun postUsers(@RequestBody body: PostUsersBody) = service.postUsers(body)\n' +
       '}\n' +
       '\n' +
       '@Serializable\n' +
@@ -137,13 +150,23 @@ Deno.test('non-mapping methods fall back to @RequestMapping; no-content response
       'import org.springframework.web.bind.annotation.GetMapping\n' +
       'import org.springframework.web.bind.annotation.RequestMapping\n' +
       'import org.springframework.web.bind.annotation.RequestMethod\n' +
+      'import org.springframework.web.bind.annotation.RestController\n' +
       '\n' +
-      'interface HealthApi {\n' +
-      '    @RequestMapping(method = [RequestMethod.HEAD], path = ["/ping"])\n' +
+      'interface HealthService {\n' +
       '    fun headPing()\n' +
       '\n' +
-      '    @GetMapping("/status")\n' +
       '    fun getStatus()\n' +
+      '}\n' +
+      '\n' +
+      '@RestController\n' +
+      'class HealthController(\n' +
+      '    private val service: HealthService\n' +
+      ') {\n' +
+      '    @RequestMapping(method = [RequestMethod.HEAD], path = ["/ping"])\n' +
+      '    fun headPing() = service.headPing()\n' +
+      '\n' +
+      '    @GetMapping("/status")\n' +
+      '    fun getStatus() = service.getStatus()\n' +
       '}\n'
   )
 })
@@ -156,10 +179,18 @@ Deno.test('untagged operations land in DefaultApi', () => {
     'package com.example.spring\n' +
       '\n' +
       'import org.springframework.web.bind.annotation.GetMapping\n' +
+      'import org.springframework.web.bind.annotation.RestController\n' +
       '\n' +
-      'interface DefaultApi {\n' +
-      '    @GetMapping("/untagged")\n' +
+      'interface DefaultService {\n' +
       '    fun getUntagged()\n' +
+      '}\n' +
+      '\n' +
+      '@RestController\n' +
+      'class DefaultController(\n' +
+      '    private val service: DefaultService\n' +
+      ') {\n' +
+      '    @GetMapping("/untagged")\n' +
+      '    fun getUntagged() = service.getUntagged()\n' +
       '}\n'
   )
 })

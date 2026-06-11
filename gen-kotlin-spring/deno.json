@@ -1,6 +1,6 @@
 {
   "name": "@skmtc/gen-kotlin-spring",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "exports": "./mod.ts",
   "tasks": {
     "test": "deno test --allow-env --allow-sys --allow-read",
@@ -8,7 +8,6 @@
   },
   "imports": {
     "@skmtc/core": "jsr:@skmtc/core@0.9.0",
-    "@skmtc/lang-kotlin": "jsr:@skmtc/lang-kotlin@0.3.0",
-    "@skmtc/gen-kotlin": "jsr:@skmtc/gen-kotlin@0.0.3"
+    "@skmtc/lang-kotlin": "jsr:@skmtc/lang-kotlin@0.4.0"
   }
 }

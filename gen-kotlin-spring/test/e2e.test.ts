@@ -79,18 +79,31 @@ const documentObject: OpenAPIV3.Document = {
 const expectedUsersApi =
   'package com.example.api\n' +
   '\n' +
+  'import org.springframework.http.HttpStatus\n' +
   'import org.springframework.web.bind.annotation.GetMapping\n' +
   'import org.springframework.web.bind.annotation.PathVariable\n' +
   'import org.springframework.web.bind.annotation.PostMapping\n' +
   'import org.springframework.web.bind.annotation.RequestBody\n' +
   'import org.springframework.web.bind.annotation.RequestParam\n' +
+  'import org.springframework.web.bind.annotation.ResponseStatus\n' +
+  'import org.springframework.web.bind.annotation.RestController\n' +
   '\n' +
-  'interface UsersApi {\n' +
+  'interface UsersService {\n' +
+  '    fun getUsersId(id: String, verbose: Boolean?): User\n' +
+  '\n' +
+  '    fun postUsers(body: CreateUserBody): User\n' +
+  '}\n' +
+  '\n' +
+  '@RestController\n' +
+  'class UsersController(\n' +
+  '    private val service: UsersService\n' +
+  ') {\n' +
   '    @GetMapping("/users/{id}")\n' +
-  '    fun getUsersId(@PathVariable("id") id: String, @RequestParam("verbose") verbose: Boolean?): User\n' +
+  '    fun getUsersId(@PathVariable("id") id: String, @RequestParam("verbose") verbose: Boolean?): User = service.getUsersId(id, verbose)\n' +
   '\n' +
   '    @PostMapping("/users")\n' +
-  '    fun postUsers(@RequestBody body: CreateUserBody): User\n' +
+  '    @ResponseStatus(HttpStatus.CREATED)\n' +
+  '    fun postUsers(@RequestBody body: CreateUserBody): User = service.postUsers(body)\n' +
   '}\n'
 
 type RunFixtureArgs = {
