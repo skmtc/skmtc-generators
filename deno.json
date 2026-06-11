@@ -27,6 +27,7 @@
     "@skmtc/gen-reapit-multi-select": "./gen-reapit-multi-select/mod.ts",
     "@skmtc/gen-reapit-graphql-client": "./gen-reapit-graphql-client/mod.ts",
     "@skmtc/gen-kotlin": "./gen-kotlin/mod.ts",
+    "@skmtc/gen-kotlin-spring": "./gen-kotlin-spring/mod.ts",
     "@std/path": "jsr:@std/path@^1.1.2",
     "openapi-types": "npm:openapi-types@^12.1.3",
     "tiny-invariant": "npm:tiny-invariant@^1.3.3",
@@ -34,8 +35,8 @@
     "valibot": "npm:valibot@1.1.0"
   },
   "tasks": {
-    "test": "deno task --cwd=gen-typescript test && deno task --cwd=gen-zod test && deno task --cwd=gen-valibot test && deno task --cwd=gen-arktype test && deno task --cwd=gen-kotlin test",
-    "check": "deno check gen-typescript/mod.ts && deno check gen-zod/mod.ts && deno check gen-valibot/mod.ts && deno check gen-arktype/mod.ts && deno check gen-msw/mod.ts && deno check gen-shadcn-form/mod.ts && deno check gen-shadcn-select/mod.ts && deno check gen-shadcn-table/mod.ts && deno check gen-supabase-hono/mod.ts && deno check gen-express/mod.ts && deno check gen-tanstack-query-fetch-zod/mod.ts && deno check gen-tanstack-query-supabase-zod/mod.ts && deno check gen-kotlin/mod.ts",
+    "test": "deno task --cwd=gen-typescript test && deno task --cwd=gen-zod test && deno task --cwd=gen-valibot test && deno task --cwd=gen-arktype test && deno task --cwd=gen-kotlin test && deno task --cwd=gen-kotlin-spring test",
+    "check": "deno check gen-typescript/mod.ts && deno check gen-zod/mod.ts && deno check gen-valibot/mod.ts && deno check gen-arktype/mod.ts && deno check gen-msw/mod.ts && deno check gen-shadcn-form/mod.ts && deno check gen-shadcn-select/mod.ts && deno check gen-shadcn-table/mod.ts && deno check gen-supabase-hono/mod.ts && deno check gen-express/mod.ts && deno check gen-tanstack-query-fetch-zod/mod.ts && deno check gen-tanstack-query-supabase-zod/mod.ts && deno check gen-kotlin/mod.ts && deno check gen-kotlin-spring/mod.ts",
     "release": "deno run --allow-read --allow-write --allow-env --allow-net --allow-run .scripts/release.ts",
     "publish": "deno task --cwd=gen-typescript publish && deno task --cwd=gen-zod publish && deno task --cwd=gen-valibot publish && deno task --cwd=gen-arktype publish && deno task --cwd=gen-msw publish && deno task --cwd=gen-supabase-hono publish && deno task --cwd=gen-express publish && deno task --cwd=gen-tanstack-query-fetch-zod publish && deno task --cwd=gen-tanstack-query-supabase-zod publish && deno task --cwd=gen-daisyui-form publish && deno task --cwd=gen-reapit-form publish && deno task --cwd=gen-shadcn-form publish && deno task --cwd=gen-shadcn-select publish && deno task --cwd=gen-shadcn-table publish"
   },
@@ -58,6 +59,7 @@
     "./gen-reapit-searchable-dropdown",
     "./gen-reapit-multi-select",
     "./gen-reapit-graphql-client",
-    "./gen-kotlin"
+    "./gen-kotlin",
+    "./gen-kotlin-spring"
   ]
 }
