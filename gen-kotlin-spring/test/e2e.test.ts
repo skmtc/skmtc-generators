@@ -137,6 +137,7 @@ Deno.test('e2e alone - UsersApi renders the worked example; ref DTOs arrive via 
   const { artifacts, manifest } = runFixture({ besideGenKotlin: false })
 
   assertEquals(Object.keys(artifacts).sort(), [
+    'app/src/main/kotlin/com/example/api/ApiError.generated.kt',
     'app/src/main/kotlin/com/example/api/CreateUserBody.generated.kt',
     'app/src/main/kotlin/com/example/api/User.generated.kt',
     'app/src/main/kotlin/com/example/api/UsersApi.generated.kt'
@@ -150,6 +151,7 @@ Deno.test('e2e beside gen-kotlin - identical UsersApi; unreferenced schemas join
   const { artifacts, manifest } = runFixture({ besideGenKotlin: true })
 
   assertEquals(Object.keys(artifacts).sort(), [
+    'app/src/main/kotlin/com/example/api/ApiError.generated.kt',
     'app/src/main/kotlin/com/example/api/CreateUserBody.generated.kt',
     'app/src/main/kotlin/com/example/api/Status.generated.kt',
     'app/src/main/kotlin/com/example/api/User.generated.kt',

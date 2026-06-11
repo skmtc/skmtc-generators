@@ -24,8 +24,8 @@ const documentObject: OpenAPIV3.Document = {
       CreditNote: {
         type: 'object',
         description: 'A credit note.',
-        required: ['id'],
-        properties: { id: { type: 'string' } }
+        required: ['id', 'issuedAt'],
+        properties: { id: { type: 'string' }, issuedAt: { type: 'string', format: 'date-time' } }
       },
       Wrapper: {
         type: 'object',
@@ -55,7 +55,10 @@ const documentObject: OpenAPIV3.Document = {
 }
 
 const runFixture = () => {
-  const kotlinEntry = toKotlinEntry({ basePackage: 'com.example.api' })
+  const kotlinEntry = toKotlinEntry({
+    basePackage: 'com.example.api',
+    scalars: { 'date-time': 'kotlinx.datetime.Instant' }
+  })
 
   return toArtifacts({
     traceId: 'gen-kotlin-renames',
@@ -97,6 +100,14 @@ Deno.test('rename hits the identifier, the FILE, and every ref site', () => {
     artifacts['app/src/main/kotlin/com/example/api/Wrapper.generated.kt'],
     'val page: CreditNotePage'
   )
+})
+
+Deno.test('dotted scalars render the simple name and register the import', () => {
+  const { artifacts } = runFixture()
+  const creditNote = artifacts['app/src/main/kotlin/com/example/api/CreditNote.generated.kt']
+
+  assertStringIncludes(creditNote, 'import kotlinx.datetime.Instant')
+  assertStringIncludes(creditNote, 'val issuedAt: Instant')
 })
 
 Deno.test('schema descriptions render as class-level KDoc (through the projection mirror)', () => {

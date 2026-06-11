@@ -57,7 +57,22 @@ export class KtString extends KtSnippet {
 
       this.reference = fallbackName
     } else {
-      this.reference = getCustomScalar(this.format) ?? 'String'
+      const scalar = getCustomScalar(this.format) ?? 'String'
+
+      // A dotted scalar (`kotlinx.datetime.Instant`) renders its simple
+      // name with the import registered — the scalars option now wires
+      // imports itself instead of requiring a cloned generator (spec 29).
+      const lastDot = scalar.lastIndexOf('.')
+
+      if (lastDot > 0) {
+        const module = scalar.slice(0, lastDot)
+        const name = scalar.slice(lastDot + 1)
+
+        this.register({ imports: { [module]: [name] }, destinationPath })
+        this.reference = name
+      } else {
+        this.reference = scalar
+      }
     }
   }
 

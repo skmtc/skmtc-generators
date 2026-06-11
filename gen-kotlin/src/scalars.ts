@@ -9,8 +9,9 @@
  * to `String` (Kotlin has no `unknown`-style nudge type — configure the
  * map for custom scalars). Override via
  * `toKotlinEntry({ scalars: { 'date-time': 'kotlinx.datetime.Instant' } })`
- * — note a non-builtin type also needs its import wired by a cloned
- * generator; the stock generator only swaps the type text.
+ * — a DOTTED value renders its simple name and registers the import
+ * (`import kotlinx.datetime.Instant`); the consumer adds the library
+ * (e.g. `kotlinx-datetime`, whose types are natively `@Serializable`).
  *
  * Module-level mutable state (the gen-typescript precedent): one
  * generation per process, fresh Worker per run.

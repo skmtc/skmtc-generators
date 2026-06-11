@@ -8,4 +8,5 @@ export {
   toServiceName,
   toTagBase
 } from './src/apiFile.ts'
+export { ensureApiErrorSupport, ApiErrorValue, ApiErrorHandlerValue } from './src/apiErrorSupport.ts'
 export { setBasePackage, getBasePackage, resetBasePackage } from './src/basePackage.ts'

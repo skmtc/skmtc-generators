@@ -90,6 +90,7 @@ Deno.test('one interface per tag — untagged → DefaultApi, multi-tag joins it
   const { artifacts, manifest } = runFixture()
 
   assertEquals(Object.keys(artifacts).sort(), [
+    'server/src/main/kotlin/com/example/spring/ApiError.generated.kt',
     'server/src/main/kotlin/com/example/spring/DefaultApi.generated.kt',
     'server/src/main/kotlin/com/example/spring/HealthApi.generated.kt',
     'server/src/main/kotlin/com/example/spring/UsersApi.generated.kt'
@@ -238,4 +239,33 @@ Deno.test('serviceMethodName enrichment renames the seam and the delegation in l
   assertStringIncludes(usersApi, 'fun getUser(id: String, verbose: Boolean? = null): String')
   assertStringIncludes(usersApi, ' = service.getUser(id, verbose)')
   assertEquals(usersApi.includes('getUsersId'), false)
+})
+
+Deno.test('the error channel renders once: ApiError + advice, byte-pinned', () => {
+  const { artifacts } = runFixture()
+
+  assertEquals(
+    artifacts['server/src/main/kotlin/com/example/spring/ApiError.generated.kt'],
+    'package com.example.spring\n' +
+      '\n' +
+      'import kotlinx.serialization.Serializable\n' +
+      'import org.springframework.http.ResponseEntity\n' +
+      'import org.springframework.web.bind.annotation.ExceptionHandler\n' +
+      'import org.springframework.web.bind.annotation.RestControllerAdvice\n' +
+      'import org.springframework.web.server.ResponseStatusException\n' +
+      '\n' +
+      '/** The wire shape every handled error renders to. */\n' +
+      '@Serializable\n' +
+      'data class ApiError(\n' +
+      '    val status: Int,\n' +
+      '    val message: String? = null\n' +
+      ')\n' +
+      '\n' +
+      '/** Maps ResponseStatusException thrown by service implementations to ApiError bodies. */\n' +
+      '@RestControllerAdvice\n' +
+      'class ApiErrorHandler {\n' +
+      '    @ExceptionHandler(ResponseStatusException::class)\n' +
+      '    fun handleResponseStatus(exception: ResponseStatusException): ResponseEntity<ApiError> = ResponseEntity.status(exception.statusCode).body(ApiError(exception.statusCode.value(), exception.reason))\n' +
+      '}\n'
+  )
 })

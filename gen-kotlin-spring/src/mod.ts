@@ -3,6 +3,7 @@ import { createClass, createInterface, defineAndRegister } from '@skmtc/lang-kot
 import { setBasePackage } from './basePackage.ts'
 import { toApiExportPath, toApiTag, toControllerName, toServiceName } from './apiFile.ts'
 import { SpringControllerClass, SpringServiceInterface } from './SpringApiInterface.ts'
+import { ensureApiErrorSupport } from './apiErrorSupport.ts'
 import { SpringApiMethod } from './SpringApiMethod.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
@@ -41,6 +42,8 @@ export const toKotlinSpringEntry = (options: KotlinSpringEntryOptions) => {
   return toOasOperationEntry({
     id: denoJson.name,
     transform({ context, operation }) {
+      ensureApiErrorSupport(context)
+
       const tag = toApiTag(operation.tags)
       const serviceName = toServiceName(tag)
       const controllerName = toControllerName(tag)

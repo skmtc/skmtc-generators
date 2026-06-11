@@ -3,6 +3,7 @@
   "specifiers": {
     "jsr:@skmtc/core@0.9.0": "0.9.0",
     "jsr:@skmtc/lang-kotlin@0.5.0": "0.5.0",
+    "jsr:@skmtc/lang-typescript@0.2.1": "0.2.1",
     "jsr:@std/assert@1": "1.0.19",
     "jsr:@std/fmt@1": "1.0.10",
     "jsr:@std/fmt@^1.0.5": "1.0.10",
@@ -14,6 +15,7 @@
     "jsr:@std/log@~0.224.6": "0.224.14",
     "jsr:@std/path@^1.0.9": "1.1.5",
     "jsr:@std/path@^1.1.2": "1.1.5",
+    "npm:@types/babel__helper-validator-identifier@7.15.2": "7.15.2",
     "npm:@types/lodash-es@4.17.12": "4.17.12",
     "npm:graphql@^16.9.0": "16.14.0",
     "npm:lodash-es@4.17.21": "4.17.21",
@@ -43,6 +45,14 @@
       "dependencies": [
         "jsr:@skmtc/core",
         "jsr:@std/path@^1.0.9"
+      ]
+    },
+    "@skmtc/lang-typescript@0.2.1": {
+      "integrity": "25ac0c0e1b2c9f6797c1921566939c6c3b46fd6be31fe0172bdac2b7cf50f13b",
+      "dependencies": [
+        "jsr:@skmtc/core",
+        "jsr:@std/path@^1.0.9",
+        "npm:@types/babel__helper-validator-identifier"
       ]
     },
     "@std/assert@1.0.19": {
@@ -79,6 +89,9 @@
     }
   },
   "npm": {
+    "@types/babel__helper-validator-identifier@7.15.2": {
+      "integrity": "sha512-l3dkwCt890NFhMwPKXbxsWXC0Por0/+KaFIiQP1j38/vWSH2P3Tn6m+IuJHkx2SBI3VLFqincFe9JtBk2NFHOw=="
+    },
     "@types/lodash-es@4.17.12": {
       "integrity": "sha512-0NgftHUcV4v34VhXm8QBSftKVXtbkBG3ViCjs6+eJ5a6y6Mi/jiFGPc1sC7QK+9BFhWrURE3EOggmWaSxL9OzQ==",
       "dependencies": [
@@ -153,7 +166,7 @@
       "gen-kotlin-spring": {
         "dependencies": [
           "jsr:@skmtc/core@0.9.0",
-          "jsr:@skmtc/gen-kotlin@0.0.8",
+          "jsr:@skmtc/gen-kotlin@0.0.9",
           "jsr:@skmtc/lang-kotlin@0.5.0"
         ]
       },
