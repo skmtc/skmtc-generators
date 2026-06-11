@@ -1,6 +1,14 @@
 export { toCsharpEntry, type CsharpEntryOptions } from './src/mod.ts'
 export { CsRecordProjection } from './src/CsRecordProjection.ts'
 export { CsEnumProjection } from './src/CsEnumProjection.ts'
+export { CsAbstractRecordProjection } from './src/CsAbstractRecordProjection.ts'
+export { CsPolymorphicParentValue } from './src/CsPolymorphicParentValue.ts'
+export {
+  isPolymorphicUnion,
+  toPolymorphicMembership,
+  toMemberTag,
+  type PolymorphicParent
+} from './src/polymorphicMembership.ts'
 export {
   toCsProjection,
   toCsProjectionForRef,
@@ -18,7 +26,13 @@ export { CsBoolean, CsInteger, CsNumber, CsVoid } from './src/CsPrimitives.ts'
 export { CsUnion, CsUnknown } from './src/CsJsonValues.ts'
 export { applyModifiers } from './src/applyModifiers.ts'
 export { toEnumValues } from './src/toEnumValues.ts'
-export { toCsModelName, toCsModelExportPath, CsRecordBase, CsEnumBase } from './src/base.ts'
+export {
+  toCsModelName,
+  toCsModelExportPath,
+  CsAbstractRecordBase,
+  CsRecordBase,
+  CsEnumBase
+} from './src/base.ts'
 export { setBaseNamespace, getBaseNamespace, resetBaseNamespace } from './src/baseNamespace.ts'
 export {
   setCustomScalars,

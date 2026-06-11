@@ -1,5 +1,10 @@
 import { capitalize, camelCase } from '@skmtc/core'
-import { toModelProjectionBase, createRecord, createEnum } from '@skmtc/lang-csharp'
+import {
+  toModelProjectionBase,
+  createAbstractRecord,
+  createRecord,
+  createEnum
+} from '@skmtc/lang-csharp'
 import { join } from '@std/path'
 import { getBaseNamespace } from './baseNamespace.ts'
 import denoJson from '../deno.json' with { type: 'json' }
@@ -42,6 +47,18 @@ export const CsRecordBase = toModelProjectionBase({
 
   toIdentifier({ refName }) {
     return createRecord(toCsModelName(refName))
+  },
+
+  toExportPath({ refName }) {
+    return toCsModelExportPath(toCsModelName(refName))
+  }
+})
+
+export const CsAbstractRecordBase = toModelProjectionBase({
+  id: denoJson.name,
+
+  toIdentifier({ refName }) {
+    return createAbstractRecord(toCsModelName(refName))
   },
 
   toExportPath({ refName }) {

@@ -60,7 +60,7 @@ export const toCsharpEntry = (options: CsharpEntryOptions) => {
 
       const schema = context.resolveSchemaRefOnce(refName, denoJson.name)
 
-      const projection = toCsProjection(schema)
+      const projection = toCsProjection(context, schema)
 
       if (!projection) {
         return

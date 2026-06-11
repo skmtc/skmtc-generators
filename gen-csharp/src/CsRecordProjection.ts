@@ -2,14 +2,16 @@ import type { ModelProjectionConstructorArgs, SchemaToValueFn } from '@skmtc/cor
 import { createRecord } from '@skmtc/lang-csharp'
 import { CsRecordBase } from './base.ts'
 import { CsRecordValue } from './CsRecordValue.ts'
+import { toPolymorphicMembership } from './polymorphicMembership.ts'
 
 /**
  * `components.schemas` object-with-properties → `record`. The Driver
  * wraps this projection in a `CsDefinition` whose `record` kind it read
  * from `toIdentifier` (constant per class — see `base.ts`); the XML-doc
- * summary rides the `CsDocumented` protocol, MIRRORED from the value
- * (the spec-28 gotcha: the Driver wraps the PROJECTION — protocol
- * fields must live on it).
+ * summary rides the `CsDocumented` protocol and the polymorphic
+ * base-type clause rides `CsBased`, both MIRRORED from the value (the
+ * spec-28 gotcha: the Driver wraps the PROJECTION — protocol fields
+ * must live on it).
  */
 export class CsRecordProjection extends CsRecordBase {
   value: CsRecordValue
@@ -31,13 +33,23 @@ export class CsRecordProjection extends CsRecordBase {
       objectSchema: schema,
       destinationPath: settings.exportPath,
       className: settings.identifier.name,
-      rootRef
+      rootRef,
+      polymorphicParents: toPolymorphicMembership(context).get(refName) ?? []
     })
   }
 
   /** The `CsDocumented` protocol, mirrored from the value. */
   get description(): string | undefined {
     return this.value.description
+  }
+
+  /** The `CsBased` protocol — the claiming polymorphic parents' names,
+   * rendered by `CsDefinition` as ` : Animal` after the record name.
+   * Name-only by design: the parent's own transform visit generates
+   * its Definition, and same-namespace suppression makes the bare name
+   * correct. */
+  get baseTypes(): string[] {
+    return this.value.baseTypes
   }
 
   /**

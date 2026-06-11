@@ -8,6 +8,8 @@ import {
   type CsPropertyArgs
 } from '@skmtc/lang-csharp'
 import { toCsValue } from './Cs.ts'
+import { toCsModelName } from './base.ts'
+import type { PolymorphicParent } from './polymorphicMembership.ts'
 
 type CsRecordValueArgs = {
   context: GenerateContextType
@@ -17,6 +19,11 @@ type CsRecordValueArgs = {
   className: string
   rootRef?: RefName
   inliningTrail?: RefName[]
+  /** The polymorphic parents claiming this record (CS-B) — drives the
+   * `CsBased` clause and the discriminator-property omission.
+   * Empty/absent for non-members and for synthesized inline types
+   * (inline schemas have no refName for the membership inversion). */
+  polymorphicParents?: PolymorphicParent[]
 }
 
 /**
@@ -54,6 +61,9 @@ type CsRecordValueArgs = {
 export class CsRecordValue extends CsSnippet {
   /** The `CsDocumented` protocol input — rendered by `CsDefinition` as an XML-doc summary. */
   description: string | undefined
+  /** The `CsBased` protocol input — the claiming polymorphic parents'
+   * names, rendered by `CsDefinition` as ` : Animal` (CS-B). */
+  baseTypes: string[]
   propertyList: CsPropertyList
 
   constructor({
@@ -62,26 +72,56 @@ export class CsRecordValue extends CsSnippet {
     destinationPath,
     className,
     rootRef,
-    inliningTrail
+    inliningTrail,
+    polymorphicParents = []
   }: CsRecordValueArgs) {
     super({ context, stackTrail: objectSchema.stackTrail.clone() })
 
     this.description = objectSchema.description
 
+    if (polymorphicParents.length > 1) {
+      // Kotlin's sealed INTERFACES admit multi-parent membership; a C#
+      // record derives from ONE base record (interfaces-only multiple
+      // inheritance, and D14 chose abstract records). Unrepresentable
+      // input fails the item loudly, never a silently-dropped parent.
+      const parentNames = polymorphicParents
+        .map(parent => toCsModelName(parent.parentRefName))
+        .join(', ')
+
+      throw new Error(
+        `@skmtc/gen-csharp: '${className}' is claimed by multiple polymorphic parents ` +
+          `(${parentNames}) — a C# record derives from ONE base record; restructure the schema`
+      )
+    }
+
+    this.baseTypes = polymorphicParents.map(parent => toCsModelName(parent.parentRefName))
+
     const { properties, required = [], additionalProperties } = objectSchema
 
-    const propertyEntries = Object.entries(properties ?? {})
+    // The parent's [JsonDerivedType] tag carries the discriminator;
+    // a member property may not collide with it (scratch 6b), so
+    // members OMIT each claiming parent's discriminator property.
+    const omittedProperties = new Set(
+      polymorphicParents.map(parent => parent.discriminatorPropertyName)
+    )
 
-    if (propertyEntries.length === 0) {
+    const propertyEntries = Object.entries(properties ?? {}).filter(
+      ([key]) => !omittedProperties.has(key)
+    )
+
+    if (propertyEntries.length === 0 && polymorphicParents.length === 0) {
       // The dispatch routes property-less objects to the dictionary /
-      // JsonObject forms before ever reaching this class.
+      // JsonObject forms before ever reaching this class. A MEMBER
+      // left empty after discriminator omission is legal C# — it
+      // renders the bodyless `record X : Animal;` collapse (unlike
+      // Kotlin's >= 1-parameter data class).
       throw new Error(
         `@skmtc/gen-csharp: '${className}' has no properties — ` +
           `CsRecordValue is only reachable through the toCsProjection dispatch`
       )
     }
 
-    const serializationImports = new Set<string>(['JsonPropertyName'])
+    const serializationImports = new Set<string>()
 
     const csProperties: CsPropertyArgs[] = propertyEntries.map(([key, property]) => {
       const isRequired = required.includes(key)
@@ -96,6 +136,7 @@ export class CsRecordValue extends CsSnippet {
       const unescaped = propertyName.replace(/^@/, '')
       if (unescaped !== key) {
         attributes.push(new CsAttribute('JsonPropertyName', [`"${key}"`]))
+        serializationImports.add('JsonPropertyName')
       }
 
       if (!isRequired) {
@@ -146,10 +187,12 @@ export class CsRecordValue extends CsSnippet {
       })
     }
 
-    this.register({
-      imports: { 'System.Text.Json.Serialization': [...serializationImports] },
-      destinationPath
-    })
+    if (serializationImports.size > 0) {
+      this.register({
+        imports: { 'System.Text.Json.Serialization': [...serializationImports] },
+        destinationPath
+      })
+    }
 
     this.propertyList = new CsPropertyList(csProperties)
   }
