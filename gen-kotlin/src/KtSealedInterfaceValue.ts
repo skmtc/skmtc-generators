@@ -1,5 +1,6 @@
 import { KtAnnotation, KtSnippet } from '@skmtc/lang-kotlin'
 import type { GenerateContextType, OasUnion } from '@skmtc/core'
+import { getUnionHint } from './unionHints.ts'
 
 type KtSealedInterfaceValueArgs = {
   context: GenerateContextType
@@ -29,12 +30,15 @@ export class KtSealedInterfaceValue extends KtSnippet {
   constructor({ context, unionSchema, destinationPath }: KtSealedInterfaceValueArgs) {
     super({ context, stackTrail: unionSchema.stackTrail.clone() })
 
-    const propertyName = unionSchema.discriminator?.propertyName
+    // A real discriminator, else the consumer-asserted hint (spec 26).
+    const propertyName =
+      unionSchema.discriminator?.propertyName ??
+      getUnionHint(context, unionSchema)?.propertyName
 
     if (!propertyName) {
       throw new Error(
-        `@skmtc/gen-kotlin: a sealed interface value requires a discriminated union — ` +
-          `KtSealedInterfaceValue is only reachable through the toKtProjection dispatch`
+        `@skmtc/gen-kotlin: a sealed interface value requires a discriminated (or hinted) ` +
+          `union — KtSealedInterfaceValue is only reachable through the toKtProjection dispatch`
       )
     }
 

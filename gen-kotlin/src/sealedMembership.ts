@@ -1,5 +1,7 @@
 import { isEmpty, toRefName } from '@skmtc/core'
 import type { GenerateContextType, OasRef, OasSchema, OasUnion, RefName } from '@skmtc/core'
+import { getUnionHint, markInvalidUnionHint } from './unionHints.ts'
+import { toEnumValues } from './toEnumEntryName.ts'
 
 /**
  * One sealed parent's claim on a member schema — everything the member's
@@ -33,11 +35,17 @@ export type SealedParent = {
  * `anyOf` qualifies too — accepted and documented.
  */
 export const isSealedUnion = (context: GenerateContextType, schema: OasUnion): boolean => {
-  if (!schema.discriminator || schema.members.length < 2) {
+  const hint = schema.discriminator ? undefined : getUnionHint(context, schema)
+
+  if ((!schema.discriminator && !hint) || schema.members.length < 2) {
+    if (hint) {
+      markInvalidUnionHint(context, schema, hintFailure(hint.name, 'has fewer than two members'))
+    }
+
     return false
   }
 
-  return schema.members.every(member => {
+  const qualifies = schema.members.every(member => {
     if (!member.isRef()) {
       return false
     }
@@ -48,8 +56,32 @@ export const isSealedUnion = (context: GenerateContextType, schema: OasUnion): b
       return false
     }
 
-    return Boolean(target.properties && !isEmpty(target.properties))
+    if (!target.properties || isEmpty(target.properties)) {
+      return false
+    }
+
+    // Decision 2 (spec 26): a hinted union's members must CARRY the
+    // asserted discriminator property — the schema never declared it,
+    // so the claim is verified, not trusted.
+    return hint ? target.properties[hint.propertyName] !== undefined : true
   })
+
+  if (!qualifies && hint) {
+    markInvalidUnionHint(
+      context,
+      schema,
+      hintFailure(
+        hint.name,
+        `every member must be a $ref to an object-with-properties carrying '${hint.propertyName}'`
+      )
+    )
+  }
+
+  return qualifies
+}
+
+const hintFailure = (name: string, reason: string): string => {
+  return `@skmtc/gen-kotlin: union hint '${name}' is invalid — ${reason}`
 }
 
 /**
@@ -87,11 +119,33 @@ export const toSealedMembership = (
     const schemas = document.value.components?.schemas ?? {}
 
     for (const [parentRefName, schema] of Object.entries(schemas)) {
-      if (schema.isRef() || schema.type !== 'union' || !isSealedUnion(context, schema)) {
+      if (schema.isRef()) {
         continue
       }
 
-      collectParentClaims(parentRefName as RefName, schema, membership)
+      if (schema.type === 'union' && isSealedUnion(context, schema)) {
+        collectParentClaims(context, parentRefName as RefName, schema, membership)
+        continue
+      }
+
+      // Inline-hinted unions, one level of `properties.<prop>` (spec 26,
+      // decision 1): the enrichment-supplied `name` is the synthesized
+      // sealed parent's identity.
+      if (schema.type !== 'object' || !schema.properties) {
+        continue
+      }
+
+      for (const property of Object.values(schema.properties)) {
+        if (property.isRef() || property.type !== 'union') {
+          continue
+        }
+
+        const hint = getUnionHint(context, property)
+
+        if (hint && isSealedUnion(context, property)) {
+          collectParentClaims(context, toRefName(hint.name), property, membership)
+        }
+      }
     }
   }
 
@@ -101,12 +155,15 @@ export const toSealedMembership = (
 }
 
 const collectParentClaims = (
+  context: GenerateContextType,
   parentRefName: RefName,
   union: OasUnion,
   membership: Map<RefName, SealedParent[]>
 ): void => {
-  // isSealedUnion guarantees a discriminator and all-ref members.
-  const { propertyName, mapping = {} } = union.discriminator ?? {}
+  // isSealedUnion guarantees a discriminator OR a valid hint, and
+  // all-ref members.
+  const hint = union.discriminator ? undefined : getUnionHint(context, union)
+  const { propertyName = hint?.propertyName, mapping = {} } = union.discriminator ?? {}
 
   if (!propertyName) {
     return
@@ -118,13 +175,45 @@ const collectParentClaims = (
     }
 
     const memberRefName = member.toRefName()
-    const tag = toMemberTag(memberRefName, mapping)
+    const tag = hint
+      ? toHintedMemberTag(context, memberRefName, propertyName)
+      : toMemberTag(memberRefName, mapping)
 
     const claims = membership.get(memberRefName) ?? []
 
     claims.push({ parentRefName, tag, discriminatorPropertyName: propertyName })
     membership.set(memberRefName, claims)
   }
+}
+
+/**
+ * The wire tag under a HINT (spec 26, decision 3 — no `mapping` exists
+ * by definition): the member's discriminator property resolved to a
+ * single-valued string enum → that value (the wire format the schema
+ * actually describes, e.g. `GRADUATED`); else the member's refName.
+ */
+const toHintedMemberTag = (
+  context: GenerateContextType,
+  memberRefName: RefName,
+  propertyName: string
+): string => {
+  const target = peekRawSchema(context, memberRefName)
+
+  if (target === undefined || target.isRef() || target.type !== 'object') {
+    return memberRefName
+  }
+
+  const resolved = target.properties?.[propertyName]?.resolveOnce()
+
+  if (resolved && !resolved.isRef() && resolved.type === 'string') {
+    const values = toEnumValues(resolved.enums)
+
+    if (values.length === 1) {
+      return String(values[0])
+    }
+  }
+
+  return memberRefName
 }
 
 /**
