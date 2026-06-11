@@ -9,8 +9,6 @@ import { StackTrail, toArtifacts } from '@skmtc/core'
 import type { OpenAPIV3 } from 'openapi-types'
 import { toKotlinSpringEntry } from '../src/mod.ts'
 
-const springEntry = toKotlinSpringEntry({ basePackage: 'com.example.spring' })
-
 const documentObject: OpenAPIV3.Document = {
   openapi: '3.0.0',
   info: { title: 'Fixture API', version: '1.0.0' },
@@ -69,6 +67,10 @@ const documentObject: OpenAPIV3.Document = {
 }
 
 const runFixture = () => {
+  // Construct per run — entry construction writes the module-scope
+  // basePackage, and test files sharing one process must not race on it.
+  const springEntry = toKotlinSpringEntry({ basePackage: 'com.example.spring' })
+
   return toArtifacts({
     traceId: 'gen-kotlin-spring-unit',
     spanId: 'fixture',
@@ -78,7 +80,7 @@ const runFixture = () => {
     stackTrail: new StackTrail([]),
     silent: true,
     toGeneratorConfigMap: () => ({
-      // @ts-expect-error - factory-emitted transform is monomorphic over Acc
+      // @ts-expect-error - the factory-emitted entry is monomorphic over EnrichmentType
       '@skmtc/gen-kotlin-spring': springEntry
     })
   })

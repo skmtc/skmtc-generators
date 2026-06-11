@@ -8,7 +8,6 @@
   },
   "imports": {
     "@skmtc/core": "jsr:@skmtc/core@0.9.0",
-    "@skmtc/lang-kotlin": "jsr:@skmtc/lang-kotlin@0.3.0",
-    "@skmtc/gen-kotlin": "jsr:@skmtc/gen-kotlin@0.0.2"
+    "@skmtc/lang-kotlin": "jsr:@skmtc/lang-kotlin@0.3.0"
   }
 }
