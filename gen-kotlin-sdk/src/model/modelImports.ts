@@ -4,7 +4,7 @@ type ModelImportsArgs = {
   model: SdkModel
   basePackage: string
   exceptionPrefix: string
-  envelopeClassName: string
+  envelopeClassName: string | undefined
 }
 
 /**
@@ -49,7 +49,7 @@ export const toModelImports = ({
 
   const modelsPackageNames = [...facts.sharedClassNames]
 
-  if (model.envelope) {
+  if (model.envelope && envelopeClassName) {
     modelsPackageNames.push(envelopeClassName)
   }
 

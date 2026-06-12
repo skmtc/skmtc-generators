@@ -99,18 +99,22 @@ const toServiceOperation = ({
   const hasRequired = params.params.some(param => param.required)
 
   const schema = operation.toSuccessResponse()?.resolve().toSchema()?.resolve()
-  const envelopeFields = new Set(config.sharedModels.envelope.fields)
-  const responseIsEnvelope =
-    !schema ||
-    schema.type !== 'object' ||
-    Object.keys(schema.properties ?? {}).every(name => envelopeFields.has(name))
+  const envelope = config.sharedModels.envelope
+  const responseIsEnvelope = envelope
+    ? !schema ||
+      schema.type !== 'object' ||
+      Object.keys(schema.properties ?? {}).every(name =>
+        new Set(envelope.fields).has(name)
+      )
+    : false
 
   return {
     methodName,
     paramsClassName: params.className,
-    responseClassName: responseIsEnvelope
-      ? config.sharedModels.envelope.className
-      : `${stem}${pascalMethod}Response`,
+    responseClassName:
+      responseIsEnvelope && envelope
+        ? envelope.className
+        : `${stem}${pascalMethod}Response`,
     responseIsEnvelope,
     resourceDir: enrichment.resource.join('').toLowerCase(),
     description: operation.description ?? operation.summary ?? '',

@@ -59,7 +59,8 @@ export type SdkSharedModelsConfig = {
     /** One canonical occurrence: an operation + a `/`-pointer into its response schema. */
     source: { path: string; method: string; pointer: string }
   }[]
-  envelope: {
+  /** Absent on targets without a response envelope (Lithic). */
+  envelope?: {
     className: string
     /** Wire names of the envelope fields, in schema order. */
     fields: string[]

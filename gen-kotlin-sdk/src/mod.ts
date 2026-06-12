@@ -120,7 +120,7 @@ export const toKotlinSdkEntry = (config: SdkConfig) => {
         schema,
         className: settings.identifier.name,
         sharedHashes,
-        envelopeFields: config.sharedModels.envelope.fields,
+        envelopeFields: config.sharedModels.envelope?.fields,
         fieldStates: config.fieldStates,
         fieldEnums: config.fieldEnums
       })
@@ -480,11 +480,13 @@ export const toKotlinSdkEntry = (config: SdkConfig) => {
         return
       }
 
-      const envelopeFields = new Set(config.sharedModels.envelope.fields)
-      const propertyNames = Object.keys(schema.properties ?? {})
+      if (config.sharedModels.envelope) {
+        const envelopeFields = new Set(config.sharedModels.envelope.fields)
+        const propertyNames = Object.keys(schema.properties ?? {})
 
-      if (propertyNames.every(name => envelopeFields.has(name))) {
-        return
+        if (propertyNames.every(name => envelopeFields.has(name))) {
+          return
+        }
       }
 
       context.insertOperation({ projection: KtSdkResponseModel, operation })

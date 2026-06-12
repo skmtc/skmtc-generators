@@ -17,7 +17,8 @@ import {
  */
 export type RenderContext = {
   exceptionPrefix: string
-  envelope: { className: string; fields: string[] }
+  /** Absent on targets without a response envelope. */
+  envelope?: { className: string; fields: string[] }
 }
 
 const indentUnit = '    '
@@ -105,6 +106,10 @@ const renderSecondaryConstructor = (model: SdkModel): string => {
 }
 
 const renderEnvelopeConversion = (context: RenderContext): string => {
+  if (!context.envelope) {
+    throw new Error('@skmtc/gen-kotlin-sdk: envelope section rendered without envelope config')
+  }
+
   const chain = context.envelope.fields.map(field => `    .${field}(${field})`).join('\n')
 
   return (

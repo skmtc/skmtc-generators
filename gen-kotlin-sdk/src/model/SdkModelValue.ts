@@ -46,7 +46,7 @@ export class SdkModelValue extends KtSnippet {
         model,
         basePackage,
         exceptionPrefix: renderContext.exceptionPrefix,
-        envelopeClassName: renderContext.envelope.className
+        envelopeClassName: renderContext.envelope?.className
       }),
       fileHeader,
       destinationPath

@@ -27,12 +27,13 @@ export const ensureSharedModels = ({
   context: GenerateContextType
   config: SdkConfig
 }): EnsureSharedModelsResult => {
+  const envelopeConfig = config.sharedModels.envelope
+
   const renderContext: RenderContext = {
     exceptionPrefix: config.clientPrefix,
-    envelope: {
-      className: config.sharedModels.envelope.className,
-      fields: config.sharedModels.envelope.fields
-    }
+    envelope: envelopeConfig
+      ? { className: envelopeConfig.className, fields: envelopeConfig.fields }
+      : undefined
   }
 
   const packageDirs = config.basePackage.split('.').join('/')
@@ -74,30 +75,33 @@ export const ensureSharedModels = ({
     })
   }
 
-  const envelope = config.sharedModels.envelope
-  const envelopeSource = toResponseSchema(
-    findOperation(context, envelope.source.path, envelope.source.method)
-  )
-  const envelopeModel = toSdkModel({
-    schema: envelopeSource,
-    className: envelope.className,
-    sharedHashes,
-    fieldStates: config.fieldStates,
-    fieldEnums: config.fieldEnums
-  })
+  if (envelopeConfig) {
+    const envelopeSource = toResponseSchema(
+      findOperation(context, envelopeConfig.source.path, envelopeConfig.source.method)
+    )
+    const envelopeModel = toSdkModel({
+      schema: envelopeSource,
+      className: envelopeConfig.className,
+      sharedHashes,
+      fieldStates: config.fieldStates,
+      fieldEnums: config.fieldEnums
+    })
 
-  ensureModelDefinition({
-    context,
-    config,
-    renderContext,
-    className: envelope.className,
-    destinationPath: `${modelsRoot}/${envelope.className}.kt`,
-    model: {
-      ...envelopeModel,
-      description: undefined,
-      fields: envelopeModel.fields.filter(field => envelope.fields.includes(field.wireName))
-    }
-  })
+    ensureModelDefinition({
+      context,
+      config,
+      renderContext,
+      className: envelopeConfig.className,
+      destinationPath: `${modelsRoot}/${envelopeConfig.className}.kt`,
+      model: {
+        ...envelopeModel,
+        description: undefined,
+        fields: envelopeModel.fields.filter(field =>
+          envelopeConfig.fields.includes(field.wireName)
+        )
+      }
+    })
+  }
 
   return { sharedHashes, renderContext }
 }
