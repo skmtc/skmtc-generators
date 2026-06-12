@@ -9,9 +9,8 @@ import { parse } from 'jsr:@std/yaml@^1.0.5'
 import { dirname } from 'jsr:@std/path@^1.1.2/dirname'
 import { join } from 'jsr:@std/path@^1.1.2/join'
 import type { OpenAPIV3 } from 'openapi-types'
-import { toKotlinSdkEntry } from '../src/mod.ts'
-import { toFieldStates } from '../src/SdkConfig.ts'
-import sdkConfig from '../src/sdk-config.json' with { type: 'json' }
+import entry from '../src/mod.ts'
+import { sdkConfig } from '../src/config.ts'
 
 const corpusRoot = '/Users/dmitrigrabov/workspace/skmtc-root/kotlin-sdk-corpus/onebusaway'
 const oursRoot = join(corpusRoot, 'ours')
@@ -22,11 +21,6 @@ const enrichments = JSON.parse(
 )
 // Test-tier harness: the corpus spec is known-good OpenAPI v3.
 const documentObject = parse(yamlText) as OpenAPIV3.Document
-
-const entry = toKotlinSdkEntry({
-  ...sdkConfig,
-  fieldStates: toFieldStates(sdkConfig.fieldStates)
-})
 
 const { artifacts, manifest } = toArtifacts({
   traceId: 'gen-kotlin-sdk-corpus',

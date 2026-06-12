@@ -2,20 +2,14 @@ import { StackTrail, toArtifacts } from '@skmtc/core'
 import { parse } from 'jsr:@std/yaml@^1.0.5'
 import { join } from 'jsr:@std/path@^1.1.2/join'
 import type { OpenAPIV3 } from 'openapi-types'
-import { toKotlinSdkEntry } from '../src/mod.ts'
-import { toFieldStates } from '../src/SdkConfig.ts'
-import sdkConfig from '../src/sdk-config.json' with { type: 'json' }
+import entry from '../src/mod.ts'
+import { sdkConfig } from '../src/config.ts'
 
 const corpusRoot = '/Users/dmitrigrabov/workspace/skmtc-root/kotlin-sdk-corpus/onebusaway'
 const documentObject = parse(
   Deno.readTextFileSync(join(corpusRoot, 'openapi.yml'))
 ) as OpenAPIV3.Document
 const enrichments = JSON.parse(Deno.readTextFileSync(join(corpusRoot, 'enrichments.json')))
-
-const entry = toKotlinSdkEntry({
-  ...sdkConfig,
-  fieldStates: toFieldStates(sdkConfig.fieldStates)
-})
 
 const { artifacts, manifest } = toArtifacts({
   traceId: 'probe',

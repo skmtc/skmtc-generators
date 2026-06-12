@@ -19,8 +19,6 @@ export type StaticFilesOverlay = {
 type EmitStaticFilesArgs = {
   context: GenerateContextType
   config: SdkConfig
-  /** Entries replacing/extending the base set, keyed (module, relPath). */
-  overlay?: StaticFilesOverlay
 }
 
 /**
@@ -35,12 +33,12 @@ type EmitStaticFilesArgs = {
  * Idempotent per run: the first template's destination file existing
  * means a previous transform call already emitted everything.
  */
-export const emitStaticFiles = ({ context, config, overlay }: EmitStaticFilesArgs): void => {
+export const emitStaticFiles = ({ context, config }: EmitStaticFilesArgs): void => {
   const substitute = toSubstitute(config)
 
   // The JSON import infers literal per-file import keys (with
   // optional members) — normalize to the structural StaticFile shape.
-  const files = mergeOverlay(templates.files.map(toStaticFile), overlay)
+  const files = mergeOverlay(templates.files.map(toStaticFile), config.staticOverlay)
 
   const [first] = files
 

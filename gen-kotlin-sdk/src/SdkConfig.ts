@@ -1,103 +1,123 @@
+import * as v from 'valibot'
+
 /**
  * SDK-global identity — the gen-kotlin-sdk counterpart of the
  * document-global half of a Stainless config (note 32 §A4 / Q6).
  *
- * INTERIM mechanism: a hardcoded JSON file (`src/sdk-config.json`)
- * feeds the default entry export; the corpus harness constructs the
- * entry directly via `toKotlinSdkEntry(config)`. Swaps to the core
+ * INTERIM mechanism: `src/sdk-config.json` is imported directly by
+ * `src/config.ts` and narrowed through this schema. Swaps to the core
  * document-global enrichment tier when that lands. Every field here is
- * evidence for that tier's design — all nine template tokens trace to
- * these values.
+ * evidence for that tier's design.
+ *
+ * A config field is legitimate iff its comment names BOTH the
+ * Stainless-config concept it mirrors AND the corpus evidence that
+ * forced it (docs/extending/generator-code-quality.md, Rule 6).
  */
-export type SdkAuthConfig = {
-  /** Environment variable the client reads the API key from (`ONEBUSAWAY_API_KEY`). */
-  envVar: string
-  /** The client-options property name for the key (`onebusawayApiKey`). */
-  propertyName: string
-}
+const staticFileSchema = v.object({
+  module: v.string(),
+  relPath: v.string(),
+  header: v.string(),
+  imports: v.record(v.string(), v.array(v.string())),
+  body: v.string()
+})
 
-export type SdkConfig = {
+export const sdkConfigSchema = v.object({
   /** Base Kotlin package (`org.onebusaway`) — also the package directories. */
-  basePackage: string
+  basePackage: v.string(),
   /** Client class prefix (`OnebusawaySdk` → `OnebusawaySdkClient`); SCREAM and lower forms derive from it. */
-  clientPrefix: string
+  clientPrefix: v.string(),
   /** Gradle artifact stem (`onebusaway-sdk-kotlin`) — module dirs are `<artifactName>-core` etc. */
-  artifactName: string
+  artifactName: v.string(),
   /** GitHub slug (`OneBusAway/kotlin-sdk`) — appears in doc links. */
-  repoSlug: string
+  repoSlug: v.string(),
   /** Human display name for the client KDoc (`Onebusaway SDK`). */
-  displayName: string
+  displayName: v.string(),
   /** Production base URL baked into ClientOptions. */
-  baseUrl: string
-  /** Sandbox base URL (targets with environments — Lithic). */
-  sandboxUrl?: string
-  /** Webhook secret env var (targets with webhooks — Lithic). */
-  webhookSecretEnvVar?: string
+  baseUrl: v.string(),
+  /** Sandbox base URL (targets with environments — corpus: Lithic ClientOptions). */
+  sandboxUrl: v.optional(v.string()),
+  /** Webhook secret env var (targets with webhooks — corpus: Lithic). */
+  webhookSecretEnvVar: v.optional(v.string()),
   /** API-key auth wiring (the only scheme on the simple target). */
-  auth: SdkAuthConfig
-  /** The §C5 config-asserted shared models. */
-  sharedModels: SdkSharedModelsConfig
+  auth: v.object({
+    /** Environment variable the client reads the API key from (`ONEBUSAWAY_API_KEY`). */
+    envVar: v.string(),
+    /** The client-options property name for the key (`onebusawayApiKey`). */
+    propertyName: v.string()
+  }),
   /**
-   * Where model files land: `by-resource` nests them under
-   * `models/<resource>/` (OneBusAway), `flat` keeps every model at the
-   * `models/` root (Lithic). Stainless varies this per target; we
-   * mirror it as config. Defaults to `by-resource`.
+   * The §C5 config-asserted shared models: `extracted` replace
+   * structurally-identical inline occurrences; the `envelope` is the
+   * response-wrapper class each covering response converts to.
    */
-  modelsLayout?: 'flat' | 'by-resource'
+  sharedModels: v.object({
+    extracted: v.array(
+      v.object({
+        className: v.string(),
+        /** One canonical occurrence: an operation + a `/`-pointer into its response schema. */
+        source: v.object({ path: v.string(), method: v.string(), pointer: v.string() })
+      })
+    ),
+    /** Absent on targets without a response envelope (Lithic). */
+    envelope: v.optional(
+      v.object({
+        className: v.string(),
+        /** Wire names of the envelope fields, in schema order. */
+        fields: v.array(v.string()),
+        /** Operation whose response supplies the envelope field types. */
+        source: v.object({ path: v.string(), method: v.string() })
+      })
+    )
+  }),
   /**
-   * Component refNames that exist as STANDALONE model classes (the
-   * Stainless config `models:` declarations). A request body `$ref`
-   * to one of these renders the named-field shape; every other ref
-   * body nests a full model class named after the component.
+   * Stainless's models file layout: `by-resource` nests under
+   * `models/<resource>/` (corpus: OneBusAway), `flat` keeps every
+   * model at the `models/` root (corpus: Lithic). Defaults to
+   * `by-resource`.
    */
-  modelComponents?: string[]
+  modelsLayout: v.optional(v.picklist(['flat', 'by-resource'])),
   /**
-   * Per-wire-name Kotlin name overrides — the config-mirrored Stainless
-   * naming transform for acronym casing camelCase cannot derive
-   * (`three_ds_authentication_token` → `threeDSAuthenticationToken`).
+   * The Stainless resource primary key — hoists to the front of its
+   * ordering group (`id` for OneBusAway, `token` for Lithic; corpus:
+   * FinancialTransaction leads with `token`). Defaults to `id`.
    */
-  kotlinNames?: Record<string, string>
+  hoistField: v.optional(v.string()),
   /**
-   * The field name that hoists to the front of its ordering group —
-   * the target's resource primary key in Stainless config (`id` for
-   * OneBusAway, `token` for Lithic). Defaults to `id`.
+   * Stainless `models:` declarations — component refNames with
+   * STANDALONE model classes. A request body `$ref` to one renders
+   * the named-field shape; other ref bodies nest (corpus:
+   * ChallengeResponse standalone vs VoidHoldRequest nested).
    */
-  hoistField?: string
+  modelComponents: v.optional(v.array(v.string())),
   /**
-   * Per-wire-name field-state overrides — the config-mirrored
-   * equivalent of a Stainless required/nullable transform (the
-   * corpus `limitExceeded` finding: fence-listed + required wording,
-   * nullable accessor, no `checkRequired`).
+   * Stainless naming transforms camelCase cannot derive — per-wire-name
+   * Kotlin name overrides (corpus: `three_ds_authentication_token` →
+   * `threeDSAuthenticationToken`).
    */
-  fieldStates?: Record<string, 'required-nullable'>
+  kotlinNames: v.optional(v.record(v.string(), v.string())),
   /**
-   * Config-mirrored enum assertions for string fields the spec leaves
-   * open (the corpus `Situation.reason` TPEG codes — the members live
-   * in Stainless's config, not the spec). Keyed by wire name.
+   * Stainless required/nullable transforms (corpus: `limitExceeded` —
+   * fence-listed + required wording, nullable accessor, no
+   * `checkRequired`).
    */
-  fieldEnums?: Record<string, string[]>
-}
+  fieldStates: v.optional(v.record(v.string(), v.picklist(['required-nullable']))),
+  /**
+   * Stainless enum assertions for string fields the spec leaves open
+   * (corpus: `Situation.reason` TPEG codes). Keyed by wire name.
+   */
+  fieldEnums: v.optional(v.record(v.string(), v.array(v.string()))),
+  /**
+   * Per-target template overlay (corpus harness only — §KS-F F2);
+   * product configs omit it.
+   */
+  staticOverlay: v.optional(v.object({ files: v.array(staticFileSchema) }))
+})
 
-/**
- * Shared-model asserts (note 32 §C5): `extracted` models replace every
- * structurally-identical inline occurrence; the `envelope` is the
- * response-wrapper class each covering response converts to.
- */
-export type SdkSharedModelsConfig = {
-  extracted: {
-    className: string
-    /** One canonical occurrence: an operation + a `/`-pointer into its response schema. */
-    source: { path: string; method: string; pointer: string }
-  }[]
-  /** Absent on targets without a response envelope (Lithic). */
-  envelope?: {
-    className: string
-    /** Wire names of the envelope fields, in schema order. */
-    fields: string[]
-    /** Operation whose response supplies the envelope field types. */
-    source: { path: string; method: string }
-  }
-}
+export type SdkConfig = v.InferOutput<typeof sdkConfigSchema>
+export type SdkAuthConfig = SdkConfig['auth']
+
+/** Narrows a JSON-loaded config — loud on any unknown shape, no casts. */
+export const toSdkConfig = (raw: unknown): SdkConfig => v.parse(sdkConfigSchema, raw)
 
 /**
  * `OnebusawaySdk` → `ONEBUSAWAY_SDK` (the env-var prefix form): an
@@ -105,42 +125,4 @@ export type SdkSharedModelsConfig = {
  */
 export const toScreamingPrefix = (clientPrefix: string): string => {
   return clientPrefix.replace(/(?<!^)([A-Z])/g, '_$1').toUpperCase()
-}
-
-/**
- * Narrows a JSON-imported `modelsLayout` (widened to `string`) to the
- * layout union — loud on an unknown value, no casts.
- */
-export const toModelsLayout = (
-  raw: string | undefined
-): 'flat' | 'by-resource' | undefined => {
-  if (raw === undefined || raw === 'flat' || raw === 'by-resource') {
-    return raw
-  }
-
-  throw new Error(`@skmtc/gen-kotlin-sdk: unknown modelsLayout '${raw}'`)
-}
-
-/**
- * Narrows a JSON-imported `fieldStates` record (whose values widen to
- * `string`) to the state union — loud on an unknown state, no casts.
- */
-export const toFieldStates = (
-  raw: Record<string, string> | undefined
-): Record<string, 'required-nullable'> | undefined => {
-  if (!raw) {
-    return undefined
-  }
-
-  const states: Record<string, 'required-nullable'> = {}
-
-  for (const [wireName, state] of Object.entries(raw)) {
-    if (state !== 'required-nullable') {
-      throw new Error(`@skmtc/gen-kotlin-sdk: unknown field state '${state}' for '${wireName}'`)
-    }
-
-    states[wireName] = state
-  }
-
-  return states
 }
