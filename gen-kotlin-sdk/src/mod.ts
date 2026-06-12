@@ -7,7 +7,7 @@ import type {
 import * as v from 'valibot'
 import { createClass, toOasOperationProjectionBase } from '@skmtc/lang-kotlin'
 import invariant from 'tiny-invariant'
-import { emitStaticFiles } from './emitStaticFiles.ts'
+import { emitStaticFiles, type StaticFilesOverlay } from './emitStaticFiles.ts'
 import { ensureSharedModels } from './sharedModels.ts'
 import { generatedFileHeader } from './generatedFileHeader.ts'
 import { injectDataFields, toSdkModel } from './model/toSdkModel.ts'
@@ -33,7 +33,12 @@ import denoJson from '../deno.json' with { type: 'json' }
  * closure — never module scope. The default module export feeds it
  * `src/sdk-config.json` (the Q6 interim mechanism).
  */
-export const toKotlinSdkEntry = (config: SdkConfig) => {
+export type KotlinSdkEntryExtras = {
+  /** Corpus-harness template overlay (§KS-F F2); product consumers omit it. */
+  staticOverlay?: StaticFilesOverlay
+}
+
+export const toKotlinSdkEntry = (config: SdkConfig, extras: KotlinSdkEntryExtras = {}) => {
   const packageDirs = config.basePackage.split('.').join('/')
   const coreModuleRoot = `${config.artifactName}-core/src/main/kotlin/${packageDirs}`
 
@@ -428,7 +433,7 @@ export const toKotlinSdkEntry = (config: SdkConfig) => {
     isSupported: () => true,
     toEnrichmentSchema,
     transform({ context, operation, variant }) {
-      emitStaticFiles({ context, config })
+      emitStaticFiles({ context, config, overlay: extras.staticOverlay })
 
       const enrichment = KtSdkResponseModel.toEnrichments({ operation, context, variant })
 

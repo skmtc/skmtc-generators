@@ -12,6 +12,7 @@ import { dirname } from 'jsr:@std/path@^1.1.2/dirname'
 import { join } from 'jsr:@std/path@^1.1.2/join'
 import type { OpenAPIV3 } from 'openapi-types'
 import { toKotlinSdkEntry } from '../src/mod.ts'
+import type { StaticFilesOverlay } from '../src/emitStaticFiles.ts'
 import { toFieldStates, type SdkConfig } from '../src/SdkConfig.ts'
 
 const target = Deno.args[0]
@@ -36,7 +37,18 @@ const config: SdkConfig = {
   fieldStates: toFieldStates(rawConfig.fieldStates)
 }
 
-const entry = toKotlinSdkEntry(config)
+let staticOverlay: StaticFilesOverlay | undefined
+
+try {
+  // Test-tier harness: overlay data is compiler output, known-good.
+  staticOverlay = JSON.parse(
+    Deno.readTextFileSync(join(corpusRoot, 'template-overlay.json'))
+  ) as StaticFilesOverlay
+} catch {
+  // no overlay for this target
+}
+
+const entry = toKotlinSdkEntry(config, { staticOverlay })
 
 const { artifacts, manifest } = toArtifacts({
   traceId: 'gen-kotlin-sdk-corpus',

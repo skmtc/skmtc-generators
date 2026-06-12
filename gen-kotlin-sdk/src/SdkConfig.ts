@@ -29,6 +29,10 @@ export type SdkConfig = {
   displayName: string
   /** Production base URL baked into ClientOptions. */
   baseUrl: string
+  /** Sandbox base URL (targets with environments — Lithic). */
+  sandboxUrl?: string
+  /** Webhook secret env var (targets with webhooks — Lithic). */
+  webhookSecretEnvVar?: string
   /** API-key auth wiring (the only scheme on the simple target). */
   auth: SdkAuthConfig
   /** The §C5 config-asserted shared models. */
