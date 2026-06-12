@@ -3,7 +3,7 @@ import { camelCase, capitalize } from '@skmtc/core'
 import invariant from 'tiny-invariant'
 import type { SdkConfig } from '../SdkConfig.ts'
 import type { SdkOperationEnrichment } from '../enrichments.ts'
-import { toSdkParams } from '../params/SdkParams.ts'
+import { bodyHasRequired, toSdkParams } from '../params/SdkParams.ts'
 
 /**
  * The KS-E domain record (note 32 §E-1): one per resource; the four
@@ -20,16 +20,23 @@ export type SdkServiceOperation = {
   responseClassName: string
   /** Envelope-only response — class imports from the models root. */
   responseIsEnvelope: boolean
-  /** Resource directory for params/response imports. */
-  resourceDir: string
+  /** Module suffix for params/response imports (`models` or `models.<resource>`, per layout). */
+  modelsSubpackage: string
   description: string
   httpVerb: string
   path: string
   pathSegments: SdkPathSegment[]
   /** First (only, on this corpus) path parameter, when present. */
   pathParam?: { kotlinName: string }
-  /** The params class has `none()` (no required query params). */
+  /** The params class has `none()` (no required params and no required body). */
   hasNone: boolean
+  /**
+   * Request-body wiring in the Impl (F3): `required` renders the
+   * direct `.body(json(…, params._body()))` line (model/ref shapes);
+   * `optional` the `.apply { params._body()?.let { … } }` form (the
+   * map shape). Absent on GET.
+   */
+  bodyKind?: 'required' | 'optional'
 }
 
 export type SdkPathSegment =
@@ -92,11 +99,18 @@ const toServiceOperation = ({
   const params = toSdkParams({
     operation,
     className: `${stem}${pascalMethod}Params`,
-    fieldEnums: config.fieldEnums
+    fieldEnums: config.fieldEnums,
+    fieldStates: config.fieldStates,
+    hoistField: config.hoistField,
+    modelComponents: config.modelComponents,
+    kotlinNames: config.kotlinNames,
+    deprecatedMessage: enrichment.deprecatedMessage
   })
 
-  const pathParam = params.params.find(param => param.location === 'path')
-  const hasRequired = params.params.some(param => param.required)
+  // The positionally-settable path param is the LAST one — earlier
+  // path params are construction-required (multi-path-param rule).
+  const pathParam = params.params.filter(param => param.location === 'path').at(-1)
+  const hasRequired = params.params.some(param => param.required) || bodyHasRequired(params.body)
 
   const schema = operation.toSuccessResponse()?.resolve().toSchema()?.resolve()
   const envelope = config.sharedModels.envelope
@@ -108,6 +122,8 @@ const toServiceOperation = ({
       )
     : false
 
+  const resourceDir = enrichment.resource.join('').toLowerCase()
+
   return {
     methodName,
     paramsClassName: params.className,
@@ -116,13 +132,16 @@ const toServiceOperation = ({
         ? envelope.className
         : `${stem}${pascalMethod}Response`,
     responseIsEnvelope,
-    resourceDir: enrichment.resource.join('').toLowerCase(),
+    modelsSubpackage:
+      config.modelsLayout === 'flat' ? 'models' : `models.${resourceDir}`,
     description: operation.description ?? operation.summary ?? '',
     httpVerb: operation.method.toUpperCase(),
     path: operation.path,
     pathSegments: toPathSegments(operation.path),
     pathParam: pathParam ? { kotlinName: pathParam.kotlinName } : undefined,
-    hasNone: !hasRequired
+    hasNone: !hasRequired,
+    bodyKind:
+      params.body === undefined ? undefined : params.body.kind === 'map' ? 'optional' : 'required'
   }
 }
 

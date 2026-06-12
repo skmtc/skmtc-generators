@@ -28,10 +28,14 @@ type ToSdkModelArgs = {
   fieldEnums?: FieldEnums
   /**
    * Component-shaped classes sort fields (alphabetical within the
-   * required-first groups, `id` hoisted); top-level response classes
-   * keep the allOf-merge order. Nested walks always sort.
+   * required-first groups, the hoist field first); top-level response
+   * classes keep the allOf-merge order. Nested walks always sort.
    */
   sortFields?: boolean
+  /** The per-target hoist name (config-mirrored; defaults to `id`). */
+  hoistField?: string
+  /** Per-wire-name Kotlin name overrides (acronym casing). */
+  kotlinNames?: Record<string, string>
 }
 
 /**
@@ -47,7 +51,9 @@ export const toSdkModel = ({
   envelopeFields,
   fieldStates,
   fieldEnums,
-  sortFields
+  sortFields,
+  hoistField,
+  kotlinNames
 }: ToSdkModelArgs): SdkModel => {
   const properties = schema.properties ?? {}
   const required = new Set(schema.required ?? [])
@@ -66,14 +72,16 @@ export const toSdkModel = ({
     const resolved = property.isRef() ? property.resolve() : property
 
     return {
-      kotlinName: camelCase(wireName),
+      kotlinName: kotlinNames?.[wireName] ?? camelCase(wireName),
       wireName,
       type: toSdkType({
         schema: property,
         propertyName: wireName,
         sharedHashes,
         fieldStates,
-        fieldEnums
+        fieldEnums,
+        hoistField,
+        kotlinNames
       }),
       required: requiredNullable ? false : specRequired,
       docRequired: (specRequired && resolved.nullable !== true) || requiredNullable,
@@ -88,7 +96,7 @@ export const toSdkModel = ({
   // orderSortedFields). Top level: stable required-first partition
   // over the allOf-merge order.
   const ordered = sortFields
-    ? orderSortedFields(fields)
+    ? orderSortedFields(fields, hoistField)
     : [
         ...fields.filter(field => field.fenceRequired),
         ...fields.filter(field => !field.fenceRequired)
@@ -107,6 +115,8 @@ type ToSdkTypeArgs = {
   sharedHashes: SharedHashes
   fieldStates?: FieldStates
   fieldEnums?: FieldEnums
+  hoistField?: string
+  kotlinNames?: Record<string, string>
 }
 
 const toSdkType = ({
@@ -114,7 +124,9 @@ const toSdkType = ({
   propertyName,
   sharedHashes,
   fieldStates,
-  fieldEnums
+  fieldEnums,
+  hoistField,
+  kotlinNames
 }: ToSdkTypeArgs): SdkType => {
   const resolved = schema.isRef() ? schema.resolve() : schema
 
@@ -134,7 +146,9 @@ const toSdkType = ({
           sharedHashes,
           fieldStates,
           fieldEnums,
-          sortFields: true
+          sortFields: true,
+          hoistField,
+          kotlinNames
         })
       }
     case 'array': {
@@ -147,11 +161,21 @@ const toSdkType = ({
           propertyName: elementName,
           sharedHashes,
           fieldStates,
-          fieldEnums
+          fieldEnums,
+          hoistField,
+          kotlinNames
         })
       }
     }
     case 'string': {
+      if (resolved.format === 'date-time') {
+        return { kind: 'datetime', date: 'offset-date-time' }
+      }
+
+      if (resolved.format === 'date') {
+        return { kind: 'datetime', date: 'local-date' }
+      }
+
       const specMembers = (resolved.enums ?? []).filter(
         (member): member is string => typeof member === 'string'
       )
@@ -201,11 +225,13 @@ const scalarByType = {
 export const injectDataFields = ({
   model,
   addFields,
-  fieldStates
+  fieldStates,
+  hoistField
 }: {
   model: SdkModel
   addFields: AddField[]
   fieldStates?: FieldStates
+  hoistField?: string
 }): SdkModel => {
   const fields = model.fields.map(field => {
     if (field.wireName !== 'data' || field.type.kind !== 'model') {
@@ -227,7 +253,7 @@ export const injectDataFields = ({
       }
     })
 
-    const merged = orderSortedFields([...field.type.model.fields, ...injected])
+    const merged = orderSortedFields([...field.type.model.fields, ...injected], hoistField)
 
     return {
       ...field,

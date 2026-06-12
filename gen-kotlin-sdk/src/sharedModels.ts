@@ -70,7 +70,8 @@ export const ensureSharedModels = ({
         sharedHashes,
         fieldStates: config.fieldStates,
         fieldEnums: config.fieldEnums,
-        sortFields: true
+        sortFields: true,
+        hoistField: config.hoistField
       })
     })
   }
@@ -84,7 +85,8 @@ export const ensureSharedModels = ({
       className: envelopeConfig.className,
       sharedHashes,
       fieldStates: config.fieldStates,
-      fieldEnums: config.fieldEnums
+      fieldEnums: config.fieldEnums,
+      hoistField: config.hoistField
     })
 
     ensureModelDefinition({

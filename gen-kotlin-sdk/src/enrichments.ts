@@ -17,6 +17,13 @@ export const sdkOperationEnrichmentSchema = v.optional(
     /** Class-name stem override (defaults to `Pascal(resource)`). */
     classStem: v.optional(v.string()),
     /**
+     * Deprecation message for the Params class `@Deprecated(...)`
+     * annotation — config-carried (Stainless aliases name the
+     * replacement method). Spec-deprecated operations without a
+     * message render `@Deprecated("deprecated")`.
+     */
+    deprecatedMessage: v.optional(v.string()),
+    /**
      * Config-mirrored field injections into the `data`-level model
      * (Stainless configs add fields the spec omits — the corpus
      * `limitExceeded` on agency / arrivals-and-departures-for-location).

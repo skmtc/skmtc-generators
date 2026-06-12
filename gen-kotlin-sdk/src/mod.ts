@@ -4,8 +4,7 @@ import type {
   OasOperation,
   OasOperationProjectionConstructorArgs
 } from '@skmtc/core'
-import * as v from 'valibot'
-import { createClass, toOasOperationProjectionBase } from '@skmtc/lang-kotlin'
+import { createClass, toOasOperationProjectionBase, type KtAnnotation } from '@skmtc/lang-kotlin'
 import invariant from 'tiny-invariant'
 import { emitStaticFiles, type StaticFilesOverlay } from './emitStaticFiles.ts'
 import { ensureSharedModels } from './sharedModels.ts'
@@ -42,6 +41,9 @@ export const toKotlinSdkEntry = (config: SdkConfig, extras: KotlinSdkEntryExtras
   const packageDirs = config.basePackage.split('.').join('/')
   const coreModuleRoot = `${config.artifactName}-core/src/main/kotlin/${packageDirs}`
 
+  const toModelsDir = (resourceDir: string): string =>
+    config.modelsLayout === 'flat' ? 'models' : `models/${resourceDir}`
+
   const toClassStem = (enrichment: NonNullable<SdkOperationEnrichment>): string => {
     const resourceTail = enrichment.resource[enrichment.resource.length - 1]
 
@@ -74,37 +76,11 @@ export const toKotlinSdkEntry = (config: SdkConfig, extras: KotlinSdkEntryExtras
         ? enrichments.resource.join('').toLowerCase()
         : 'unenriched'
 
-      return `${coreModuleRoot}/models/${resourceDir}/${name}.kt`
+      return `${coreModuleRoot}/${toModelsDir(resourceDir)}/${name}.kt`
     }
   })
 
   class KtSdkResponseModel extends ResponseModelBase {
-    /**
-     * TEMP until the core dotted-path enrichment fix ships (core
-     * >0.9.1, note 32: lodash string paths split on `.`, so operation
-     * paths ending in `.json` never resolved). Same routing, literal
-     * keys.
-     */
-    static override toEnrichments = ({
-      operation,
-      context,
-      variant
-    }: {
-      operation: OasOperation
-      context: GenerateContextType
-      variant: string
-    }): SdkOperationEnrichment => {
-      const routed = v.parse(
-        v.optional(v.record(v.string(), v.record(v.string(), v.record(v.string(), v.unknown())))),
-        context.settings?.enrichments?.[denoJson.name]
-      )
-
-      return v.parse(
-        sdkOperationEnrichmentSchema,
-        routed?.[operation.path]?.[operation.method]?.[variant]
-      )
-    }
-
     value: SdkModelValue
 
     constructor(args: OasOperationProjectionConstructorArgs<SdkOperationEnrichment>) {
@@ -127,13 +103,20 @@ export const toKotlinSdkEntry = (config: SdkConfig, extras: KotlinSdkEntryExtras
         sharedHashes,
         envelopeFields: config.sharedModels.envelope?.fields,
         fieldStates: config.fieldStates,
-        fieldEnums: config.fieldEnums
+        fieldEnums: config.fieldEnums,
+        hoistField: config.hoistField,
+        kotlinNames: config.kotlinNames
       })
 
       const addFields = settings.enrichments?.addFields
 
       const model = addFields?.length
-        ? injectDataFields({ model: walked, addFields, fieldStates: config.fieldStates })
+        ? injectDataFields({
+            model: walked,
+            addFields,
+            fieldStates: config.fieldStates,
+            hoistField: config.hoistField
+          })
         : walked
 
       this.value = new SdkModelValue({
@@ -182,13 +165,11 @@ export const toKotlinSdkEntry = (config: SdkConfig, extras: KotlinSdkEntryExtras
         ? enrichments.resource.join('').toLowerCase()
         : 'unenriched'
 
-      return `${coreModuleRoot}/models/${resourceDir}/${name}.kt`
+      return `${coreModuleRoot}/${toModelsDir(resourceDir)}/${name}.kt`
     }
   })
 
   class KtSdkParams extends ParamsBase {
-    static override toEnrichments = KtSdkResponseModel.toEnrichments
-
     value: SdkParamsValue
 
     constructor(args: OasOperationProjectionConstructorArgs<SdkOperationEnrichment>) {
@@ -196,14 +177,20 @@ export const toKotlinSdkEntry = (config: SdkConfig, extras: KotlinSdkEntryExtras
 
       const { context, operation, settings } = args
 
-      const { renderContext } = ensureSharedModels({ context, config })
+      const { sharedHashes, renderContext } = ensureSharedModels({ context, config })
 
       this.value = new SdkParamsValue({
         context,
         model: toSdkParams({
           operation,
           className: settings.identifier.name,
-          fieldEnums: config.fieldEnums
+          fieldEnums: config.fieldEnums,
+          fieldStates: config.fieldStates,
+          sharedHashes,
+          hoistField: config.hoistField,
+          modelComponents: config.modelComponents,
+          kotlinNames: config.kotlinNames,
+          deprecatedMessage: settings.enrichments?.deprecatedMessage
         }),
         renderContext,
         basePackage: config.basePackage,
@@ -214,6 +201,10 @@ export const toKotlinSdkEntry = (config: SdkConfig, extras: KotlinSdkEntryExtras
 
     get description(): string {
       return this.value.description
+    }
+
+    get annotations(): KtAnnotation[] {
+      return this.value.annotations
     }
 
     get constructorModifiers(): string {
@@ -265,8 +256,6 @@ export const toKotlinSdkEntry = (config: SdkConfig, extras: KotlinSdkEntryExtras
     })
 
     return class extends Base {
-      static override toEnrichments = KtSdkResponseModel.toEnrichments
-
       value: SdkServiceValue | SdkServiceImplValue
 
       constructor(args: OasOperationProjectionConstructorArgs<SdkOperationEnrichment>) {

@@ -33,7 +33,11 @@ export const indent = (text: string, levels: number): string => {
 }
 
 export const kdoc = (lines: string[]): string => {
-  return ['/**', ...lines.map(line => (line.length ? ` * ${line}` : ' *')), ' */'].join('\n')
+  // Entries may themselves be multi-line (spec descriptions with
+  // embedded newlines) — split so every physical line gets a margin.
+  const split = lines.flatMap(line => line.split('\n'))
+
+  return ['/**', ...split.map(line => (line.length ? ` * ${line}` : ' *')), ' */'].join('\n')
 }
 
 /** Primary-constructor parameter list (the `KtConstructed` protocol value). */
@@ -118,10 +122,10 @@ const renderEnvelopeConversion = (context: RenderContext): string => {
   )
 }
 
-const requiredThrows = (context: RenderContext): string =>
+export const requiredThrows = (context: RenderContext): string =>
   `@throws ${context.exceptionPrefix}InvalidDataException if the JSON field has an unexpected type or is unexpectedly missing or null (e.g. if the server responded with an unexpected value).`
 
-const optionalThrows = (context: RenderContext): string =>
+export const optionalThrows = (context: RenderContext): string =>
   `@throws ${context.exceptionPrefix}InvalidDataException if the JSON field has an unexpected type (e.g. if the server responded with an unexpected value).`
 
 const renderTypedAccessor = (field: SdkField, context: RenderContext): string => {
@@ -306,17 +310,7 @@ const renderSetters = (field: SdkField): string[] => {
 
   blocks.push(`${descriptionKdoc}${typedSetter}`)
 
-  // Doc references use the UNQUALIFIED form even when the code is
-  // shadow-qualified (`kotlin.collections.List`).
-  const docTypeExpression = toDocTypeExpression(field.type)
-  const wellTyped =
-    field.type.kind === 'list' ? `\`${docTypeExpression}\`` : `[${docTypeExpression}]`
-
-  const rawKdoc = kdoc([
-    `Sets [Builder.${kotlinName}] to an arbitrary JSON value.`,
-    '',
-    `You should usually call [Builder.${kotlinName}] with a well-typed ${wellTyped} value instead. This method is primarily for setting the field to an undocumented or not yet supported value.`
-  ])
+  const rawKdoc = rawJsonSetterKdoc(field)
 
   if (field.type.kind === 'list') {
     blocks.push(
@@ -326,13 +320,7 @@ const renderSetters = (field: SdkField): string[] => {
         '}'
     )
 
-    const elementType = toTypeExpression(field.type.element)
-    // Model elements name the add method/parameter after the class
-    // (`addAgency(agency: Agency)`); scalar elements after the
-    // singularized field (`addRouteId(routeId: String)`).
-    const isScalarElement = field.type.element.kind === 'scalar'
-    const elementName = isScalarElement ? singularName(kotlinName) : decapitalize(elementType)
-    const addName = `add${capitalize(elementName)}`
+    const { addName, elementName, elementType } = toAddMethodInfo(kotlinName, field.type)
     // When the add parameter collides with the field name
     // (`addList(list:)` on field `list`), the field reference needs
     // `this.` in the body and the Builder-qualified KDoc link.
@@ -341,15 +329,11 @@ const renderSetters = (field: SdkField): string[] => {
     const fieldLink = collides ? `Builder.${kotlinName}` : kotlinName
 
     blocks.push(
-      kdoc([
-        `Adds a single [${elementType}] to [${fieldLink}].`,
-        '',
-        '@throws IllegalStateException if the field was previously set to a non-list.'
-      ]) +
+      addMethodKdoc(elementType, fieldLink) +
         `\nfun ${addName}(${elementName}: ${elementType}) = apply {\n` +
         `    ${fieldReference} =\n` +
         `        (${fieldReference} ?: JsonField.of(mutableListOf())).also {\n` +
-        `            checkKnown("${wireName}", it).add(${elementName})\n` +
+        `            checkKnown("${kotlinName}", it).add(${elementName})\n` +
         '        }\n' +
         '}'
     )
@@ -368,6 +352,52 @@ const toDocTypeExpression = (type: SdkType): string => {
   }
 
   return toTypeExpression(type)
+}
+
+/**
+ * The "arbitrary JSON value" KDoc shared by a model field's raw setter
+ * and its flattened delegate on a body-carrying Params Builder.
+ * Doc references use the UNQUALIFIED form even when the code is
+ * shadow-qualified (`kotlin.collections.List`).
+ */
+export const rawJsonSetterKdoc = (field: SdkField): string => {
+  const docTypeExpression = toDocTypeExpression(field.type)
+  const wellTyped =
+    field.type.kind === 'list' ? `\`${docTypeExpression}\`` : `[${docTypeExpression}]`
+
+  return kdoc([
+    `Sets [Builder.${field.kotlinName}] to an arbitrary JSON value.`,
+    '',
+    `You should usually call [Builder.${field.kotlinName}] with a well-typed ${wellTyped} value instead. This method is primarily for setting the field to an undocumented or not yet supported value.`
+  ])
+}
+
+export type AddMethodInfo = { addName: string; elementName: string; elementType: string }
+
+/**
+ * The `addX` accumulator naming for a list field: model elements name
+ * the method/parameter after the class (`addAgency(agency: Agency)`);
+ * scalar elements after the singularized field
+ * (`addRouteId(routeId: String)`).
+ */
+export const toAddMethodInfo = (
+  kotlinName: string,
+  type: Extract<SdkType, { kind: 'list' }>
+): AddMethodInfo => {
+  const elementType = toTypeExpression(type.element)
+  const isScalarElement = type.element.kind === 'scalar'
+  const elementName = isScalarElement ? singularName(kotlinName) : decapitalize(elementType)
+
+  return { addName: `add${capitalize(elementName)}`, elementName, elementType }
+}
+
+/** The `addX` KDoc shared by the model setter and its flattened delegate. */
+export const addMethodKdoc = (elementType: string, fieldLink: string): string => {
+  return kdoc([
+    `Adds a single [${elementType}] to [${fieldLink}].`,
+    '',
+    '@throws IllegalStateException if the field was previously set to a non-list.'
+  ])
 }
 
 const singularName = (name: string): string => {
@@ -468,6 +498,7 @@ const nestedTypesOf = (
     case 'list':
       return nestedTypesOf(type.element)
     case 'scalar':
+    case 'datetime':
     case 'shared':
       return []
     default: {

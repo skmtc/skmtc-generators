@@ -172,7 +172,7 @@ export const addModelImports = (
   imports: Record<string, string[]>
 ): void => {
   for (const operation of service.operations) {
-    const resourceModule = `${basePackage}.models.${operation.resourceDir}`
+    const resourceModule = `${basePackage}.${operation.modelsSubpackage}`
     const names = (imports[resourceModule] ??= [])
 
     if (!names.includes(operation.paramsClassName)) {

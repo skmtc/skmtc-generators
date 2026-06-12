@@ -38,6 +38,7 @@ export type SdkScalar = 'Boolean' | 'Long' | 'Int' | 'Double' | 'Float' | 'Strin
 
 export type SdkType =
   | { kind: 'scalar'; kotlin: SdkScalar }
+  | { kind: 'datetime'; date: 'offset-date-time' | 'local-date' }
   | {
       kind: 'list'
       element: SdkType
@@ -61,6 +62,8 @@ export const toTypeExpression = (type: SdkType): string => {
   switch (type.kind) {
     case 'scalar':
       return type.kotlin
+    case 'datetime':
+      return type.date === 'local-date' ? 'LocalDate' : 'OffsetDateTime'
     case 'list':
       return `${type.qualified ? 'kotlin.collections.List' : 'List'}<${toTypeExpression(type.element)}>`
     case 'model':
@@ -85,17 +88,19 @@ export const toTypeExpression = (type: SdkType): string => {
  * (alphabetical optionals ≠ spec order), Route (id hoisted),
  * CurrentTime top level (data last, not alphabetical).
  */
-export const orderSortedFields = (fields: SdkField[]): SdkField[] => {
-  // `id` hoists to the front of WHICHEVER group it falls into
-  // (corpus: Config's GitProperties leads with an optional `id`).
-  const byNameIdFirst = (a: SdkField, b: SdkField) => {
-    if (a.kotlinName === 'id') return -1
-    if (b.kotlinName === 'id') return 1
+export const orderSortedFields = (fields: SdkField[], hoistField = 'id'): SdkField[] => {
+  // The hoist field jumps to the front of WHICHEVER group it falls
+  // into (corpus: Config's GitProperties leads with an optional `id`).
+  // WHICH name hoists is per-target Stainless config — the resource
+  // primary key (`id` for OneBusAway, `token` for Lithic).
+  const byNameHoistFirst = (a: SdkField, b: SdkField) => {
+    if (a.kotlinName === hoistField) return -1
+    if (b.kotlinName === hoistField) return 1
     return a.kotlinName.localeCompare(b.kotlinName)
   }
 
-  const required = fields.filter(field => field.fenceRequired).sort(byNameIdFirst)
-  const optional = fields.filter(field => !field.fenceRequired).sort(byNameIdFirst)
+  const required = fields.filter(field => field.fenceRequired).sort(byNameHoistFirst)
+  const optional = fields.filter(field => !field.fenceRequired).sort(byNameHoistFirst)
 
   return [...required, ...optional]
 }
@@ -128,6 +133,7 @@ const nestedClassNames = (type: SdkType): string[] => {
     case 'list':
       return nestedClassNames(type.element)
     case 'scalar':
+    case 'datetime':
     case 'shared':
       return []
     default: {
@@ -145,6 +151,7 @@ const rewriteType = (type: SdkType, shadowed: boolean, scope: Set<string>): SdkT
       return { ...type, model: applyStdlibShadowing(type.model, scope) }
     case 'enum':
     case 'scalar':
+    case 'datetime':
     case 'shared':
       return type
     default: {
@@ -159,9 +166,18 @@ export const isValidatable = (type: SdkType): boolean => {
   return type.kind === 'model' || type.kind === 'enum' || type.kind === 'shared'
 }
 
-/** `equipmentReason` → `EQUIPMENT_REASON`. */
+/**
+ * `equipmentReason` → `EQUIPMENT_REASON`; non-alphanumerics become
+ * underscores (`card.created` → `CARD_CREATED`); digit-leading wire
+ * values get a `_` prefix (`2_DAY` → `_2_DAY`).
+ */
 export const toConstantCase = (value: string): string => {
-  return value.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toUpperCase()
+  const constant = value
+    .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+    .replace(/[^A-Za-z0-9]/g, '_')
+    .toUpperCase()
+
+  return /^[0-9]/.test(constant) ? `_${constant}` : constant
 }
 
 /** `references` → `references`; `Agency` → `agency` (the `from(x)` parameter name). */

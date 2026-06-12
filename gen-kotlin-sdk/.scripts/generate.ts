@@ -13,7 +13,7 @@ import { join } from 'jsr:@std/path@^1.1.2/join'
 import type { OpenAPIV3 } from 'openapi-types'
 import { toKotlinSdkEntry } from '../src/mod.ts'
 import type { StaticFilesOverlay } from '../src/emitStaticFiles.ts'
-import { toFieldStates, type SdkConfig } from '../src/SdkConfig.ts'
+import { toFieldStates, toModelsLayout, type SdkConfig } from '../src/SdkConfig.ts'
 
 const target = Deno.args[0]
 
@@ -34,7 +34,8 @@ const rawConfig = JSON.parse(Deno.readTextFileSync(join(corpusRoot, 'sdk-config.
 
 const config: SdkConfig = {
   ...rawConfig,
-  fieldStates: toFieldStates(rawConfig.fieldStates)
+  fieldStates: toFieldStates(rawConfig.fieldStates),
+  modelsLayout: toModelsLayout(rawConfig.modelsLayout)
 }
 
 let staticOverlay: StaticFilesOverlay | undefined

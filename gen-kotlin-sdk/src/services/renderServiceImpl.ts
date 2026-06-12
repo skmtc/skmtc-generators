@@ -82,6 +82,13 @@ const renderRawMethod = (operation: SdkServiceOperation, flavor: ServiceFlavor):
       `    checkRequired("${pathParam.kotlinName}", params.${pathParam.kotlinName}())\n`
     : ''
 
+  const bodyLine =
+    operation.bodyKind === 'required'
+      ? '            .body(json(clientOptions.jsonMapper, params._body()))\n'
+      : operation.bodyKind === 'optional'
+        ? '            .apply { params._body()?.let { body(json(clientOptions.jsonMapper, it)) } }\n'
+        : ''
+
   const method =
     `override ${fn(flavor)} ${methodName}(\n` +
     indent([`params: ${paramsClassName},`, 'requestOptions: RequestOptions,'].join('\n'), 1) +
@@ -92,6 +99,7 @@ const renderRawMethod = (operation: SdkServiceOperation, flavor: ServiceFlavor):
     `            .method(HttpMethod.${operation.httpVerb})\n` +
     '            .baseUrl(clientOptions.baseUrl())\n' +
     `            .addPathSegments(${segments})\n` +
+    bodyLine +
     '            .build()\n' +
     `            .prepare${callSuffix(flavor)}(clientOptions, params)\n` +
     '    val requestOptions = requestOptions.applyDefaults(RequestOptions.from(clientOptions))\n' +
@@ -122,17 +130,23 @@ export const toServiceImplImports = (
     coreNames.push('checkRequired')
   }
 
+  const httpNames = [
+    'HttpMethod',
+    'HttpRequest',
+    'HttpResponse',
+    'HttpResponse.Handler',
+    'HttpResponseFor',
+    'parseable'
+  ]
+
+  if (service.operations.some(operation => operation.bodyKind)) {
+    httpNames.push('json')
+  }
+
   const imports: Record<string, string[]> = {
     [`${basePackage}.core`]: coreNames.sort(),
     [`${basePackage}.core.handlers`]: ['errorBodyHandler', 'errorHandler', 'jsonHandler'],
-    [`${basePackage}.core.http`]: [
-      'HttpMethod',
-      'HttpRequest',
-      'HttpResponse',
-      'HttpResponse.Handler',
-      'HttpResponseFor',
-      'parseable'
-    ]
+    [`${basePackage}.core.http`]: httpNames
   }
 
   addModelImports(service, basePackage, imports)

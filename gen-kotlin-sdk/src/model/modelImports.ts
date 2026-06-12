@@ -47,6 +47,14 @@ export const toModelImports = ({
     [`${basePackage}.errors`]: [`${exceptionPrefix}InvalidDataException`]
   }
 
+  if (facts.datetimes.size) {
+    imports['java.time'] = [
+      ...new Set(
+        [...facts.datetimes].map(date => (date === 'local-date' ? 'LocalDate' : 'OffsetDateTime'))
+      )
+    ].sort()
+  }
+
   const modelsPackageNames = [...facts.sharedClassNames]
 
   if (model.envelope && envelopeClassName) {
@@ -64,6 +72,7 @@ type ImportFacts = {
   hasRequired: boolean
   hasList: boolean
   hasEnum: boolean
+  datetimes: Set<'offset-date-time' | 'local-date'>
   sharedClassNames: Set<string>
 }
 
@@ -72,6 +81,7 @@ const collectFacts = (model: SdkModel): ImportFacts => {
     hasRequired: false,
     hasList: false,
     hasEnum: false,
+    datetimes: new Set(),
     sharedClassNames: new Set()
   }
 
@@ -104,6 +114,9 @@ const visitType = (type: SdkType, facts: ImportFacts): void => {
       return
     case 'shared':
       facts.sharedClassNames.add(type.className)
+      return
+    case 'datetime':
+      facts.datetimes.add(type.date)
       return
     case 'scalar':
       return

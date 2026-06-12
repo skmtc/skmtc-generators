@@ -38,6 +38,32 @@ export type SdkConfig = {
   /** The §C5 config-asserted shared models. */
   sharedModels: SdkSharedModelsConfig
   /**
+   * Where model files land: `by-resource` nests them under
+   * `models/<resource>/` (OneBusAway), `flat` keeps every model at the
+   * `models/` root (Lithic). Stainless varies this per target; we
+   * mirror it as config. Defaults to `by-resource`.
+   */
+  modelsLayout?: 'flat' | 'by-resource'
+  /**
+   * Component refNames that exist as STANDALONE model classes (the
+   * Stainless config `models:` declarations). A request body `$ref`
+   * to one of these renders the named-field shape; every other ref
+   * body nests a full model class named after the component.
+   */
+  modelComponents?: string[]
+  /**
+   * Per-wire-name Kotlin name overrides — the config-mirrored Stainless
+   * naming transform for acronym casing camelCase cannot derive
+   * (`three_ds_authentication_token` → `threeDSAuthenticationToken`).
+   */
+  kotlinNames?: Record<string, string>
+  /**
+   * The field name that hoists to the front of its ordering group —
+   * the target's resource primary key in Stainless config (`id` for
+   * OneBusAway, `token` for Lithic). Defaults to `id`.
+   */
+  hoistField?: string
+  /**
    * Per-wire-name field-state overrides — the config-mirrored
    * equivalent of a Stainless required/nullable transform (the
    * corpus `limitExceeded` finding: fence-listed + required wording,
@@ -79,6 +105,20 @@ export type SdkSharedModelsConfig = {
  */
 export const toScreamingPrefix = (clientPrefix: string): string => {
   return clientPrefix.replace(/(?<!^)([A-Z])/g, '_$1').toUpperCase()
+}
+
+/**
+ * Narrows a JSON-imported `modelsLayout` (widened to `string`) to the
+ * layout union — loud on an unknown value, no casts.
+ */
+export const toModelsLayout = (
+  raw: string | undefined
+): 'flat' | 'by-resource' | undefined => {
+  if (raw === undefined || raw === 'flat' || raw === 'by-resource') {
+    return raw
+  }
+
+  throw new Error(`@skmtc/gen-kotlin-sdk: unknown modelsLayout '${raw}'`)
 }
 
 /**
