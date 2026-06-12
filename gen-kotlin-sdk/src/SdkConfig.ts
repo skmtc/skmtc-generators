@@ -25,6 +25,8 @@ export type SdkConfig = {
   artifactName: string
   /** GitHub slug (`OneBusAway/kotlin-sdk`) — appears in doc links. */
   repoSlug: string
+  /** Human display name for the client KDoc (`Onebusaway SDK`). */
+  displayName: string
   /** Production base URL baked into ClientOptions. */
   baseUrl: string
   /** API-key auth wiring (the only scheme on the simple target). */

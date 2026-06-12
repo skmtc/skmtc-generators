@@ -14,6 +14,11 @@ import { injectDataFields, toSdkModel } from './model/toSdkModel.ts'
 import { SdkModelValue } from './model/SdkModelValue.ts'
 import { toSdkParams } from './params/SdkParams.ts'
 import { SdkParamsValue } from './params/SdkParamsValue.ts'
+import { toSdkService } from './services/SdkService.ts'
+import { SdkServiceImplValue, SdkServiceValue } from './services/SdkServiceValue.ts'
+import { SdkClientImplValue, SdkClientValue } from './client/SdkClientValue.ts'
+import type { SdkClientModel } from './client/SdkClient.ts'
+import { createInterface, defineAndRegister, register } from '@skmtc/lang-kotlin'
 import { sdkOperationEnrichmentSchema, toEnrichmentSchema } from './enrichments.ts'
 import type { SdkOperationEnrichment } from './enrichments.ts'
 import type { SdkConfig } from './SdkConfig.ts'
@@ -223,6 +228,201 @@ export const toKotlinSdkEntry = (config: SdkConfig) => {
     }
   }
 
+  type ServiceFlavor = 'blocking' | 'async'
+  type ServiceRole = 'interface' | 'impl'
+
+  const resolveEnrichment = (context: GenerateContextType) => (operation: OasOperation) =>
+    KtSdkResponseModel.toEnrichments({ operation, context, variant: 'main' })
+
+  const toServiceProjection = (flavor: ServiceFlavor, role: ServiceRole) => {
+    const nameSuffix = `Service${flavor === 'async' ? 'Async' : ''}${role === 'impl' ? 'Impl' : ''}`
+    const directory = flavor === 'async' ? 'async' : 'blocking'
+
+    const Base = toOasOperationProjectionBase<SdkOperationEnrichment>({
+      id: denoJson.name,
+      toEnrichmentSchema,
+      toIdentifier({ operation, enrichments, variant }) {
+        void variant
+
+        if (!enrichments) {
+          return createClass(`Unenriched${capitalize(camelCase(operation.path))}${nameSuffix}`)
+        }
+
+        const name = `${toClassStem(enrichments)}${nameSuffix}`
+
+        return role === 'interface' ? createInterface(name) : createClass(name)
+      },
+      toExportPath({ operation, enrichments, variant }) {
+        const { name } = this.toIdentifier({ operation, enrichments, variant })
+
+        return `${coreModuleRoot}/services/${directory}/${name}.kt`
+      }
+    })
+
+    return class extends Base {
+      static override toEnrichments = KtSdkResponseModel.toEnrichments
+
+      value: SdkServiceValue | SdkServiceImplValue
+
+      constructor(args: OasOperationProjectionConstructorArgs<SdkOperationEnrichment>) {
+        super(args)
+
+        const { context, operation, settings } = args
+        const enrichment = resolveEnrichment(context)(operation)
+
+        invariant(enrichment, '@skmtc/gen-kotlin-sdk: service projection requires an enrichment')
+
+        const service = toSdkService({
+          context,
+          config,
+          stem: toClassStem(enrichment),
+          resource: enrichment.resource,
+          resolveEnrichment: resolveEnrichment(context)
+        })
+
+        const ValueClass = role === 'interface' ? SdkServiceValue : SdkServiceImplValue
+
+        this.value = new ValueClass({
+          context,
+          service,
+          flavor,
+          basePackage: config.basePackage,
+          destinationPath: settings.exportPath,
+          fileHeader: generatedFileHeader
+        })
+      }
+
+      get constructorModifiers(): string | undefined {
+        return this.value instanceof SdkServiceImplValue
+          ? this.value.constructorModifiers
+          : undefined
+      }
+
+      get constructorParameters(): string | undefined {
+        return this.value instanceof SdkServiceImplValue
+          ? this.value.constructorParameters
+          : undefined
+      }
+
+      get supertypes(): string[] {
+        return this.value instanceof SdkServiceImplValue ? this.value.supertypes : []
+      }
+
+      override toString(): string {
+        return this.value.toString()
+      }
+    }
+  }
+
+  const KtSdkService = toServiceProjection('blocking', 'interface')
+  const KtSdkServiceImpl = toServiceProjection('blocking', 'impl')
+  const KtSdkServiceAsync = toServiceProjection('async', 'interface')
+  const KtSdkServiceAsyncImpl = toServiceProjection('async', 'impl')
+
+  const ensureClient = (context: GenerateContextType): void => {
+    const clientName = `${config.clientPrefix}Client`
+    const clientPath = `${coreModuleRoot}/client/${clientName}.kt`
+
+    if (context.findDefinition({ name: clientName, exportPath: clientPath })) {
+      return
+    }
+
+    invariant(context.document.type === 'oas', '@skmtc/gen-kotlin-sdk: OAS documents only')
+
+    // Resource list in CONFIG ORDER — the enrichment file's key
+    // declaration order (§E-5).
+    const resolve = resolveEnrichment(context)
+    const seen = new Set<string>()
+    const resources: SdkClientModel['resources'] = []
+
+    for (const operation of orderedOperations(context)) {
+      const enrichment = resolve(operation)
+
+      if (!enrichment) {
+        continue
+      }
+
+      const accessorName = enrichment.resource[enrichment.resource.length - 1]
+
+      invariant(accessorName, '@skmtc/gen-kotlin-sdk: enrichment resource path is empty')
+
+      if (seen.has(accessorName)) {
+        continue
+      }
+
+      seen.add(accessorName)
+      resources.push({ accessorName, stem: toClassStem(enrichment) })
+    }
+
+    const model: SdkClientModel = {
+      prefix: config.clientPrefix,
+      displayName: config.displayName,
+      resources
+    }
+
+    const flavors = [
+      { flavor: 'blocking', name: clientName },
+      { flavor: 'async', name: `${clientName}Async` }
+    ] as const
+
+    for (const { flavor, name } of flavors) {
+      const interfacePath = `${coreModuleRoot}/client/${name}.kt`
+      const implPath = `${coreModuleRoot}/client/${name}Impl.kt`
+
+      const interfaceValue = new SdkClientValue({
+        context,
+        model,
+        flavor,
+        basePackage: config.basePackage,
+        destinationPath: interfacePath,
+        fileHeader: generatedFileHeader
+      })
+
+      defineAndRegister(context, {
+        identifier: createInterface(name),
+        value: interfaceValue,
+        destinationPath: interfacePath
+      })
+
+      const implValue = new SdkClientImplValue({
+        context,
+        model,
+        flavor,
+        basePackage: config.basePackage,
+        destinationPath: implPath,
+        fileHeader: generatedFileHeader
+      })
+
+      defineAndRegister(context, {
+        identifier: createClass(`${name}Impl`),
+        value: implValue,
+        destinationPath: implPath
+      })
+    }
+  }
+
+  /**
+   * Document operations in the enrichment file's declaration order —
+   * the honest mirror of Stainless's config resource order.
+   */
+  const orderedOperations = (context: GenerateContextType): OasOperation[] => {
+    invariant(context.document.type === 'oas', '@skmtc/gen-kotlin-sdk: OAS documents only')
+
+    const operations = context.document.value.operations
+    const enrichmentBlock = context.settings?.enrichments?.[denoJson.name]
+
+    if (!enrichmentBlock || typeof enrichmentBlock !== 'object') {
+      return [...operations]
+    }
+
+    const pathOrder = new Map(Object.keys(enrichmentBlock).map((path, index) => [path, index]))
+
+    return [...operations].sort(
+      (a, b) =>
+        (pathOrder.get(a.path) ?? pathOrder.size) - (pathOrder.get(b.path) ?? pathOrder.size)
+    )
+  }
+
   return toOasOperationEntry<SdkOperationEnrichment>({
     id: denoJson.name,
     isSupported: () => true,
@@ -239,8 +439,37 @@ export const toKotlinSdkEntry = (config: SdkConfig) => {
       }
 
       // Every enriched operation gets a Params class (even those
-      // without a Response model — the report-problem pair).
+      // without a Response model — the report-problem pair) and its
+      // resource's four service files + the client singletons.
       context.insertOperation({ projection: KtSdkParams, operation })
+
+      // Service files are per-RESOURCE: a two-op resource builds whole
+      // on its first operation's insert (the §E-6 rescan); the second
+      // operation must NOT insert — its different GeneratorKey would
+      // trip the Driver's identity check on the shared Definition.
+      for (const ServiceProjection of [
+        KtSdkService,
+        KtSdkServiceImpl,
+        KtSdkServiceAsync,
+        KtSdkServiceAsyncImpl
+      ]) {
+        const identifier = ServiceProjection.toIdentifier({
+          operation,
+          enrichments: enrichment,
+          variant
+        })
+        const exportPath = ServiceProjection.toExportPath({
+          operation,
+          enrichments: enrichment,
+          variant
+        })
+
+        if (!context.findDefinition({ name: identifier.name, exportPath })) {
+          context.insertOperation({ projection: ServiceProjection, operation })
+        }
+      }
+
+      ensureClient(context)
 
       const schema = operation.toSuccessResponse()?.resolve().toSchema()?.resolve()
 
