@@ -1,23 +1,22 @@
 import type { GenerateContextType } from '@skmtc/core'
 import { KtSnippet } from '@skmtc/lang-kotlin'
-import type { RenderContext } from '@/RenderContext.ts'
+import { sdkConfig as config } from '@/config.ts'
 
 type Args = {
   context: GenerateContextType
-  renderContext: RenderContext
   destinationPath: string
 }
 
 /** The `@JsonAnySetter`/`@JsonAnyGetter` additionalProperties pair. */
 export class AdditionalPropertiesAccessors extends KtSnippet {
-  constructor({ context, renderContext, destinationPath }: Args) {
+  constructor({ context, destinationPath }: Args) {
     super({ context })
 
     this.register({
       imports: {
         'com.fasterxml.jackson.annotation': ['JsonAnyGetter', 'JsonAnySetter'],
         'java.util': ['Collections'],
-        [`${renderContext.basePackage}.core`]: ['ExcludeMissing', 'JsonValue']
+        [`${config.basePackage}.core`]: ['ExcludeMissing', 'JsonValue']
       },
       destinationPath
     })

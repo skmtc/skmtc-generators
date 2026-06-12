@@ -1,7 +1,7 @@
 import type { GenerateContextType } from '@skmtc/core'
 import { KtSnippet } from '@skmtc/lang-kotlin'
 import { indent } from '@/format.ts'
-import type { RenderContext } from '@/RenderContext.ts'
+import { sdkConfig as config } from '@/config.ts'
 import type { BodySnippet } from '@/params/body/BodySnippet.ts'
 import type { SdkParam } from '@/params/SdkParams.ts'
 import { toParamTypeImports } from '@/params/sections/paramTypeImports.ts'
@@ -11,7 +11,6 @@ type Args = {
   context: GenerateContextType
   params: SdkParam[]
   body: BodySnippet
-  renderContext: RenderContext
   destinationPath: string
 }
 
@@ -20,14 +19,14 @@ export class ParamsConstructorParameters extends KtSnippet {
   params: SdkParam[]
   body: BodySnippet
 
-  constructor({ context, params, body, renderContext, destinationPath }: Args) {
+  constructor({ context, params, body, destinationPath }: Args) {
     super({ context })
     this.params = params
     this.body = body
 
     this.register({
       imports: {
-        [`${renderContext.basePackage}.core.http`]: ['Headers', 'QueryParams'],
+        [`${config.basePackage}.core.http`]: ['Headers', 'QueryParams'],
         ...toParamTypeImports(params)
       },
       destinationPath

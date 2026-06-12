@@ -1,13 +1,16 @@
 import type { GenerateContextType } from '@skmtc/core'
 import { KtSnippet } from '@skmtc/lang-kotlin'
+import { sdkConfig as config } from '@/config.ts'
+import { exceptionName } from '@/errors.ts'
 import { indent, kdoc } from '@/format.ts'
-import type { RenderContext } from '@/RenderContext.ts'
-import { toConstantCase, type SdkEnum } from '@/model/SdkModel.ts'
+import { toConstantCase } from '@/naming.ts'
 
 type Args = {
   context: GenerateContextType
-  enumModel: SdkEnum
-  renderContext: RenderContext
+  className: string
+  /** Wire values, in spec order. */
+  members: string[]
+  description?: string
   destinationPath: string
   /**
    * Params-context enums document their `validate()` with the full
@@ -19,35 +22,35 @@ type Args = {
 
 /** The Known/Value enum-class family (§C3; corpus `Reason` shape). */
 export class KnownValueEnum extends KtSnippet {
-  enumModel: SdkEnum
-  renderContext: RenderContext
+  className: string
+  members: string[]
+  description: string | undefined
   documentedValidate: boolean
 
-  constructor({ context, enumModel, renderContext, destinationPath, documentedValidate }: Args) {
+  constructor({ context, className, members, description, destinationPath, documentedValidate }: Args) {
     super({ context })
-    this.enumModel = enumModel
-    this.renderContext = renderContext
+    this.className = className
+    this.members = members
+    this.description = description
     this.documentedValidate = documentedValidate === true
 
     this.register({
       imports: {
         'com.fasterxml.jackson.annotation': ['JsonCreator'],
-        [`${renderContext.basePackage}.core`]: ['Enum', 'JsonField'],
-        [`${renderContext.basePackage}.errors`]: [
-          `${renderContext.exceptionPrefix}InvalidDataException`
-        ]
+        [`${config.basePackage}.core`]: ['Enum', 'JsonField'],
+        [`${config.basePackage}.errors`]: [exceptionName]
       },
       destinationPath
     })
   }
 
   override toString(): string {
-    const { className, members } = this.enumModel
-    const { exceptionPrefix } = this.renderContext
+    const { className, members } = this
+    const exceptionPrefix = config.clientPrefix
     const constants = members.map(member => toConstantCase(member))
 
-    const description = this.enumModel.description
-      ? `${kdoc([this.enumModel.description])}\n`
+    const description = this.description
+      ? `${kdoc([this.description])}\n`
       : ''
 
     const companionConstants = members

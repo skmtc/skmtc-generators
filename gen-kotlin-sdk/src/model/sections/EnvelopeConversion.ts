@@ -1,12 +1,11 @@
 import type { GenerateContextType } from '@skmtc/core'
 import { KtSnippet } from '@skmtc/lang-kotlin'
 import invariant from 'tiny-invariant'
+import { sdkConfig as config } from '@/config.ts'
 import { indent } from '@/format.ts'
-import type { RenderContext } from '@/RenderContext.ts'
 
 type Args = {
   context: GenerateContextType
-  renderContext: RenderContext
   destinationPath: string
 }
 
@@ -14,17 +13,17 @@ type Args = {
 export class EnvelopeConversion extends KtSnippet {
   envelope: { className: string; fields: string[] }
 
-  constructor({ context, renderContext, destinationPath }: Args) {
+  constructor({ context, destinationPath }: Args) {
     super({ context })
 
     invariant(
-      renderContext.envelope,
+      config.sharedModels.envelope,
       '@skmtc/gen-kotlin-sdk: envelope section rendered without envelope config'
     )
-    this.envelope = renderContext.envelope
+    this.envelope = config.sharedModels.envelope
 
     this.register({
-      imports: { [`${renderContext.basePackage}.models`]: [this.envelope.className] },
+      imports: { [`${config.basePackage}.models`]: [this.envelope.className] },
       destinationPath
     })
   }

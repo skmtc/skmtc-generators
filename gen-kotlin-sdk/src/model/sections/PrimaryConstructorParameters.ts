@@ -1,37 +1,32 @@
 import type { GenerateContextType } from '@skmtc/core'
 import { KtSnippet } from '@skmtc/lang-kotlin'
+import { sdkConfig as config } from '@/config.ts'
 import { indent } from '@/format.ts'
-import type { RenderContext } from '@/RenderContext.ts'
-import { toTypeExpression, type SdkModel } from '@/model/SdkModel.ts'
-import { toFieldTypeImports } from '@/model/sections/fieldTypeImports.ts'
+import type { ModelField } from '@/model/ModelField.ts'
 
 type Args = {
   context: GenerateContextType
-  model: SdkModel
-  renderContext: RenderContext
+  fields: ModelField[]
   destinationPath: string
 }
 
 /** The primary-constructor parameter list — the `KtConstructed` protocol value. */
 export class PrimaryConstructorParameters extends KtSnippet {
-  model: SdkModel
+  fields: ModelField[]
 
-  constructor({ context, model, renderContext, destinationPath }: Args) {
+  constructor({ context, fields, destinationPath }: Args) {
     super({ context })
-    this.model = model
+    this.fields = fields
 
     this.register({
-      imports: {
-        [`${renderContext.basePackage}.core`]: ['JsonField', 'JsonValue'],
-        ...toFieldTypeImports(model.fields, renderContext)
-      },
+      imports: { [`${config.basePackage}.core`]: ['JsonField', 'JsonValue'] },
       destinationPath
     })
   }
 
   override toString(): string {
-    const fieldLines = this.model.fields.map(
-      field => `private val ${field.kotlinName}: JsonField<${toTypeExpression(field.type)}>,`
+    const fieldLines = this.fields.map(
+      field => `private val ${field.kotlinName}: JsonField<${field.type}>,`
     )
 
     return indent(

@@ -99,11 +99,6 @@ const toServiceOperation = ({
   const params = toSdkParams({
     operation,
     className: `${stem}${pascalMethod}Params`,
-    fieldEnums: config.fieldEnums,
-    fieldStates: config.fieldStates,
-    hoistField: config.hoistField,
-    modelComponents: config.modelComponents,
-    kotlinNames: config.kotlinNames,
     deprecatedMessage: enrichment.deprecatedMessage
   })
 

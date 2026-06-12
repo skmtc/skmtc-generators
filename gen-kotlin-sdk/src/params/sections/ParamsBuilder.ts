@@ -2,9 +2,9 @@ import type { GenerateContextType, Stringable } from '@skmtc/core'
 import { KtSnippet } from '@skmtc/lang-kotlin'
 import { capitalize } from '@skmtc/core'
 import { indent, kdoc } from '@/format.ts'
-import type { RenderContext } from '@/RenderContext.ts'
-import { decapitalize, toSingular } from '@/model/SdkModel.ts'
-import { addMethodKdoc } from '@/model/sections/builderDocs.ts'
+import { sdkConfig as config } from '@/config.ts'
+import { decapitalize, toSingular } from '@/naming.ts'
+import { addMethodKdoc } from '@/model/ModelField.ts'
 import type { BodySnippet } from '@/params/body/BodySnippet.ts'
 import { toParamTypeExpression, type SdkParam } from '@/params/SdkParams.ts'
 import { toParamTypeImports } from '@/params/sections/paramTypeImports.ts'
@@ -16,7 +16,6 @@ type Args = {
   params: SdkParam[]
   body: BodySnippet
   fenceNames: string[]
-  renderContext: RenderContext
   destinationPath: string
 }
 
@@ -27,7 +26,7 @@ export class ParamsBuilder extends KtSnippet {
   body: BodySnippet
   fenceNames: string[]
 
-  constructor({ context, className, params, body, fenceNames, renderContext, destinationPath }: Args) {
+  constructor({ context, className, params, body, fenceNames, destinationPath }: Args) {
     super({ context })
     this.className = className
     this.params = params
@@ -46,7 +45,7 @@ export class ParamsBuilder extends KtSnippet {
 
     this.register({
       imports: {
-        ...(coreNames.length ? { [`${renderContext.basePackage}.core`]: coreNames.sort() } : {}),
+        ...(coreNames.length ? { [`${config.basePackage}.core`]: coreNames.sort() } : {}),
         ...toParamTypeImports(params)
       },
       destinationPath

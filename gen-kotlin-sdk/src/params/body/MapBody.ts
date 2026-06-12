@@ -1,11 +1,10 @@
 import type { GenerateContextType, Stringable } from '@skmtc/core'
 import { KtSnippet } from '@skmtc/lang-kotlin'
 import { kdoc } from '@/format.ts'
-import type { RenderContext } from '@/RenderContext.ts'
+import { sdkConfig as config } from '@/config.ts'
 
 type Args = {
   context: GenerateContextType
-  renderContext: RenderContext
   destinationPath: string
 }
 
@@ -35,7 +34,7 @@ export class MapBody extends KtSnippet {
   hasRequired = false
   fenceFields: string[] = []
 
-  constructor({ context, renderContext, destinationPath }: Args) {
+  constructor({ context, destinationPath }: Args) {
     super({ context })
 
     this.accessorSections = [
@@ -47,7 +46,7 @@ export class MapBody extends KtSnippet {
 
     this.register({
       imports: {
-        [`${renderContext.basePackage}.core`]: ['JsonValue', 'toImmutable']
+        [`${config.basePackage}.core`]: ['JsonValue', 'toImmutable']
       },
       destinationPath
     })

@@ -1,5 +1,5 @@
 import type { GenerateContextType, Stringable } from '@skmtc/core'
-import type { RenderContext } from '@/RenderContext.ts'
+import type { SharedHashes } from '@/model/structuralHash.ts'
 import type { SdkBody } from '@/params/SdkParams.ts'
 import { AbsentBody } from '@/params/body/AbsentBody.ts'
 import { MapBody } from '@/params/body/MapBody.ts'
@@ -44,19 +44,25 @@ export type BodySnippet = {
 type Args = {
   context: GenerateContextType
   body: SdkBody | undefined
-  renderContext: RenderContext
   destinationPath: string
+  sharedHashes: SharedHashes
 }
 
 /** The ONE place the body shape is decided (generator-code-quality.md, Rule 3). */
-export const toBodySnippet = ({ context, body, renderContext, destinationPath }: Args): BodySnippet => {
+export const toBodySnippet = ({ context, body, destinationPath, sharedHashes }: Args): BodySnippet => {
   switch (body?.kind) {
     case 'model':
-      return new ModelBody({ context, bodyModel: body.model, renderContext, destinationPath })
+      return new ModelBody({
+        context,
+        className: body.className,
+        schema: body.schema,
+        destinationPath,
+        sharedHashes
+      })
     case 'ref':
-      return new RefBody({ context, body, renderContext, destinationPath })
+      return new RefBody({ context, body, destinationPath })
     case 'map':
-      return new MapBody({ context, renderContext, destinationPath })
+      return new MapBody({ context, destinationPath })
     case undefined:
       return new AbsentBody({ context })
     default: {

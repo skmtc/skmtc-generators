@@ -1,13 +1,12 @@
 import type { GenerateContextType, Stringable } from '@skmtc/core'
 import { KtSnippet } from '@skmtc/lang-kotlin'
 import { kdoc } from '@/format.ts'
-import type { RenderContext } from '@/RenderContext.ts'
+import { sdkConfig as config } from '@/config.ts'
 import type { SdkBody } from '@/params/SdkParams.ts'
 
 type Args = {
   context: GenerateContextType
   body: Extract<SdkBody, { kind: 'ref' }>
-  renderContext: RenderContext
   destinationPath: string
 }
 
@@ -34,7 +33,7 @@ export class RefBody extends KtSnippet {
   hasRequired = true
   fenceFields: string[]
 
-  constructor({ context, body, renderContext, destinationPath }: Args) {
+  constructor({ context, body, destinationPath }: Args) {
     super({ context })
     this.body = body
 
@@ -61,10 +60,10 @@ export class RefBody extends KtSnippet {
 
     this.register({
       imports: {
-        [`${renderContext.basePackage}.core`]: ['JsonValue', 'checkRequired'],
+        [`${config.basePackage}.core`]: ['JsonValue', 'checkRequired'],
         // Same-package suppression drops this in the flat layout (the
         // corpus case); the by-resource layout genuinely needs it.
-        [`${renderContext.basePackage}.models`]: [className]
+        [`${config.basePackage}.models`]: [className]
       },
       destinationPath
     })

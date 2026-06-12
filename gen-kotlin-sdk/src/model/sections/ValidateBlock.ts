@@ -1,53 +1,35 @@
 import type { GenerateContextType } from '@skmtc/core'
 import { KtSnippet } from '@skmtc/lang-kotlin'
+import { sdkConfig as config } from '@/config.ts'
+import { exceptionName } from '@/errors.ts'
 import { indent, kdoc } from '@/format.ts'
-import type { RenderContext } from '@/RenderContext.ts'
-import { isValidatable, type SdkModel } from '@/model/SdkModel.ts'
+import type { ModelField } from '@/model/ModelField.ts'
 
 type Args = {
   context: GenerateContextType
-  model: SdkModel
-  renderContext: RenderContext
+  className: string
+  fields: ModelField[]
   destinationPath: string
 }
 
 /** The `validated` flag + `validate()` + `isValid()` block. */
 export class ValidateBlock extends KtSnippet {
-  model: SdkModel
-  renderContext: RenderContext
+  className: string
+  fields: ModelField[]
 
-  constructor({ context, model, renderContext, destinationPath }: Args) {
+  constructor({ context, className, fields, destinationPath }: Args) {
     super({ context })
-    this.model = model
-    this.renderContext = renderContext
+    this.className = className
+    this.fields = fields
 
     this.register({
-      imports: {
-        [`${renderContext.basePackage}.errors`]: [
-          `${renderContext.exceptionPrefix}InvalidDataException`
-        ]
-      },
+      imports: { [`${config.basePackage}.errors`]: [exceptionName] },
       destinationPath
     })
   }
 
   override toString(): string {
-    const { model, renderContext } = this
-
-    const perField = model.fields.map(field => {
-      const call = `${field.kotlinName}()`
-      const optionalMark = field.required && !field.nullable ? '' : '?'
-
-      if (field.type.kind === 'list' && isValidatable(field.type.element)) {
-        return `${call}${optionalMark}.forEach { it.validate() }`
-      }
-
-      if (isValidatable(field.type)) {
-        return `${call}${optionalMark}.validate()`
-      }
-
-      return call
-    })
+    const perField = this.fields.map(field => field.validateTerm())
 
     return `private var validated: Boolean = false
 
@@ -56,9 +38,9 @@ ${kdoc([
       '',
       'This method is _not_ forwards compatible with new types from the API for existing fields.',
       '',
-      `@throws ${renderContext.exceptionPrefix}InvalidDataException if any value type in this object doesn't match its expected type.`
+      `@throws ${exceptionName} if any value type in this object doesn't match its expected type.`
     ])}
-fun validate(): ${model.className} = apply {
+fun validate(): ${this.className} = apply {
     if (validated) {
         return@apply
     }
@@ -70,7 +52,7 @@ fun isValid(): Boolean =
     try {
         validate()
         true
-    } catch (e: ${renderContext.exceptionPrefix}InvalidDataException) {
+    } catch (e: ${exceptionName}) {
         false
     }`
   }

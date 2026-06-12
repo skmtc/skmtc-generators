@@ -1,9 +1,17 @@
-import type { OasOperation, OasSchema } from '@skmtc/core'
+import type { OasObject, OasOperation, OasSchema } from '@skmtc/core'
 import { camelCase, capitalize } from '@skmtc/core'
 import invariant from 'tiny-invariant'
-import type { SdkEnum, SdkModel, SdkScalar } from '@/model/SdkModel.ts'
-import { toSdkModel } from '@/model/toSdkModel.ts'
-import type { FieldEnums, FieldStates, SharedHashes } from '@/model/toSdkModel.ts'
+import { sdkConfig as config } from '@/config.ts'
+import { toSingular } from '@/naming.ts'
+import type { KtScalar } from '@/model/types/KtTypes.ts'
+
+/** The Known/Value enum data carried by enum-typed params. */
+export type SdkEnum = {
+  className: string
+  description?: string
+  /** Wire values, in spec order. */
+  members: string[]
+}
 
 /**
  * The KS-D domain record (note 32 §D-1): one per Params class; every
@@ -29,33 +37,21 @@ export type SdkParams = {
  * axis (`_body(): Map<String, JsonValue>?`, optional wiring).
  */
 export type SdkBody =
-  | { kind: 'model'; model: SdkModel }
+  | { kind: 'model'; className: string; schema: OasObject }
   | { kind: 'ref'; className: string; kotlinName: string; description?: string }
   | { kind: 'map' }
 
-/** The nested body class name — `Body` for inline schemas, the component name for single-use refs. */
-export const bodyClassName = (body: Extract<SdkBody, { kind: 'model' }>): string =>
-  body.model.className
-
-/** Construction axis: a body that blocks `none()` (ref, or required model fields). */
+/**
+ * Construction axis: a body that blocks `none()` — a ref body is a
+ * required member, and a model body with spec-required fields keeps
+ * them required (the `fieldStates` demotion never applies to
+ * spec-required fields).
+ */
 export const bodyHasRequired = (body: SdkBody | undefined): boolean => {
   return (
     body?.kind === 'ref' ||
-    (body?.kind === 'model' && body.model.fields.some(field => field.required))
+    (body?.kind === 'model' && (body.schema.required?.length ?? 0) > 0)
   )
-}
-
-/** Fence axis: the body's entries in the required-fields KDoc fences. */
-export const bodyFenceFields = (body: SdkBody | undefined): string[] => {
-  if (body?.kind === 'ref') {
-    return [body.kotlinName]
-  }
-
-  if (body?.kind === 'model') {
-    return body.model.fields.filter(field => field.fenceRequired).map(field => field.kotlinName)
-  }
-
-  return []
 }
 
 export type SdkParam = {
@@ -69,7 +65,7 @@ export type SdkParam = {
 }
 
 export type SdkParamType =
-  | { kind: 'scalar'; kotlin: SdkScalar }
+  | { kind: 'scalar'; kotlin: KtScalar }
   | { kind: 'enum'; enumModel: SdkEnum }
   | { kind: 'datetime'; date: 'offset-date-time' | 'local-date' }
   | { kind: 'list'; element: SdkParamType }
@@ -94,32 +90,12 @@ export const toParamTypeExpression = (type: SdkParamType): string => {
 type ToSdkParamsArgs = {
   operation: OasOperation
   className: string
-  fieldEnums?: FieldEnums
-  fieldStates?: FieldStates
-  /** Shared-model identity for body-field classification; harmless to omit when only `hasNone`/body-kind are read. */
-  sharedHashes?: SharedHashes
-  /** The per-target hoist name (config-mirrored; defaults to `id`). */
-  hoistField?: string
-  /** Component refNames with standalone model classes (config-mirrored). */
-  modelComponents?: string[]
-  /** Per-wire-name Kotlin name overrides (acronym casing). */
-  kotlinNames?: Record<string, string>
   /** Config deprecation message (the enrichment's `deprecatedMessage`). */
   deprecatedMessage?: string
 }
 
 /** Walks `operation.parameters` into the domain record (§D-1/§D-2 ordering). */
-export const toSdkParams = ({
-  operation,
-  className,
-  fieldEnums,
-  fieldStates,
-  sharedHashes,
-  hoistField,
-  modelComponents,
-  kotlinNames,
-  deprecatedMessage
-}: ToSdkParamsArgs): SdkParams => {
+export const toSdkParams = ({ operation, className, deprecatedMessage }: ToSdkParamsArgs): SdkParams => {
   // Path-item-level parameters apply to every operation on the path;
   // core keeps them on `operation.pathItem` (no merge). Operation-level
   // declarations override by (name, location).
@@ -160,14 +136,14 @@ export const toSdkParams = ({
     // description outranks the component's for the enum KDoc.
     const refName = rawSchema?.isRef() ? rawSchema.toRefName() : undefined
 
-    const type = toParamType({ name, schema, fieldEnums, refName })
+    const type = toParamType({ name, schema, refName })
 
     if (type.kind === 'enum') {
       type.enumModel.description = description ?? type.enumModel.description ?? fullDescription
     }
 
     return {
-      kotlinName: kotlinNames?.[name] ?? toParamKotlinName(name),
+      kotlinName: config.kotlinNames?.[name] ?? toParamKotlinName(name),
       wireName: name,
       location,
       type,
@@ -180,7 +156,7 @@ export const toSdkParams = ({
     } satisfies SdkParam
   })
 
-  const hoistName = hoistField ?? 'id'
+  const hoistName = config.hoistField ?? 'id'
   const byNameHoistFirst = (a: SdkParam, b: SdkParam) => {
     if (a.kotlinName === hoistName) return -1
     if (b.kotlinName === hoistName) return 1
@@ -220,39 +196,13 @@ export const toSdkParams = ({
     ],
     deprecated:
       deprecatedMessage ?? (operation.deprecated === true ? 'deprecated' : undefined),
-    body: toSdkBody({
-      operation,
-      fieldEnums,
-      fieldStates,
-      sharedHashes,
-      hoistField,
-      modelComponents,
-      kotlinNames
-    })
+    body: toSdkBody(operation)
   }
 }
 
 const bodyCapableVerbs = new Set(['post', 'put', 'patch', 'delete'])
 
-type ToSdkBodyArgs = {
-  operation: OasOperation
-  fieldEnums?: FieldEnums
-  fieldStates?: FieldStates
-  sharedHashes?: SharedHashes
-  hoistField?: string
-  modelComponents?: string[]
-  kotlinNames?: Record<string, string>
-}
-
-const toSdkBody = ({
-  operation,
-  fieldEnums,
-  fieldStates,
-  sharedHashes,
-  hoistField,
-  modelComponents,
-  kotlinNames
-}: ToSdkBodyArgs): SdkBody | undefined => {
+const toSdkBody = (operation: OasOperation): SdkBody | undefined => {
   const schema = operation.toRequestBody(({ schema }) => schema)
 
   if (!schema) {
@@ -269,7 +219,7 @@ const toSdkBody = ({
   // it mirrors as config here.
   const refName = schema.isRef() ? schema.toRefName() : undefined
 
-  if (refName && (modelComponents ?? []).includes(refName)) {
+  if (refName && (config.modelComponents ?? []).includes(refName)) {
     const className = capitalize(camelCase(refName))
 
     return {
@@ -289,18 +239,8 @@ const toSdkBody = ({
 
   return {
     kind: 'model',
-    model: toSdkModel({
-      schema: resolved,
-      className: refName ? capitalize(camelCase(refName)) : 'Body',
-      sharedHashes: sharedHashes ?? new Map(),
-      fieldStates,
-      fieldEnums,
-      // Body classes use the component-shaped sort (corpus:
-      // CardCreateParams.Body — required-first, alphabetical).
-      sortFields: true,
-      hoistField,
-      kotlinNames
-    })
+    className: refName ? capitalize(camelCase(refName)) : 'Body',
+    schema: resolved
   }
 }
 
@@ -309,38 +249,27 @@ const toParamKotlinName = (name: string): string => {
   return camelCase(name).replace(/ID$/, 'Id')
 }
 
-/** `account_types` → `account_type` (list-element naming). */
-const toSingularName = (name: string): string => {
-  if (name.endsWith('ies')) {
-    return `${name.slice(0, -3)}y`
-  }
-
-  return name.endsWith('s') && !name.endsWith('ss') ? name.slice(0, -1) : name
-}
-
 type ToParamTypeArgs = {
   name: string
   schema: OasSchema
-  fieldEnums?: FieldEnums
   /** The component name when the parameter schema is a `$ref` — names ref-backed enums. */
   refName?: string
 }
 
-const toParamType = ({ name, schema, fieldEnums, refName }: ToParamTypeArgs): SdkParamType => {
+const toParamType = ({ name, schema, refName }: ToParamTypeArgs): SdkParamType => {
   switch (schema.type) {
     case 'array': {
       const elementRefName = schema.items.isRef() ? schema.items.toRefName() : undefined
       const items = schema.items.isRef() ? schema.items.resolve() : schema.items
       // The element's enum/scalar naming derives from the singular
       // form (`account_types` → `AccountType`).
-      const elementName = toSingularName(name)
+      const elementName = toSingular(name)
 
       return {
         kind: 'list',
         element: toParamType({
           name: elementName,
           schema: items,
-          fieldEnums,
           refName: elementRefName
         })
       }
@@ -357,7 +286,7 @@ const toParamType = ({ name, schema, fieldEnums, refName }: ToParamTypeArgs): Sd
       const specMembers = (schema.enums ?? []).filter(
         (member): member is string => typeof member === 'string'
       )
-      const members = specMembers.length ? specMembers : (fieldEnums?.[name] ?? [])
+      const members = specMembers.length ? specMembers : (config.fieldEnums?.[name] ?? [])
 
       if (members.length) {
         return {

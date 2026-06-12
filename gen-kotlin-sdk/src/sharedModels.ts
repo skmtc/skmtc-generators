@@ -2,15 +2,13 @@ import type { GenerateContextType, OasObject, OasOperation, OasRef, OasSchema } 
 import { CustomValue } from '@skmtc/core'
 import invariant from 'tiny-invariant'
 import { KtDefinition, createClass, register } from '@skmtc/lang-kotlin'
-import type { SdkConfig } from '@/SdkConfig.ts'
+import { sdkConfig as config } from '@/config.ts'
 import { generatedFileHeader } from '@/generatedFileHeader.ts'
-import { toSdkModel, toStructuralHash, type SharedHashes } from '@/model/toSdkModel.ts'
+import { toStructuralHash, type SharedHashes } from '@/model/structuralHash.ts'
 import { SdkModelValue } from '@/model/SdkModelValue.ts'
-import type { RenderContext } from '@/RenderContext.ts'
 
 export type EnsureSharedModelsResult = {
   sharedHashes: SharedHashes
-  renderContext: RenderContext
 }
 
 /**
@@ -20,22 +18,8 @@ export type EnsureSharedModelsResult = {
  * the structural-hash map the response-model walker matches against.
  * Registration is `findDefinition`-guarded (accumulator pattern).
  */
-export const ensureSharedModels = ({
-  context,
-  config
-}: {
-  context: GenerateContextType
-  config: SdkConfig
-}): EnsureSharedModelsResult => {
+export const ensureSharedModels = (context: GenerateContextType): EnsureSharedModelsResult => {
   const envelopeConfig = config.sharedModels.envelope
-
-  const renderContext: RenderContext = {
-    basePackage: config.basePackage,
-    exceptionPrefix: config.clientPrefix,
-    envelope: envelopeConfig
-      ? { className: envelopeConfig.className, fields: envelopeConfig.fields }
-      : undefined
-  }
 
   const packageDirs = config.basePackage.split('.').join('/')
   const modelsRoot = `${config.artifactName}-core/src/main/kotlin/${packageDirs}/models`
@@ -61,19 +45,11 @@ export const ensureSharedModels = ({
 
     ensureModelDefinition({
       context,
-      config,
-      renderContext,
       className,
       destinationPath: `${modelsRoot}/${className}.kt`,
-      model: toSdkModel({
-        schema,
-        className,
-        sharedHashes,
-        fieldStates: config.fieldStates,
-        fieldEnums: config.fieldEnums,
-        sortFields: true,
-        hoistField: config.hoistField
-      })
+      schema,
+      sharedHashes,
+      sorted: true
     })
   }
 
@@ -81,50 +57,38 @@ export const ensureSharedModels = ({
     const envelopeSource = toResponseSchema(
       findOperation(context, envelopeConfig.source.path, envelopeConfig.source.method)
     )
-    const envelopeModel = toSdkModel({
-      schema: envelopeSource,
-      className: envelopeConfig.className,
-      sharedHashes,
-      fieldStates: config.fieldStates,
-      fieldEnums: config.fieldEnums,
-      hoistField: config.hoistField
-    })
 
     ensureModelDefinition({
       context,
-      config,
-      renderContext,
       className: envelopeConfig.className,
       destinationPath: `${modelsRoot}/${envelopeConfig.className}.kt`,
-      model: {
-        ...envelopeModel,
-        description: undefined,
-        fields: envelopeModel.fields.filter(field =>
-          envelopeConfig.fields.includes(field.wireName)
-        )
-      }
+      schema: envelopeSource,
+      sharedHashes,
+      includeOnly: envelopeConfig.fields
     })
   }
 
-  return { sharedHashes, renderContext }
+  return { sharedHashes }
 }
 
 type EnsureModelDefinitionArgs = {
   context: GenerateContextType
-  config: SdkConfig
-  renderContext: RenderContext
   className: string
   destinationPath: string
-  model: ReturnType<typeof toSdkModel>
+  schema: OasObject
+  sharedHashes: SharedHashes
+  sorted?: boolean
+  includeOnly?: string[]
 }
 
 const ensureModelDefinition = ({
   context,
-  config,
-  renderContext,
   className,
   destinationPath,
-  model
+  schema,
+  sharedHashes,
+  sorted,
+  includeOnly
 }: EnsureModelDefinitionArgs): void => {
   if (context.findDefinition({ name: className, exportPath: destinationPath })) {
     return
@@ -132,10 +96,13 @@ const ensureModelDefinition = ({
 
   const value = new SdkModelValue({
     context,
-    model,
-    renderContext,
+    schema,
+    className,
     destinationPath,
-    fileHeader: generatedFileHeader
+    fileHeader: generatedFileHeader,
+    sharedHashes,
+    sorted,
+    includeOnly
   })
 
   const definition = new KtDefinition({

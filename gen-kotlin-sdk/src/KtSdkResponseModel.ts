@@ -1,10 +1,8 @@
 import type { OasOperationProjectionConstructorArgs, Stringable } from '@skmtc/core'
 import invariant from 'tiny-invariant'
 import { ResponseModelBase } from '@/base.ts'
-import { sdkConfig as config } from '@/config.ts'
 import type { SdkOperationEnrichment } from '@/enrichments.ts'
 import { generatedFileHeader } from '@/generatedFileHeader.ts'
-import { injectDataFields, toSdkModel } from '@/model/toSdkModel.ts'
 import { SdkModelValue } from '@/model/SdkModelValue.ts'
 import { ensureSharedModels } from '@/sharedModels.ts'
 
@@ -21,7 +19,7 @@ export class KtSdkResponseModel extends ResponseModelBase {
 
     const { context, operation, settings } = args
 
-    const { sharedHashes, renderContext } = ensureSharedModels({ context, config })
+    const { sharedHashes } = ensureSharedModels(context)
 
     const schema = operation.toSuccessResponse()?.resolve().toSchema()?.resolve()
 
@@ -30,34 +28,15 @@ export class KtSdkResponseModel extends ResponseModelBase {
       `@skmtc/gen-kotlin-sdk: ${operation.method} ${operation.path} has no object response schema`
     )
 
-    const walked = toSdkModel({
-      schema,
-      className: settings.identifier.name,
-      sharedHashes,
-      envelopeFields: config.sharedModels.envelope?.fields,
-      fieldStates: config.fieldStates,
-      fieldEnums: config.fieldEnums,
-      hoistField: config.hoistField,
-      kotlinNames: config.kotlinNames
-    })
-
-    const addFields = settings.enrichments?.addFields
-
-    const model = addFields?.length
-      ? injectDataFields({
-          model: walked,
-          addFields,
-          fieldStates: config.fieldStates,
-          hoistField: config.hoistField
-        })
-      : walked
-
     this.value = new SdkModelValue({
       context,
-      model,
-      renderContext,
+      schema,
+      className: settings.identifier.name,
       destinationPath: settings.exportPath,
-      fileHeader: generatedFileHeader
+      fileHeader: generatedFileHeader,
+      sharedHashes,
+      addFieldsForData: settings.enrichments?.addFields,
+      detectEnvelope: true
     })
     this.constructorModifiers = this.value.constructorModifiers
     this.constructorParameters = this.value.constructorParameters

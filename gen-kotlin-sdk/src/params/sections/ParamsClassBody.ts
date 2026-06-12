@@ -1,7 +1,6 @@
 import type { GenerateContextType, Stringable } from '@skmtc/core'
 import { KtSnippet } from '@skmtc/lang-kotlin'
 import { kdoc } from '@/format.ts'
-import type { RenderContext } from '@/RenderContext.ts'
 import { KnownValueEnum } from '@/model/sections/KnownValueEnum.ts'
 import type { BodySnippet } from '@/params/body/BodySnippet.ts'
 import type { SdkParams } from '@/params/SdkParams.ts'
@@ -19,7 +18,6 @@ type Args = {
   body: BodySnippet
   hasNone: boolean
   fenceNames: string[]
-  renderContext: RenderContext
   destinationPath: string
 }
 
@@ -27,7 +25,7 @@ type Args = {
 export class ParamsClassBody extends KtSnippet {
   sections: Stringable[]
 
-  constructor({ context, model, body, hasNone, fenceNames, renderContext, destinationPath }: Args) {
+  constructor({ context, model, body, hasNone, fenceNames, destinationPath }: Args) {
     super({ context })
 
     const { className, params } = model
@@ -60,7 +58,6 @@ export class ParamsClassBody extends KtSnippet {
         params,
         body,
         fenceNames,
-        renderContext,
         destinationPath
       }),
       ...body.bodyMethodSections,
@@ -80,8 +77,9 @@ export class ParamsClassBody extends KtSnippet {
           ? [
               new KnownValueEnum({
                 context,
-                enumModel,
-                renderContext,
+                className: enumModel.className,
+                members: enumModel.members,
+                description: enumModel.description,
                 destinationPath,
                 documentedValidate: true
               })

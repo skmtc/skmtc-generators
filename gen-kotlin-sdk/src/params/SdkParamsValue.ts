@@ -1,6 +1,7 @@
 import type { GenerateContextType } from '@skmtc/core'
 import { KtAnnotation, KtSnippet } from '@skmtc/lang-kotlin'
-import type { RenderContext } from '@/RenderContext.ts'
+import { sdkConfig as config } from '@/config.ts'
+import type { SharedHashes } from '@/model/structuralHash.ts'
 import { toBodySnippet, type BodySnippet } from '@/params/body/BodySnippet.ts'
 import type { SdkParams } from '@/params/SdkParams.ts'
 import { ParamsClassBody } from '@/params/sections/ParamsClassBody.ts'
@@ -9,7 +10,7 @@ import { ParamsConstructorParameters } from '@/params/sections/ParamsConstructor
 export type SdkParamsValueArgs = {
   context: GenerateContextType
   model: SdkParams
-  renderContext: RenderContext
+  sharedHashes: SharedHashes
   destinationPath: string
   fileHeader: string
 }
@@ -30,7 +31,7 @@ export class SdkParamsValue extends KtSnippet {
   body: BodySnippet
   classBody: ParamsClassBody
 
-  constructor({ context, model, renderContext, destinationPath, fileHeader }: SdkParamsValueArgs) {
+  constructor({ context, model, sharedHashes, destinationPath, fileHeader }: SdkParamsValueArgs) {
     super({ context })
 
     this.description = model.description
@@ -38,7 +39,7 @@ export class SdkParamsValue extends KtSnippet {
       ? [new KtAnnotation('Deprecated', [JSON.stringify(model.deprecated)])]
       : []
 
-    this.body = toBodySnippet({ context, body: model.body, renderContext, destinationPath })
+    this.body = toBodySnippet({ context, body: model.body, destinationPath, sharedHashes })
 
     // The construction and fence axes — decided once, read by the
     // companion and the Builder.
@@ -52,7 +53,6 @@ export class SdkParamsValue extends KtSnippet {
       context,
       params: model.params,
       body: this.body,
-      renderContext,
       destinationPath
     })
 
@@ -62,12 +62,11 @@ export class SdkParamsValue extends KtSnippet {
       body: this.body,
       hasNone,
       fenceNames,
-      renderContext,
       destinationPath
     })
 
     this.register({
-      imports: { [`${renderContext.basePackage}.core`]: ['Params'] },
+      imports: { [`${config.basePackage}.core`]: ['Params'] },
       fileHeader,
       destinationPath
     })

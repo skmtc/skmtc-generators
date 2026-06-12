@@ -1,20 +1,17 @@
-import type { GenerateContextType, Stringable } from '@skmtc/core'
+import type { GenerateContextType, OasObject, Stringable } from '@skmtc/core'
 import { KtSnippet } from '@skmtc/lang-kotlin'
+import { sdkConfig as config } from '@/config.ts'
 import { kdoc } from '@/format.ts'
-import { optionalThrows, requiredThrows, type RenderContext } from '@/RenderContext.ts'
-import { toTypeExpression, type SdkField, type SdkModel } from '@/model/SdkModel.ts'
-import {
-  addMethodKdoc,
-  rawJsonSetterKdoc,
-  toAddMethodInfo
-} from '@/model/sections/builderDocs.ts'
+import type { ModelField } from '@/model/ModelField.ts'
+import type { SharedHashes } from '@/model/structuralHash.ts'
 import { NestedModelClass } from '@/model/sections/NestedModelClass.ts'
 
 type Args = {
   context: GenerateContextType
-  bodyModel: SdkModel
-  renderContext: RenderContext
+  className: string
+  schema: OasObject
   destinationPath: string
+  sharedHashes: SharedHashes
 }
 
 /**
@@ -24,7 +21,8 @@ type Args = {
  * delegating accessors and setters.
  */
 export class ModelBody extends KtSnippet {
-  bodyModel: SdkModel
+  className: string
+  fields: ModelField[]
   constructorLeadLines: string[]
   constructorTailLines: string[] = []
   accessorSections: Stringable[]
@@ -41,37 +39,45 @@ export class ModelBody extends KtSnippet {
   hasRequired: boolean
   fenceFields: string[]
 
-  constructor({ context, bodyModel, renderContext, destinationPath }: Args) {
+  constructor({ context, className, schema, destinationPath, sharedHashes }: Args) {
     super({ context })
-    this.bodyModel = bodyModel
+    this.className = className
 
-    const { className, fields } = bodyModel
+    const nestedClass = new NestedModelClass({
+      context,
+      className,
+      schema,
+      destinationPath,
+      sharedHashes
+    })
+    this.fields = nestedClass.fields
+    this.nestedSections = [nestedClass]
 
     this.constructorLeadLines = [`private val body: ${className},`]
-    this.builderLeadVariables = [
-      `private var body: ${className}.Builder = ${className}.builder()`
-    ]
+    this.builderLeadVariables = [`private var body: ${className}.Builder = ${className}.builder()`]
     this.bodyMethodSections = [`fun _body(): ${className} = body`]
-    this.hasRequired = fields.some(field => field.required)
-    this.fenceFields = fields.filter(field => field.fenceRequired).map(field => field.kotlinName)
+    this.hasRequired = this.fields.some(field => field.required)
+    this.fenceFields = this.fields
+      .filter(field => field.fenceRequired)
+      .map(field => field.kotlinName)
 
     // Grouped like the model sections: every typed accessor, then
     // every raw accessor (corpus: TransactionSimulateClearingParams).
     this.accessorSections = [
-      ...fields.map(field => flattenedTypedAccessor(field, renderContext)),
-      ...fields.map(field => flattenedRawAccessor(field)),
+      ...this.fields.map(field => field.flattenedTypedAccessor()),
+      ...this.fields.map(field => field.flattenedRawAccessor()),
       'fun _additionalBodyProperties(): Map<String, JsonValue> = body._additionalProperties()'
     ]
 
-    this.setterSections = [...flattenedSetters(bodyModel), delegatedBodyPropertiesBlock]
-
-    this.nestedSections = [
-      new NestedModelClass({ context, model: bodyModel, renderContext, destinationPath })
+    this.setterSections = [
+      this.bodySetter(),
+      ...this.fields.flatMap(field => field.flattenedSetterBlocks()),
+      delegatedBodyPropertiesBlock
     ]
 
     this.register({
       imports: {
-        [`${renderContext.basePackage}.core`]: ['JsonField', 'JsonValue']
+        [`${config.basePackage}.core`]: ['JsonField', 'JsonValue']
       },
       destinationPath
     })
@@ -85,76 +91,26 @@ export class ModelBody extends KtSnippet {
     return []
   }
 
+  /** The entire-body setter with the top-level-setter link list. */
+  private bodySetter(): string {
+    const links = this.fields.map(field => `- [${field.kotlinName}]`)
+    // The corpus shows at most five links, appending `- etc.` from
+    // five fields up (TransferCreateParams: exactly five + etc.).
+    const shown = links.length >= 5 ? [...links.slice(0, 5), '- etc.'] : links
+
+    return (
+      kdoc([
+        'Sets the entire request body.',
+        '',
+        "This is generally only useful if you are already constructing the body separately. Otherwise, it's more convenient to use the top-level setters instead:",
+        ...shown
+      ]) + `\nfun body(body: ${this.className}) = apply { this.body = body.toBuilder() }`
+    )
+  }
+
   override toString(): string {
     return ''
   }
-}
-
-const flattenedTypedAccessor = (field: SdkField, renderContext: RenderContext): string => {
-  const typeExpression = toTypeExpression(field.type)
-  const lines = field.description ? [field.description, ''] : []
-  lines.push(field.docRequired ? requiredThrows(renderContext) : optionalThrows(renderContext))
-
-  const accessor =
-    field.required && !field.nullable
-      ? `fun ${field.kotlinName}(): ${typeExpression} = body.${field.kotlinName}()`
-      : `fun ${field.kotlinName}(): ${typeExpression}? = body.${field.kotlinName}()`
-
-  return `${kdoc(lines)}\n${accessor}`
-}
-
-const flattenedRawAccessor = (field: SdkField): string => {
-  const typeExpression = toTypeExpression(field.type)
-
-  return (
-    kdoc([
-      `Returns the raw JSON value of [${field.kotlinName}].`,
-      '',
-      `Unlike [${field.kotlinName}], this method doesn't throw if the JSON field has an unexpected type.`
-    ]) + `\nfun _${field.kotlinName}(): JsonField<${typeExpression}> = body._${field.kotlinName}()`
-  )
-}
-
-/** The entire-body setter + per-field delegating setter family. */
-const flattenedSetters = (bodyModel: SdkModel): string[] => {
-  const { className, fields } = bodyModel
-  const links = fields.map(field => `- [${field.kotlinName}]`)
-  // The corpus shows at most five links, appending `- etc.` from
-  // five fields up (TransferCreateParams: exactly five + etc.).
-  const shown = links.length >= 5 ? [...links.slice(0, 5), '- etc.'] : links
-
-  const bodySetter =
-    kdoc([
-      'Sets the entire request body.',
-      '',
-      "This is generally only useful if you are already constructing the body separately. Otherwise, it's more convenient to use the top-level setters instead:",
-      ...shown
-    ]) + `\nfun body(body: ${className}) = apply { this.body = body.toBuilder() }`
-
-  const fieldSetters = fields.flatMap(field => {
-    const { kotlinName } = field
-    const typeExpression = toTypeExpression(field.type)
-    const descriptionKdoc = field.description ? `${kdoc([field.description])}\n` : ''
-
-    const typedParameter = field.nullable ? `${typeExpression}?` : typeExpression
-
-    const blocks = [
-      `${descriptionKdoc}fun ${kotlinName}(${kotlinName}: ${typedParameter}) = apply { body.${kotlinName}(${kotlinName}) }`,
-      `${rawJsonSetterKdoc(field)}\nfun ${kotlinName}(${kotlinName}: JsonField<${typeExpression}>) = apply { body.${kotlinName}(${kotlinName}) }`
-    ]
-
-    if (field.type.kind === 'list') {
-      const { addName, elementName, elementType } = toAddMethodInfo(kotlinName, field.type)
-
-      blocks.push(
-        `${addMethodKdoc(elementType, kotlinName)}\nfun ${addName}(${elementName}: ${elementType}) = apply { body.${addName}(${elementName}) }`
-      )
-    }
-
-    return blocks
-  })
-
-  return [bodySetter, ...fieldSetters]
 }
 
 /** The model shape's additionalBodyProperties ops — delegating into the Body builder. */

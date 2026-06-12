@@ -1,44 +1,91 @@
-import type { GenerateContextType } from '@skmtc/core'
+import type { GenerateContextType, OasObject } from '@skmtc/core'
 import { KtSnippet } from '@skmtc/lang-kotlin'
-import type { RenderContext } from '@/RenderContext.ts'
-import { applyStdlibShadowing, type SdkModel } from '@/model/SdkModel.ts'
+import { sdkConfig as config } from '@/config.ts'
+import type { AddField, ModelField } from '@/model/ModelField.ts'
+import type { SharedHashes } from '@/model/structuralHash.ts'
+import { shadowFields, toModelFields } from '@/model/toModelFields.ts'
 import { ModelClassBody } from '@/model/sections/ModelClassBody.ts'
 import { PrimaryConstructorParameters } from '@/model/sections/PrimaryConstructorParameters.ts'
 
 export type SdkModelValueArgs = {
   context: GenerateContextType
-  model: SdkModel
-  renderContext: RenderContext
+  schema: OasObject
+  className: string
   destinationPath: string
   fileHeader: string
+  sharedHashes: SharedHashes
+  /** Component-shaped classes sort; top-level responses keep allOf-merge order. */
+  sorted?: boolean
+  /** Restrict to these wire names (the envelope model). */
+  includeOnly?: string[]
+  /** Enrichment field injections for the `data`-level nested class. */
+  addFieldsForData?: AddField[]
+  /**
+   * Operation response models covering the envelope fields get the
+   * `toResponseWrapper()` section; the shared/envelope models
+   * themselves must not (the envelope cannot convert to itself).
+   */
+  detectEnvelope?: boolean
 }
 
 /**
- * The file-level VALUE for a model class. Carries the `KtConstructed`
- * protocol (primary constructor + `@JsonCreator(…DISABLED) private`
- * modifiers) for `KtDefinition`'s `class` shell; composes the §C3
- * section Snippets once in the constructor — each section registers
- * its own imports (T2) — and `toString()` delegates to the body.
+ * The file-level VALUE for a model class — the producer IS the model:
+ * the constructor walks the schema into field producers (which walk
+ * their own types), runs the stdlib-shadowing pass once from the file
+ * root, and composes the §C3 section set. Carries the `KtConstructed`
+ * protocol for `KtDefinition`'s `class` shell.
  */
 export class SdkModelValue extends KtSnippet {
-  // KtConstructed protocol members — plain fields; the protocol takes
-  // any Stringable, so the section Snippet itself is the value.
   constructorModifiers = '@JsonCreator(mode = JsonCreator.Mode.DISABLED) private'
   constructorParameters: PrimaryConstructorParameters
+  fields: ModelField[]
   body: ModelClassBody
 
-  constructor({ context, model, renderContext, destinationPath, fileHeader }: SdkModelValueArgs) {
+  constructor({
+    context,
+    schema,
+    className,
+    destinationPath,
+    fileHeader,
+    sharedHashes,
+    sorted,
+    includeOnly,
+    addFieldsForData,
+    detectEnvelope
+  }: SdkModelValueArgs) {
     super({ context })
 
-    const shadowed = applyStdlibShadowing(model, new Set())
+    this.fields = toModelFields({
+      context,
+      schema,
+      destinationPath,
+      sharedHashes,
+      sorted,
+      includeOnly,
+      addFieldsForData
+    })
+
+    shadowFields(this.fields, new Set())
+
+    const envelopeFields = config.sharedModels.envelope?.fields ?? []
+    const wireNames = new Set(this.fields.map(field => field.wireName))
+    const envelope =
+      detectEnvelope === true &&
+      envelopeFields.length > 0 &&
+      envelopeFields.every(name => wireNames.has(name))
 
     this.constructorParameters = new PrimaryConstructorParameters({
       context,
-      model: shadowed,
-      renderContext,
+      fields: this.fields,
       destinationPath
     })
-    this.body = new ModelClassBody({ context, model: shadowed, renderContext, destinationPath })
+    this.body = new ModelClassBody({
+      context,
+      className,
+      fields: this.fields,
+      envelope,
+      destinationPath
+    })
 
     this.register({ fileHeader, destinationPath })
   }
