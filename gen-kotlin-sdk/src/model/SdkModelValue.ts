@@ -1,19 +1,14 @@
 import type { GenerateContextType } from '@skmtc/core'
 import { KtSnippet } from '@skmtc/lang-kotlin'
-import { applyStdlibShadowing, type SdkModel } from './SdkModel.ts'
-import {
-  constructorModifiers,
-  renderModelBody,
-  renderPrimaryConstructorParameters,
-  type RenderContext
-} from './renderModel.ts'
-import { toModelImports } from './modelImports.ts'
+import type { RenderContext } from '@/RenderContext.ts'
+import { applyStdlibShadowing, type SdkModel } from '@/model/SdkModel.ts'
+import { ModelClassBody } from '@/model/sections/ModelClassBody.ts'
+import { PrimaryConstructorParameters } from '@/model/sections/PrimaryConstructorParameters.ts'
 
 export type SdkModelValueArgs = {
   context: GenerateContextType
   model: SdkModel
   renderContext: RenderContext
-  basePackage: string
   destinationPath: string
   fileHeader: string
 }
@@ -21,47 +16,34 @@ export type SdkModelValueArgs = {
 /**
  * The file-level VALUE for a model class. Carries the `KtConstructed`
  * protocol (primary constructor + `@JsonCreator(…DISABLED) private`
- * modifiers) for `KtDefinition`'s `class` shell; `toString()` renders
- * the §C3 section set over the domain record. Registers the imports
- * the rendered sections need (T2) plus the attribution header.
+ * modifiers) for `KtDefinition`'s `class` shell; composes the §C3
+ * section Snippets once in the constructor — each section registers
+ * its own imports (T2) — and `toString()` delegates to the body.
  */
 export class SdkModelValue extends KtSnippet {
-  model: SdkModel
-  renderContext: RenderContext
+  // KtConstructed protocol members — plain fields; the protocol takes
+  // any Stringable, so the section Snippet itself is the value.
+  constructorModifiers = '@JsonCreator(mode = JsonCreator.Mode.DISABLED) private'
+  constructorParameters: PrimaryConstructorParameters
+  body: ModelClassBody
 
-  constructor({
-    context,
-    model,
-    renderContext,
-    basePackage,
-    destinationPath,
-    fileHeader
-  }: SdkModelValueArgs) {
+  constructor({ context, model, renderContext, destinationPath, fileHeader }: SdkModelValueArgs) {
     super({ context })
-    this.model = applyStdlibShadowing(model, new Set())
-    this.renderContext = renderContext
 
-    this.register({
-      imports: toModelImports({
-        model,
-        basePackage,
-        exceptionPrefix: renderContext.exceptionPrefix,
-        envelopeClassName: renderContext.envelope?.className
-      }),
-      fileHeader,
+    const shadowed = applyStdlibShadowing(model, new Set())
+
+    this.constructorParameters = new PrimaryConstructorParameters({
+      context,
+      model: shadowed,
+      renderContext,
       destinationPath
     })
-  }
+    this.body = new ModelClassBody({ context, model: shadowed, renderContext, destinationPath })
 
-  get constructorModifiers(): string {
-    return constructorModifiers
-  }
-
-  get constructorParameters(): string {
-    return renderPrimaryConstructorParameters(this.model)
+    this.register({ fileHeader, destinationPath })
   }
 
   override toString(): string {
-    return renderModelBody(this.model, this.renderContext)
+    return `${this.body}`
   }
 }

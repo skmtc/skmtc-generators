@@ -1,12 +1,12 @@
 import type { GenerateContextType } from '@skmtc/core'
 import { KtSnippet } from '@skmtc/lang-kotlin'
-import { renderServiceBody, toServiceImports, type ServiceFlavor } from './renderService.ts'
+import { renderServiceBody, toServiceImports, type ServiceFlavor } from '@/services/renderService.ts'
 import {
   renderServiceImplBody,
   toServiceImplImports
-} from './renderServiceImpl.ts'
-import { toServiceName } from './renderService.ts'
-import type { SdkService } from './SdkService.ts'
+} from '@/services/renderServiceImpl.ts'
+import { toServiceName } from '@/services/renderService.ts'
+import type { SdkService } from '@/services/SdkService.ts'
 
 type SdkServiceValueArgs = {
   context: GenerateContextType

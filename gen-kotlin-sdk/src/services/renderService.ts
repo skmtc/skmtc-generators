@@ -1,5 +1,5 @@
-import { indent, kdoc } from '../model/renderModel.ts'
-import type { SdkService, SdkServiceOperation } from './SdkService.ts'
+import { indent, kdoc } from '@/format.ts'
+import type { SdkService, SdkServiceOperation } from '@/services/SdkService.ts'
 
 export type ServiceFlavor = 'blocking' | 'async'
 

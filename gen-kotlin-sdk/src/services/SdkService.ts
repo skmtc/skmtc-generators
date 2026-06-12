@@ -1,9 +1,9 @@
 import type { GenerateContextType, OasOperation } from '@skmtc/core'
 import { camelCase, capitalize } from '@skmtc/core'
 import invariant from 'tiny-invariant'
-import type { SdkConfig } from '../SdkConfig.ts'
-import type { SdkOperationEnrichment } from '../enrichments.ts'
-import { bodyHasRequired, toSdkParams } from '../params/SdkParams.ts'
+import type { SdkConfig } from '@/SdkConfig.ts'
+import type { SdkOperationEnrichment } from '@/enrichments.ts'
+import { bodyHasRequired, toSdkParams } from '@/params/SdkParams.ts'
 
 /**
  * The KS-E domain record (note 32 §E-1): one per resource; the four

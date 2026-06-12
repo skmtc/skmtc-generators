@@ -1,7 +1,7 @@
 import type { GenerateContextType } from '@skmtc/core'
 import { KtDefinition, createVerbatim, register } from '@skmtc/lang-kotlin'
 import templates from '../templates/static-files.json' with { type: 'json' }
-import { toScreamingPrefix, type SdkConfig } from './SdkConfig.ts'
+import { toScreamingPrefix, type SdkConfig } from '@/SdkConfig.ts'
 
 export type StaticFile = {
   module: string

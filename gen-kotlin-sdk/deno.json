@@ -6,6 +6,7 @@
     "test": "deno test --allow-env --allow-sys --allow-read"
   },
   "imports": {
+    "@/": "./src/",
     "@skmtc/core": "jsr:@skmtc/core@0.9.2",
     "@skmtc/lang-kotlin": "jsr:@skmtc/lang-kotlin@0.6.1",
     "valibot": "npm:valibot@1.1.0",

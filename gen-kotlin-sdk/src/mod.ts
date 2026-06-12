@@ -2,25 +2,26 @@ import { camelCase, capitalize, toOasOperationEntry } from '@skmtc/core'
 import type {
   GenerateContextType,
   OasOperation,
-  OasOperationProjectionConstructorArgs
+  OasOperationProjectionConstructorArgs,
+  Stringable
 } from '@skmtc/core'
 import { createClass, toOasOperationProjectionBase, type KtAnnotation } from '@skmtc/lang-kotlin'
 import invariant from 'tiny-invariant'
-import { emitStaticFiles, type StaticFilesOverlay } from './emitStaticFiles.ts'
-import { ensureSharedModels } from './sharedModels.ts'
-import { generatedFileHeader } from './generatedFileHeader.ts'
-import { injectDataFields, toSdkModel } from './model/toSdkModel.ts'
-import { SdkModelValue } from './model/SdkModelValue.ts'
-import { toSdkParams } from './params/SdkParams.ts'
-import { SdkParamsValue } from './params/SdkParamsValue.ts'
-import { toSdkService } from './services/SdkService.ts'
-import { SdkServiceImplValue, SdkServiceValue } from './services/SdkServiceValue.ts'
-import { SdkClientImplValue, SdkClientValue } from './client/SdkClientValue.ts'
-import type { SdkClientModel } from './client/SdkClient.ts'
+import { emitStaticFiles, type StaticFilesOverlay } from '@/emitStaticFiles.ts'
+import { ensureSharedModels } from '@/sharedModels.ts'
+import { generatedFileHeader } from '@/generatedFileHeader.ts'
+import { injectDataFields, toSdkModel } from '@/model/toSdkModel.ts'
+import { SdkModelValue } from '@/model/SdkModelValue.ts'
+import { toSdkParams } from '@/params/SdkParams.ts'
+import { SdkParamsValue } from '@/params/SdkParamsValue.ts'
+import { toSdkService } from '@/services/SdkService.ts'
+import { SdkServiceImplValue, SdkServiceValue } from '@/services/SdkServiceValue.ts'
+import { SdkClientImplValue, SdkClientValue } from '@/client/SdkClientValue.ts'
+import type { SdkClientModel } from '@/client/SdkClient.ts'
 import { createInterface, defineAndRegister, register } from '@skmtc/lang-kotlin'
-import { sdkOperationEnrichmentSchema, toEnrichmentSchema } from './enrichments.ts'
-import type { SdkOperationEnrichment } from './enrichments.ts'
-import type { SdkConfig } from './SdkConfig.ts'
+import { sdkOperationEnrichmentSchema, toEnrichmentSchema } from '@/enrichments.ts'
+import type { SdkOperationEnrichment } from '@/enrichments.ts'
+import type { SdkConfig } from '@/SdkConfig.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
 /**
@@ -82,6 +83,10 @@ export const toKotlinSdkEntry = (config: SdkConfig, extras: KotlinSdkEntryExtras
 
   class KtSdkResponseModel extends ResponseModelBase {
     value: SdkModelValue
+    // The Driver wraps the PROJECTION, so the value protocols are
+    // mirrored here as plain fields (the spec-28 gotcha).
+    constructorModifiers: string
+    constructorParameters: Stringable
 
     constructor(args: OasOperationProjectionConstructorArgs<SdkOperationEnrichment>) {
       super(args)
@@ -123,24 +128,15 @@ export const toKotlinSdkEntry = (config: SdkConfig, extras: KotlinSdkEntryExtras
         context,
         model,
         renderContext,
-        basePackage: config.basePackage,
         destinationPath: settings.exportPath,
         fileHeader: generatedFileHeader
       })
-    }
-
-    // The Driver wraps the PROJECTION, so the value protocols are
-    // mirrored here (the spec-28 gotcha).
-    get constructorModifiers(): string {
-      return this.value.constructorModifiers
-    }
-
-    get constructorParameters(): string {
-      return this.value.constructorParameters
+      this.constructorModifiers = this.value.constructorModifiers
+      this.constructorParameters = this.value.constructorParameters
     }
 
     override toString(): string {
-      return this.value.toString()
+      return `${this.value}`
     }
   }
 
@@ -171,6 +167,11 @@ export const toKotlinSdkEntry = (config: SdkConfig, extras: KotlinSdkEntryExtras
 
   class KtSdkParams extends ParamsBase {
     value: SdkParamsValue
+    description: string
+    annotations: KtAnnotation[]
+    constructorModifiers: string
+    constructorParameters: Stringable
+    supertypes: string[]
 
     constructor(args: OasOperationProjectionConstructorArgs<SdkOperationEnrichment>) {
       super(args)
@@ -193,34 +194,18 @@ export const toKotlinSdkEntry = (config: SdkConfig, extras: KotlinSdkEntryExtras
           deprecatedMessage: settings.enrichments?.deprecatedMessage
         }),
         renderContext,
-        basePackage: config.basePackage,
         destinationPath: settings.exportPath,
         fileHeader: generatedFileHeader
       })
-    }
-
-    get description(): string {
-      return this.value.description
-    }
-
-    get annotations(): KtAnnotation[] {
-      return this.value.annotations
-    }
-
-    get constructorModifiers(): string {
-      return this.value.constructorModifiers
-    }
-
-    get constructorParameters(): string {
-      return this.value.constructorParameters
-    }
-
-    get supertypes(): string[] {
-      return this.value.supertypes
+      this.description = this.value.description
+      this.annotations = this.value.annotations
+      this.constructorModifiers = this.value.constructorModifiers
+      this.constructorParameters = this.value.constructorParameters
+      this.supertypes = this.value.supertypes
     }
 
     override toString(): string {
-      return this.value.toString()
+      return `${this.value}`
     }
   }
 
@@ -257,6 +242,9 @@ export const toKotlinSdkEntry = (config: SdkConfig, extras: KotlinSdkEntryExtras
 
     return class extends Base {
       value: SdkServiceValue | SdkServiceImplValue
+      constructorModifiers: string | undefined
+      constructorParameters: Stringable | undefined
+      supertypes: string[]
 
       constructor(args: OasOperationProjectionConstructorArgs<SdkOperationEnrichment>) {
         super(args)
@@ -284,26 +272,15 @@ export const toKotlinSdkEntry = (config: SdkConfig, extras: KotlinSdkEntryExtras
           destinationPath: settings.exportPath,
           fileHeader: generatedFileHeader
         })
-      }
 
-      get constructorModifiers(): string | undefined {
-        return this.value instanceof SdkServiceImplValue
-          ? this.value.constructorModifiers
-          : undefined
-      }
-
-      get constructorParameters(): string | undefined {
-        return this.value instanceof SdkServiceImplValue
-          ? this.value.constructorParameters
-          : undefined
-      }
-
-      get supertypes(): string[] {
-        return this.value instanceof SdkServiceImplValue ? this.value.supertypes : []
+        const impl = this.value instanceof SdkServiceImplValue ? this.value : undefined
+        this.constructorModifiers = impl?.constructorModifiers
+        this.constructorParameters = impl?.constructorParameters
+        this.supertypes = impl ? impl.supertypes : []
       }
 
       override toString(): string {
-        return this.value.toString()
+        return `${this.value}`
       }
     }
   }
@@ -488,5 +465,5 @@ export const toKotlinSdkEntry = (config: SdkConfig, extras: KotlinSdkEntryExtras
   })
 }
 
-export type { SdkConfig, SdkAuthConfig } from './SdkConfig.ts'
+export type { SdkConfig, SdkAuthConfig } from '@/SdkConfig.ts'
 export { sdkOperationEnrichmentSchema }

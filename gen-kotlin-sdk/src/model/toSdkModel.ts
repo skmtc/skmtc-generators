@@ -7,7 +7,7 @@ import {
   type SdkField,
   type SdkModel,
   type SdkType
-} from './SdkModel.ts'
+} from '@/model/SdkModel.ts'
 
 /** hash of a schema's canonical JSON → shared model class name */
 export type SharedHashes = Map<string, string>

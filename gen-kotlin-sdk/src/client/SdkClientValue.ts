@@ -7,7 +7,7 @@ import {
   toClientImplImports,
   toClientImports,
   type SdkClientModel
-} from './SdkClient.ts'
+} from '@/client/SdkClient.ts'
 
 type Flavor = 'blocking' | 'async'
 

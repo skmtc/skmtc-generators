@@ -2,11 +2,11 @@ import type { GenerateContextType, OasObject, OasOperation, OasRef, OasSchema } 
 import { CustomValue } from '@skmtc/core'
 import invariant from 'tiny-invariant'
 import { KtDefinition, createClass, register } from '@skmtc/lang-kotlin'
-import type { SdkConfig } from './SdkConfig.ts'
-import { generatedFileHeader } from './generatedFileHeader.ts'
-import { toSdkModel, toStructuralHash, type SharedHashes } from './model/toSdkModel.ts'
-import { SdkModelValue } from './model/SdkModelValue.ts'
-import type { RenderContext } from './model/renderModel.ts'
+import type { SdkConfig } from '@/SdkConfig.ts'
+import { generatedFileHeader } from '@/generatedFileHeader.ts'
+import { toSdkModel, toStructuralHash, type SharedHashes } from '@/model/toSdkModel.ts'
+import { SdkModelValue } from '@/model/SdkModelValue.ts'
+import type { RenderContext } from '@/RenderContext.ts'
 
 export type EnsureSharedModelsResult = {
   sharedHashes: SharedHashes
@@ -30,6 +30,7 @@ export const ensureSharedModels = ({
   const envelopeConfig = config.sharedModels.envelope
 
   const renderContext: RenderContext = {
+    basePackage: config.basePackage,
     exceptionPrefix: config.clientPrefix,
     envelope: envelopeConfig
       ? { className: envelopeConfig.className, fields: envelopeConfig.fields }
@@ -133,7 +134,6 @@ const ensureModelDefinition = ({
     context,
     model,
     renderContext,
-    basePackage: config.basePackage,
     destinationPath,
     fileHeader: generatedFileHeader
   })

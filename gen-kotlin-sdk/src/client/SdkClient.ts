@@ -1,4 +1,4 @@
-import { indent, kdoc } from '../model/renderModel.ts'
+import { indent, kdoc } from '@/format.ts'
 
 /** One per-resource entry, in CONFIG ORDER (§E-5). */
 export type SdkClientResource = {

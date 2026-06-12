@@ -1,6 +1,6 @@
-import { indent, kdoc } from '../model/renderModel.ts'
-import { addModelImports, toServiceName, type ServiceFlavor } from './renderService.ts'
-import type { SdkService, SdkServiceOperation } from './SdkService.ts'
+import { indent, kdoc } from '@/format.ts'
+import { addModelImports, toServiceName, type ServiceFlavor } from '@/services/renderService.ts'
+import type { SdkService, SdkServiceOperation } from '@/services/SdkService.ts'
 
 export const toServiceImplName = (service: SdkService, flavor: ServiceFlavor): string =>
   `${toServiceName(service, flavor)}Impl`

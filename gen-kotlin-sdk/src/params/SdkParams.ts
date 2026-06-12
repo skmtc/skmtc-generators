@@ -1,9 +1,9 @@
 import type { OasOperation, OasSchema } from '@skmtc/core'
 import { camelCase, capitalize } from '@skmtc/core'
 import invariant from 'tiny-invariant'
-import type { SdkEnum, SdkModel, SdkScalar } from '../model/SdkModel.ts'
-import { toSdkModel } from '../model/toSdkModel.ts'
-import type { FieldEnums, FieldStates, SharedHashes } from '../model/toSdkModel.ts'
+import type { SdkEnum, SdkModel, SdkScalar } from '@/model/SdkModel.ts'
+import { toSdkModel } from '@/model/toSdkModel.ts'
+import type { FieldEnums, FieldStates, SharedHashes } from '@/model/toSdkModel.ts'
 
 /**
  * The KS-D domain record (note 32 §D-1): one per Params class; every
