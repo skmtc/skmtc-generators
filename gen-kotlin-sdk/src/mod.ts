@@ -12,6 +12,8 @@ import { ensureSharedModels } from './sharedModels.ts'
 import { generatedFileHeader } from './generatedFileHeader.ts'
 import { injectDataFields, toSdkModel } from './model/toSdkModel.ts'
 import { SdkModelValue } from './model/SdkModelValue.ts'
+import { toSdkParams } from './params/SdkParams.ts'
+import { SdkParamsValue } from './params/SdkParamsValue.ts'
 import { sdkOperationEnrichmentSchema, toEnrichmentSchema } from './enrichments.ts'
 import type { SdkOperationEnrichment } from './enrichments.ts'
 import type { SdkConfig } from './SdkConfig.ts'
@@ -149,6 +151,78 @@ export const toKotlinSdkEntry = (config: SdkConfig) => {
     }
   }
 
+  const ParamsBase = toOasOperationProjectionBase<SdkOperationEnrichment>({
+    id: denoJson.name,
+    toEnrichmentSchema,
+    toIdentifier({ operation, enrichments, variant }) {
+      void variant
+
+      if (!enrichments) {
+        return createClass(`Unenriched${capitalize(camelCase(operation.path))}Params`)
+      }
+
+      return createClass(
+        `${toClassStem(enrichments)}${capitalize(camelCase(enrichments.method))}Params`
+      )
+    },
+    toExportPath({ operation, enrichments, variant }) {
+      const { name } = this.toIdentifier({ operation, enrichments, variant })
+
+      const resourceDir = enrichments
+        ? enrichments.resource.join('').toLowerCase()
+        : 'unenriched'
+
+      return `${coreModuleRoot}/models/${resourceDir}/${name}.kt`
+    }
+  })
+
+  class KtSdkParams extends ParamsBase {
+    static override toEnrichments = KtSdkResponseModel.toEnrichments
+
+    value: SdkParamsValue
+
+    constructor(args: OasOperationProjectionConstructorArgs<SdkOperationEnrichment>) {
+      super(args)
+
+      const { context, operation, settings } = args
+
+      const { renderContext } = ensureSharedModels({ context, config })
+
+      this.value = new SdkParamsValue({
+        context,
+        model: toSdkParams({
+          operation,
+          className: settings.identifier.name,
+          fieldEnums: config.fieldEnums
+        }),
+        renderContext,
+        basePackage: config.basePackage,
+        destinationPath: settings.exportPath,
+        fileHeader: generatedFileHeader
+      })
+    }
+
+    get description(): string {
+      return this.value.description
+    }
+
+    get constructorModifiers(): string {
+      return this.value.constructorModifiers
+    }
+
+    get constructorParameters(): string {
+      return this.value.constructorParameters
+    }
+
+    get supertypes(): string[] {
+      return this.value.supertypes
+    }
+
+    override toString(): string {
+      return this.value.toString()
+    }
+  }
+
   return toOasOperationEntry<SdkOperationEnrichment>({
     id: denoJson.name,
     isSupported: () => true,
@@ -163,6 +237,10 @@ export const toKotlinSdkEntry = (config: SdkConfig) => {
       if (!enrichment) {
         return
       }
+
+      // Every enriched operation gets a Params class (even those
+      // without a Response model — the report-problem pair).
+      context.insertOperation({ projection: KtSdkParams, operation })
 
       const schema = operation.toSuccessResponse()?.resolve().toSchema()?.resolve()
 

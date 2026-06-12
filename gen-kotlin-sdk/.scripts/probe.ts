@@ -41,5 +41,6 @@ const { artifacts, manifest } = toArtifacts({
 console.log('artifact count:', Object.keys(artifacts).length)
 console.log('model artifacts:', Object.keys(artifacts).filter(path => path.includes('models')))
 const resultsText = JSON.stringify(manifest.results, null, 1)
-const errorLines = resultsText.split('\n').filter(line => line.includes('error'))
-console.log('error lines:', errorLines.slice(0, 10))
+const errorLines = resultsText.split('\n').filter(line => line.includes('"error"'))
+console.log('error leaves:', errorLines.slice(0, 10))
+console.log('issues:', JSON.stringify(manifest.parseIssues?.slice(0, 4) ?? []))

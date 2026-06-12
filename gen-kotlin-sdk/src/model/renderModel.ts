@@ -22,7 +22,7 @@ export type RenderContext = {
 
 const indentUnit = '    '
 
-const indent = (text: string, levels: number): string => {
+export const indent = (text: string, levels: number): string => {
   const prefix = indentUnit.repeat(levels)
 
   return text
@@ -31,7 +31,7 @@ const indent = (text: string, levels: number): string => {
     .join('\n')
 }
 
-const kdoc = (lines: string[]): string => {
+export const kdoc = (lines: string[]): string => {
   return ['/**', ...lines.map(line => (line.length ? ` * ${line}` : ' *')), ' */'].join('\n')
 }
 
@@ -502,8 +502,21 @@ const renderToString = (model: SdkModel): string => {
   return `override fun toString() =\n    "${model.className}{${parts}}"`
 }
 
+export type RenderEnumOptions = {
+  /**
+   * Params-context enums document their `validate()` with the full
+   * KDoc block; model-context enums render it bare (corpus contrast:
+   * ReportProblem `Code` vs References `Reason`).
+   */
+  documentedValidate?: boolean
+}
+
 /** The Known/Value enum-class family (§C3; corpus `Reason` shape). */
-export const renderEnumClass = (enumModel: SdkEnum, context: RenderContext): string => {
+export const renderEnumClass = (
+  enumModel: SdkEnum,
+  context: RenderContext,
+  options: RenderEnumOptions = {}
+): string => {
   const { className, members } = enumModel
   const constants = members.map(member => toConstantCase(member))
 
@@ -573,6 +586,15 @@ export const renderEnumClass = (enumModel: SdkEnum, context: RenderContext): str
 
     'private var validated: Boolean = false\n' +
       '\n' +
+      (options.documentedValidate
+        ? kdoc([
+            'Validates that the types of all values in this object match their expected types recursively.',
+            '',
+            'This method is _not_ forwards compatible with new types from the API for existing fields.',
+            '',
+            `@throws ${context.exceptionPrefix}InvalidDataException if any value type in this object doesn't match its expected type.`
+          ]) + '\n'
+        : '') +
       `fun validate(): ${className} = apply {\n` +
       '    if (validated) {\n' +
       '        return@apply\n' +
