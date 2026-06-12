@@ -34,7 +34,8 @@
     "ts-pattern": "npm:ts-pattern@^5.8.0",
     "valibot": "npm:valibot@1.1.0",
     "@skmtc/gen-csharp": "./gen-csharp/mod.ts",
-    "@skmtc/gen-csharp-aspnet": "./gen-csharp-aspnet/mod.ts"
+    "@skmtc/gen-csharp-aspnet": "./gen-csharp-aspnet/mod.ts",
+    "@skmtc/gen-kotlin-sdk": "./gen-kotlin-sdk/mod.ts"
   },
   "tasks": {
     "test": "deno task --cwd=gen-typescript test && deno task --cwd=gen-zod test && deno task --cwd=gen-valibot test && deno task --cwd=gen-arktype test && deno task --cwd=gen-kotlin test && deno task --cwd=gen-kotlin-spring test && deno task --cwd=gen-csharp test && deno task --cwd=gen-csharp-aspnet test",
@@ -64,6 +65,7 @@
     "./gen-kotlin",
     "./gen-kotlin-spring",
     "./gen-csharp",
-    "./gen-csharp-aspnet"
+    "./gen-csharp-aspnet",
+    "./gen-kotlin-sdk"
   ]
 }

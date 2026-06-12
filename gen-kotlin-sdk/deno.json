@@ -1,0 +1,14 @@
+{
+  "name": "@skmtc/gen-kotlin-sdk",
+  "version": "0.0.1",
+  "exports": "./mod.ts",
+  "tasks": {
+    "test": "deno test --allow-env --allow-sys --allow-read"
+  },
+  "imports": {
+    "@skmtc/core": "jsr:@skmtc/core@0.9.1",
+    "@skmtc/lang-kotlin": "../../skmtc/deno/lang-kotlin/mod.ts",
+    "valibot": "npm:valibot@1.1.0",
+    "tiny-invariant": "npm:tiny-invariant@^1.3.3"
+  }
+}
