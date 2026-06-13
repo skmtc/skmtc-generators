@@ -1,5 +1,4 @@
-import { Identifier } from '@skmtc/core'
-import { toGqlOperationProjectionBase, createVariable } from '@skmtc/lang-typescript'
+import { toGqlOperationProjectionBase } from '@skmtc/lang-typescript'
 import { join } from '@std/path'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
@@ -14,11 +13,13 @@ export const ReapitSearchableDropdownBase = toGqlOperationProjectionBase<Enrichm
 
   toEnrichmentSchema,
 
-  toIdentifier({ operation }): Identifier {
+  toIdentifierName({ operation }): string {
     // GetOffices → OfficesMultiLookupField, GetNegotiators → NegotiatorsMultiLookupField
     const stripped = stripGetPrefix(operation.fieldName)
-    return createVariable(`${stripped}MultiLookupField`)
+    return `${stripped}MultiLookupField`
   },
+
+  toIdentifierType: () => ({ kind: 'variable' }),
 
   toExportPath({ operation, enrichments }): string {
     const stripped = stripGetPrefix(operation.fieldName)

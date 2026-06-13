@@ -20,7 +20,7 @@ export const daisyFormEntry = toOasOperationEntry<EnrichmentSchema>({
   toPreviewModule: ({ context, operation, variant }) => {
     const enrichments = DaisyForm.toEnrichments({ operation, context, variant })
     return {
-      name: DaisyForm.toIdentifier({ operation, enrichments, variant }).name,
+      name: DaisyForm.toIdentifierName({ operation, enrichments, variant }),
       exportPath: DaisyForm.toExportPath({ operation, enrichments, variant })
     }
   },

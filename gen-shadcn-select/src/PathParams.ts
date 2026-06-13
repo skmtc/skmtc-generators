@@ -16,7 +16,7 @@ export class PathParams extends ShadcnSelectApiBase {
 
     this.isEmpty = isEmpty(params?.properties ?? {})
 
-    const { name: tableName } = ShadcnSelectApiBase.toIdentifier({
+    const tableName = ShadcnSelectApiBase.toIdentifierName({
       operation,
       enrichments: settings.enrichments,
       variant: settings.variant

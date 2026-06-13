@@ -20,7 +20,7 @@ export const ShadcnTableEntry = toOasOperationEntry<EnrichmentSchema>({
   toPreviewModule: ({ context, operation, variant }) => {
     const enrichments = ShadcnTable.toEnrichments({ operation, context, variant })
     return {
-      name: ShadcnTable.toIdentifier({ operation, enrichments, variant }).name,
+      name: ShadcnTable.toIdentifierName({ operation, enrichments, variant }),
       exportPath: ShadcnTable.toExportPath({ operation, enrichments, variant })
     }
   }

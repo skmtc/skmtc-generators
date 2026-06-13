@@ -24,7 +24,7 @@ export const ShadcnFormEntry = toOasOperationEntry<EnrichmentSchema>({
   toPreviewModule: ({ context, operation, variant }) => {
     const enrichments = ShadcnForm.toEnrichments({ operation, context, variant })
     return {
-      name: ShadcnForm.toIdentifier({ operation, enrichments, variant }).name,
+      name: ShadcnForm.toIdentifierName({ operation, enrichments, variant }),
       exportPath: ShadcnForm.toExportPath({ operation, enrichments, variant })
     }
   },

@@ -1,10 +1,10 @@
 {
   "name": "@skmtc/gen-reapit-graphql-client",
-  "version": "0.0.69",
+  "version": "0.1.0",
   "exports": "./mod.ts",
   "imports": {
-    "@skmtc/core": "jsr:@skmtc/core@0.9.1",
-    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.2.2",
+    "@skmtc/core": "jsr:@skmtc/core@0.10.0",
+    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.3.0",
     "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.0.70"
   },
   "tasks": {

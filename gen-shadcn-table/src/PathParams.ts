@@ -16,7 +16,7 @@ export class PathParams extends ShadcnTableBase {
 
     this.isEmpty = isEmpty(params.properties ?? {})
 
-    const { name: tableName } = ShadcnTableBase.toIdentifier({
+    const tableName = ShadcnTableBase.toIdentifierName({
       operation,
       enrichments: settings.enrichments,
       variant: settings.variant

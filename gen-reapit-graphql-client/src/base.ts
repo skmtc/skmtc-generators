@@ -1,5 +1,5 @@
-import { capitalize, Identifier } from '@skmtc/core'
-import { toGqlOperationProjectionBase, createVariable } from '@skmtc/lang-typescript'
+import { capitalize } from '@skmtc/core'
+import { toGqlOperationProjectionBase } from '@skmtc/lang-typescript'
 import { join } from '@std/path'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
@@ -24,12 +24,14 @@ export const ReapitGraphqlClientBase = toGqlOperationProjectionBase<EnrichmentSc
 
   toEnrichmentSchema,
 
-  toIdentifier({ operation }): Identifier {
-    return createVariable(`use${capitalize(operation.fieldName)}`)
+  toIdentifierName({ operation }): string {
+    return `use${capitalize(operation.fieldName)}`
   },
 
+  toIdentifierType: () => ({ kind: 'variable' }),
+
   toExportPath({ operation, enrichments, variant }): string {
-    const { name } = this.toIdentifier({ operation, enrichments, variant })
+    const name = this.toIdentifierName({ operation, enrichments, variant })
     return join('@', 'services', 'graphql', `${name}.generated.ts`)
   }
 })
