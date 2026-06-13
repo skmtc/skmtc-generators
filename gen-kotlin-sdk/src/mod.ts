@@ -44,7 +44,7 @@ export default toOasOperationEntry<SdkOperationEnrichment>({
       KtSdkServiceAsync,
       KtSdkServiceAsyncImpl
     ]) {
-      const identifier = ServiceProjection.toIdentifier({
+      const name = ServiceProjection.toIdentifierName({
         operation,
         enrichments: enrichment,
         variant
@@ -55,7 +55,7 @@ export default toOasOperationEntry<SdkOperationEnrichment>({
         variant
       })
 
-      if (!context.findDefinition({ name: identifier.name, exportPath })) {
+      if (!context.findDefinition({ name, exportPath })) {
         context.insertOperation({ projection: ServiceProjection, operation })
       }
     }

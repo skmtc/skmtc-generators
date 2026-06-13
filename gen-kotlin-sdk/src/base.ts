@@ -1,6 +1,6 @@
 import { camelCase, capitalize } from '@skmtc/core'
 import type { GenerateContextType, OasOperation } from '@skmtc/core'
-import { createClass, createInterface, toOasOperationProjectionBase } from '@skmtc/lang-kotlin'
+import { toOasOperationProjectionBase } from '@skmtc/lang-kotlin'
 import invariant from 'tiny-invariant'
 import { sdkConfig as config } from '@/config.ts'
 import { toEnrichmentSchema, type SdkOperationEnrichment } from '@/enrichments.ts'
@@ -23,22 +23,21 @@ export const toClassStem = (enrichment: NonNullable<SdkOperationEnrichment>): st
 export const ResponseModelBase = toOasOperationProjectionBase<SdkOperationEnrichment>({
   id: denoJson.name,
   toEnrichmentSchema,
-  toIdentifier({ operation, enrichments, variant }) {
+  toIdentifierName({ operation, enrichments, variant }) {
     // Statics may be probed for unenriched operations (which the
     // transform never inserts); give them a deterministic name.
     // Variants-unaware: `variant` is destructured but unused.
     void variant
 
     if (!enrichments) {
-      return createClass(`Unenriched${capitalize(camelCase(operation.path))}Response`)
+      return `Unenriched${capitalize(camelCase(operation.path))}Response`
     }
 
-    return createClass(
-      `${toClassStem(enrichments)}${capitalize(camelCase(enrichments.method))}Response`
-    )
+    return `${toClassStem(enrichments)}${capitalize(camelCase(enrichments.method))}Response`
   },
+  toIdentifierType: () => ({ kind: 'class' }),
   toExportPath({ operation, enrichments, variant }) {
-    const { name } = this.toIdentifier({ operation, enrichments, variant })
+    const name = this.toIdentifierName({ operation, enrichments, variant })
 
     const resourceDir = enrichments
       ? enrichments.resource.join('').toLowerCase()
@@ -51,19 +50,18 @@ export const ResponseModelBase = toOasOperationProjectionBase<SdkOperationEnrich
 export const ParamsBase = toOasOperationProjectionBase<SdkOperationEnrichment>({
   id: denoJson.name,
   toEnrichmentSchema,
-  toIdentifier({ operation, enrichments, variant }) {
+  toIdentifierName({ operation, enrichments, variant }) {
     void variant
 
     if (!enrichments) {
-      return createClass(`Unenriched${capitalize(camelCase(operation.path))}Params`)
+      return `Unenriched${capitalize(camelCase(operation.path))}Params`
     }
 
-    return createClass(
-      `${toClassStem(enrichments)}${capitalize(camelCase(enrichments.method))}Params`
-    )
+    return `${toClassStem(enrichments)}${capitalize(camelCase(enrichments.method))}Params`
   },
+  toIdentifierType: () => ({ kind: 'class' }),
   toExportPath({ operation, enrichments, variant }) {
-    const { name } = this.toIdentifier({ operation, enrichments, variant })
+    const name = this.toIdentifierName({ operation, enrichments, variant })
 
     const resourceDir = enrichments
       ? enrichments.resource.join('').toLowerCase()
@@ -83,19 +81,21 @@ export const toServiceBase = (flavor: ServiceFlavor, role: ServiceRole) => {
   return toOasOperationProjectionBase<SdkOperationEnrichment>({
     id: denoJson.name,
     toEnrichmentSchema,
-    toIdentifier({ operation, enrichments, variant }) {
+    toIdentifierName({ operation, enrichments, variant }) {
       void variant
 
       if (!enrichments) {
-        return createClass(`Unenriched${capitalize(camelCase(operation.path))}${nameSuffix}`)
+        return `Unenriched${capitalize(camelCase(operation.path))}${nameSuffix}`
       }
 
-      const name = `${toClassStem(enrichments)}${nameSuffix}`
-
-      return role === 'interface' ? createInterface(name) : createClass(name)
+      return `${toClassStem(enrichments)}${nameSuffix}`
     },
+    // Constant per base instance: the kind depends on `role` (a closure
+    // parameter known at construction), not the schema — interface bases
+    // declare `interface`, impl bases `class`.
+    toIdentifierType: () => ({ kind: role === 'interface' ? 'interface' : 'class' }),
     toExportPath({ operation, enrichments, variant }) {
-      const { name } = this.toIdentifier({ operation, enrichments, variant })
+      const name = this.toIdentifierName({ operation, enrichments, variant })
 
       return `${coreModuleRoot}/services/${directory}/${name}.kt`
     }
