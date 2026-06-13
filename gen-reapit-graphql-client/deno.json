@@ -5,7 +5,7 @@
   "imports": {
     "@skmtc/core": "jsr:@skmtc/core@0.10.0",
     "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.3.0",
-    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.0.70"
+    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.1.0"
   },
   "tasks": {
     "publish": "JSR_URL=https://jsr.skmtc.dev/ deno publish --allow-slow-types --allow-dirty --token=$JSR_AUTH_TOKEN"
