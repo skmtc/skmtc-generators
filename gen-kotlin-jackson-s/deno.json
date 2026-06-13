@@ -2,7 +2,10 @@
   "name": "@skmtc/gen-kotlin-jackson-s",
   "version": "0.1.0",
   "exports": "./mod.ts",
-  "tasks": { "test": "deno test --allow-env --allow-sys --allow-read" },
+  "tasks": {
+    "test": "deno test --allow-env --allow-sys --allow-read",
+    "publish": "JSR_URL=https://jsr.skmtc.dev/ deno publish --allow-slow-types --allow-dirty --token=$JSR_AUTH_TOKEN"
+  },
   "imports": {
     "@/": "./src/",
     "@skmtc/core": "jsr:@skmtc/core@0.10.0",
