@@ -6,6 +6,10 @@
  * via `setModelConfig`.
  */
 
+export { jacksonSEntry, default } from '@/mod.ts'
+export { JacksonSModel } from '@/JacksonSModel.ts'
+export { JacksonSModelBase, toJacksonSModelName } from '@/base.ts'
+
 export {
   type ModelConfig,
   setModelConfig,

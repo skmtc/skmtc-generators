@@ -1,0 +1,6 @@
+{
+  "basePackage": "org.example.api",
+  "clientPrefix": "Example",
+  "artifactName": "example-kotlin",
+  "sharedModels": {}
+}
