@@ -1,29 +1,20 @@
 import type { GenerateContextType } from '@skmtc/core'
 import { KtSnippet } from '@skmtc/lang-kotlin'
 import { indent } from '@/format.ts'
-import type { SdkParam } from '@/params/SdkParams.ts'
-import { renderParamPut, usesDateTimeFormatter } from '@/params/sections/paramPuts.ts'
+import type { ParamField } from '@/params/ParamField.ts'
 
 type Args = {
   context: GenerateContextType
-  headerParams: SdkParam[]
-  destinationPath: string
+  headerParams: ParamField[]
 }
 
 /** The `_headers()` override — header-param puts over the additional headers. */
 export class HeadersOverride extends KtSnippet {
-  headerParams: SdkParam[]
+  headerParams: ParamField[]
 
-  constructor({ context, headerParams, destinationPath }: Args) {
+  constructor({ context, headerParams }: Args) {
     super({ context })
     this.headerParams = headerParams
-
-    if (usesDateTimeFormatter(headerParams)) {
-      this.register({
-        imports: { 'java.time.format': ['DateTimeFormatter'] },
-        destinationPath
-      })
-    }
   }
 
   override toString(): string {
@@ -34,7 +25,7 @@ export class HeadersOverride extends KtSnippet {
     return `override fun _headers(): Headers =
     Headers.builder()
         .apply {
-${indent([...this.headerParams.map(renderParamPut), 'putAll(additionalHeaders)'].join('\n'), 3)}
+${indent([...this.headerParams.map(param => param.put()), 'putAll(additionalHeaders)'].join('\n'), 3)}
         }
         .build()`
   }

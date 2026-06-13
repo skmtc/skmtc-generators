@@ -1,9 +1,8 @@
 import type { GenerateContextType, Stringable } from '@skmtc/core'
 import { KtSnippet } from '@skmtc/lang-kotlin'
 import { kdoc } from '@/format.ts'
-import { KnownValueEnum } from '@/model/sections/KnownValueEnum.ts'
 import type { BodySnippet } from '@/params/body/BodySnippet.ts'
-import type { SdkParams } from '@/params/SdkParams.ts'
+import type { ParamField } from '@/params/ParamField.ts'
 import { HeadersOverride } from '@/params/sections/HeadersOverride.ts'
 import { ParamAccessors } from '@/params/sections/ParamAccessors.ts'
 import { ParamsBuilder } from '@/params/sections/ParamsBuilder.ts'
@@ -14,7 +13,8 @@ import { QueryParamsOverride } from '@/params/sections/QueryParamsOverride.ts'
 
 type Args = {
   context: GenerateContextType
-  model: SdkParams
+  className: string
+  params: ParamField[]
   body: BodySnippet
   hasNone: boolean
   fenceNames: string[]
@@ -25,10 +25,9 @@ type Args = {
 export class ParamsClassBody extends KtSnippet {
   sections: Stringable[]
 
-  constructor({ context, model, body, hasNone, fenceNames, destinationPath }: Args) {
+  constructor({ context, className, params, body, hasNone, fenceNames, destinationPath }: Args) {
     super({ context })
 
-    const { className, params } = model
     const pathParams = params.filter(param => param.location === 'path')
     const headerParams = params.filter(param => param.location === 'header')
     const queryParams = params.filter(param => param.location === 'query')
@@ -44,7 +43,7 @@ export class ParamsClassBody extends KtSnippet {
     ]
 
     this.sections = [
-      ...(params.length ? [new ParamAccessors({ context, params, destinationPath })] : []),
+      ...(params.length ? [new ParamAccessors({ context, params })] : []),
       ...body.accessorSections,
       kdoc(['Additional headers to send with the request.']) +
         '\nfun _additionalHeaders(): Headers = additionalHeaders',
@@ -57,35 +56,16 @@ export class ParamsClassBody extends KtSnippet {
         className,
         params,
         body,
-        fenceNames,
-        destinationPath
+        fenceNames
       }),
       ...body.bodyMethodSections,
       ...(pathParams.length ? [new PathParamFn({ context, pathParams })] : []),
-      new HeadersOverride({ context, headerParams, destinationPath }),
-      new QueryParamsOverride({ context, queryParams, destinationPath }),
+      new HeadersOverride({ context, headerParams }),
+      new QueryParamsOverride({ context, queryParams }),
       ...body.nestedSections,
-      ...params.flatMap(param => {
-        const enumModel =
-          param.type.kind === 'enum'
-            ? param.type.enumModel
-            : param.type.kind === 'list' && param.type.element.kind === 'enum'
-              ? param.type.element.enumModel
-              : undefined
-
-        return enumModel
-          ? [
-              new KnownValueEnum({
-                context,
-                className: enumModel.className,
-                members: enumModel.members,
-                description: enumModel.description,
-                destinationPath,
-                documentedValidate: true
-              })
-            ]
-          : []
-      }),
+      // Enum-typed params own their nested `KnownValueEnum` (the
+      // list-of-enum element surfaces it through the list type too).
+      ...params.flatMap(param => param.type.nestedSections),
       new ParamsIdentity({ context, className, memberNames, destinationPath })
     ]
   }

@@ -3,20 +3,18 @@ import { KtSnippet } from '@skmtc/lang-kotlin'
 import { indent } from '@/format.ts'
 import { sdkConfig as config } from '@/config.ts'
 import type { BodySnippet } from '@/params/body/BodySnippet.ts'
-import type { SdkParam } from '@/params/SdkParams.ts'
-import { toParamTypeImports } from '@/params/sections/paramTypeImports.ts'
-import { typeOf } from '@/params/sections/paramPuts.ts'
+import type { ParamField } from '@/params/ParamField.ts'
 
 type Args = {
   context: GenerateContextType
-  params: SdkParam[]
+  params: ParamField[]
   body: BodySnippet
   destinationPath: string
 }
 
 /** The private-constructor parameter list — the `KtConstructed` protocol value. */
 export class ParamsConstructorParameters extends KtSnippet {
-  params: SdkParam[]
+  params: ParamField[]
   body: BodySnippet
 
   constructor({ context, params, body, destinationPath }: Args) {
@@ -25,24 +23,15 @@ export class ParamsConstructorParameters extends KtSnippet {
     this.body = body
 
     this.register({
-      imports: {
-        [`${config.basePackage}.core.http`]: ['Headers', 'QueryParams'],
-        ...toParamTypeImports(params)
-      },
+      imports: { [`${config.basePackage}.core.http`]: ['Headers', 'QueryParams'] },
       destinationPath
     })
   }
 
   override toString(): string {
-    const paramLines = this.params.map(param => {
-      const nullable = param.required ? '' : '?'
-
-      return `private val ${param.kotlinName}: ${typeOf(param)}${nullable},`
-    })
-
     return indent(
       [
-        ...paramLines,
+        ...this.params.map(param => param.constructorParameter()),
         ...this.body.constructorLeadLines,
         'private val additionalHeaders: Headers,',
         'private val additionalQueryParams: QueryParams,',

@@ -3,7 +3,6 @@ import type { KtAnnotation } from '@skmtc/lang-kotlin'
 import { ParamsBase } from '@/base.ts'
 import type { SdkOperationEnrichment } from '@/enrichments.ts'
 import { generatedFileHeader } from '@/generatedFileHeader.ts'
-import { toSdkParams } from '@/params/SdkParams.ts'
 import { SdkParamsValue } from '@/params/SdkParamsValue.ts'
 import { ensureSharedModels } from '@/sharedModels.ts'
 
@@ -25,11 +24,9 @@ export class KtSdkParams extends ParamsBase {
 
     this.value = new SdkParamsValue({
       context,
-      model: toSdkParams({
-        operation,
-        className: settings.identifier.name,
-        deprecatedMessage: settings.enrichments?.deprecatedMessage
-      }),
+      operation,
+      className: settings.identifier.name,
+      deprecatedMessage: settings.enrichments?.deprecatedMessage,
       sharedHashes,
       destinationPath: settings.exportPath,
       fileHeader: generatedFileHeader

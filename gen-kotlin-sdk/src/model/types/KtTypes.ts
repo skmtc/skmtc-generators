@@ -28,6 +28,11 @@ export type KtType = {
 
 export type KtScalar = 'Boolean' | 'Long' | 'Int' | 'Double' | 'Float' | 'String'
 
+type KtScalarTypeArgs = {
+  context: GenerateContextType
+  kotlin: KtScalar
+}
+
 /** A JVM scalar (`integer`+`int32`→`Int`, else `Long`; `number`+`float`→`Float`, else `Double` — corpus mapping). */
 export class KtScalarType extends KtSnippet {
   kotlin: KtScalar
@@ -35,7 +40,7 @@ export class KtScalarType extends KtSnippet {
   nestedSections: Stringable[] = []
   nestedClassNames: string[] = []
 
-  constructor({ context, kotlin }: { context: GenerateContextType; kotlin: KtScalar }) {
+  constructor({ context, kotlin }: KtScalarTypeArgs) {
     super({ context })
     this.kotlin = kotlin
   }
@@ -47,6 +52,12 @@ export class KtScalarType extends KtSnippet {
   }
 }
 
+type KtDatetimeTypeArgs = {
+  context: GenerateContextType
+  date: 'offset-date-time' | 'local-date'
+  destinationPath: string
+}
+
 /** `format: date` → `LocalDate`; `format: date-time` → `OffsetDateTime`. Registers its own `java.time` import. */
 export class KtDatetimeType extends KtSnippet {
   date: 'offset-date-time' | 'local-date'
@@ -54,15 +65,7 @@ export class KtDatetimeType extends KtSnippet {
   nestedSections: Stringable[] = []
   nestedClassNames: string[] = []
 
-  constructor({
-    context,
-    date,
-    destinationPath
-  }: {
-    context: GenerateContextType
-    date: 'offset-date-time' | 'local-date'
-    destinationPath: string
-  }) {
+  constructor({ context, date, destinationPath }: KtDatetimeTypeArgs) {
     super({ context })
     this.date = date
 
@@ -79,6 +82,11 @@ export class KtDatetimeType extends KtSnippet {
   }
 }
 
+type KtListTypeArgs = {
+  context: GenerateContextType
+  element: KtType
+}
+
 /** `List<T>` — `kotlin.collections.List` when a sibling nested class named `List` shadows the stdlib type. */
 export class KtListType extends KtSnippet {
   element: KtType
@@ -87,7 +95,7 @@ export class KtListType extends KtSnippet {
   nestedSections: Stringable[]
   nestedClassNames: string[]
 
-  constructor({ context, element }: { context: GenerateContextType; element: KtType }) {
+  constructor({ context, element }: KtListTypeArgs) {
     super({ context })
     this.element = element
     this.nestedSections = element.nestedSections
@@ -102,6 +110,15 @@ export class KtListType extends KtSnippet {
   override toString(): string {
     return `${this.qualified ? 'kotlin.collections.List' : 'List'}<${this.element}>`
   }
+}
+
+type KtNestedClassTypeArgs = {
+  context: GenerateContextType
+  className: string
+  schema: OasObject
+  destinationPath: string
+  sharedHashes: SharedHashes
+  addFields?: AddField[]
 }
 
 /** A nested inline-schema class — renders its class name; owns the nested class section. */
@@ -119,14 +136,7 @@ export class KtNestedClassType extends KtSnippet {
     destinationPath,
     sharedHashes,
     addFields
-  }: {
-    context: GenerateContextType
-    className: string
-    schema: OasObject
-    destinationPath: string
-    sharedHashes: SharedHashes
-    addFields?: AddField[]
-  }) {
+  }: KtNestedClassTypeArgs) {
     super({ context })
     this.className = className
     this.nestedClass = new NestedModelClass({
@@ -150,6 +160,16 @@ export class KtNestedClassType extends KtSnippet {
   }
 }
 
+type KtEnumTypeArgs = {
+  context: GenerateContextType
+  className: string
+  members: string[]
+  description?: string
+  destinationPath: string
+  /** Params-context enums document `validate()` with the full KDoc block; model-context enums render it bare. */
+  documentedValidate?: boolean
+}
+
 /** A Known/Value enum class — renders its class name; owns the enum class section. */
 export class KtEnumType extends KtSnippet {
   className: string
@@ -162,18 +182,13 @@ export class KtEnumType extends KtSnippet {
     className,
     members,
     description,
-    destinationPath
-  }: {
-    context: GenerateContextType
-    className: string
-    members: string[]
-    description?: string
-    destinationPath: string
-  }) {
+    destinationPath,
+    documentedValidate
+  }: KtEnumTypeArgs) {
     super({ context })
     this.className = className
     this.nestedSections = [
-      new KnownValueEnum({ context, className, members, description, destinationPath })
+      new KnownValueEnum({ context, className, members, description, destinationPath, documentedValidate })
     ]
     this.nestedClassNames = [className]
   }
@@ -183,6 +198,12 @@ export class KtEnumType extends KtSnippet {
   override toString(): string {
     return this.className
   }
+}
+
+type KtSharedRefTypeArgs = {
+  context: GenerateContextType
+  className: string
+  destinationPath: string
 }
 
 /**
@@ -196,15 +217,7 @@ export class KtSharedRefType extends KtSnippet {
   nestedSections: Stringable[] = []
   nestedClassNames: string[] = []
 
-  constructor({
-    context,
-    className,
-    destinationPath
-  }: {
-    context: GenerateContextType
-    className: string
-    destinationPath: string
-  }) {
+  constructor({ context, className, destinationPath }: KtSharedRefTypeArgs) {
     super({ context })
 
     const definition = context.findDefinition({

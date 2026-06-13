@@ -2,11 +2,11 @@ import type { GenerateContextType, Stringable } from '@skmtc/core'
 import { KtSnippet } from '@skmtc/lang-kotlin'
 import { kdoc } from '@/format.ts'
 import { sdkConfig as config } from '@/config.ts'
-import type { SdkBody } from '@/params/SdkParams.ts'
+import type { BodyShape } from '@/params/body/BodySnippet.ts'
 
 type Args = {
   context: GenerateContextType
-  body: Extract<SdkBody, { kind: 'ref' }>
+  body: Extract<BodyShape, { kind: 'ref' }>
   destinationPath: string
 }
 
@@ -16,7 +16,7 @@ type Args = {
  * its standalone model class. No flattening, no nested class.
  */
 export class RefBody extends KtSnippet {
-  body: Extract<SdkBody, { kind: 'ref' }>
+  body: Extract<BodyShape, { kind: 'ref' }>
   constructorLeadLines: string[]
   constructorTailLines: string[] = []
   accessorSections: Stringable[]

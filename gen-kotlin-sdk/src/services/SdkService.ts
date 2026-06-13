@@ -3,7 +3,8 @@ import { camelCase, capitalize } from '@skmtc/core'
 import invariant from 'tiny-invariant'
 import type { SdkConfig } from '@/SdkConfig.ts'
 import type { SdkOperationEnrichment } from '@/enrichments.ts'
-import { bodyHasRequired, toSdkParams } from '@/params/SdkParams.ts'
+import { bodyHasRequired, toBodyShape } from '@/params/body/BodySnippet.ts'
+import { lastPathParamName, paramsHaveRequired } from '@/params/toParamFields.ts'
 
 /**
  * The KS-E domain record (note 32 §E-1): one per resource; the four
@@ -96,16 +97,14 @@ const toServiceOperation = ({
   const methodName = camelCase(enrichment.method)
   const pascalMethod = capitalize(methodName)
 
-  const params = toSdkParams({
-    operation,
-    className: `${stem}${pascalMethod}Params`,
-    deprecatedMessage: enrichment.deprecatedMessage
-  })
-
-  // The positionally-settable path param is the LAST one — earlier
-  // path params are construction-required (multi-path-param rule).
-  const pathParam = params.params.filter(param => param.location === 'path').at(-1)
-  const hasRequired = params.params.some(param => param.required) || bodyHasRequired(params.body)
+  // Side-effect-free param facts the service-method shape needs, read
+  // by the same rules the Params producers carry (no producer
+  // construction here — that would register imports into the Params
+  // file). The positionally-settable path param is the template-last
+  // one; earlier path params are construction-required.
+  const bodyShape = toBodyShape(operation)
+  const pathParamName = lastPathParamName(operation)
+  const hasRequired = paramsHaveRequired(operation) || bodyHasRequired(bodyShape)
 
   const schema = operation.toSuccessResponse()?.resolve().toSchema()?.resolve()
   const envelope = config.sharedModels.envelope
@@ -121,7 +120,7 @@ const toServiceOperation = ({
 
   return {
     methodName,
-    paramsClassName: params.className,
+    paramsClassName: `${stem}${pascalMethod}Params`,
     responseClassName:
       responseIsEnvelope && envelope
         ? envelope.className
@@ -133,10 +132,10 @@ const toServiceOperation = ({
     httpVerb: operation.method.toUpperCase(),
     path: operation.path,
     pathSegments: toPathSegments(operation.path),
-    pathParam: pathParam ? { kotlinName: pathParam.kotlinName } : undefined,
+    pathParam: pathParamName ? { kotlinName: pathParamName } : undefined,
     hasNone: !hasRequired,
     bodyKind:
-      params.body === undefined ? undefined : params.body.kind === 'map' ? 'optional' : 'required'
+      bodyShape === undefined ? undefined : bodyShape.kind === 'map' ? 'optional' : 'required'
   }
 }
 
