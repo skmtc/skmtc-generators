@@ -81,7 +81,7 @@ export const isSealedUnion = (context: GenerateContextType, schema: OasUnion): b
 }
 
 const hintFailure = (name: string, reason: string): string => {
-  return `@skmtc/gen-kotlin: union hint '${name}' is invalid — ${reason}`
+  return `@skmtc/gen-kotlin-kotlinx: union hint '${name}' is invalid — ${reason}`
 }
 
 /**

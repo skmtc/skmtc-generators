@@ -73,7 +73,7 @@ export class KtDataClassValue extends KtSnippet {
 
       if (tags.length > 1 || tag === undefined) {
         throw new Error(
-          `@skmtc/gen-kotlin: '${className}' is claimed by sealed parents with conflicting ` +
+          `@skmtc/gen-kotlin-kotlinx: '${className}' is claimed by sealed parents with conflicting ` +
             `wire tags (${tags.join(', ')}) — a Kotlin class carries one @SerialName`
         )
       }
@@ -102,7 +102,7 @@ export class KtDataClassValue extends KtSnippet {
       // dispatch routes empty objects to a `JsonObject` typealias before
       // ever reaching this class.
       throw new Error(
-        `@skmtc/gen-kotlin: '${className}' has no properties` +
+        `@skmtc/gen-kotlin-kotlinx: '${className}' has no properties` +
           `${omittedProperties.size > 0 ? ' (after discriminator-property omission)' : ''}` +
           ` — a Kotlin data class needs at least one`
       )

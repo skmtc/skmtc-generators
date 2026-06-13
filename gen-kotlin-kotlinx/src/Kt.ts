@@ -1,13 +1,6 @@
 import { match } from 'ts-pattern'
 import { toGeneratorOnlyKey, toRefName } from '@skmtc/core'
-import type {
-  GenerateContextType,
-  Modifiers,
-  OasRef,
-  OasSchema,
-  RefName,
-  SchemaType
-} from '@skmtc/core'
+import type { GenerateContextType, Modifiers, RefName, SchemaType } from '@skmtc/core'
 import { KtString } from './KtString.ts'
 import { KtArray } from './KtArray.ts'
 import { KtRef } from './KtRef.ts'
@@ -133,26 +126,7 @@ export const toKtValue = ({
     .exhaustive()
 }
 
-/**
- * Resolve a schema's shape without touching the engine's recursion
- * counter — the dispatch-time peek `toKtProjectionForRef` uses (the
- * counting read, `context.resolveSchemaRefOnce`, belongs to projection
- * constructors).
- */
-export const peekSchema = (
-  context: GenerateContextType,
-  refName: RefName
-): OasSchema | OasRef<'schema'> => {
-  const { document } = context
-
-  const raw =
-    document.type === 'oas'
-      ? document.value.components?.schemas?.[refName]
-      : document.value.registry.schemas[refName]
-
-  if (!raw) {
-    throw new Error(`Schema not found: ${refName}`)
-  }
-
-  return raw.isRef() ? raw.resolveOnce() : raw
-}
+// `peekSchema` moved to its own leaf module (`peekSchema.ts`) so `base.ts`
+// can use it from `toIdentifierType` without a module-init cycle; re-exported
+// here for the package surface and existing import sites.
+export { peekSchema } from './peekSchema.ts'

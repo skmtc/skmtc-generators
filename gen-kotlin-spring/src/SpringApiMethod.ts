@@ -7,7 +7,7 @@ import {
   sanitizePropertyName,
   type KtFunctionParameterArgs
 } from '@skmtc/lang-kotlin'
-import { toKtValue } from '@skmtc/gen-kotlin'
+import { toKtValue } from '@skmtc/gen-kotlin-kotlinx'
 import denoJson from '../deno.json' with { type: 'json' }
 
 const isRecord = (value: unknown): value is Record<string, unknown> => {

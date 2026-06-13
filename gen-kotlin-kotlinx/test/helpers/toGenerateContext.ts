@@ -19,7 +19,7 @@ export const toGenerateContext = ({ oasDocument }: ToGenerateContextArgs = {}) =
     captureCurrentResult: () => {},
     toGeneratorConfigMap: () => ({
       // @ts-expect-error - factory-emitted transform is monomorphic over Acc
-      '@skmtc/gen-kotlin': kotlinEntry
+      '@skmtc/gen-kotlin-kotlinx': kotlinEntry
     })
   })
 

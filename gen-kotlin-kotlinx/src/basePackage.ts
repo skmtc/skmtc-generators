@@ -19,7 +19,7 @@ export const setBasePackage = (value: string): void => {
   for (const segment of value.split('.')) {
     if (!isKtIdentifierName(segment) || ktHardKeywords.has(segment)) {
       throw new Error(
-        `@skmtc/gen-kotlin: basePackage '${value}' is not a valid Kotlin package name — ` +
+        `@skmtc/gen-kotlin-kotlinx: basePackage '${value}' is not a valid Kotlin package name — ` +
           `segment '${segment}' is not a valid package name part`
       )
     }
@@ -32,7 +32,7 @@ export const setBasePackage = (value: string): void => {
 export const getBasePackage = (): string => {
   if (basePackage === undefined) {
     throw new Error(
-      `@skmtc/gen-kotlin: basePackage is not set — construct the entry with ` +
+      `@skmtc/gen-kotlin-kotlinx: basePackage is not set — construct the entry with ` +
         `toKotlinEntry({ basePackage: 'com.example.api' })`
     )
   }

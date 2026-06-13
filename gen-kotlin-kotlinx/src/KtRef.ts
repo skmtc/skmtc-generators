@@ -2,7 +2,7 @@ import { ModelDriver, toModelGeneratorKey } from '@skmtc/core'
 import { KtSnippet } from '@skmtc/lang-kotlin'
 import type { GenerateContextType, Modifiers, OasRef, OasSchema, RefName } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
-import { toKtProjectionForRef } from './toKtProjection.ts'
+import { KtModelProjection } from './KtModelProjection.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
 type KtRefArgs = {
@@ -17,9 +17,10 @@ type KtRefArgs = {
 
 /**
  * A `$ref` → the referenced model's identifier name, inserting the peer
- * through the SAME shape dispatch the transform uses
- * (`toKtProjectionForRef` — one shared function, so a refName always
- * resolves to the same projection class wherever it is reached from).
+ * through the SAME single model projection the transform uses
+ * (`KtModelProjection`, whose `toIdentifierType` derives the declaration
+ * kind from the schema — so a refName always resolves to the same
+ * identifier wherever it is reached from).
  *
  * Mirrors gen-typescript's `TsRef`, including the recursion guard: a
  * self-reference mid-construction (`context.modelDepth > 0`) renders the
@@ -44,7 +45,7 @@ export class KtRef extends KtSnippet {
       stackTrail: schema?.stackTrail.clone()
     })
 
-    const projection = toKtProjectionForRef(context, refName)
+    const projection = KtModelProjection
 
     if (context.modelDepth[`${denoJson.name}:${refName}`] > 0) {
       const settings = context.toModelContentSettings({

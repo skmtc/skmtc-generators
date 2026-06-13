@@ -1,7 +1,7 @@
 import { toModelEntry } from '@skmtc/core'
 import { setBasePackage } from './basePackage.ts'
 import { setCustomScalars } from './scalars.ts'
-import { toKtProjection } from './toKtProjection.ts'
+import { KtModelProjection } from './KtModelProjection.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
 /**
@@ -47,9 +47,7 @@ export const toKotlinEntry = (options: KotlinEntryOptions) => {
   return toModelEntry({
     id: denoJson.name,
     transform({ context, refName }) {
-      const schema = context.resolveSchemaRefOnce(refName, denoJson.name)
-
-      context.insertModel(toKtProjection(context, schema), refName)
+      context.insertModel(KtModelProjection, refName)
     }
   })
 }

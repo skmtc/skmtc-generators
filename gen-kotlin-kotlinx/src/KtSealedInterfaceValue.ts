@@ -41,7 +41,7 @@ export class KtSealedInterfaceValue extends KtSnippet {
 
     if (!propertyName) {
       throw new Error(
-        `@skmtc/gen-kotlin: a sealed interface value requires a discriminated (or hinted) ` +
+        `@skmtc/gen-kotlin-kotlinx: a sealed interface value requires a discriminated (or hinted) ` +
           `union — KtSealedInterfaceValue is only reachable through the toKtProjection dispatch`
       )
     }

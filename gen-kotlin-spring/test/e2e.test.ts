@@ -7,7 +7,7 @@
  */
 import { assertEquals } from 'jsr:@std/assert@^1.0.0'
 import { StackTrail, toArtifacts } from '@skmtc/core'
-import { toKotlinEntry } from '@skmtc/gen-kotlin'
+import { toKotlinEntry } from '@skmtc/gen-kotlin-kotlinx'
 import type { OpenAPIV3 } from 'openapi-types'
 import { toKotlinSpringEntry } from '../src/mod.ts'
 
@@ -128,7 +128,7 @@ const runFixture = ({ besideGenKotlin }: RunFixtureArgs) => {
     toGeneratorConfigMap: () =>
       // @ts-expect-error - the factory-emitted entries are monomorphic over EnrichmentType
       besideGenKotlin
-        ? { '@skmtc/gen-kotlin-spring': springEntry, '@skmtc/gen-kotlin': kotlinEntry }
+        ? { '@skmtc/gen-kotlin-spring': springEntry, '@skmtc/gen-kotlin-kotlinx': kotlinEntry }
         : { '@skmtc/gen-kotlin-spring': springEntry }
   })
 }

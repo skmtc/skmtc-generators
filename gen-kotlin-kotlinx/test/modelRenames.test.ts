@@ -1,6 +1,6 @@
 /**
  * Milestone E gate (spec 28): model renames via
- * `enrichments["@skmtc/gen-kotlin"][refName].main.name` — identifier,
+ * `enrichments["@skmtc/gen-kotlin-kotlinx"][refName].main.name` — identifier,
  * FILE, ref sites, and supertype clauses all carry the alias.
  */
 import { assertEquals, assertStringIncludes } from 'jsr:@std/assert@^1.0.0'
@@ -68,7 +68,7 @@ const runFixture = () => {
     settings: {
       basePath: './app/src/main/kotlin',
       enrichments: {
-        '@skmtc/gen-kotlin': {
+        '@skmtc/gen-kotlin-kotlinx': {
           ListCreditNoteEndpointProductListCreditNotePaginatedResponseModel: {
             main: { name: 'CreditNotePage' }
           },
@@ -80,7 +80,7 @@ const runFixture = () => {
     silent: true,
     toGeneratorConfigMap: () => ({
       // @ts-expect-error - the factory-emitted entry is monomorphic over EnrichmentType
-      '@skmtc/gen-kotlin': kotlinEntry
+      '@skmtc/gen-kotlin-kotlinx': kotlinEntry
     })
   })
 }

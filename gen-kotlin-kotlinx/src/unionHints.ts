@@ -9,7 +9,7 @@ import denoJson from '../deno.json' with { type: 'json' }
  * `name`) — and the union flows through the EXISTING sealed machinery.
  *
  * `client.json` shape, under
- * `settings.enrichments["@skmtc/gen-kotlin"][refName].main`:
+ * `settings.enrichments["@skmtc/gen-kotlin-kotlinx"][refName].main`:
  *
  * ```jsonc
  * // top-level union refName:

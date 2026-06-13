@@ -93,7 +93,7 @@ const runFixture = () => {
     settings: {
       basePath: './app/src/main/kotlin',
       enrichments: {
-        '@skmtc/gen-kotlin': {
+        '@skmtc/gen-kotlin-kotlinx': {
           ListPrice: {
             main: {
               properties: {
@@ -122,7 +122,7 @@ const runFixture = () => {
     silent: true,
     toGeneratorConfigMap: () => ({
       // @ts-expect-error - the factory-emitted entry is monomorphic over EnrichmentType
-      '@skmtc/gen-kotlin': kotlinEntry
+      '@skmtc/gen-kotlin-kotlinx': kotlinEntry
     })
   })
 }

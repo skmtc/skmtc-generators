@@ -22,7 +22,7 @@ const isRecord = (value: unknown): value is Record<string, unknown> => {
 
 /**
  * The consumer-supplied rename for a model (spec 28):
- * `enrichments["@skmtc/gen-kotlin"][refName].main.name` — turns
+ * `enrichments["@skmtc/gen-kotlin-kotlinx"][refName].main.name` — turns
  * schema-derived monsters (`ListCreditNoteEndpoint…Model`) into
  * readable identifiers (`CreditNotePage`). The alias names the FILE
  * too (identifier and file stay 1:1). Collisions are caught by the
