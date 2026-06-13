@@ -15,10 +15,16 @@ import { sdkConfig } from '../src/config.ts'
 const corpusRoot = '/Users/dmitrigrabov/workspace/skmtc-root/kotlin-sdk-corpus/onebusaway'
 const oursRoot = join(corpusRoot, 'ours')
 
-const yamlText = Deno.readTextFileSync(join(corpusRoot, 'openapi.yml'))
-const enrichments = JSON.parse(
-  Deno.readTextFileSync(join(corpusRoot, 'enrichments.json'))
+// Enrichments + source + basePath come through the regular SKMTC channel:
+// the project's `.skmtc/.settings/client.json`. The document-global config
+// (basePackage / clientPrefix / sharedModels / artifactName) is still a
+// direct JSON import (`sdkConfig`) — packages derive from it.
+const client = JSON.parse(
+  Deno.readTextFileSync(join(corpusRoot, '.skmtc', '.settings', 'client.json'))
 )
+const { basePath, enrichments } = client.settings
+
+const yamlText = Deno.readTextFileSync(join(corpusRoot, client.source))
 // Test-tier harness: the corpus spec is known-good OpenAPI v3.
 const documentObject = parse(yamlText) as OpenAPIV3.Document
 
@@ -28,7 +34,7 @@ const { artifacts, manifest } = toArtifacts({
   startAt: Date.now(),
   document: { type: 'oas', value: documentObject },
   settings: {
-    basePath: '.',
+    basePath,
     enrichments,
     packages: [
       { rootPath: `${sdkConfig.artifactName}-core/src/main/kotlin` },
