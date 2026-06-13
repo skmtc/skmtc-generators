@@ -2,9 +2,7 @@ import type { GenerateContextType, OasObject, Stringable } from '@skmtc/core'
 import { KtSnippet } from '@skmtc/lang-kotlin'
 import { sdkConfig as config } from '@/config.ts'
 import { kdoc } from '@/format.ts'
-import type { ModelField } from '@/model/ModelField.ts'
-import type { SharedHashes } from '@/model/structuralHash.ts'
-import { NestedModelClass } from '@/model/sections/NestedModelClass.ts'
+import { NestedModelClass, type ModelField, type SharedHashes } from '@skmtc/gen-kotlin-jackson-s'
 
 type Args = {
   context: GenerateContextType

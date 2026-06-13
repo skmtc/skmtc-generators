@@ -1,6 +1,6 @@
 import type { GenerateContextType } from '@skmtc/core'
 import { KtSnippet } from '@skmtc/lang-kotlin'
-import { sdkConfig as config } from '@/config.ts'
+import { getModelConfig } from '@/modelConfig.ts'
 
 type Args = {
   context: GenerateContextType
@@ -11,6 +11,8 @@ type Args = {
 export class AdditionalPropertiesAccessors extends KtSnippet {
   constructor({ context, destinationPath }: Args) {
     super({ context })
+
+    const config = getModelConfig()
 
     this.register({
       imports: {

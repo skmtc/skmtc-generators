@@ -1,12 +1,16 @@
 import type { GenerateContextType, OasObject, Stringable } from '@skmtc/core'
 import { KtSnippet } from '@skmtc/lang-kotlin'
 import invariant from 'tiny-invariant'
-import { coreModuleRoot } from '@/base.ts'
-import { sdkConfig as config } from '@/config.ts'
+import { getModelConfig } from '@/modelConfig.ts'
 import type { SharedHashes } from '@/model/structuralHash.ts'
 import type { AddField } from '@/model/ModelField.ts'
 import { KnownValueEnum } from '@/model/sections/KnownValueEnum.ts'
 import { NestedModelClass } from '@/model/sections/NestedModelClass.ts'
+
+const toCoreModuleRoot = (): string => {
+  const { artifactName, basePackage } = getModelConfig()
+  return `${artifactName}-core/src/main/kotlin/${basePackage.split('.').join('/')}`
+}
 
 /**
  * The Kotlin type contract. NOT a union consumers match on — all
@@ -220,9 +224,11 @@ export class KtSharedRefType extends KtSnippet {
   constructor({ context, className, destinationPath }: KtSharedRefTypeArgs) {
     super({ context })
 
+    const config = getModelConfig()
+
     const definition = context.findDefinition({
       name: className,
-      exportPath: `${coreModuleRoot}/models/${className}.kt`
+      exportPath: `${toCoreModuleRoot()}/models/${className}.kt`
     })
 
     invariant(

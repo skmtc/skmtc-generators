@@ -1,6 +1,6 @@
 import type { GenerateContextType } from '@skmtc/core'
 import { KtSnippet } from '@skmtc/lang-kotlin'
-import { sdkConfig as config } from '@/config.ts'
+import { getModelConfig } from '@/modelConfig.ts'
 import { exceptionName } from '@/errors.ts'
 import { indent, kdoc } from '@/format.ts'
 import { toConstantCase } from '@/naming.ts'
@@ -34,11 +34,13 @@ export class KnownValueEnum extends KtSnippet {
     this.description = description
     this.documentedValidate = documentedValidate === true
 
+    const config = getModelConfig()
+
     this.register({
       imports: {
         'com.fasterxml.jackson.annotation': ['JsonCreator'],
         [`${config.basePackage}.core`]: ['Enum', 'JsonField'],
-        [`${config.basePackage}.errors`]: [exceptionName]
+        [`${config.basePackage}.errors`]: [exceptionName()]
       },
       destinationPath
     })
@@ -46,6 +48,7 @@ export class KnownValueEnum extends KtSnippet {
 
   override toString(): string {
     const { className, members } = this
+    const config = getModelConfig()
     const exceptionPrefix = config.clientPrefix
     const constants = members.map(member => toConstantCase(member))
 

@@ -1,0 +1,13 @@
+{
+  "name": "@skmtc/gen-kotlin-jackson-s",
+  "version": "0.1.0",
+  "exports": "./mod.ts",
+  "tasks": { "test": "deno test --allow-env --allow-sys --allow-read" },
+  "imports": {
+    "@/": "./src/",
+    "@skmtc/core": "jsr:@skmtc/core@0.10.0",
+    "@skmtc/lang-kotlin": "jsr:@skmtc/lang-kotlin@0.7.0",
+    "valibot": "npm:valibot@1.1.0",
+    "tiny-invariant": "npm:tiny-invariant@^1.3.3"
+  }
+}

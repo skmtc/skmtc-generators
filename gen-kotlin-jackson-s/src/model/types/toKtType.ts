@@ -1,6 +1,6 @@
 import type { GenerateContextType, OasRef, OasSchema } from '@skmtc/core'
 import { camelCase, capitalize } from '@skmtc/core'
-import { sdkConfig as config } from '@/config.ts'
+import { getModelConfig } from '@/modelConfig.ts'
 import { toSingular } from '@/naming.ts'
 import { toStructuralHash, type SharedHashes } from '@/model/structuralHash.ts'
 import {
@@ -37,6 +37,7 @@ export const toKtType = ({
   sharedHashes,
   addFields
 }: ToKtTypeArgs): KtType => {
+  const config = getModelConfig()
   const resolved = schema.isRef() ? schema.resolve() : schema
 
   const shared = sharedHashes.get(toStructuralHash(resolved))

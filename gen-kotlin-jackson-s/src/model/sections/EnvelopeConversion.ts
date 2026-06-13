@@ -1,7 +1,7 @@
 import type { GenerateContextType } from '@skmtc/core'
 import { KtSnippet } from '@skmtc/lang-kotlin'
 import invariant from 'tiny-invariant'
-import { sdkConfig as config } from '@/config.ts'
+import { getModelConfig } from '@/modelConfig.ts'
 import { indent } from '@/format.ts'
 
 type Args = {
@@ -15,6 +15,8 @@ export class EnvelopeConversion extends KtSnippet {
 
   constructor({ context, destinationPath }: Args) {
     super({ context })
+
+    const config = getModelConfig()
 
     invariant(
       config.sharedModels.envelope,

@@ -1,6 +1,6 @@
 import type { GenerateContextType } from '@skmtc/core'
 import { KtSnippet } from '@skmtc/lang-kotlin'
-import { sdkConfig as config } from '@/config.ts'
+import { getModelConfig } from '@/modelConfig.ts'
 import { indent, kdoc } from '@/format.ts'
 import { decapitalize } from '@/naming.ts'
 import { requiredFieldsFence, type ModelField } from '@/model/ModelField.ts'
@@ -21,6 +21,8 @@ export class ModelBuilder extends KtSnippet {
     super({ context })
     this.className = className
     this.fields = fields
+
+    const config = getModelConfig()
 
     this.register({
       imports: { [`${config.basePackage}.core`]: ['JsonField', 'JsonValue'] },

@@ -1,6 +1,6 @@
 import type { GenerateContextType } from '@skmtc/core'
 import { KtSnippet } from '@skmtc/lang-kotlin'
-import { sdkConfig as config } from '@/config.ts'
+import { getModelConfig } from '@/modelConfig.ts'
 import { indent } from '@/format.ts'
 import type { ModelField } from '@/model/ModelField.ts'
 
@@ -17,6 +17,8 @@ export class SecondaryConstructor extends KtSnippet {
   constructor({ context, fields, destinationPath }: Args) {
     super({ context })
     this.fields = fields
+
+    const config = getModelConfig()
 
     this.register({
       imports: {

@@ -1,6 +1,6 @@
 import type { CustomValue, GenerateContextType, OasObject, OasRef, OasSchema } from '@skmtc/core'
 import invariant from 'tiny-invariant'
-import { sdkConfig as config } from '@/config.ts'
+import { getModelConfig } from '@/modelConfig.ts'
 import { ListModelField, ModelField, type AddField } from '@/model/ModelField.ts'
 import type { SharedHashes } from '@/model/structuralHash.ts'
 import { KtListType } from '@/model/types/KtTypes.ts'
@@ -114,6 +114,7 @@ const isCustomValue = (
  * `token` for Lithic) at the front of whichever group holds it.
  */
 export const orderSortedFields = (fields: ModelField[]): ModelField[] => {
+  const config = getModelConfig()
   const hoistField = config.hoistField ?? 'id'
 
   const byNameHoistFirst = (a: ModelField, b: ModelField) => {

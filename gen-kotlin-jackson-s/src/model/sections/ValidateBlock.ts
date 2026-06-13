@@ -1,6 +1,6 @@
 import type { GenerateContextType } from '@skmtc/core'
 import { KtSnippet } from '@skmtc/lang-kotlin'
-import { sdkConfig as config } from '@/config.ts'
+import { getModelConfig } from '@/modelConfig.ts'
 import { exceptionName } from '@/errors.ts'
 import { indent, kdoc } from '@/format.ts'
 import type { ModelField } from '@/model/ModelField.ts'
@@ -22,8 +22,10 @@ export class ValidateBlock extends KtSnippet {
     this.className = className
     this.fields = fields
 
+    const config = getModelConfig()
+
     this.register({
-      imports: { [`${config.basePackage}.errors`]: [exceptionName] },
+      imports: { [`${config.basePackage}.errors`]: [exceptionName()] },
       destinationPath
     })
   }
@@ -38,7 +40,7 @@ ${kdoc([
       '',
       'This method is _not_ forwards compatible with new types from the API for existing fields.',
       '',
-      `@throws ${exceptionName} if any value type in this object doesn't match its expected type.`
+      `@throws ${exceptionName()} if any value type in this object doesn't match its expected type.`
     ])}
 fun validate(): ${this.className} = apply {
     if (validated) {
@@ -52,7 +54,7 @@ fun isValid(): Boolean =
     try {
         validate()
         true
-    } catch (e: ${exceptionName}) {
+    } catch (e: ${exceptionName()}) {
         false
     }`
   }

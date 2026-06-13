@@ -3,7 +3,7 @@ import invariant from 'tiny-invariant'
 import { ResponseModelBase } from '@/base.ts'
 import type { SdkOperationEnrichment } from '@/enrichments.ts'
 import { generatedFileHeader } from '@/generatedFileHeader.ts'
-import { SdkModelValue } from '@/model/SdkModelValue.ts'
+import { SdkModelValue } from '@skmtc/gen-kotlin-jackson-s'
 import { ensureSharedModels } from '@/sharedModels.ts'
 
 /** The per-operation Response model class (note 32 §C). */

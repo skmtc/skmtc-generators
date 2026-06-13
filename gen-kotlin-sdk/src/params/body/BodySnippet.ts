@@ -2,7 +2,7 @@ import type { GenerateContextType, OasObject, OasOperation, Stringable } from '@
 import { camelCase, capitalize } from '@skmtc/core'
 import invariant from 'tiny-invariant'
 import { sdkConfig as config } from '@/config.ts'
-import type { SharedHashes } from '@/model/structuralHash.ts'
+import type { SharedHashes } from '@skmtc/gen-kotlin-jackson-s'
 import { AbsentBody } from '@/params/body/AbsentBody.ts'
 import { MapBody } from '@/params/body/MapBody.ts'
 import { ModelBody } from '@/params/body/ModelBody.ts'

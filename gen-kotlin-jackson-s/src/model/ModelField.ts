@@ -1,7 +1,7 @@
 import type { GenerateContextType, OasRef, OasSchema } from '@skmtc/core'
 import { camelCase, capitalize } from '@skmtc/core'
 import { KtSnippet } from '@skmtc/lang-kotlin'
-import { sdkConfig as config } from '@/config.ts'
+import { getModelConfig } from '@/modelConfig.ts'
 import { optionalThrows, requiredThrows } from '@/errors.ts'
 import { kdoc } from '@/format.ts'
 import { decapitalize, toSingular } from '@/naming.ts'
@@ -49,6 +49,8 @@ export class ModelField extends KtSnippet {
 
   constructor(args: ModelFieldArgs | InjectedFieldArgs) {
     super({ context: args.context })
+
+    const config = getModelConfig()
 
     if ('addField' in args) {
       const { addField } = args
@@ -101,7 +103,7 @@ export class ModelField extends KtSnippet {
   /** `fun x(): T = x.getRequired("x")` — the model-class accessor. */
   typedAccessor(): string {
     const lines = this.description ? [this.description, ''] : []
-    lines.push(this.docRequired ? requiredThrows : optionalThrows)
+    lines.push(this.docRequired ? requiredThrows() : optionalThrows())
 
     const accessor =
       this.required && !this.nullable
@@ -119,7 +121,7 @@ export class ModelField extends KtSnippet {
   /** `fun x(): T = body.x()` — the accessor flattened onto a Params class. */
   flattenedTypedAccessor(): string {
     const lines = this.description ? [this.description, ''] : []
-    lines.push(this.docRequired ? requiredThrows : optionalThrows)
+    lines.push(this.docRequired ? requiredThrows() : optionalThrows())
 
     const accessor =
       this.required && !this.nullable
@@ -253,6 +255,8 @@ export class ListModelField extends ModelField {
   constructor(args: ListModelFieldArgs) {
     super(args)
     this.listType = args.type
+
+    const config = getModelConfig()
 
     this.register({
       imports: { [`${config.basePackage}.core`]: ['checkKnown', 'toImmutable'] },

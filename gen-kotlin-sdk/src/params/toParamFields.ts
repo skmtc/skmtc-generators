@@ -10,7 +10,7 @@ import {
   KtListType,
   KtScalarType,
   type KtType
-} from '@/model/types/KtTypes.ts'
+} from '@skmtc/gen-kotlin-jackson-s'
 
 type ToParamFieldsArgs = {
   context: GenerateContextType

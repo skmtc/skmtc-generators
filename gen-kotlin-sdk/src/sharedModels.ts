@@ -4,8 +4,7 @@ import invariant from 'tiny-invariant'
 import { KtDefinition, createClass, register } from '@skmtc/lang-kotlin'
 import { sdkConfig as config } from '@/config.ts'
 import { generatedFileHeader } from '@/generatedFileHeader.ts'
-import { toStructuralHash, type SharedHashes } from '@/model/structuralHash.ts'
-import { SdkModelValue } from '@/model/SdkModelValue.ts'
+import { SdkModelValue, toStructuralHash, type SharedHashes } from '@skmtc/gen-kotlin-jackson-s'
 
 export type EnsureSharedModelsResult = {
   sharedHashes: SharedHashes

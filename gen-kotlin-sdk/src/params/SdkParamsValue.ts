@@ -1,7 +1,7 @@
 import type { GenerateContextType, OasOperation } from '@skmtc/core'
 import { KtAnnotation, KtSnippet } from '@skmtc/lang-kotlin'
 import { sdkConfig as config } from '@/config.ts'
-import type { SharedHashes } from '@/model/structuralHash.ts'
+import type { SharedHashes } from '@skmtc/gen-kotlin-jackson-s'
 import { toBodyShape, toBodySnippet, type BodySnippet } from '@/params/body/BodySnippet.ts'
 import { toParamFields } from '@/params/toParamFields.ts'
 import { ParamsClassBody } from '@/params/sections/ParamsClassBody.ts'

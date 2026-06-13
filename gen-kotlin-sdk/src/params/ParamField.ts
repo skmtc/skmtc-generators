@@ -4,8 +4,7 @@ import { KtSnippet } from '@skmtc/lang-kotlin'
 import { sdkConfig as config } from '@/config.ts'
 import { kdoc } from '@/format.ts'
 import { toSingular } from '@/naming.ts'
-import { addMethodKdoc } from '@/model/ModelField.ts'
-import { KtListType, KtScalarType, type KtType } from '@/model/types/KtTypes.ts'
+import { addMethodKdoc, KtListType, KtScalarType, type KtType } from '@skmtc/gen-kotlin-jackson-s'
 
 /**
  * How a parameter value becomes a wire string in `_headers()` /

@@ -1,6 +1,6 @@
 import type { GenerateContextType, OasObject } from '@skmtc/core'
 import { KtSnippet } from '@skmtc/lang-kotlin'
-import { sdkConfig as config } from '@/config.ts'
+import { getModelConfig } from '@/modelConfig.ts'
 import type { AddField, ModelField } from '@/model/ModelField.ts'
 import type { SharedHashes } from '@/model/structuralHash.ts'
 import { shadowFields, toModelFields } from '@/model/toModelFields.ts'
@@ -67,6 +67,7 @@ export class SdkModelValue extends KtSnippet {
 
     shadowFields(this.fields, new Set())
 
+    const config = getModelConfig()
     const envelopeFields = config.sharedModels.envelope?.fields ?? []
     const wireNames = new Set(this.fields.map(field => field.wireName))
     const envelope =
