@@ -10,19 +10,19 @@ import { dirname } from 'jsr:@std/path@^1.1.2/dirname'
 import { join } from 'jsr:@std/path@^1.1.2/join'
 import type { OpenAPIV3 } from 'openapi-types'
 import entry from '../src/mod.ts'
-import { sdkConfig } from '../src/config.ts'
 
 const corpusRoot = '/Users/dmitrigrabov/workspace/skmtc-root/kotlin-sdk-corpus/onebusaway'
 const oursRoot = join(corpusRoot, 'ours')
 
-// Enrichments + source + basePath come through the regular SKMTC channel:
-// the project's `.skmtc/.settings/client.json`. The document-global config
-// (basePackage / clientPrefix / sharedModels / artifactName) is still a
-// direct JSON import (`sdkConfig`) — packages derive from it.
+// Everything the engine needs — source, basePath, packages, enrichments —
+// comes through the regular SKMTC channel: the project's
+// `.skmtc/.settings/client.json`. The document-global config (basePackage /
+// clientPrefix / sharedModels / artifactName) is the SDK's own direct JSON
+// import (`src/sdk-config.json`), not the harness's concern.
 const client = JSON.parse(
   Deno.readTextFileSync(join(corpusRoot, '.skmtc', '.settings', 'client.json'))
 )
-const { basePath, enrichments } = client.settings
+const { basePath, enrichments, packages } = client.settings
 
 const yamlText = Deno.readTextFileSync(join(corpusRoot, client.source))
 // Test-tier harness: the corpus spec is known-good OpenAPI v3.
@@ -33,14 +33,7 @@ const { artifacts, manifest } = toArtifacts({
   spanId: 'onebusaway',
   startAt: Date.now(),
   document: { type: 'oas', value: documentObject },
-  settings: {
-    basePath,
-    enrichments,
-    packages: [
-      { rootPath: `${sdkConfig.artifactName}-core/src/main/kotlin` },
-      { rootPath: `${sdkConfig.artifactName}-client-okhttp/src/main/kotlin` }
-    ]
-  },
+  settings: { basePath, enrichments, packages },
   stackTrail: new StackTrail([]),
   silent: true,
   toGeneratorConfigMap: () => ({

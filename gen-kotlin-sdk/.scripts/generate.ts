@@ -1,14 +1,15 @@
 /**
  * Target-parameterized corpus runner (note 32 §KS-F F1):
- * `deno run … generate.ts <target>` reads
- * `kotlin-sdk-corpus/<target>/{openapi.yml, enrichments.json,
- * sdk-config.json, template-overlay.json?}` and writes the tree to
- * `…/<target>/ours/`.
+ * `deno run … generate.ts <target>` reads the project's
+ * `kotlin-sdk-corpus/<target>/.skmtc/.settings/client.json` (source +
+ * basePath + packages + enrichments — the regular SKMTC channel via
+ * `context.settings`) plus the target's `sdk-config.json` +
+ * `template-overlay.json?`, and writes the tree to `…/<target>/ours/`.
  *
- * The generator imports its config directly from
- * `src/sdk-config.json` (no factory closure), so this harness swaps
- * that file to the target's config — with the template overlay merged
- * in — before dynamically importing the entry, and restores the
+ * The SDK imports its document-global config (basePackage / clientPrefix /
+ * sharedModels / artifactName) directly from `src/sdk-config.json`, so this
+ * harness swaps that file to the target's config — with the template overlay
+ * merged in — before dynamically importing the entry, and restores the
  * product config afterwards.
  */
 import { StackTrail, toArtifacts } from '@skmtc/core'
@@ -30,10 +31,14 @@ const oursRoot = join(corpusRoot, 'ours')
 const configPath = fromFileUrl(new URL('../src/sdk-config.json', import.meta.url))
 
 // Test-tier harness: corpus inputs are known-good.
+const client = JSON.parse(
+  Deno.readTextFileSync(join(corpusRoot, '.skmtc', '.settings', 'client.json'))
+)
+const { basePath, enrichments, packages } = client.settings
+
 const documentObject = parse(
-  Deno.readTextFileSync(join(corpusRoot, 'openapi.yml'))
+  Deno.readTextFileSync(join(corpusRoot, client.source))
 ) as OpenAPIV3.Document
-const enrichments = JSON.parse(Deno.readTextFileSync(join(corpusRoot, 'enrichments.json')))
 const targetConfig = JSON.parse(Deno.readTextFileSync(join(corpusRoot, 'sdk-config.json')))
 
 try {
@@ -49,21 +54,13 @@ Deno.writeTextFileSync(configPath, JSON.stringify(targetConfig, null, 2) + '\n')
 
 try {
   const { default: entry } = await import('../src/mod.ts')
-  const { sdkConfig } = await import('../src/config.ts')
 
   const { artifacts, manifest } = toArtifacts({
     traceId: 'gen-kotlin-sdk-corpus',
     spanId: target,
     startAt: Date.now(),
     document: { type: 'oas', value: documentObject },
-    settings: {
-      basePath: '.',
-      enrichments,
-      packages: [
-        { rootPath: `${sdkConfig.artifactName}-core/src/main/kotlin` },
-        { rootPath: `${sdkConfig.artifactName}-client-okhttp/src/main/kotlin` }
-      ]
-    },
+    settings: { basePath, enrichments, packages },
     stackTrail: new StackTrail([]),
     silent: true,
     toGeneratorConfigMap: () => ({
