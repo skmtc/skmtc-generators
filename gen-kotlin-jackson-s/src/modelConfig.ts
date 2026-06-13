@@ -1,7 +1,7 @@
+import settings from '@/settings.json' with { type: 'json' }
+
 /** The model layer's config slice — the SDK's SdkConfig is a structural
- * superset, so setModelConfig(sdkConfig) is assignable. Module-scope state,
- * per-run-safe (fresh Worker per generate), the gen-kotlin basePackage
- * precedent. */
+ * superset, so setModelConfig(sdkConfig) is assignable. */
 export type ModelConfig = {
   basePackage: string
   clientPrefix: string
@@ -15,19 +15,26 @@ export type ModelConfig = {
   }
 }
 
-let current: ModelConfig | undefined
+/**
+ * `src/settings.json` is the standalone default the shared engine reads when
+ * nothing overrides it — so the gen-kotlin-jackson-s entry needs no per-ref
+ * `setModelConfig` call. A host with its own document-global config (the SDK)
+ * calls {@link setModelConfig} once at the top of its transform to OVERRIDE
+ * per target. INTERIM: to be replaced by the core document-global config tier
+ * read off `context.settings`.
+ */
+const defaultConfig: ModelConfig = settings
+
+let override: ModelConfig | undefined
 
 export const setModelConfig = (config: ModelConfig): void => {
-  current = config
+  override = config
 }
 
 export const getModelConfig = (): ModelConfig => {
-  if (!current) {
-    throw new Error('@skmtc/gen-kotlin-jackson-s: model config not set — call setModelConfig() before generating')
-  }
-  return current
+  return override ?? defaultConfig
 }
 
 export const resetModelConfig = (): void => {
-  current = undefined
+  override = undefined
 }

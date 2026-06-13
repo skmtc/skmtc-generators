@@ -1,6 +1,6 @@
 import { capitalize, camelCase } from '@skmtc/core'
 import { toModelProjectionBase } from '@skmtc/lang-kotlin'
-import { getModelConfig } from '@/modelConfig.ts'
+import settings from '@/settings.json' with { type: 'json' }
 import denoJson from '../deno.json' with { type: 'json' }
 
 /** PascalCase model name from a schema refName. */
@@ -17,7 +17,8 @@ export const toJacksonSModelName = (refName: string): string => {
  *
  * The export path puts each model at `@/<basePackage dirs>/models/<Name>.kt`
  * (the segments after `@/` ARE the package directories — `KtFile` derives
- * the `package` directive from them), reading the injected `ModelConfig`.
+ * the `package` directive from them), reading `basePackage` straight from
+ * `settings.json`.
  */
 export const JacksonSModelBase = toModelProjectionBase({
   id: denoJson.name,
@@ -30,7 +31,7 @@ export const JacksonSModelBase = toModelProjectionBase({
 
   toExportPath({ refName }) {
     const name = toJacksonSModelName(refName)
-    const packageDirs = getModelConfig().basePackage.split('.').join('/')
+    const packageDirs = settings.basePackage.split('.').join('/')
 
     return `@/${packageDirs}/models/${name}.kt`
   }
