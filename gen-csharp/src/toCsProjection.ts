@@ -10,7 +10,7 @@ import { CsAbstractRecordProjection } from './CsAbstractRecordProjection.ts'
 import { CsRecordProjection } from './CsRecordProjection.ts'
 import { CsEnumProjection } from './CsEnumProjection.ts'
 import { isPolymorphicUnion } from './polymorphicMembership.ts'
-import type { ModelEnrichment } from './modelNames.ts'
+import type { EnrichmentSchema } from './modelNames.ts'
 import { toEnumValues } from './toEnumValues.ts'
 
 /**
@@ -19,7 +19,7 @@ import { toEnumValues } from './toEnumValues.ts'
  */
 export type CsProjection = ModelProjection<
   CsAbstractRecordProjection | CsRecordProjection | CsEnumProjection,
-  ModelEnrichment
+  EnrichmentSchema
 >
 
 /**

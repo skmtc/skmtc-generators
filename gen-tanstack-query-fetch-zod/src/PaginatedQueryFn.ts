@@ -3,6 +3,7 @@ import type { OasOperationProjectionConstructorArgs } from '@skmtc/core'
 import { capitalize, decapitalize, OasVoid } from '@skmtc/core'
 import { TsProjection } from '@skmtc/gen-typescript'
 import { TanstackQueryBase } from './base.ts'
+import type { EnrichmentSchema } from './enrichments.ts'
 import { ZodProjection } from '@skmtc/gen-zod'
 
 export class PaginatedQueryFn extends TanstackQueryBase {
@@ -10,7 +11,7 @@ export class PaginatedQueryFn extends TanstackQueryBase {
   zodResponseName: string
   queryParamArgs: ListObject<string>
 
-  constructor({ context, operation, settings }: OasOperationProjectionConstructorArgs) {
+  constructor({ context, operation, settings }: OasOperationProjectionConstructorArgs<EnrichmentSchema>) {
     super({ context, operation, settings })
 
     this.queryParamArgs = List.toObject(operation.toParams(['query']).map(({ name }) => name))

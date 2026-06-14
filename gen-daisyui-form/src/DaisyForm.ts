@@ -41,7 +41,7 @@ export class DaisyForm extends DaisyFormBase {
 
     this.fields = new FormFields({ context, operation, settings })
 
-    const enrichment = settings.enrichments?.form
+    const enrichment = settings.enrichments.subject?.form
     // Canonical form-enrichment fields (validated by core's formItem schema)
     this.title = enrichment?.title
     this.description = enrichment?.description

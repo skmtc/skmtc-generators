@@ -11,11 +11,20 @@ export const inputItem = v.object({
 
 export type InputItem = v.InferOutput<typeof inputItem>
 
-export const enrichmentSchema = v.optional(
+// The subject-scoped leaf — the per-operation select override.
+export const inputSchema = v.optional(
   v.object({
     input: inputItem
   })
 )
+
+// The three-scope enrichment umbrella. This generator only consumes the
+// subject scope; `generator` / `stack` are unused (declared `v.undefined()`).
+export const enrichmentSchema = v.object({
+  subject: inputSchema,
+  generator: v.undefined(),
+  stack: v.undefined()
+})
 
 export type EnrichmentSchema = v.InferOutput<typeof enrichmentSchema>
 

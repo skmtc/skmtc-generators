@@ -1,5 +1,5 @@
-import * as v from "valibot";
+import { emptyEnrichmentSchema, type EmptyEnrichments } from '@skmtc/core'
 
-export const toEnrichmentSchema = () => v.undefined();
+export const toEnrichmentSchema = () => emptyEnrichmentSchema
 
-export type EnrichmentSchema = undefined;
+export type EnrichmentSchema = EmptyEnrichments

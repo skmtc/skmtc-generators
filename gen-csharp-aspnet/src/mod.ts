@@ -5,7 +5,7 @@ import { toApiExportPath, toApiTag, toControllerName, toServiceName } from './ap
 import { AspnetControllerClass, AspnetServiceInterface } from './AspnetApiClasses.ts'
 import { AspnetApiMethod } from './AspnetApiMethod.ts'
 import { ensureApiErrorSupport } from './errorSupport.ts'
-import { operationEnrichmentSchema } from './enrichments.ts'
+import { operationEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
 /**
@@ -43,7 +43,7 @@ export type CsharpAspnetEntryOptions = {
  * `transform` (the note-30 lesson 1).
  */
 export const toCsharpAspnetEntry = (options: CsharpAspnetEntryOptions) => {
-  return toOasOperationEntry({
+  return toOasOperationEntry<EnrichmentSchema>({
     id: denoJson.name,
     toEnrichmentSchema: () => operationEnrichmentSchema,
     transform({ context, operation }) {

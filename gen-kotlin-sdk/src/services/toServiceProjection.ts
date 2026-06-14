@@ -8,7 +8,7 @@ import {
   type ServiceRole
 } from '@/base.ts'
 import { sdkConfig as config } from '@/config.ts'
-import type { SdkOperationEnrichment } from '@/enrichments.ts'
+import type { EnrichmentSchema } from '@/enrichments.ts'
 import { generatedFileHeader } from '@/generatedFileHeader.ts'
 import { toSdkService } from '@/services/SdkService.ts'
 import { SdkServiceImplValue, SdkServiceValue } from '@/services/SdkServiceValue.ts'
@@ -28,7 +28,7 @@ const toServiceProjection = (flavor: ServiceFlavor, role: ServiceRole) => {
     constructorParameters: Stringable | undefined
     supertypes: string[]
 
-    constructor(args: OasOperationProjectionConstructorArgs<SdkOperationEnrichment>) {
+    constructor(args: OasOperationProjectionConstructorArgs<EnrichmentSchema>) {
       super(args)
 
       const { context, operation, settings } = args

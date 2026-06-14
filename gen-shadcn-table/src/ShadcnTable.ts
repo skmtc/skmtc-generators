@@ -45,7 +45,7 @@ export class ShadcnTable extends ShadcnTableBase {
   }
 
   override toString(): string {
-    const { title, description } = this.settings.enrichments?.table ?? {}
+    const { title, description } = this.settings.enrichments.subject?.table ?? {}
 
     return `(${this.pathParams}) => {
   const { data } = ${this.clientName}(${this.pathParams.destructuredPathParams})

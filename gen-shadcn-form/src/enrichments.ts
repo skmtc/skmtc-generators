@@ -16,6 +16,7 @@ export const formFieldItem = v.object({
 
 export type FieldSchema = v.InferOutput<typeof formFieldItem>
 
+// The subject-scoped leaf — the per-operation form override.
 export const formSchema = v.optional(
   v.object({
     title: v.optional(v.string()),
@@ -25,5 +26,13 @@ export const formSchema = v.optional(
   })
 )
 
-export type EnrichmentSchema = v.InferOutput<typeof formSchema>
-export const toEnrichmentSchema = () => formSchema
+// The three-scope enrichment umbrella. This generator only consumes the
+// subject scope; `generator` / `stack` are unused (declared `v.undefined()`).
+export const enrichmentSchema = v.object({
+  subject: formSchema,
+  generator: v.undefined(),
+  stack: v.undefined()
+})
+
+export type EnrichmentSchema = v.InferOutput<typeof enrichmentSchema>
+export const toEnrichmentSchema = () => enrichmentSchema

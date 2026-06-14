@@ -6,8 +6,8 @@
     "@skmtc/gen-zod": "jsr:@skmtc/gen-zod@0.1.0",
     "@skmtc/gen-reapit-searchable-dropdown": "jsr:@skmtc/gen-reapit-searchable-dropdown@0.1.0",
     "@skmtc/gen-reapit-multi-select": "jsr:@skmtc/gen-reapit-multi-select@0.1.0",
-    "@skmtc/core": "jsr:@skmtc/core@0.10.0",
-    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.3.0"
+    "@skmtc/core": "jsr:@skmtc/core@0.11.0",
+    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.4.0"
   },
   "exports": "./mod.ts",
   "tasks": {

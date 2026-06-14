@@ -37,14 +37,22 @@ export const formItem = v.object({
 
 export type FormItem = v.InferOutput<typeof formItem>
 
-// Schema as seen by `toEnrichmentSchema()` — wraps `formItem` under
-// a `form` key so other concerns (table, input, …) could be added
-// later in this same generator if needed.
-const enrichmentSchema = v.optional(
+// The subject-scoped leaf — wraps `formItem` under a `form` key so
+// other concerns (table, input, …) could be added later in this same
+// generator if needed.
+const formSchema = v.optional(
   v.object({
     form: v.optional(formItem)
   })
 )
+
+// The three-scope enrichment umbrella. This generator only consumes the
+// subject scope; `generator` / `stack` are unused (declared `v.undefined()`).
+const enrichmentSchema = v.object({
+  subject: formSchema,
+  generator: v.undefined(),
+  stack: v.undefined()
+})
 
 export type EnrichmentSchema = v.InferOutput<typeof enrichmentSchema>
 

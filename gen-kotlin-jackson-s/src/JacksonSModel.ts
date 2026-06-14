@@ -1,6 +1,7 @@
 import type { ModelProjectionConstructorArgs, SchemaToValueFn, Stringable } from '@skmtc/core'
 import { createClass } from '@skmtc/lang-kotlin'
 import { JacksonSModelBase } from '@/base.ts'
+import type { EnrichmentSchema } from '@/enrichments.ts'
 import { SdkModelValue } from '@/model/SdkModelValue.ts'
 import { generatedFileHeader } from '@/generatedFileHeader.ts'
 import type { SharedHashes } from '@/model/structuralHash.ts'
@@ -26,7 +27,7 @@ import type { SharedHashes } from '@/model/structuralHash.ts'
 export class JacksonSModel extends JacksonSModelBase {
   value: SdkModelValue
 
-  constructor({ context, refName, settings }: ModelProjectionConstructorArgs) {
+  constructor({ context, refName, settings }: ModelProjectionConstructorArgs<EnrichmentSchema>) {
     super({ context, refName, settings })
 
     const schema = context.resolveSchemaRefOnce(refName, JacksonSModelBase.id)

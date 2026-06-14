@@ -35,8 +35,8 @@ export class ShadcnSelectInput extends ShadcnSelectApiBase {
     this.option = new InputOption({
       context,
       itemName: this.itemName,
-      formatter: settings.enrichments?.input.formatter,
-      accessorPath: settings.enrichments?.input.accessorPath ?? [],
+      formatter: settings.enrichments.subject?.input.formatter,
+      accessorPath: settings.enrichments.subject?.input.accessorPath ?? [],
       destinationPath: settings.exportPath
     })
 

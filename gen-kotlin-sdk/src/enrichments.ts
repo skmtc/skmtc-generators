@@ -43,4 +43,20 @@ export const sdkOperationEnrichmentSchema = v.optional(
 
 export type SdkOperationEnrichment = v.InferOutput<typeof sdkOperationEnrichmentSchema>
 
-export const toEnrichmentSchema = () => sdkOperationEnrichmentSchema
+/**
+ * The three-scope enrichment umbrella. The per-operation Stainless config
+ * is the `subject` leaf; `generator` / `stack` are unused here
+ * (`v.undefined()`). The generator's broader config (basePackage /
+ * clientPrefix / artifactName / ModelConfig) still comes from
+ * `src/sdk-config.json` via the module-scope setter — migrating that to the
+ * `_generator` enrichment tier is a separate, centrally-handled follow-up.
+ */
+export const enrichmentSchema = v.object({
+  subject: sdkOperationEnrichmentSchema,
+  generator: v.undefined(),
+  stack: v.undefined()
+})
+
+export type EnrichmentSchema = v.InferOutput<typeof enrichmentSchema>
+
+export const toEnrichmentSchema = () => enrichmentSchema

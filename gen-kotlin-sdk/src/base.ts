@@ -1,9 +1,13 @@
 import { camelCase, capitalize } from '@skmtc/core'
 import type { GenerateContextType, OasOperation } from '@skmtc/core'
-import { toOasOperationProjectionBase } from '@skmtc/lang-kotlin'
+import { toKtOasOperationProjectionBase } from '@skmtc/lang-kotlin'
 import invariant from 'tiny-invariant'
 import { sdkConfig as config } from '@/config.ts'
-import { toEnrichmentSchema, type SdkOperationEnrichment } from '@/enrichments.ts'
+import {
+  toEnrichmentSchema,
+  type EnrichmentSchema,
+  type SdkOperationEnrichment
+} from '@/enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
 export const packageDirs = config.basePackage.split('.').join('/')
@@ -20,7 +24,7 @@ export const toClassStem = (enrichment: NonNullable<SdkOperationEnrichment>): st
   return enrichment.classStem ?? capitalize(camelCase(resourceTail))
 }
 
-export const ResponseModelBase = toOasOperationProjectionBase<SdkOperationEnrichment>({
+export const ResponseModelBase = toKtOasOperationProjectionBase<EnrichmentSchema>({
   id: denoJson.name,
   toEnrichmentSchema,
   toIdentifierName({ operation, enrichments, variant }) {
@@ -29,42 +33,51 @@ export const ResponseModelBase = toOasOperationProjectionBase<SdkOperationEnrich
     // Variants-unaware: `variant` is destructured but unused.
     void variant
 
-    if (!enrichments) {
+    // The per-operation Stainless config is the umbrella's `subject` leaf.
+    const subject = enrichments.subject
+
+    if (!subject) {
       return `Unenriched${capitalize(camelCase(operation.path))}Response`
     }
 
-    return `${toClassStem(enrichments)}${capitalize(camelCase(enrichments.method))}Response`
+    return `${toClassStem(subject)}${capitalize(camelCase(subject.method))}Response`
   },
   toIdentifierType: () => ({ kind: 'class' }),
   toExportPath({ operation, enrichments, variant }) {
     const name = this.toIdentifierName({ operation, enrichments, variant })
 
-    const resourceDir = enrichments
-      ? enrichments.resource.join('').toLowerCase()
+    const subject = enrichments.subject
+
+    const resourceDir = subject
+      ? subject.resource.join('').toLowerCase()
       : 'unenriched'
 
     return `${coreModuleRoot}/${toModelsDir(resourceDir)}/${name}.kt`
   }
 })
 
-export const ParamsBase = toOasOperationProjectionBase<SdkOperationEnrichment>({
+export const ParamsBase = toKtOasOperationProjectionBase<EnrichmentSchema>({
   id: denoJson.name,
   toEnrichmentSchema,
   toIdentifierName({ operation, enrichments, variant }) {
     void variant
 
-    if (!enrichments) {
+    const subject = enrichments.subject
+
+    if (!subject) {
       return `Unenriched${capitalize(camelCase(operation.path))}Params`
     }
 
-    return `${toClassStem(enrichments)}${capitalize(camelCase(enrichments.method))}Params`
+    return `${toClassStem(subject)}${capitalize(camelCase(subject.method))}Params`
   },
   toIdentifierType: () => ({ kind: 'class' }),
   toExportPath({ operation, enrichments, variant }) {
     const name = this.toIdentifierName({ operation, enrichments, variant })
 
-    const resourceDir = enrichments
-      ? enrichments.resource.join('').toLowerCase()
+    const subject = enrichments.subject
+
+    const resourceDir = subject
+      ? subject.resource.join('').toLowerCase()
       : 'unenriched'
 
     return `${coreModuleRoot}/${toModelsDir(resourceDir)}/${name}.kt`
@@ -78,17 +91,19 @@ export const toServiceBase = (flavor: ServiceFlavor, role: ServiceRole) => {
   const nameSuffix = `Service${flavor === 'async' ? 'Async' : ''}${role === 'impl' ? 'Impl' : ''}`
   const directory = flavor === 'async' ? 'async' : 'blocking'
 
-  return toOasOperationProjectionBase<SdkOperationEnrichment>({
+  return toKtOasOperationProjectionBase<EnrichmentSchema>({
     id: denoJson.name,
     toEnrichmentSchema,
     toIdentifierName({ operation, enrichments, variant }) {
       void variant
 
-      if (!enrichments) {
+      const subject = enrichments.subject
+
+      if (!subject) {
         return `Unenriched${capitalize(camelCase(operation.path))}${nameSuffix}`
       }
 
-      return `${toClassStem(enrichments)}${nameSuffix}`
+      return `${toClassStem(subject)}${nameSuffix}`
     },
     // Constant per base instance: the kind depends on `role` (a closure
     // parameter known at construction), not the schema — interface bases
@@ -102,6 +117,13 @@ export const toServiceBase = (flavor: ServiceFlavor, role: ServiceRole) => {
   })
 }
 
-/** Per-operation enrichment lookup shared by services and the client. */
-export const resolveEnrichment = (context: GenerateContextType) => (operation: OasOperation) =>
-  ResponseModelBase.toEnrichments({ operation, context, variant: 'main' })
+/**
+ * Per-operation enrichment lookup shared by services and the client.
+ * `toEnrichments` returns the `{ subject, generator, stack }` umbrella;
+ * downstream consumers want the per-operation Stainless config, so this
+ * unwraps to the `subject` leaf.
+ */
+export const resolveEnrichment =
+  (context: GenerateContextType) =>
+  (operation: OasOperation): SdkOperationEnrichment =>
+    ResponseModelBase.toEnrichments({ operation, context, variant: 'main' }).subject

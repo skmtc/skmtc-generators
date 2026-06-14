@@ -2,11 +2,12 @@ import { List, type ListArray, type ListLines } from '@skmtc/lang-typescript'
 import type { OasOperationProjectionConstructorArgs, OasOperation } from '@skmtc/core'
 import { SupabaseHonoBase } from './base.ts'
 import { SupabaseRoute } from './SupabaseRoute.ts'
+import type { EnrichmentSchema } from './enrichments.ts'
 
 export class SupabaseHono extends SupabaseHonoBase {
   methods: ListArray<string>
   routes: ListLines<SupabaseRoute>
-  constructor({ context, operation, settings }: OasOperationProjectionConstructorArgs) {
+  constructor({ context, operation, settings }: OasOperationProjectionConstructorArgs<EnrichmentSchema>) {
     super({ context, operation, settings })
 
     this.methods = List.toArray([])

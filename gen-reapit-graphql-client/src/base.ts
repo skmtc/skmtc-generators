@@ -1,5 +1,5 @@
 import { capitalize } from '@skmtc/core'
-import { toGqlOperationProjectionBase } from '@skmtc/lang-typescript'
+import { toTsGqlOperationProjectionBase } from '@skmtc/lang-typescript'
 import { join } from '@std/path'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
@@ -19,7 +19,7 @@ import denoJson from '../deno.json' with { type: 'json' }
  * hook lives in its own file so a consumer that only needs one query
  * doesn't pay for unused imports under tree-shaking.
  */
-export const ReapitGraphqlClientBase = toGqlOperationProjectionBase<EnrichmentSchema>({
+export const ReapitGraphqlClientBase = toTsGqlOperationProjectionBase<EnrichmentSchema>({
   id: denoJson.name,
 
   toEnrichmentSchema,

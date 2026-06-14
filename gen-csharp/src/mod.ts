@@ -2,6 +2,7 @@ import { toModelEntry } from '@skmtc/core'
 import { setBaseNamespace } from './baseNamespace.ts'
 import { setCustomScalars } from './scalars.ts'
 import { toCsProjection } from './toCsProjection.ts'
+import { toEnrichmentSchema, type EnrichmentSchema } from './modelNames.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
 /**
@@ -49,8 +50,9 @@ export type CsharpEntryOptions = {
  * (the note-30 lesson 1).
  */
 export const toCsharpEntry = (options: CsharpEntryOptions) => {
-  return toModelEntry({
+  return toModelEntry<EnrichmentSchema>({
     id: denoJson.name,
+    toEnrichmentSchema,
     transform({ context, refName }) {
       setBaseNamespace(options.baseNamespace)
 

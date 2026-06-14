@@ -1,7 +1,6 @@
 import { assertEquals } from 'jsr:@std/assert@^1.0.0'
 import { TsProjection } from '../../src/TsProjection.ts'
 import { ContentSettings, RefName, StackTrail } from '@skmtc/core'
-import { Identifier } from '@skmtc/core'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
 import { toParseContext } from '../helpers/toParseContext.ts'
 

@@ -5,6 +5,7 @@ import { toApiExportPath, toApiTag, toControllerName, toServiceName } from './ap
 import { SpringControllerClass, SpringServiceInterface } from './SpringApiInterface.ts'
 import { ensureApiErrorSupport } from './apiErrorSupport.ts'
 import { SpringApiMethod } from './SpringApiMethod.ts'
+import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
 /**
@@ -39,8 +40,9 @@ export type KotlinSpringEntryOptions = {
 export const toKotlinSpringEntry = (options: KotlinSpringEntryOptions) => {
   setBasePackage(options.basePackage)
 
-  return toOasOperationEntry({
+  return toOasOperationEntry<EnrichmentSchema>({
     id: denoJson.name,
+    toEnrichmentSchema,
     transform({ context, operation }) {
       ensureApiErrorSupport(context)
 

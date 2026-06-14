@@ -1,6 +1,7 @@
 import { toModelEntry } from '@skmtc/core'
 import { TsProjection } from './TsProjection.ts'
 import { setCustomScalars } from './scalars.ts'
+import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
 /**
@@ -40,8 +41,9 @@ export const toTypescriptEntry = (options: TypescriptEntryOptions = {}) => {
   if (options.scalars !== undefined) {
     setCustomScalars(options.scalars, { replace: options.replaceScalars })
   }
-  return toModelEntry({
+  return toModelEntry<EnrichmentSchema>({
     id: denoJson.name,
+    toEnrichmentSchema,
     transform({ context, refName }) {
       context.insertModel(TsProjection, refName)
     }

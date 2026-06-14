@@ -1,10 +1,10 @@
 import { camelCase, capitalize, toMethodVerb } from '@skmtc/core'
-import { toOasOperationProjectionBase } from '@skmtc/lang-typescript'
+import { toTsOasOperationProjectionBase } from '@skmtc/lang-typescript'
 import { join } from '@std/path'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
-export const DaisyFormBase = toOasOperationProjectionBase<EnrichmentSchema>({
+export const DaisyFormBase = toTsOasOperationProjectionBase<EnrichmentSchema>({
   id: denoJson.name,
 
   toEnrichmentSchema,

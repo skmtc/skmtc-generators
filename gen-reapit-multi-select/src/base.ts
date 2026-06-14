@@ -1,5 +1,5 @@
 import { type OasObject, type OasRef, type OasSchema } from '@skmtc/core'
-import { toGqlOperationProjectionBase } from '@skmtc/lang-typescript'
+import { toTsGqlOperationProjectionBase } from '@skmtc/lang-typescript'
 import { join } from '@std/path'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
@@ -14,7 +14,7 @@ const decapitalize = (name: string): string =>
 // files end in `MultiSelect.generated.tsx` and the exported component is
 // `<XMultiSelectField>`. Keeping the suffixes distinct ensures content-
 // addressed identity collisions are impossible.
-export const ReapitMultiSelectBase = toGqlOperationProjectionBase<EnrichmentSchema>({
+export const ReapitMultiSelectBase = toTsGqlOperationProjectionBase<EnrichmentSchema>({
   id: denoJson.name,
 
   toEnrichmentSchema,

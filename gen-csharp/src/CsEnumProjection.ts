@@ -1,5 +1,5 @@
 import type { ModelProjectionConstructorArgs, SchemaToValueFn } from '@skmtc/core'
-import type { ModelEnrichment } from './modelNames.ts'
+import type { EnrichmentSchema } from './modelNames.ts'
 import { createEnum, type CsAttribute } from '@skmtc/lang-csharp'
 import { CsEnumBase } from './base.ts'
 import { CsEnumMembers } from './CsEnumMembers.ts'
@@ -16,7 +16,7 @@ import { toEnumValues } from './toEnumValues.ts'
 export class CsEnumProjection extends CsEnumBase {
   value: CsEnumMembers
 
-  constructor({ context, refName, settings }: ModelProjectionConstructorArgs<ModelEnrichment>) {
+  constructor({ context, refName, settings }: ModelProjectionConstructorArgs<EnrichmentSchema>) {
     super({ context, refName, settings })
 
     const schema = context.resolveSchemaRefOnce(refName, CsEnumBase.id)

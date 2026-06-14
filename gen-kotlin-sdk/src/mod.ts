@@ -4,7 +4,7 @@ import { ResponseModelBase } from '@/base.ts'
 import { ensureClient } from '@/client/ensureClient.ts'
 import { sdkConfig as config } from '@/config.ts'
 import { emitStaticFiles } from '@/emitStaticFiles.ts'
-import { toEnrichmentSchema, type SdkOperationEnrichment } from '@/enrichments.ts'
+import { toEnrichmentSchema, type EnrichmentSchema } from '@/enrichments.ts'
 import { KtSdkParams } from '@/KtSdkParams.ts'
 import { KtSdkResponseModel } from '@/KtSdkResponseModel.ts'
 import {
@@ -15,7 +15,7 @@ import {
 } from '@/services/toServiceProjection.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
-export default toOasOperationEntry<SdkOperationEnrichment>({
+export default toOasOperationEntry<EnrichmentSchema>({
   id: denoJson.name,
   isSupported: () => true,
   toEnrichmentSchema,
@@ -26,9 +26,11 @@ export default toOasOperationEntry<SdkOperationEnrichment>({
 
     const enrichment = ResponseModelBase.toEnrichments({ operation, context, variant })
 
-    // Non-defaultable generator: no enrichment → no artifact (the
-    // §8 carve-out — isSupported stays a capability claim).
-    if (!enrichment) {
+    // Non-defaultable generator: no subject enrichment → no artifact (the
+    // §8 carve-out — isSupported stays a capability claim). `enrichment` is
+    // the `{ subject, generator, stack }` umbrella; the per-operation
+    // Stainless config is its `subject` leaf.
+    if (!enrichment.subject) {
       return
     }
 

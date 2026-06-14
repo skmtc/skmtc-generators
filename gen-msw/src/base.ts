@@ -1,9 +1,10 @@
 import { camelCase } from '@skmtc/core'
-import { toOasOperationProjectionBase } from '@skmtc/lang-typescript'
+import { toTsOasOperationProjectionBase } from '@skmtc/lang-typescript'
 import { join } from '@std/path'
+import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
-export const MswBase = toOasOperationProjectionBase({
+export const MswBase = toTsOasOperationProjectionBase<EnrichmentSchema>({
   id: denoJson.name,
 
   toIdentifierName({ operation }): string {
@@ -17,5 +18,7 @@ export const MswBase = toOasOperationProjectionBase({
 
   toExportPath(): string {
     return join('@', 'mocks', `handlers.generated.ts`)
-  }
+  },
+
+  toEnrichmentSchema
 })

@@ -1,11 +1,11 @@
 import { camelCase } from '@skmtc/core'
-import { toOasOperationProjectionBase } from '@skmtc/lang-typescript'
+import { toTsOasOperationProjectionBase } from '@skmtc/lang-typescript'
 import { join } from '@std/path'
 import type { EnrichmentSchema } from './enrichments.ts'
 import { toEnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
-export const ShadcnTableBase = toOasOperationProjectionBase<EnrichmentSchema>({
+export const ShadcnTableBase = toTsOasOperationProjectionBase<EnrichmentSchema>({
   id: denoJson.name,
 
   toEnrichmentSchema,

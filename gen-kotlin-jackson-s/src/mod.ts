@@ -1,5 +1,6 @@
 import { toModelEntry } from '@skmtc/core'
 import { JacksonSModel } from '@/JacksonSModel.ts'
+import { toEnrichmentSchema, type EnrichmentSchema } from '@/enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
 /**
@@ -18,8 +19,9 @@ import denoJson from '../deno.json' with { type: 'json' }
  * rather than the inline transform filter (deferred — model `isSupported`
  * mechanics need settling first).
  */
-export const jacksonSEntry = toModelEntry({
+export const jacksonSEntry = toModelEntry<EnrichmentSchema>({
   id: denoJson.name,
+  toEnrichmentSchema,
   transform({ context, refName }) {
     const schema = context.resolveSchemaRefOnce(refName, denoJson.name)
 

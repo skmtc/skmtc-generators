@@ -1,10 +1,10 @@
 import { capitalize, camelCase } from '@skmtc/core'
-import { toModelProjectionBase } from '@skmtc/lang-kotlin'
+import { toKtModelProjectionBase } from '@skmtc/lang-kotlin'
 import { join } from '@std/path'
 import { getBasePackage } from './basePackage.ts'
 import { peekSchema } from './peekSchema.ts'
 import { toKtModelShape } from './toKtModelShape.ts'
-import { modelEnrichmentSchema, type ModelEnrichment } from './modelNames.ts'
+import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
 /** PascalCase model name from a schema refName. */
@@ -36,13 +36,13 @@ export const toKtModelExportPath = (name: string): string => {
  * identifier AND the file; insert sites get it through this channel,
  * name-only sites through `toKtModelDisplayName`.
  */
-export const KtModelBase = toModelProjectionBase<ModelEnrichment>({
+export const KtModelBase = toKtModelProjectionBase<EnrichmentSchema>({
   id: denoJson.name,
 
-  toEnrichmentSchema: () => modelEnrichmentSchema,
+  toEnrichmentSchema,
 
   toIdentifierName({ refName, enrichments }) {
-    return enrichments?.name ?? toKtModelName(refName)
+    return enrichments?.subject?.name ?? toKtModelName(refName)
   },
 
   toIdentifierType(refName, context) {
@@ -50,6 +50,6 @@ export const KtModelBase = toModelProjectionBase<ModelEnrichment>({
   },
 
   toExportPath({ refName, enrichments }) {
-    return toKtModelExportPath(enrichments?.name ?? toKtModelName(refName))
+    return toKtModelExportPath(enrichments?.subject?.name ?? toKtModelName(refName))
   }
 })

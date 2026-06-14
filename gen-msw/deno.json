@@ -12,7 +12,7 @@
   },
   "imports": {
     "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.1.0",
-    "@skmtc/core": "jsr:@skmtc/core@0.10.0",
-    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.3.0"
+    "@skmtc/core": "jsr:@skmtc/core@0.11.0",
+    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.4.0"
   }
 }

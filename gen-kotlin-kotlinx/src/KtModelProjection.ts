@@ -19,7 +19,7 @@ import { KtSealedInterfaceValue } from './KtSealedInterfaceValue.ts'
 import { toKtValue } from './Kt.ts'
 import { toSealedMembership } from './sealedMembership.ts'
 import { toEnumValues } from './toEnumEntryName.ts'
-import type { ModelEnrichment } from './modelNames.ts'
+import type { EnrichmentSchema } from './enrichments.ts'
 
 type ModelValue = KtDataClassValue | KtEnumEntries | KtSealedInterfaceValue | TypeSystemValue
 
@@ -44,7 +44,7 @@ type ModelValue = KtDataClassValue | KtEnumEntries | KtSealedInterfaceValue | Ty
 export class KtModelProjection extends KtModelBase {
   value: ModelValue
 
-  constructor({ context, refName, settings, rootRef }: ModelProjectionConstructorArgs<ModelEnrichment>) {
+  constructor({ context, refName, settings, rootRef }: ModelProjectionConstructorArgs<EnrichmentSchema>) {
     super({ context, refName, settings })
 
     const schema = context.resolveSchemaRefOnce(refName, KtModelBase.id)

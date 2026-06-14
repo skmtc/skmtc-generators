@@ -1,7 +1,7 @@
 import type { OasOperationProjectionConstructorArgs, Stringable } from '@skmtc/core'
 import invariant from 'tiny-invariant'
 import { ResponseModelBase } from '@/base.ts'
-import type { SdkOperationEnrichment } from '@/enrichments.ts'
+import type { EnrichmentSchema } from '@/enrichments.ts'
 import { generatedFileHeader } from '@/generatedFileHeader.ts'
 import { SdkModelValue } from '@skmtc/gen-kotlin-jackson-s'
 import { ensureSharedModels } from '@/sharedModels.ts'
@@ -14,7 +14,7 @@ export class KtSdkResponseModel extends ResponseModelBase {
   constructorModifiers: string
   constructorParameters: Stringable
 
-  constructor(args: OasOperationProjectionConstructorArgs<SdkOperationEnrichment>) {
+  constructor(args: OasOperationProjectionConstructorArgs<EnrichmentSchema>) {
     super(args)
 
     const { context, operation, settings } = args
@@ -35,7 +35,7 @@ export class KtSdkResponseModel extends ResponseModelBase {
       destinationPath: settings.exportPath,
       fileHeader: generatedFileHeader,
       sharedHashes,
-      addFieldsForData: settings.enrichments?.addFields,
+      addFieldsForData: settings.enrichments.subject?.addFields,
       detectEnvelope: true
     })
     this.constructorModifiers = this.value.constructorModifiers

@@ -6,13 +6,30 @@ import denoJson from '../deno.json' with { type: 'json' }
 
 /**
  * The per-variant enrichment value gen-csharp's model bases declare
- * (CD1, the spec-28 port). Valibot strips the union-hint keys
- * (`discriminator`, `properties`) read separately by `unionHints.ts` —
- * one `main` object carries both concerns.
+ * (CD1, the spec-28 port) — the SUBJECT leaf of the three-scope umbrella.
+ * Valibot strips the union-hint keys (`discriminator`, `properties`) read
+ * separately by `unionHints.ts` — one `main` object carries both concerns.
  */
-export const modelEnrichmentSchema = v.optional(v.object({ name: v.optional(v.string()) }))
+export const modelSubjectSchema = v.optional(v.object({ name: v.optional(v.string()) }))
 
-export type ModelEnrichment = v.InferOutput<typeof modelEnrichmentSchema>
+export type ModelEnrichment = v.InferOutput<typeof modelSubjectSchema>
+
+/**
+ * The three-scope enrichment umbrella (`{ subject, generator, stack }`)
+ * the projection chain carries on `ContentSettings.enrichments`. gen-csharp
+ * only consumes the subject scope (the per-model rename); `generator` /
+ * `stack` are unused (declared `v.undefined()`). `static toEnrichments`
+ * parses the raw umbrella through this composite, cast-free.
+ */
+export const enrichmentSchema = v.object({
+  subject: modelSubjectSchema,
+  generator: v.undefined(),
+  stack: v.undefined()
+})
+
+export type EnrichmentSchema = v.InferOutput<typeof enrichmentSchema>
+
+export const toEnrichmentSchema = () => enrichmentSchema
 
 const isRecord = (value: unknown): value is Record<string, unknown> => {
   return typeof value === 'object' && value !== null && !Array.isArray(value)

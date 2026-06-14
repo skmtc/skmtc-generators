@@ -1,10 +1,12 @@
 import invariant from 'tiny-invariant'
 import { SupabaseHono } from './SupabaseHono.ts'
 import { toOasOperationEntry } from '@skmtc/core'
+import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
-export const supabaseHonoEntry = toOasOperationEntry({
+export const supabaseHonoEntry = toOasOperationEntry<EnrichmentSchema>({
   id: denoJson.name,
+  toEnrichmentSchema,
   transform: ({ context, operation, variant }) => {
     const enrichments = SupabaseHono.toEnrichments({ operation, context, variant })
     const app =

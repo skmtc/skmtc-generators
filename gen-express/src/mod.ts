@@ -1,10 +1,12 @@
 import invariant from 'tiny-invariant'
 import { ExpressApp } from './ExpressApp.ts'
 import { toOasOperationEntry } from '@skmtc/core'
+import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
-export const expressEntry = toOasOperationEntry({
+export const expressEntry = toOasOperationEntry<EnrichmentSchema>({
   id: denoJson.name,
+  toEnrichmentSchema,
   transform: ({ context, operation, variant }) => {
     const enrichments = ExpressApp.toEnrichments({ operation, context, variant })
     const app =

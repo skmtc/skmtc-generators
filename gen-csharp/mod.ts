@@ -16,9 +16,12 @@ export {
   type UnionHint
 } from './src/unionHints.ts'
 export {
-  modelEnrichmentSchema,
+  enrichmentSchema,
+  modelSubjectSchema,
+  toEnrichmentSchema,
   toModelAlias,
   toCsModelDisplayName,
+  type EnrichmentSchema,
   type ModelEnrichment
 } from './src/modelNames.ts'
 export {

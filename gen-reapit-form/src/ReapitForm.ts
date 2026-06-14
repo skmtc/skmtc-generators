@@ -61,9 +61,9 @@ export class ReapitForm extends ReapitFormBase {
     this.zodArgsName = zodArgs.identifier.name
     this.tsArgsName = `${capitalize(base)}Args`
 
-    this.title = settings.enrichments?.form?.title
-    this.description = settings.enrichments?.form?.description
-    this.submitLabel = settings.enrichments?.form?.submitLabel ?? 'Submit'
+    this.title = settings.enrichments.subject?.form?.title
+    this.description = settings.enrichments.subject?.form?.description
+    this.submitLabel = settings.enrichments.subject?.form?.submitLabel ?? 'Submit'
 
     const elementsImports: string[] = ['Button', 'FormLayout']
     if (this.title) elementsImports.push('Title')
@@ -82,11 +82,11 @@ export class ReapitForm extends ReapitFormBase {
     // Compose one field per top-level argument. Field child instances
     // register their own imports against `settings.exportPath` during
     // construction. Per-field overrides come from
-    // `settings.enrichments?.form?.fields`, keyed by `id` interpreted
-    // as the dotted accessor path (so nested overrides like
+    // `settings.enrichments.subject?.form?.fields`, keyed by `id`
+    // interpreted as the dotted accessor path (so nested overrides like
     // `primaryAddress.type` are supported, not just top-level args).
     const fieldOverrides = new Map<string, FormFieldItem>()
-    for (const override of settings.enrichments?.form?.fields ?? []) {
+    for (const override of settings.enrichments.subject?.form?.fields ?? []) {
       fieldOverrides.set(override.id, override)
     }
     const required = args.required ?? []

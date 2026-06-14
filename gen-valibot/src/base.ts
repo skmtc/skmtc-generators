@@ -1,9 +1,10 @@
 import { decapitalize, camelCase } from '@skmtc/core'
-import { toModelProjectionBase } from '@skmtc/lang-typescript'
+import { toTsModelProjectionBase } from '@skmtc/lang-typescript'
 import { join } from '@std/path'
+import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
-export const ValibotBase = toModelProjectionBase({
+export const ValibotBase = toTsModelProjectionBase<EnrichmentSchema>({
   id: denoJson.name,
 
   toIdentifierName({ refName }): string {
@@ -16,5 +17,7 @@ export const ValibotBase = toModelProjectionBase({
     const name = this.toIdentifierName({ refName, enrichments, variant })
 
     return join('@', 'types', `${decapitalize(name)}.generated.ts`)
-  }
+  },
+
+  toEnrichmentSchema
 })

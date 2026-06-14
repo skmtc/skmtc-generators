@@ -1,9 +1,11 @@
 import { TanstackQuery } from './TanstackQuery.ts'
 import { toOasOperationEntry } from '@skmtc/core'
+import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
-export const tanstackQueryEntry = toOasOperationEntry({
+export const tanstackQueryEntry = toOasOperationEntry<EnrichmentSchema>({
   id: denoJson.name,
+  toEnrichmentSchema,
   transform: ({ context, operation }) => {
     context.insertOperation({ projection: TanstackQuery, operation: operation })
   },

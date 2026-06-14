@@ -1,4 +1,4 @@
-import { toGqlOperationProjectionBase } from '@skmtc/lang-typescript'
+import { toTsGqlOperationProjectionBase } from '@skmtc/lang-typescript'
 import { join } from '@std/path'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
@@ -8,7 +8,7 @@ const stripGetPrefix = (name: string): string => (name.startsWith('Get') ? name.
 const decapitalize = (name: string): string =>
   name.length === 0 ? name : name[0].toLowerCase() + name.slice(1)
 
-export const ReapitSearchableDropdownBase = toGqlOperationProjectionBase<EnrichmentSchema>({
+export const ReapitSearchableDropdownBase = toTsGqlOperationProjectionBase<EnrichmentSchema>({
   id: denoJson.name,
 
   toEnrichmentSchema,

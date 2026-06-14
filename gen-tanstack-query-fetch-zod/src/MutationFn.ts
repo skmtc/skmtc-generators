@@ -5,6 +5,7 @@ import { capitalize, camelCase, OasVoid, decapitalize } from '@skmtc/core'
 import type { OasOperationProjectionConstructorArgs, Stringable } from '@skmtc/core'
 import { TsProjection } from '@skmtc/gen-typescript'
 import { TanstackQueryBase } from './base.ts'
+import type { EnrichmentSchema } from './enrichments.ts'
 import { ZodProjection } from '@skmtc/gen-zod'
 
 export class MutationFn extends TanstackQueryBase {
@@ -15,7 +16,7 @@ export class MutationFn extends TanstackQueryBase {
   headerParams: ListObject<Stringable>
   tsArgsName: string
 
-  constructor({ context, operation, settings }: OasOperationProjectionConstructorArgs) {
+  constructor({ context, operation, settings }: OasOperationProjectionConstructorArgs<EnrichmentSchema>) {
     super({ context, operation, settings })
 
     this.queryParamArgs = List.toObject(operation.toParams(['query']).map(({ name }) => name))

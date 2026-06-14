@@ -2,6 +2,7 @@ import { toModelEntry } from '@skmtc/core'
 import { setBasePackage } from './basePackage.ts'
 import { setCustomScalars } from './scalars.ts'
 import { KtModelProjection } from './KtModelProjection.ts'
+import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
 /**
@@ -44,8 +45,9 @@ export const toKotlinEntry = (options: KotlinEntryOptions) => {
     setCustomScalars(options.scalars, { replace: options.replaceScalars })
   }
 
-  return toModelEntry({
+  return toModelEntry<EnrichmentSchema>({
     id: denoJson.name,
+    toEnrichmentSchema,
     transform({ context, refName }) {
       context.insertModel(KtModelProjection, refName)
     }

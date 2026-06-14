@@ -1,7 +1,8 @@
 import { capitalize, camelCase } from '@skmtc/core'
-import { toModelProjectionBase } from '@skmtc/lang-kotlin'
+import { toKtModelProjectionBase } from '@skmtc/lang-kotlin'
 import settings from '@/settings.json' with { type: 'json' }
 import denoJson from '../deno.json' with { type: 'json' }
+import { toEnrichmentSchema, type EnrichmentSchema } from '@/enrichments.ts'
 
 /** PascalCase model name from a schema refName. */
 export const toJacksonSModelName = (refName: string): string => {
@@ -20,7 +21,7 @@ export const toJacksonSModelName = (refName: string): string => {
  * the `package` directive from them), reading `basePackage` straight from
  * `settings.json`.
  */
-export const JacksonSModelBase = toModelProjectionBase({
+export const JacksonSModelBase = toKtModelProjectionBase<EnrichmentSchema>({
   id: denoJson.name,
 
   toIdentifierName({ refName }) {
@@ -34,5 +35,7 @@ export const JacksonSModelBase = toModelProjectionBase({
     const packageDirs = settings.basePackage.split('.').join('/')
 
     return `@/${packageDirs}/models/${name}.kt`
-  }
+  },
+
+  toEnrichmentSchema
 })
