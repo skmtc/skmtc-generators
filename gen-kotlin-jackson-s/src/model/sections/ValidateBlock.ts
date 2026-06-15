@@ -22,10 +22,10 @@ export class ValidateBlock extends KtSnippet {
     this.className = className
     this.fields = fields
 
-    const config = getModelConfig()
+    const config = getModelConfig(context)
 
     this.register({
-      imports: { [`${config.basePackage}.errors`]: [exceptionName()] },
+      imports: { [`${config.basePackage}.errors`]: [exceptionName(context)] },
       destinationPath
     })
   }
@@ -40,7 +40,7 @@ ${kdoc([
       '',
       'This method is _not_ forwards compatible with new types from the API for existing fields.',
       '',
-      `@throws ${exceptionName()} if any value type in this object doesn't match its expected type.`
+      `@throws ${exceptionName(this.context)} if any value type in this object doesn't match its expected type.`
     ])}
 fun validate(): ${this.className} = apply {
     if (validated) {
@@ -54,7 +54,7 @@ fun isValid(): Boolean =
     try {
         validate()
         true
-    } catch (e: ${exceptionName()}) {
+    } catch (e: ${exceptionName(this.context)}) {
         false
     }`
   }

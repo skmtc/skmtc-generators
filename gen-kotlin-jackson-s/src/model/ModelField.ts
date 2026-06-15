@@ -50,7 +50,7 @@ export class ModelField extends KtSnippet {
   constructor(args: ModelFieldArgs | InjectedFieldArgs) {
     super({ context: args.context })
 
-    const config = getModelConfig()
+    const config = getModelConfig(this.context)
 
     if ('addField' in args) {
       const { addField } = args
@@ -103,7 +103,7 @@ export class ModelField extends KtSnippet {
   /** `fun x(): T = x.getRequired("x")` — the model-class accessor. */
   typedAccessor(): string {
     const lines = this.description ? [this.description, ''] : []
-    lines.push(this.docRequired ? requiredThrows() : optionalThrows())
+    lines.push(this.docRequired ? requiredThrows(this.context) : optionalThrows(this.context))
 
     const accessor =
       this.required && !this.nullable
@@ -121,7 +121,7 @@ export class ModelField extends KtSnippet {
   /** `fun x(): T = body.x()` — the accessor flattened onto a Params class. */
   flattenedTypedAccessor(): string {
     const lines = this.description ? [this.description, ''] : []
-    lines.push(this.docRequired ? requiredThrows() : optionalThrows())
+    lines.push(this.docRequired ? requiredThrows(this.context) : optionalThrows(this.context))
 
     const accessor =
       this.required && !this.nullable
@@ -256,7 +256,7 @@ export class ListModelField extends ModelField {
     super(args)
     this.listType = args.type
 
-    const config = getModelConfig()
+    const config = getModelConfig(this.context)
 
     this.register({
       imports: { [`${config.basePackage}.core`]: ['checkKnown', 'toImmutable'] },

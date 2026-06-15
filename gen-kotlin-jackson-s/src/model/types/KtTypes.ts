@@ -7,8 +7,8 @@ import type { AddField } from '@/model/ModelField.ts'
 import { KnownValueEnum } from '@/model/sections/KnownValueEnum.ts'
 import { NestedModelClass } from '@/model/sections/NestedModelClass.ts'
 
-const toCoreModuleRoot = (): string => {
-  const { artifactName, basePackage } = getModelConfig()
+const toCoreModuleRoot = (context: GenerateContextType): string => {
+  const { artifactName, basePackage } = getModelConfig(context)
   return `${artifactName}-core/src/main/kotlin/${basePackage.split('.').join('/')}`
 }
 
@@ -224,11 +224,11 @@ export class KtSharedRefType extends KtSnippet {
   constructor({ context, className, destinationPath }: KtSharedRefTypeArgs) {
     super({ context })
 
-    const config = getModelConfig()
+    const config = getModelConfig(context)
 
     const definition = context.findDefinition({
       name: className,
-      exportPath: `${toCoreModuleRoot()}/models/${className}.kt`
+      exportPath: `${toCoreModuleRoot(context)}/models/${className}.kt`
     })
 
     invariant(

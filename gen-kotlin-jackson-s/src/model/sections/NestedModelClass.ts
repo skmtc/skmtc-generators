@@ -36,10 +36,13 @@ export class NestedModelClass extends KtSnippet {
     // Config-injected fields merge at the sorted position (corpus:
     // the `limitExceeded` placements).
     this.fields = extraFields?.length
-      ? orderSortedFields([
-          ...walked,
-          ...extraFields.map(addField => new ModelFieldClass({ context, addField }))
-        ])
+      ? orderSortedFields(
+          [
+            ...walked,
+            ...extraFields.map(addField => new ModelFieldClass({ context, addField }))
+          ],
+          context
+        )
       : walked
 
     this.parameters = new PrimaryConstructorParameters({

@@ -2,20 +2,15 @@
  * `@skmtc/gen-kotlin-jackson-s` — the Jackson/Stainless model-shape
  * engine extracted from `gen-kotlin-sdk`. The SDK reaches the model
  * layer by importing from here; its `sharedModels.ts` policy and
- * operation projections stay in the SDK and inject the config slice
- * via `setModelConfig`.
+ * operation projections stay in the SDK. The model identity config is
+ * read from the shared `_stack` enrichment (`getModelConfig`), so no
+ * generator pushes config into another.
  */
 
 export { jacksonSEntry, default } from '@/mod.ts'
-export { JacksonSModel } from '@/JacksonSModel.ts'
-export { JacksonSModelBase, toJacksonSModelName } from '@/base.ts'
+export { toJacksonSModelName, toJacksonSModelExportPath } from '@/base.ts'
 
-export {
-  type ModelConfig,
-  setModelConfig,
-  getModelConfig,
-  resetModelConfig
-} from '@/modelConfig.ts'
+export { type ModelConfig, modelConfigSchema, getModelConfig } from '@/modelConfig.ts'
 
 export { SdkModelValue, type SdkModelValueArgs } from '@/model/SdkModelValue.ts'
 

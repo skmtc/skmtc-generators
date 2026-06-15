@@ -22,7 +22,7 @@ export class ModelBuilder extends KtSnippet {
     this.className = className
     this.fields = fields
 
-    const config = getModelConfig()
+    const config = getModelConfig(context)
 
     this.register({
       imports: { [`${config.basePackage}.core`]: ['JsonField', 'JsonValue'] },

@@ -18,7 +18,7 @@ export class SecondaryConstructor extends KtSnippet {
     super({ context })
     this.fields = fields
 
-    const config = getModelConfig()
+    const config = getModelConfig(context)
 
     this.register({
       imports: {

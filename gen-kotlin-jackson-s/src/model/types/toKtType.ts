@@ -37,7 +37,7 @@ export const toKtType = ({
   sharedHashes,
   addFields
 }: ToKtTypeArgs): KtType => {
-  const config = getModelConfig()
+  const config = getModelConfig(context)
   const resolved = schema.isRef() ? schema.resolve() : schema
 
   const shared = sharedHashes.get(toStructuralHash(resolved))

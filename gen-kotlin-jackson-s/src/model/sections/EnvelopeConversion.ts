@@ -16,7 +16,7 @@ export class EnvelopeConversion extends KtSnippet {
   constructor({ context, destinationPath }: Args) {
     super({ context })
 
-    const config = getModelConfig()
+    const config = getModelConfig(context)
 
     invariant(
       config.sharedModels.envelope,

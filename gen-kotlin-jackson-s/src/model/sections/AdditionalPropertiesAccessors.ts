@@ -12,7 +12,7 @@ export class AdditionalPropertiesAccessors extends KtSnippet {
   constructor({ context, destinationPath }: Args) {
     super({ context })
 
-    const config = getModelConfig()
+    const config = getModelConfig(context)
 
     this.register({
       imports: {

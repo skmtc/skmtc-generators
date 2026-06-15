@@ -1,40 +1,51 @@
-import settings from '@/settings.json' with { type: 'json' }
-
-/** The model layer's config slice — the SDK's SdkConfig is a structural
- * superset, so setModelConfig(sdkConfig) is assignable. */
-export type ModelConfig = {
-  basePackage: string
-  clientPrefix: string
-  artifactName: string
-  hoistField?: string
-  kotlinNames?: Record<string, string>
-  fieldStates?: Record<string, 'required-nullable'>
-  fieldEnums?: Record<string, string[]>
-  sharedModels: {
-    envelope?: { className: string; fields: string[]; source: { path: string; method: string } }
-  }
-}
+import * as v from 'valibot'
+import { toStackEnrichment } from '@skmtc/core'
+import type { GenerateContextType } from '@skmtc/core'
 
 /**
- * `src/settings.json` is the standalone default the shared engine reads when
- * nothing overrides it — so the gen-kotlin-jackson-s entry needs no per-ref
- * `setModelConfig` call. A host with its own document-global config (the SDK)
- * calls {@link setModelConfig} once at the top of its transform to OVERRIDE
- * per target. INTERIM: to be replaced by the core document-global config tier
- * read off `context.settings`.
+ * The model layer's config slice — the fields the Jackson/Stainless model
+ * engine needs to shape its output (basePackage / clientPrefix / artifactName
+ * for naming + paths; the per-corpus field transforms; the response envelope).
+ *
+ * It is read from the **stack** enrichment scope (`client.json#settings`
+ * `enrichments._stack`) rather than a baked-in JSON file: the engine is a
+ * shared component (used standalone AND embedded in `gen-kotlin-sdk` by
+ * import-and-construct), so its config must be reachable WITHOUT knowing which
+ * generator id is driving it. `_stack` is the only id-agnostic scope. The
+ * SDK's full `SdkConfig` is a structural superset written to the same `_stack`
+ * blob; Valibot's `v.object` drops the SDK-only keys when read through this
+ * subset schema, so one `_stack` leaf serves both readers.
  */
-const defaultConfig: ModelConfig = settings
+export const modelConfigSchema = v.object({
+  basePackage: v.string(),
+  clientPrefix: v.string(),
+  artifactName: v.string(),
+  /** The attribution comment every generated file carries above its package
+   * directive (target-specific — e.g. `// File generated … by Stainless.`). */
+  fileHeader: v.string(),
+  hoistField: v.optional(v.string()),
+  kotlinNames: v.optional(v.record(v.string(), v.string())),
+  fieldStates: v.optional(v.record(v.string(), v.picklist(['required-nullable']))),
+  fieldEnums: v.optional(v.record(v.string(), v.array(v.string()))),
+  sharedModels: v.object({
+    envelope: v.optional(
+      v.object({
+        className: v.string(),
+        fields: v.array(v.string()),
+        source: v.object({ path: v.string(), method: v.string() })
+      })
+    )
+  })
+})
 
-let override: ModelConfig | undefined
+export type ModelConfig = v.InferOutput<typeof modelConfigSchema>
 
-export const setModelConfig = (config: ModelConfig): void => {
-  override = config
-}
-
-export const getModelConfig = (): ModelConfig => {
-  return override ?? defaultConfig
-}
-
-export const resetModelConfig = (): void => {
-  override = undefined
-}
+/**
+ * Read the model config from the run's `_stack` enrichment. The throw on a
+ * missing/malformed `_stack` is intentional — the engine cannot name or place
+ * a single class without `basePackage` / `artifactName`, so a run without it
+ * is a configuration error, surfaced loudly (fail-open per item, like any bad
+ * enrichment leaf).
+ */
+export const getModelConfig = (context: GenerateContextType): ModelConfig =>
+  toStackEnrichment(context, modelConfigSchema)

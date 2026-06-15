@@ -51,7 +51,7 @@ export const toModelFields = ({
     )
 
   return sorted
-    ? orderSortedFields(fields)
+    ? orderSortedFields(fields, context)
     : [
         ...fields.filter(field => field.fenceRequired),
         ...fields.filter(field => !field.fenceRequired)
@@ -113,8 +113,11 @@ const isCustomValue = (
  * field (the target's resource primary key — `id` for OneBusAway,
  * `token` for Lithic) at the front of whichever group holds it.
  */
-export const orderSortedFields = (fields: ModelField[]): ModelField[] => {
-  const config = getModelConfig()
+export const orderSortedFields = (
+  fields: ModelField[],
+  context: GenerateContextType
+): ModelField[] => {
+  const config = getModelConfig(context)
   const hoistField = config.hoistField ?? 'id'
 
   const byNameHoistFirst = (a: ModelField, b: ModelField) => {

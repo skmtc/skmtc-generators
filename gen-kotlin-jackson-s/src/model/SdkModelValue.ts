@@ -67,7 +67,7 @@ export class SdkModelValue extends KtSnippet {
 
     shadowFields(this.fields, new Set())
 
-    const config = getModelConfig()
+    const config = getModelConfig(context)
     const envelopeFields = config.sharedModels.envelope?.fields ?? []
     const wireNames = new Set(this.fields.map(field => field.wireName))
     const envelope =

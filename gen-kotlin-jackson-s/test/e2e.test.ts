@@ -1,19 +1,17 @@
 /**
  * Wiring gate for the standalone jackson-s entry: a full
  * Parse → Generate → Render run over a fixture proves the
- * `toJacksonSEntry` → `JacksonSModel` (`toIdentifierName`/`toIdentifierType`)
- * → `SdkModelValue` engine path emits the Stainless model shape at the
- * package-=-folder path. (The engine's BYTE-exact Stainless parity is the
- * corpus harness's job — OneBusAway 232/232; this pins the projection
- * wiring the SDK does not exercise.)
+ * `jacksonSEntry` → `SdkModelValue` engine path emits the Stainless model
+ * shape at the package-=-folder path. (The engine's BYTE-exact Stainless
+ * parity is the corpus harness's job — OneBusAway 232/232; this pins the
+ * standalone entry wiring the SDK does not exercise.)
  */
 import { assertEquals, assertStringIncludes } from 'jsr:@std/assert@^1.0.0'
 import { StackTrail, toArtifacts } from '@skmtc/core'
 import type { OpenAPIV3 } from 'openapi-types'
 import { jacksonSEntry } from '@/mod.ts'
-import { resetModelConfig } from '@/modelConfig.ts'
 
-// The plain entry reads its model identity from `src/settings.json`
+// The entry reads its model identity from the shared `_stack` enrichment
 // (basePackage 'org.example.api'); the fixture paths below match it.
 const entry = jacksonSEntry
 
@@ -38,14 +36,23 @@ const documentObject: OpenAPIV3.Document = {
 }
 
 const runFixture = () => {
-  resetModelConfig()
-
   return toArtifacts({
     traceId: 'jackson-s-e2e',
     spanId: 'fixture',
     startAt: Date.now(),
     document: { type: 'oas', value: documentObject },
-    settings: { basePath: './src/main/kotlin' },
+    settings: {
+      basePath: './src/main/kotlin',
+      enrichments: {
+        _stack: {
+          basePackage: 'org.example.api',
+          clientPrefix: 'Example',
+          artifactName: 'example-kotlin',
+          fileHeader: '// File generated from our OpenAPI spec by Stainless.',
+          sharedModels: {}
+        }
+      }
+    },
     stackTrail: new StackTrail([]),
     silent: true,
     toGeneratorConfigMap: () => ({

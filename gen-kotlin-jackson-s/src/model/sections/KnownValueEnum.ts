@@ -34,13 +34,13 @@ export class KnownValueEnum extends KtSnippet {
     this.description = description
     this.documentedValidate = documentedValidate === true
 
-    const config = getModelConfig()
+    const config = getModelConfig(context)
 
     this.register({
       imports: {
         'com.fasterxml.jackson.annotation': ['JsonCreator'],
         [`${config.basePackage}.core`]: ['Enum', 'JsonField'],
-        [`${config.basePackage}.errors`]: [exceptionName()]
+        [`${config.basePackage}.errors`]: [exceptionName(context)]
       },
       destinationPath
     })
@@ -48,7 +48,7 @@ export class KnownValueEnum extends KtSnippet {
 
   override toString(): string {
     const { className, members } = this
-    const config = getModelConfig()
+    const config = getModelConfig(this.context)
     const exceptionPrefix = config.clientPrefix
     const constants = members.map(member => toConstantCase(member))
 
