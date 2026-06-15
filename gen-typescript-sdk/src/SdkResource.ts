@@ -21,6 +21,13 @@ const methodPriority = (name: string): number => {
  * body, then the page-alias / interface / `declare namespace` companions.
  */
 export class SdkResource extends SdkResourceBase {
+  /**
+   * The resource-level JSDoc rendered above `export class …`. Public so
+   * `tsLang.toDefinition` reads it off the value (the Driver passes no
+   * description); see lang-typescript's `toValueDescription`.
+   */
+  description: string | undefined
+
   #methods: { apiMethod: ApiMethod; methodName: string }[] = []
   #inlineSchemas: Record<string, ObjectSchema> = {}
   #pageAliases: { name: string; itemType: string }[] = []
@@ -30,9 +37,16 @@ export class SdkResource extends SdkResourceBase {
     super({ context, operation, settings })
 
     this.#schemaNames = settings.enrichments.generator?.schemaNames ?? {}
+    this.description = settings.enrichments.subject?.resourceDescription
 
     // Every resource class extends APIResource.
     this.register({ imports: { '../core/resource': ['APIResource'] } })
+
+    // Codegen banner at the top of the file, when configured.
+    const fileHeader = settings.enrichments.generator?.fileHeader
+    if (fileHeader) {
+      this.register({ banner: fileHeader })
+    }
   }
 
   /** Add one operation's method to this resource. */

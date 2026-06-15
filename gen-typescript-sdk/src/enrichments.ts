@@ -31,11 +31,14 @@ const subjectEnrichmentSchema = v.optional(
  * - `clientName` — the top-level client class (`'OpenAI'`).
  * - `schemaNames` — component-schema rename map (`DeleteModelResponse` →
  *   `ModelDeleted`), the Stainless model renames the spec doesn't carry.
+ * - `fileHeader` — a banner comment emitted at the top of every generated
+ *   resource file (the Stainless codegen header).
  */
 const generatorEnrichmentSchema = v.optional(
   v.object({
     clientName: v.optional(v.string()),
-    schemaNames: v.optional(v.record(v.string(), v.string()))
+    schemaNames: v.optional(v.record(v.string(), v.string())),
+    fileHeader: v.optional(v.string())
   })
 )
 

@@ -87,7 +87,11 @@ const openApiDocument = {
 
 const enrichments = {
   '@skmtc/gen-typescript-sdk': {
-    _generator: { clientName: 'OpenAI', schemaNames: { DeleteModelResponse: 'ModelDeleted' } },
+    _generator: {
+      clientName: 'OpenAI',
+      schemaNames: { DeleteModelResponse: 'ModelDeleted' },
+      fileHeader: '// File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.'
+    },
     '/models': {
       get: { main: { resource: 'models', methodName: 'list', resourceDescription: 'List and describe the various models available in the API.' } }
     },
