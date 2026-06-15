@@ -6,12 +6,10 @@ import { emitStaticFiles } from '@/emitStaticFiles.ts'
 import { toEnrichmentSchema, type EnrichmentSchema } from '@/enrichments.ts'
 import { KtSdkParams } from '@/KtSdkParams.ts'
 import { KtSdkResponseModel } from '@/KtSdkResponseModel.ts'
-import {
-  KtSdkService,
-  KtSdkServiceAsync,
-  KtSdkServiceAsyncImpl,
-  KtSdkServiceImpl
-} from '@/services/serviceProjections.ts'
+import { KtSdkService } from '@/services/KtSdkService.ts'
+import { KtSdkServiceAsync } from '@/services/KtSdkServiceAsync.ts'
+import { KtSdkServiceAsyncImpl } from '@/services/KtSdkServiceAsyncImpl.ts'
+import { KtSdkServiceImpl } from '@/services/KtSdkServiceImpl.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
 export default toOasOperationEntry<EnrichmentSchema>({
