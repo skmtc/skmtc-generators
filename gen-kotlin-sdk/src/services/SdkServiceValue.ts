@@ -1,64 +1,55 @@
-import type { GenerateContextType, OasOperation } from '@skmtc/core'
 import { KtSnippet } from '@skmtc/lang-kotlin'
-import invariant from 'tiny-invariant'
-import { resolveEnrichment, toClassStem, type ServiceFlavor } from '@/base.ts'
-import { toSdkConfig } from '@/config.ts'
+import { type ServiceFlavor } from '@/base.ts'
 import { indent, kdoc } from '@/format.ts'
 import {
   addModelImports,
   toServiceName,
-  toServiceOperations,
-  type SdkServiceOperation
-} from '@/services/toServiceOperations.ts'
-
-type SdkServiceValueArgs = {
-  context: GenerateContextType
-  operation: OasOperation
-  destinationPath: string
-  flavor: ServiceFlavor
-}
+  type SdkServiceOperation,
+  type ServiceValueArgs
+} from '@/services/serviceFacts.ts'
 
 const fn = (flavor: ServiceFlavor) => (flavor === 'async' ? 'suspend fun' : 'fun')
 
 /**
- * The service INTERFACE file value (§E-2). Self-contained: it computes its
- * own resource operations in the constructor and renders the overload matrix
- * (+ the raw-response view) from its own fields.
+ * The service INTERFACE file value (§E-2) — an accumulator: the transform
+ * `.add()`s each of the resource's operations as it visits them, and the value
+ * renders the overload matrix (+ the raw-response view) from its own fields.
  */
 export class SdkServiceValue extends KtSnippet {
   flavor: ServiceFlavor
   serviceName: string
-  operations: SdkServiceOperation[]
+  operations: SdkServiceOperation[] = []
 
-  constructor({ context, operation, destinationPath, flavor }: SdkServiceValueArgs) {
+  #basePackage: string
+  #destinationPath: string
+
+  constructor({ context, stem, flavor, basePackage, destinationPath, fileHeader }: ServiceValueArgs) {
     super({ context })
-
-    const config = toSdkConfig(context)
-    const enrichment = resolveEnrichment(context)(operation)
-
-    invariant(enrichment, '@skmtc/gen-kotlin-sdk: service projection requires an enrichment')
-
-    const stem = toClassStem(enrichment)
 
     this.flavor = flavor
     this.serviceName = toServiceName(stem, flavor)
-    this.operations = toServiceOperations({
-      context,
-      config,
-      stem,
-      resource: enrichment.resource,
-      resolveEnrichment: resolveEnrichment(context)
+    this.#basePackage = basePackage
+    this.#destinationPath = destinationPath
+
+    this.register({
+      imports: {
+        'com.google.errorprone.annotations': ['MustBeClosed'],
+        [`${basePackage}.core`]: ['ClientOptions', 'RequestOptions'],
+        [`${basePackage}.core.http`]: ['HttpResponseFor']
+      },
+      fileHeader,
+      destinationPath
     })
+  }
 
-    const imports: Record<string, string[]> = {
-      'com.google.errorprone.annotations': ['MustBeClosed'],
-      [`${config.basePackage}.core`]: ['ClientOptions', 'RequestOptions'],
-      [`${config.basePackage}.core.http`]: ['HttpResponseFor']
-    }
+  /** Append one operation and register its params/response model imports. */
+  add(operation: SdkServiceOperation): void {
+    this.operations.push(operation)
 
-    addModelImports(this.operations, config.basePackage, imports)
+    const imports: Record<string, string[]> = {}
+    addModelImports([operation], this.#basePackage, imports)
 
-    this.register({ imports, fileHeader: config.fileHeader, destinationPath })
+    this.register({ imports, destinationPath: this.#destinationPath })
   }
 
   override toString(): string {

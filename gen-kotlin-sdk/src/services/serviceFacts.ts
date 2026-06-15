@@ -1,6 +1,5 @@
 import type { GenerateContextType, OasOperation } from '@skmtc/core'
 import { camelCase, capitalize } from '@skmtc/core'
-import invariant from 'tiny-invariant'
 import type { ServiceFlavor } from '@/base.ts'
 import type { SdkConfig } from '@/SdkConfig.ts'
 import type { SdkOperationEnrichment } from '@/enrichments.ts'
@@ -8,10 +7,10 @@ import { bodyHasRequired, toBodyShape } from '@/params/body/BodySnippet.ts'
 import { lastPathParamName, paramsHaveRequired } from '@/params/toParamFields.ts'
 
 /**
- * The per-operation facts a service file renders over (note 32 §E-1): one
- * entry per operation in the resource. The two value snippets
- * (interface / impl) hold an array of these and render themselves from it —
- * there is no separate service "model" record.
+ * The per-operation facts a service file renders over (note 32 §E-1). The two
+ * accumulator value snippets (interface / impl) collect these via `.add()` as
+ * the transform visits each of a resource's operations — there is no separate
+ * service "model" record, and no document rescan.
  */
 export type SdkServiceOperation = {
   methodName: string
@@ -42,39 +41,14 @@ export type SdkPathSegment =
   | { kind: 'literal'; value: string }
   | { kind: 'param'; index: number; suffix: string }
 
-type ToServiceOperationsArgs = {
+/** The constructor args shared by both service accumulator values. */
+export type ServiceValueArgs = {
   context: GenerateContextType
-  config: SdkConfig
   stem: string
-  resource: string[]
-  resolveEnrichment: (operation: OasOperation) => SdkOperationEnrichment
-}
-
-/**
- * Self-contained build (§E-6): rescans the document for every operation
- * whose enrichment resource matches — a two-op resource builds whole on the
- * first insert; the second insert hits the cache.
- */
-export const toServiceOperations = ({
-  context,
-  config,
-  stem,
-  resource,
-  resolveEnrichment
-}: ToServiceOperationsArgs): SdkServiceOperation[] => {
-  invariant(context.document.type === 'oas', '@skmtc/gen-kotlin-sdk: OAS documents only')
-
-  const resourceKey = resource.join('/')
-
-  return context.document.value.operations.flatMap(operation => {
-    const enrichment = resolveEnrichment(operation)
-
-    if (!enrichment || enrichment.resource.join('/') !== resourceKey) {
-      return []
-    }
-
-    return [toServiceOperation({ operation, enrichment, config, stem })]
-  })
+  flavor: ServiceFlavor
+  basePackage: string
+  destinationPath: string
+  fileHeader: string
 }
 
 type ToServiceOperationArgs = {
@@ -84,7 +58,8 @@ type ToServiceOperationArgs = {
   stem: string
 }
 
-const toServiceOperation = ({
+/** Reduces one operation to the facts its service-method shape needs. */
+export const toServiceOperation = ({
   operation,
   enrichment,
   config,
@@ -156,8 +131,9 @@ export const toServiceName = (stem: string, flavor: ServiceFlavor): string =>
 export const toServiceImplName = (stem: string, flavor: ServiceFlavor): string =>
   `${toServiceName(stem, flavor)}Impl`
 
-/** Adds params/response model imports for every operation, shared by both
- * the interface and impl files. */
+/** Adds params/response model imports for one operation, shared by the
+ * interface and impl files; the final import set is sorted at render, so
+ * incremental `.add()` registration is order-independent. */
 export const addModelImports = (
   operations: SdkServiceOperation[],
   basePackage: string,

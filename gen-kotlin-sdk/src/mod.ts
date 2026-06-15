@@ -1,4 +1,4 @@
-import { toOasOperationEntry, type GeneratedValue, type OasOperationProjection } from '@skmtc/core'
+import { toOasOperationEntry } from '@skmtc/core'
 import { SdkBase } from '@/base.ts'
 import { ensureClient } from '@/client/ensureClient.ts'
 import { toSdkConfig } from '@/config.ts'
@@ -6,10 +6,7 @@ import { emitStaticFiles } from '@/emitStaticFiles.ts'
 import { toEnrichmentSchema, type EnrichmentSchema } from '@/enrichments.ts'
 import { KtSdkParams } from '@/KtSdkParams.ts'
 import { KtSdkResponseModel } from '@/KtSdkResponseModel.ts'
-import { KtSdkService } from '@/services/KtSdkService.ts'
-import { KtSdkServiceAsync } from '@/services/KtSdkServiceAsync.ts'
-import { KtSdkServiceAsyncImpl } from '@/services/KtSdkServiceAsyncImpl.ts'
-import { KtSdkServiceImpl } from '@/services/KtSdkServiceImpl.ts'
+import { ensureServices } from '@/services/ensureServices.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
 export default toOasOperationEntry<EnrichmentSchema>({
@@ -31,33 +28,12 @@ export default toOasOperationEntry<EnrichmentSchema>({
       return
     }
 
-    // Every enriched operation gets a Params class (even those
-    // without a Response model — the report-problem pair) and its
-    // resource's four service files + the client singletons.
+    // Every enriched operation gets a Params class (even those without a
+    // Response model — the report-problem pair), contributes its method to
+    // its resource's four service accumulators, and seeds the client.
     context.insertOperation({ projection: KtSdkParams, operation })
 
-    // Service files are per-RESOURCE: a two-op resource builds whole on its
-    // first operation's insert (the §E-6 rescan). The guard is a workaround
-    // for a mis-key: the service Definition has per-resource identity but a
-    // per-operation generatorKey, so a second operation's insert would trip
-    // affirmDefinition's "Registered definition mismatch". A-TODO: resource-
-    // scope the service generatorKey so insertOperation dedupes cleanly and
-    // this guard (and the per-projection name/exportPath recompute) can go.
-    const insertServiceOnce = <Value extends GeneratedValue>(
-      projection: OasOperationProjection<Value, EnrichmentSchema>
-    ) => {
-      const name = projection.toIdentifierName({ operation, enrichments: enrichment, variant })
-      const exportPath = projection.toExportPath({ operation, enrichments: enrichment, variant })
-
-      if (!context.findDefinition({ name, exportPath })) {
-        context.insertOperation({ projection, operation })
-      }
-    }
-
-    insertServiceOnce(KtSdkService)
-    insertServiceOnce(KtSdkServiceImpl)
-    insertServiceOnce(KtSdkServiceAsync)
-    insertServiceOnce(KtSdkServiceAsyncImpl)
+    ensureServices(context, operation, enrichment, config)
 
     ensureClient(context)
 

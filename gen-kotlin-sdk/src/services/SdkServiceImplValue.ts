@@ -1,75 +1,52 @@
-import type { GenerateContextType, OasOperation } from '@skmtc/core'
 import { KtSnippet } from '@skmtc/lang-kotlin'
-import invariant from 'tiny-invariant'
-import { resolveEnrichment, toClassStem, type ServiceFlavor } from '@/base.ts'
-import { toSdkConfig } from '@/config.ts'
+import { type ServiceFlavor } from '@/base.ts'
 import { indent } from '@/format.ts'
 import {
   addModelImports,
   toServiceImplName,
   toServiceName,
-  toServiceOperations,
-  type SdkServiceOperation
-} from '@/services/toServiceOperations.ts'
-
-type SdkServiceImplValueArgs = {
-  context: GenerateContextType
-  operation: OasOperation
-  destinationPath: string
-  flavor: ServiceFlavor
-}
+  type SdkServiceOperation,
+  type ServiceValueArgs
+} from '@/services/serviceFacts.ts'
 
 const fn = (flavor: ServiceFlavor) => (flavor === 'async' ? 'suspend fun' : 'fun')
 
 const callSuffix = (flavor: ServiceFlavor) => (flavor === 'async' ? 'Async' : '')
 
 /**
- * The ServiceImpl file value (§E-3) — `internal constructor` + supertype.
- * Self-contained: computes its own resource operations and renders the
- * delegation class + raw-response impl from its own fields. The
- * `KtConstructed`/`KtSupertyped` protocol the `class` shell reads are plain
- * fields here (note-33), mirrored onto the projection.
+ * The ServiceImpl file value (§E-3) — `internal constructor` + supertype, and
+ * an accumulator like {@link import('./SdkServiceValue.ts').SdkServiceValue}.
+ * The value is `defineAndRegister`'d directly, so the `KtConstructed` /
+ * `KtSupertyped` protocol the `class` shell reads are plain fields on it (no
+ * projection to mirror onto).
  */
 export class SdkServiceImplValue extends KtSnippet {
   flavor: ServiceFlavor
   serviceName: string
   implName: string
-  operations: SdkServiceOperation[]
+  operations: SdkServiceOperation[] = []
 
   constructorModifiers: string
   constructorParameters: string
   supertypes: string[]
 
-  constructor({ context, operation, destinationPath, flavor }: SdkServiceImplValueArgs) {
+  #basePackage: string
+  #destinationPath: string
+
+  constructor({ context, stem, flavor, basePackage, destinationPath, fileHeader }: ServiceValueArgs) {
     super({ context })
-
-    const config = toSdkConfig(context)
-    const enrichment = resolveEnrichment(context)(operation)
-
-    invariant(enrichment, '@skmtc/gen-kotlin-sdk: service projection requires an enrichment')
-
-    const stem = toClassStem(enrichment)
 
     this.flavor = flavor
     this.serviceName = toServiceName(stem, flavor)
     this.implName = toServiceImplName(stem, flavor)
-    this.operations = toServiceOperations({
-      context,
-      config,
-      stem,
-      resource: enrichment.resource,
-      resolveEnrichment: resolveEnrichment(context)
-    })
+    this.#basePackage = basePackage
+    this.#destinationPath = destinationPath
 
     this.constructorModifiers = 'internal'
     this.constructorParameters = '    private val clientOptions: ClientOptions'
     this.supertypes = [this.serviceName]
 
     const coreNames = ['ClientOptions', 'RequestOptions', `prepare${callSuffix(flavor)}`]
-
-    if (this.operations.some(operation => operation.pathParam)) {
-      coreNames.push('checkRequired')
-    }
 
     const httpNames = [
       'HttpMethod',
@@ -80,19 +57,35 @@ export class SdkServiceImplValue extends KtSnippet {
       'parseable'
     ]
 
-    if (this.operations.some(operation => operation.bodyKind)) {
-      httpNames.push('json')
+    this.register({
+      imports: {
+        [`${basePackage}.core`]: coreNames.sort(),
+        [`${basePackage}.core.handlers`]: ['errorBodyHandler', 'errorHandler', 'jsonHandler'],
+        [`${basePackage}.core.http`]: httpNames
+      },
+      fileHeader,
+      destinationPath
+    })
+  }
+
+  /** Append one operation and register its per-op imports (model classes,
+   * plus `checkRequired` / `json` when the operation needs them). */
+  add(operation: SdkServiceOperation): void {
+    this.operations.push(operation)
+
+    const imports: Record<string, string[]> = {}
+
+    if (operation.pathParam) {
+      imports[`${this.#basePackage}.core`] = ['checkRequired']
     }
 
-    const imports: Record<string, string[]> = {
-      [`${config.basePackage}.core`]: coreNames.sort(),
-      [`${config.basePackage}.core.handlers`]: ['errorBodyHandler', 'errorHandler', 'jsonHandler'],
-      [`${config.basePackage}.core.http`]: httpNames
+    if (operation.bodyKind) {
+      imports[`${this.#basePackage}.core.http`] = ['json']
     }
 
-    addModelImports(this.operations, config.basePackage, imports)
+    addModelImports([operation], this.#basePackage, imports)
 
-    this.register({ imports, fileHeader: config.fileHeader, destinationPath })
+    this.register({ imports, destinationPath: this.#destinationPath })
   }
 
   override toString(): string {
