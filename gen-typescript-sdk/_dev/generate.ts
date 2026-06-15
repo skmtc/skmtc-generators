@@ -66,6 +66,44 @@ const openApiDocument = {
           name: { type: 'string', description: 'The name of the item.' }
         },
         required: ['id', 'name']
+      },
+      Widget: {
+        type: 'object',
+        description: 'A widget.',
+        properties: {
+          id: { type: 'string' },
+          status: { $ref: '#/components/schemas/WidgetStatus' },
+          dimensions: { $ref: '#/components/schemas/WidgetDimensions' },
+          source: { $ref: '#/components/schemas/WidgetSource' }
+        },
+        required: ['id', 'status', 'dimensions']
+      },
+      WidgetStatus: {
+        type: 'string',
+        description: 'The lifecycle status of a widget.',
+        enum: ['active', 'archived']
+      },
+      WidgetDimensions: {
+        type: 'object',
+        properties: {
+          width: { type: 'integer' },
+          height: { type: 'integer' }
+        },
+        required: ['width', 'height']
+      },
+      WidgetSource: {
+        description: 'Where a widget came from.',
+        anyOf: [{ $ref: '#/components/schemas/WidgetUrlSource' }, { $ref: '#/components/schemas/WidgetFileSource' }]
+      },
+      WidgetUrlSource: {
+        type: 'object',
+        properties: { url: { type: 'string' } },
+        required: ['url']
+      },
+      WidgetFileSource: {
+        type: 'object',
+        properties: { file_id: { type: 'string' } },
+        required: ['file_id']
       }
     }
   },
@@ -113,6 +151,17 @@ const openApiDocument = {
           '200': { description: 'OK', content: { 'application/json': { schema: { $ref: '#/components/schemas/Item' } } } }
         }
       }
+    },
+    '/widgets/{widget}': {
+      get: {
+        operationId: 'retrieveWidget',
+        tags: ['Widgets'],
+        description: 'Retrieves a widget.',
+        parameters: [{ in: 'path', name: 'widget', required: true, schema: { type: 'string' } }],
+        responses: {
+          '200': { description: 'OK', content: { 'application/json': { schema: { $ref: '#/components/schemas/Widget' } } } }
+        }
+      }
     }
   }
 }
@@ -133,6 +182,9 @@ const enrichments = {
     },
     '/items': {
       post: { main: { resource: 'items', methodName: 'create' } }
+    },
+    '/widgets/{widget}': {
+      get: { main: { resource: 'widgets', methodName: 'retrieve' } }
     }
   }
 }

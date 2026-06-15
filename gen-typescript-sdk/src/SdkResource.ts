@@ -1,8 +1,7 @@
 import type { OasOperationProjectionConstructorArgs, OasOperation } from '@skmtc/core'
 import { SdkResourceBase } from './base.ts'
 import { ApiMethod } from './ApiMethod.ts'
-import { toInterfaceBody, schemaDescription, type ObjectSchema } from './toTsType.ts'
-import { toJsDoc } from './toJsDoc.ts'
+import { collectNamedTypes, toTypeDeclaration, type NamedType } from './toTsType.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
 
 // Stainless's canonical method ordering; anything unlisted sorts after, in
@@ -29,7 +28,6 @@ export class SdkResource extends SdkResourceBase {
   description: string | undefined
 
   #methods: { apiMethod: ApiMethod; methodName: string }[] = []
-  #inlineSchemas: Record<string, ObjectSchema> = {}
   #pageAliases: { name: string; itemType: string }[] = []
   #schemaNames: Record<string, string>
 
@@ -63,33 +61,35 @@ export class SdkResource extends SdkResourceBase {
     this.#methods.push({ apiMethod, methodName })
     this.register({ imports: apiMethod.imports })
 
-    for (const [name, schema] of Object.entries(apiMethod.inlineSchemas)) {
-      this.#inlineSchemas[name] ??= schema
-    }
     if (apiMethod.pageAlias && !this.#pageAliases.some(page => page.name === apiMethod.pageAlias?.name)) {
       this.#pageAliases.push(apiMethod.pageAlias)
     }
   }
 
   override toString(): string {
-    const methods = [...this.#methods]
-      .sort((a, b) => methodPriority(a.methodName) - methodPriority(b.methodName))
-      .map(({ apiMethod }) => apiMethod.toString())
-      .join('\n\n')
+    const sortedMethods = [...this.#methods].sort(
+      (a, b) => methodPriority(a.methodName) - methodPriority(b.methodName)
+    )
+
+    const methods = sortedMethods.map(({ apiMethod }) => apiMethod.toString()).join('\n\n')
+
+    // Collect every named type reachable from the methods' roots, in method
+    // order, deduped.
+    const namedTypes = new Map<string, NamedType>()
+    for (const { apiMethod } of sortedMethods) {
+      for (const root of apiMethod.typeRoots) {
+        collectNamedTypes(root, this.#schemaNames, namedTypes)
+      }
+    }
 
     const pageDeclarations = this.#pageAliases.map(
       page =>
         `// Note: no pagination actually occurs yet, this is for forwards-compatibility.\nexport type ${page.name} = Page<${page.itemType}>;`
     )
 
-    const interfaceDeclarations = Object.entries(this.#inlineSchemas).map(([name, schema]) => {
-      const description = schemaDescription(schema)
-      const jsDoc = description ? `${toJsDoc(description)}\n` : ''
+    const typeDeclarations = [...namedTypes.values()].map(named => toTypeDeclaration(named, this.#schemaNames))
 
-      return `${jsDoc}export interface ${name} ${toInterfaceBody(schema, this.#schemaNames)}`
-    })
-
-    const reExports = [...Object.keys(this.#inlineSchemas), ...this.#pageAliases.map(page => page.name)].map(
+    const reExports = [...namedTypes.keys(), ...this.#pageAliases.map(page => page.name)].map(
       name => `type ${name} as ${name}`
     )
     const namespaceDeclaration =
@@ -97,7 +97,7 @@ export class SdkResource extends SdkResourceBase {
         ? `export declare namespace ${this.settings.identifier.name} {\n  export { ${reExports.join(', ')} };\n}`
         : undefined
 
-    return [`extends APIResource {\n${methods}\n}`, ...pageDeclarations, ...interfaceDeclarations, namespaceDeclaration]
+    return [`extends APIResource {\n${methods}\n}`, ...pageDeclarations, ...typeDeclarations, namespaceDeclaration]
       .filter(Boolean)
       .join('\n\n')
   }

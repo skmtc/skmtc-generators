@@ -1,6 +1,7 @@
 import { toRefName } from '@skmtc/core'
 import { handleKey } from '@skmtc/lang-typescript'
 import type { OasSchema, OasRef, CustomValue } from '@skmtc/core'
+import { toJsDoc } from './toJsDoc.ts'
 
 /** Any schema-shaped value, including the `CustomValue` an object property may hold. */
 export type AnySchema = OasSchema | OasRef<'schema'> | CustomValue
@@ -66,4 +67,70 @@ export const toInterfaceBody = (schema: ObjectSchema, schemaNames: Record<string
   })
 
   return `{\n${members.join('\n\n')}\n}`
+}
+
+/** A named component schema the resource file declares (interface or type alias). */
+export type NamedType = {
+  name: string
+  /** The resolved (non-ref) schema body. */
+  schema: OasSchema
+  description: string | undefined
+}
+
+/**
+ * Walk a root schema and collect every named (`$ref`'d) component reachable
+ * from it — transitively through object properties, array items and union
+ * members — into `into` (insertion order preserved, deduped by display
+ * name). Each `$ref` is resolved to its body; the display name applies
+ * `schemaNames` renames. Reserving the map slot before recursing breaks
+ * `$ref` cycles.
+ */
+export const collectNamedTypes = (
+  root: AnySchema | undefined,
+  schemaNames: Record<string, string>,
+  into: Map<string, NamedType>
+): void => {
+  if (!root) return
+
+  switch (root.type) {
+    case 'ref': {
+      const refName = toRefName(root.$ref)
+      const name = schemaNames[refName] ?? refName
+      if (into.has(name)) return
+
+      const resolved = root.resolve()
+      into.set(name, { name, schema: resolved, description: schemaDescription(resolved) })
+      collectNamedTypes(resolved, schemaNames, into)
+      return
+    }
+    case 'object':
+      for (const property of Object.values(root.properties ?? {})) {
+        collectNamedTypes(property, schemaNames, into)
+      }
+      return
+    case 'array':
+      collectNamedTypes(root.items, schemaNames, into)
+      return
+    case 'union':
+      for (const member of root.members) {
+        collectNamedTypes(member, schemaNames, into)
+      }
+      return
+    default:
+      return
+  }
+}
+
+/**
+ * Render a named type's declaration: an object becomes an `interface`,
+ * everything else (enum, union, scalar, array) a `type` alias.
+ */
+export const toTypeDeclaration = (named: NamedType, schemaNames: Record<string, string>): string => {
+  const jsDoc = named.description ? `${toJsDoc(named.description)}\n` : ''
+
+  if (named.schema.type === 'object') {
+    return `${jsDoc}export interface ${named.name} ${toInterfaceBody(named.schema, schemaNames)}`
+  }
+
+  return `${jsDoc}export type ${named.name} = ${toTsType(named.schema, schemaNames)};`
 }
