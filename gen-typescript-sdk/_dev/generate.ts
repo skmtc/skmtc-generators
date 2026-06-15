@@ -104,6 +104,25 @@ const openApiDocument = {
         type: 'object',
         properties: { file_id: { type: 'string' } },
         required: ['file_id']
+      },
+      Report: {
+        type: 'object',
+        description: 'A report.',
+        properties: {
+          summary: {
+            type: 'object',
+            description: 'A summary of the report.',
+            properties: { total: { type: 'integer' }, passed: { type: 'boolean' } },
+            required: ['total', 'passed']
+          },
+          details: {
+            type: 'object',
+            properties: { note: { type: 'string' } },
+            required: ['note']
+          },
+          flagged: { type: 'boolean' }
+        },
+        required: ['summary', 'details', 'flagged']
       }
     }
   },
@@ -162,6 +181,17 @@ const openApiDocument = {
           '200': { description: 'OK', content: { 'application/json': { schema: { $ref: '#/components/schemas/Widget' } } } }
         }
       }
+    },
+    '/reports/{report}': {
+      get: {
+        operationId: 'retrieveReport',
+        tags: ['Reports'],
+        description: 'Retrieves a report.',
+        parameters: [{ in: 'path', name: 'report', required: true, schema: { type: 'string' } }],
+        responses: {
+          '200': { description: 'OK', content: { 'application/json': { schema: { $ref: '#/components/schemas/Report' } } } }
+        }
+      }
     }
   }
 }
@@ -185,6 +215,9 @@ const enrichments = {
     },
     '/widgets/{widget}': {
       get: { main: { resource: 'widgets', methodName: 'retrieve' } }
+    },
+    '/reports/{report}': {
+      get: { main: { resource: 'reports', methodName: 'retrieve' } }
     }
   }
 }

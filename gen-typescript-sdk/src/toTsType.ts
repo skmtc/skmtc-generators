@@ -1,4 +1,4 @@
-import { toRefName } from '@skmtc/core'
+import { toRefName, capitalize, camelCase } from '@skmtc/core'
 import { handleKey } from '@skmtc/lang-typescript'
 import type { OasSchema, OasRef, CustomValue } from '@skmtc/core'
 import { toJsDoc } from './toJsDoc.ts'
@@ -11,6 +11,13 @@ export type ObjectSchema = Extract<OasSchema, { type: 'object' }>
 
 export const schemaDescription = (schema: AnySchema): string | undefined =>
   'description' in schema && typeof schema.description === 'string' ? schema.description : undefined
+
+/**
+ * An *inline* object (named properties, not a `$ref`) — the shape Stainless
+ * lifts out of its parent into a `namespace`.
+ */
+const isExtractableObject = (property: AnySchema): property is ObjectSchema =>
+  property.type === 'object' && !!property.properties && Object.keys(property.properties).length > 0
 
 /**
  * Render a parsed OAS schema as an inline TypeScript type expression — the
@@ -51,19 +58,36 @@ export const toTsType = (schema: AnySchema, schemaNames: Record<string, string> 
 /**
  * Render an object schema's `{ … }` body — each property prefixed by its
  * description as a JSDoc block and suffixed with `?` when not required.
- * Used both for inline object types and for the body of a named
- * `interface`.
+ *
+ * When `extraction` is supplied (rendering a *named* interface), an inline
+ * object property is lifted out: the property type becomes
+ * `<owner>.<Child>` and the child is recorded for a `namespace` block. Used
+ * without `extraction` for inline object *expressions* (union members, array
+ * items), where the body stays inline.
  */
-export const toInterfaceBody = (schema: ObjectSchema, schemaNames: Record<string, string> = {}): string => {
+export const toInterfaceBody = (
+  schema: ObjectSchema,
+  schemaNames: Record<string, string> = {},
+  extraction?: { ownerName: string; children: NamedType[] }
+): string => {
   const properties = schema.properties ?? {}
   const required = schema.required ?? []
 
   const members = Object.entries(properties).map(([key, property]) => {
     const optionality = required.includes(key) ? '' : '?'
     const description = schemaDescription(property)
-    const jsdoc = description ? `/**\n * ${description}\n */\n` : ''
+    const jsdoc = description ? `${toJsDoc(description)}\n` : ''
 
-    return `${jsdoc}${handleKey(key)}${optionality}: ${toTsType(property, schemaNames)};`
+    let type: string
+    if (extraction && isExtractableObject(property)) {
+      const childName = capitalize(camelCase(key))
+      extraction.children.push({ name: childName, schema: property, description })
+      type = `${extraction.ownerName}.${childName}`
+    } else {
+      type = toTsType(property, schemaNames)
+    }
+
+    return `${jsdoc}${handleKey(key)}${optionality}: ${type};`
   })
 
   return `{\n${members.join('\n\n')}\n}`
@@ -123,13 +147,25 @@ export const collectNamedTypes = (
 
 /**
  * Render a named type's declaration: an object becomes an `interface`,
- * everything else (enum, union, scalar, array) a `type` alias.
+ * everything else (enum, union, scalar, array) a `type` alias. Inline
+ * sub-objects are lifted into `export namespace <Name> { … }` and referenced
+ * as `<Name>.<Child>` (the Stainless layout); the recursion nests a child's
+ * own inline objects further.
  */
 export const toTypeDeclaration = (named: NamedType, schemaNames: Record<string, string>): string => {
   const jsDoc = named.description ? `${toJsDoc(named.description)}\n` : ''
 
   if (named.schema.type === 'object') {
-    return `${jsDoc}export interface ${named.name} ${toInterfaceBody(named.schema, schemaNames)}`
+    const children: NamedType[] = []
+    const body = toInterfaceBody(named.schema, schemaNames, { ownerName: named.name, children })
+    const interfaceDeclaration = `${jsDoc}export interface ${named.name} ${body}`
+
+    if (children.length === 0) {
+      return interfaceDeclaration
+    }
+
+    const namespaceBody = children.map(child => toTypeDeclaration(child, schemaNames)).join('\n\n')
+    return `${interfaceDeclaration}\n\nexport namespace ${named.name} {\n${namespaceBody}\n}`
   }
 
   return `${jsDoc}export type ${named.name} = ${toTsType(named.schema, schemaNames)};`
