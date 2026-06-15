@@ -2,8 +2,7 @@ import type { GenerateContextType, OasObject, OasOperation, OasRef, OasSchema } 
 import { CustomValue } from '@skmtc/core'
 import invariant from 'tiny-invariant'
 import { KtDefinition, createClass, register } from '@skmtc/lang-kotlin'
-import { sdkConfig as config } from '@/config.ts'
-import { generatedFileHeader } from '@/generatedFileHeader.ts'
+import { toSdkConfig } from '@/config.ts'
 import { SdkModelValue, toStructuralHash, type SharedHashes } from '@skmtc/gen-kotlin-jackson-s'
 
 export type EnsureSharedModelsResult = {
@@ -18,6 +17,7 @@ export type EnsureSharedModelsResult = {
  * Registration is `findDefinition`-guarded (accumulator pattern).
  */
 export const ensureSharedModels = (context: GenerateContextType): EnsureSharedModelsResult => {
+  const config = toSdkConfig(context)
   const envelopeConfig = config.sharedModels.envelope
 
   const packageDirs = config.basePackage.split('.').join('/')
@@ -93,12 +93,14 @@ const ensureModelDefinition = ({
     return
   }
 
+  const config = toSdkConfig(context)
+
   const value = new SdkModelValue({
     context,
     schema,
     className,
     destinationPath,
-    fileHeader: generatedFileHeader,
+    fileHeader: config.fileHeader,
     sharedHashes,
     sorted,
     includeOnly

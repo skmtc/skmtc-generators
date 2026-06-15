@@ -1,9 +1,8 @@
 import type { GenerateContextType, OasOperation } from '@skmtc/core'
 import { createClass, createInterface, defineAndRegister } from '@skmtc/lang-kotlin'
 import invariant from 'tiny-invariant'
-import { coreModuleRoot, resolveEnrichment, toClassStem } from '@/base.ts'
-import { sdkConfig as config } from '@/config.ts'
-import { generatedFileHeader } from '@/generatedFileHeader.ts'
+import { resolveEnrichment, toClassStem, toCoreModuleRoot } from '@/base.ts'
+import { toSdkConfig } from '@/config.ts'
 import type { SdkClientModel } from '@/client/SdkClient.ts'
 import { SdkClientImplValue, SdkClientValue } from '@/client/SdkClientValue.ts'
 import denoJson from '../../deno.json' with { type: 'json' }
@@ -15,6 +14,8 @@ import denoJson from '../../deno.json' with { type: 'json' }
  * resource order).
  */
 export const ensureClient = (context: GenerateContextType): void => {
+  const config = toSdkConfig(context)
+  const coreModuleRoot = toCoreModuleRoot(config)
   const clientName = `${config.clientPrefix}Client`
   const clientPath = `${coreModuleRoot}/client/${clientName}.kt`
 
@@ -70,7 +71,7 @@ export const ensureClient = (context: GenerateContextType): void => {
       flavor,
       basePackage: config.basePackage,
       destinationPath: interfacePath,
-      fileHeader: generatedFileHeader
+      fileHeader: config.fileHeader
     })
 
     defineAndRegister(context, {
@@ -85,7 +86,7 @@ export const ensureClient = (context: GenerateContextType): void => {
       flavor,
       basePackage: config.basePackage,
       destinationPath: implPath,
-      fileHeader: generatedFileHeader
+      fileHeader: config.fileHeader
     })
 
     defineAndRegister(context, {

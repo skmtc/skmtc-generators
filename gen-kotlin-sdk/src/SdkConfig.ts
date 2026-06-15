@@ -4,10 +4,10 @@ import * as v from 'valibot'
  * SDK-global identity — the gen-kotlin-sdk counterpart of the
  * document-global half of a Stainless config (note 32 §A4 / Q6).
  *
- * INTERIM mechanism: `src/sdk-config.json` is imported directly by
- * `src/config.ts` and narrowed through this schema. Swaps to the core
- * document-global enrichment tier when that lands. Every field here is
- * evidence for that tier's design.
+ * Read from the shared `_stack` enrichment (`client.json#settings`
+ * `enrichments._stack`) and narrowed through this schema — see
+ * `src/config.ts`. It is a structural superset of jackson-s's
+ * `ModelConfig`, so the one `_stack` blob serves both readers.
  *
  * A config field is legitimate iff its comment names BOTH the
  * Stainless-config concept it mirrors AND the corpus evidence that
@@ -28,6 +28,9 @@ export const sdkConfigSchema = v.object({
   clientPrefix: v.string(),
   /** Gradle artifact stem (`onebusaway-sdk-kotlin`) — module dirs are `<artifactName>-core` etc. */
   artifactName: v.string(),
+  /** The attribution comment every generated file carries above its package
+   * directive (target-specific — `// File generated … by Stainless.`). */
+  fileHeader: v.string(),
   /** GitHub slug (`OneBusAway/kotlin-sdk`) — appears in doc links. */
   repoSlug: v.string(),
   /** Human display name for the client KDoc (`Onebusaway SDK`). */
@@ -115,9 +118,6 @@ export const sdkConfigSchema = v.object({
 
 export type SdkConfig = v.InferOutput<typeof sdkConfigSchema>
 export type SdkAuthConfig = SdkConfig['auth']
-
-/** Narrows a JSON-loaded config — loud on any unknown shape, no casts. */
-export const toSdkConfig = (raw: unknown): SdkConfig => v.parse(sdkConfigSchema, raw)
 
 /**
  * `OnebusawaySdk` → `ONEBUSAWAY_SDK` (the env-var prefix form): an

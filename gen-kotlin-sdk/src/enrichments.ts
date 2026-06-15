@@ -1,4 +1,5 @@
 import * as v from 'valibot'
+import { sdkConfigSchema } from '@/SdkConfig.ts'
 
 /**
  * Per-operation enrichment — the operation-level half of a Stainless
@@ -44,17 +45,15 @@ export const sdkOperationEnrichmentSchema = v.optional(
 export type SdkOperationEnrichment = v.InferOutput<typeof sdkOperationEnrichmentSchema>
 
 /**
- * The three-scope enrichment umbrella. The per-operation Stainless config
- * is the `subject` leaf; `generator` / `stack` are unused here
- * (`v.undefined()`). The generator's broader config (basePackage /
- * clientPrefix / artifactName / ModelConfig) still comes from
- * `src/sdk-config.json` via the module-scope setter — migrating that to the
- * `_generator` enrichment tier is a separate, centrally-handled follow-up.
+ * The three-scope enrichment umbrella. The per-operation Stainless config is
+ * the `subject` leaf; the SDK-global config (basePackage / clientPrefix /
+ * artifactName / fileHeader / sharedModels / …) is the shared `stack` leaf,
+ * read id-agnostically so the embedded jackson-s engine reads the same blob.
  */
 export const enrichmentSchema = v.object({
   subject: sdkOperationEnrichmentSchema,
   generator: v.undefined(),
-  stack: v.undefined()
+  stack: sdkConfigSchema
 })
 
 export type EnrichmentSchema = v.InferOutput<typeof enrichmentSchema>

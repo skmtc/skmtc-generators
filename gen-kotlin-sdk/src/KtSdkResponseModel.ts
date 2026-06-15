@@ -1,8 +1,8 @@
 import type { OasOperationProjectionConstructorArgs, Stringable } from '@skmtc/core'
 import invariant from 'tiny-invariant'
 import { ResponseModelBase } from '@/base.ts'
+import { toSdkConfig } from '@/config.ts'
 import type { EnrichmentSchema } from '@/enrichments.ts'
-import { generatedFileHeader } from '@/generatedFileHeader.ts'
 import { SdkModelValue } from '@skmtc/gen-kotlin-jackson-s'
 import { ensureSharedModels } from '@/sharedModels.ts'
 
@@ -18,6 +18,7 @@ export class KtSdkResponseModel extends ResponseModelBase {
     super(args)
 
     const { context, operation, settings } = args
+    const config = toSdkConfig(context)
 
     const { sharedHashes } = ensureSharedModels(context)
 
@@ -33,7 +34,7 @@ export class KtSdkResponseModel extends ResponseModelBase {
       schema,
       className: settings.identifier.name,
       destinationPath: settings.exportPath,
-      fileHeader: generatedFileHeader,
+      fileHeader: config.fileHeader,
       sharedHashes,
       addFieldsForData: settings.enrichments.subject?.addFields,
       detectEnvelope: true

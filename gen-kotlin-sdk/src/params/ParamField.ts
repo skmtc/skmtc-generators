@@ -1,7 +1,7 @@
 import type { GenerateContextType } from '@skmtc/core'
 import { capitalize } from '@skmtc/core'
 import { KtSnippet } from '@skmtc/lang-kotlin'
-import { sdkConfig as config } from '@/config.ts'
+import { toSdkConfig } from '@/config.ts'
 import { kdoc } from '@/format.ts'
 import { toSingular } from '@/naming.ts'
 import { addMethodKdoc, KtListType, KtScalarType, type KtType } from '@skmtc/gen-kotlin-jackson-s'
@@ -50,6 +50,8 @@ export class ParamField extends KtSnippet {
 
   constructor(args: ParamFieldArgs) {
     super({ context: args.context })
+
+    const config = toSdkConfig(args.context)
 
     this.kotlinName = args.kotlinName
     this.wireName = args.wireName
@@ -190,6 +192,9 @@ export class ListParamField extends ParamField {
 
   constructor(args: ListParamFieldArgs) {
     super(args)
+
+    const config = toSdkConfig(args.context)
+
     this.listType = args.type
 
     this.register({

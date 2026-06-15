@@ -1,10 +1,12 @@
-import sdkConfigJson from '@/sdk-config.json' with { type: 'json' }
-import { toSdkConfig, type SdkConfig } from '@/SdkConfig.ts'
+import { toStackEnrichment } from '@skmtc/core'
+import type { GenerateContextType } from '@skmtc/core'
+import { sdkConfigSchema, type SdkConfig } from '@/SdkConfig.ts'
 
 /**
- * The SDK-global config, imported directly (no factory closure) —
- * the Q6 interim for the coming core global-enrichment tier. The
- * corpus harness swaps `src/sdk-config.json` per target before
- * importing the entry.
+ * The SDK-global config, read from the shared `_stack` enrichment
+ * (`client.json#settings.enrichments._stack`) — the id-agnostic scope the
+ * embedded jackson-s model engine also reads, so one blob serves both. Read
+ * on demand from any context holder; no baked-in JSON, no module-global.
  */
-export const sdkConfig: SdkConfig = toSdkConfig(sdkConfigJson)
+export const toSdkConfig = (context: GenerateContextType): SdkConfig =>
+  toStackEnrichment(context, sdkConfigSchema)

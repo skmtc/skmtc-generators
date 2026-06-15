@@ -1,7 +1,7 @@
 import type { GenerateContextType, Stringable } from '@skmtc/core'
 import { KtSnippet } from '@skmtc/lang-kotlin'
 import { kdoc } from '@/format.ts'
-import { sdkConfig as config } from '@/config.ts'
+import { toSdkConfig } from '@/config.ts'
 import type { BodyShape } from '@/params/body/BodySnippet.ts'
 
 type Args = {
@@ -36,6 +36,8 @@ export class RefBody extends KtSnippet {
   constructor({ context, body, destinationPath }: Args) {
     super({ context })
     this.body = body
+
+    const config = toSdkConfig(context)
 
     const { className, kotlinName, description } = body
     const descriptionKdoc = description ? `${kdoc([description])}\n` : ''

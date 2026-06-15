@@ -1,7 +1,7 @@
 import type { GenerateContextType, OasObject, OasOperation, Stringable } from '@skmtc/core'
 import { camelCase, capitalize } from '@skmtc/core'
 import invariant from 'tiny-invariant'
-import { sdkConfig as config } from '@/config.ts'
+import type { SdkConfig } from '@/SdkConfig.ts'
 import type { SharedHashes } from '@skmtc/gen-kotlin-jackson-s'
 import { AbsentBody } from '@/params/body/AbsentBody.ts'
 import { MapBody } from '@/params/body/MapBody.ts'
@@ -59,7 +59,7 @@ export type BodyShape =
 const bodyCapableVerbs = new Set(['post', 'put', 'patch', 'delete'])
 
 /** Classifies an operation's request body into the shape the router dispatches on. */
-export const toBodyShape = (operation: OasOperation): BodyShape | undefined => {
+export const toBodyShape = (operation: OasOperation, config: SdkConfig): BodyShape | undefined => {
   const schema = operation.toRequestBody(({ schema }) => schema)
 
   if (!schema) {

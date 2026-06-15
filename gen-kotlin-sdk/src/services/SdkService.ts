@@ -102,8 +102,8 @@ const toServiceOperation = ({
   // construction here — that would register imports into the Params
   // file). The positionally-settable path param is the template-last
   // one; earlier path params are construction-required.
-  const bodyShape = toBodyShape(operation)
-  const pathParamName = lastPathParamName(operation)
+  const bodyShape = toBodyShape(operation, config)
+  const pathParamName = lastPathParamName(operation, config)
   const hasRequired = paramsHaveRequired(operation) || bodyHasRequired(bodyShape)
 
   const schema = operation.toSuccessResponse()?.resolve().toSchema()?.resolve()

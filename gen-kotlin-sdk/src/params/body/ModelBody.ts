@@ -1,6 +1,6 @@
 import type { GenerateContextType, OasObject, Stringable } from '@skmtc/core'
 import { KtSnippet } from '@skmtc/lang-kotlin'
-import { sdkConfig as config } from '@/config.ts'
+import { toSdkConfig } from '@/config.ts'
 import { kdoc } from '@/format.ts'
 import { NestedModelClass, type ModelField, type SharedHashes } from '@skmtc/gen-kotlin-jackson-s'
 
@@ -40,6 +40,8 @@ export class ModelBody extends KtSnippet {
   constructor({ context, className, schema, destinationPath, sharedHashes }: Args) {
     super({ context })
     this.className = className
+
+    const config = toSdkConfig(context)
 
     const nestedClass = new NestedModelClass({
       context,

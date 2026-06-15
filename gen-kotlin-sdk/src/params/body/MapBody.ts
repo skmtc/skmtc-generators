@@ -1,7 +1,7 @@
 import type { GenerateContextType, Stringable } from '@skmtc/core'
 import { KtSnippet } from '@skmtc/lang-kotlin'
 import { kdoc } from '@/format.ts'
-import { sdkConfig as config } from '@/config.ts'
+import { toSdkConfig } from '@/config.ts'
 
 type Args = {
   context: GenerateContextType
@@ -36,6 +36,8 @@ export class MapBody extends KtSnippet {
 
   constructor({ context, destinationPath }: Args) {
     super({ context })
+
+    const config = toSdkConfig(context)
 
     this.accessorSections = [
       kdoc(['Additional body properties to send with the request.']) +

@@ -1,6 +1,6 @@
 import type { GenerateContextType, OasOperation } from '@skmtc/core'
 import { KtAnnotation, KtSnippet } from '@skmtc/lang-kotlin'
-import { sdkConfig as config } from '@/config.ts'
+import { toSdkConfig } from '@/config.ts'
 import type { SharedHashes } from '@skmtc/gen-kotlin-jackson-s'
 import { toBodyShape, toBodySnippet, type BodySnippet } from '@/params/body/BodySnippet.ts'
 import { toParamFields } from '@/params/toParamFields.ts'
@@ -46,6 +46,8 @@ export class SdkParamsValue extends KtSnippet {
   }: SdkParamsValueArgs) {
     super({ context })
 
+    const config = toSdkConfig(context)
+
     this.description =
       operation.description ?? operation.summary ?? toPathSlug(operation.path)
 
@@ -58,7 +60,7 @@ export class SdkParamsValue extends KtSnippet {
     const params = toParamFields({ context, operation, destinationPath })
     this.body = toBodySnippet({
       context,
-      shape: toBodyShape(operation),
+      shape: toBodyShape(operation, config),
       destinationPath,
       sharedHashes
     })

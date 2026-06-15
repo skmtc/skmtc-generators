@@ -2,7 +2,7 @@ import { camelCase, capitalize } from '@skmtc/core'
 import type { GenerateContextType, OasOperation } from '@skmtc/core'
 import { toKtOasOperationProjectionBase } from '@skmtc/lang-kotlin'
 import invariant from 'tiny-invariant'
-import { sdkConfig as config } from '@/config.ts'
+import type { SdkConfig } from '@/SdkConfig.ts'
 import {
   toEnrichmentSchema,
   type EnrichmentSchema,
@@ -10,10 +10,12 @@ import {
 } from '@/enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
-export const packageDirs = config.basePackage.split('.').join('/')
-export const coreModuleRoot = `${config.artifactName}-core/src/main/kotlin/${packageDirs}`
+/** `<artifactName>-core/src/main/kotlin/<basePackage dirs>` — the core
+ * module root every generated `core` file lands under. */
+export const toCoreModuleRoot = (config: SdkConfig): string =>
+  `${config.artifactName}-core/src/main/kotlin/${config.basePackage.split('.').join('/')}`
 
-const toModelsDir = (resourceDir: string): string =>
+const toModelsDir = (config: SdkConfig, resourceDir: string): string =>
   config.modelsLayout === 'flat' ? 'models' : `models/${resourceDir}`
 
 export const toClassStem = (enrichment: NonNullable<SdkOperationEnrichment>): string => {
@@ -52,7 +54,7 @@ export const ResponseModelBase = toKtOasOperationProjectionBase<EnrichmentSchema
       ? subject.resource.join('').toLowerCase()
       : 'unenriched'
 
-    return `${coreModuleRoot}/${toModelsDir(resourceDir)}/${name}.kt`
+    return `${toCoreModuleRoot(enrichments.stack)}/${toModelsDir(enrichments.stack, resourceDir)}/${name}.kt`
   }
 })
 
@@ -80,7 +82,7 @@ export const ParamsBase = toKtOasOperationProjectionBase<EnrichmentSchema>({
       ? subject.resource.join('').toLowerCase()
       : 'unenriched'
 
-    return `${coreModuleRoot}/${toModelsDir(resourceDir)}/${name}.kt`
+    return `${toCoreModuleRoot(enrichments.stack)}/${toModelsDir(enrichments.stack, resourceDir)}/${name}.kt`
   }
 })
 
@@ -112,7 +114,7 @@ export const toServiceBase = (flavor: ServiceFlavor, role: ServiceRole) => {
     toExportPath({ operation, enrichments, variant }) {
       const name = this.toIdentifierName({ operation, enrichments, variant })
 
-      return `${coreModuleRoot}/services/${directory}/${name}.kt`
+      return `${toCoreModuleRoot(enrichments.stack)}/services/${directory}/${name}.kt`
     }
   })
 }

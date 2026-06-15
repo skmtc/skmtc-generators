@@ -1,7 +1,7 @@
 import type { GenerateContextType } from '@skmtc/core'
 import { KtSnippet } from '@skmtc/lang-kotlin'
 import { indent } from '@/format.ts'
-import { sdkConfig as config } from '@/config.ts'
+import { toSdkConfig } from '@/config.ts'
 import type { BodySnippet } from '@/params/body/BodySnippet.ts'
 import type { ParamField } from '@/params/ParamField.ts'
 
@@ -21,6 +21,8 @@ export class ParamsConstructorParameters extends KtSnippet {
     super({ context })
     this.params = params
     this.body = body
+
+    const config = toSdkConfig(context)
 
     this.register({
       imports: { [`${config.basePackage}.core.http`]: ['Headers', 'QueryParams'] },

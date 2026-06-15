@@ -1,7 +1,8 @@
 import type { GenerateContextType, OasOperation, OasParameter, OasSchema } from '@skmtc/core'
 import { camelCase, capitalize } from '@skmtc/core'
 import invariant from 'tiny-invariant'
-import { sdkConfig as config } from '@/config.ts'
+import { toSdkConfig } from '@/config.ts'
+import type { SdkConfig } from '@/SdkConfig.ts'
 import { toSingular } from '@/naming.ts'
 import { ListParamField, ParamField, type WireForm } from '@/params/ParamField.ts'
 import {
@@ -27,6 +28,7 @@ type ToParamFieldsArgs = {
  * (location, name).
  */
 export const toParamFields = ({ context, operation, destinationPath }: ToParamFieldsArgs): ParamField[] => {
+  const config = toSdkConfig(context)
   const parameters = resolveParameters(operation)
   const lastPathName = toLastPathName(operation, parameters)
 
@@ -67,7 +69,7 @@ export const toParamFields = ({ context, operation, destinationPath }: ToParamFi
  * them, so a caller that only needs the fact (the service) never
  * registers imports.
  */
-export const lastPathParamName = (operation: OasOperation): string | undefined => {
+export const lastPathParamName = (operation: OasOperation, config: SdkConfig): string | undefined => {
   const lastName = toLastPathName(operation, resolveParameters(operation))
 
   return lastName ? (config.kotlinNames?.[lastName] ?? toParamKotlinName(lastName)) : undefined
@@ -155,6 +157,7 @@ type ToParamFieldArgs = {
 
 /** The field router — the ONE place the list-vs-scalar param shape is chosen. */
 const toParamField = ({ context, parameter, required, destinationPath }: ToParamFieldArgs): ParamField => {
+  const config = toSdkConfig(context)
   const { name, location, description: parameterDescription } = parameter
 
   invariant(
@@ -215,6 +218,7 @@ type ToParamTypeArgs = {
  */
 const toParamType = (args: ToParamTypeArgs): KtType => {
   const { context, name, schema, refName, parameterDescription, destinationPath } = args
+  const config = toSdkConfig(context)
 
   switch (schema.type) {
     case 'array': {

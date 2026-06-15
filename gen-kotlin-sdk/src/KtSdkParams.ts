@@ -1,8 +1,8 @@
 import type { OasOperationProjectionConstructorArgs, Stringable } from '@skmtc/core'
 import type { KtAnnotation } from '@skmtc/lang-kotlin'
 import { ParamsBase } from '@/base.ts'
+import { toSdkConfig } from '@/config.ts'
 import type { EnrichmentSchema } from '@/enrichments.ts'
-import { generatedFileHeader } from '@/generatedFileHeader.ts'
 import { SdkParamsValue } from '@/params/SdkParamsValue.ts'
 import { ensureSharedModels } from '@/sharedModels.ts'
 
@@ -19,6 +19,7 @@ export class KtSdkParams extends ParamsBase {
     super(args)
 
     const { context, operation, settings } = args
+    const config = toSdkConfig(context)
 
     const { sharedHashes } = ensureSharedModels(context)
 
@@ -29,7 +30,7 @@ export class KtSdkParams extends ParamsBase {
       deprecatedMessage: settings.enrichments.subject?.deprecatedMessage,
       sharedHashes,
       destinationPath: settings.exportPath,
-      fileHeader: generatedFileHeader
+      fileHeader: config.fileHeader
     })
     this.description = this.value.description
     this.annotations = this.value.annotations

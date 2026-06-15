@@ -1,8 +1,7 @@
 import { toOasOperationEntry } from '@skmtc/core'
-import { setModelConfig } from '@skmtc/gen-kotlin-jackson-s'
 import { ResponseModelBase } from '@/base.ts'
 import { ensureClient } from '@/client/ensureClient.ts'
-import { sdkConfig as config } from '@/config.ts'
+import { toSdkConfig } from '@/config.ts'
 import { emitStaticFiles } from '@/emitStaticFiles.ts'
 import { toEnrichmentSchema, type EnrichmentSchema } from '@/enrichments.ts'
 import { KtSdkParams } from '@/KtSdkParams.ts'
@@ -20,7 +19,7 @@ export default toOasOperationEntry<EnrichmentSchema>({
   isSupported: () => true,
   toEnrichmentSchema,
   transform({ context, operation, variant }) {
-    setModelConfig(config)
+    const config = toSdkConfig(context)
 
     emitStaticFiles({ context, config })
 
