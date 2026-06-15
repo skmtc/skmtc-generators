@@ -1,4 +1,4 @@
-import { type TypeSystemValue, type GenerateContextType, type RefName, type ContentSettings } from '@skmtc/core'
+import type { TypeSystemValue, GenerateContextType, RefName, ContentSettings } from '@skmtc/core'
 import { createVariable } from '@skmtc/lang-typescript'
 import { toValibotValue } from './Valibot.ts'
 import { ValibotBase } from './base.ts'
