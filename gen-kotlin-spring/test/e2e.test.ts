@@ -7,9 +7,9 @@
  */
 import { assertEquals } from 'jsr:@std/assert@^1.0.0'
 import { StackTrail, toArtifacts } from '@skmtc/core'
-import { toKotlinEntry } from '@skmtc/gen-kotlin-kotlinx'
+import kotlinEntry from '@skmtc/gen-kotlin-kotlinx'
 import type { OpenAPIV3 } from 'openapi-types'
-import { toKotlinSpringEntry } from '../src/mod.ts'
+import springEntry from '../src/mod.ts'
 
 const documentObject: OpenAPIV3.Document = {
   openapi: '3.0.0',
@@ -111,22 +111,25 @@ type RunFixtureArgs = {
 }
 
 const runFixture = ({ besideGenKotlin }: RunFixtureArgs) => {
-  // Construct per run — entry construction writes the module-scope
-  // basePackage state in BOTH generators (gen-kotlin's is read by the
-  // KtRef insertion path even when its transform isn't registered).
-  const springEntry = toKotlinSpringEntry({ basePackage: 'com.example.api' })
-  const kotlinEntry = toKotlinEntry({ basePackage: 'com.example.api' })
-
   return toArtifacts({
     traceId: 'gen-kotlin-spring-e2e',
     spanId: besideGenKotlin ? 'beside' : 'alone',
     startAt: Date.now(),
     document: { type: 'oas', value: documentObject },
-    settings: { basePath: './app/src/main/kotlin' },
+    settings: {
+      basePath: './app/src/main/kotlin',
+      // Both generators' basePackage rides the `_generator` scope. The value
+      // layer reads gen-kotlin-kotlinx's config even when its transform isn't
+      // registered — the `alone` run still emits DTO types via `toKtValue`.
+      enrichments: {
+        '@skmtc/gen-kotlin-spring': { _generator: { basePackage: 'com.example.api' } },
+        '@skmtc/gen-kotlin-kotlinx': { _generator: { basePackage: 'com.example.api' } }
+      }
+    },
     stackTrail: new StackTrail([]),
     silent: true,
     toGeneratorConfigMap: () =>
-      // @ts-expect-error - the factory-emitted entries are monomorphic over EnrichmentType
+      // @ts-expect-error - factory entry vs the generic config map (the known variance gap)
       besideGenKotlin
         ? { '@skmtc/gen-kotlin-spring': springEntry, '@skmtc/gen-kotlin-kotlinx': kotlinEntry }
         : { '@skmtc/gen-kotlin-spring': springEntry }

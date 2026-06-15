@@ -1,16 +1,10 @@
-import { capitalize, camelCase } from '@skmtc/core'
 import { toKtModelProjectionBase } from '@skmtc/lang-kotlin'
 import { join } from '@std/path'
-import { getBasePackage } from './basePackage.ts'
+import { toKtModelName } from './modelNames.ts'
 import { peekSchema } from './peekSchema.ts'
 import { toKtModelShape } from './toKtModelShape.ts'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
-
-/** PascalCase model name from a schema refName. */
-export const toKtModelName = (refName: string): string => {
-  return capitalize(camelCase(refName))
-}
 
 /**
  * The shared export path: the segments after `@/` ARE the package
@@ -18,8 +12,8 @@ export const toKtModelName = (refName: string): string => {
  * model lands at `@/<basePackage dirs>/<Name>.generated.kt` under the
  * Gradle source root the consumer's `basePath` points at.
  */
-export const toKtModelExportPath = (name: string): string => {
-  return join('@', ...getBasePackage().split('.'), `${name}.generated.kt`)
+export const toKtModelExportPath = (name: string, basePackage: string): string => {
+  return join('@', ...basePackage.split('.'), `${name}.generated.kt`)
 }
 
 /**
@@ -50,6 +44,9 @@ export const KtModelBase = toKtModelProjectionBase<EnrichmentSchema>({
   },
 
   toExportPath({ refName, enrichments }) {
-    return toKtModelExportPath(enrichments?.subject?.name ?? toKtModelName(refName))
+    return toKtModelExportPath(
+      enrichments?.subject?.name ?? toKtModelName(refName),
+      enrichments.generator.basePackage
+    )
   }
 })

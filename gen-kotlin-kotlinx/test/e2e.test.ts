@@ -6,9 +6,7 @@
 import { assertEquals } from 'jsr:@std/assert@^1.0.0'
 import { StackTrail, toArtifacts } from '@skmtc/core'
 import type { OpenAPIV3 } from 'openapi-types'
-import { toKotlinEntry } from '../src/mod.ts'
-
-const kotlinEntry = toKotlinEntry({ basePackage: 'com.example.api' })
+import kotlinEntry from '../src/mod.ts'
 
 const documentObject: OpenAPIV3.Document = {
   openapi: '3.0.0',
@@ -56,7 +54,12 @@ const runFixture = () => {
     spanId: 'fixture',
     startAt: Date.now(),
     document: { type: 'oas', value: documentObject },
-    settings: { basePath: './app/src/main/kotlin' },
+    settings: {
+      basePath: './app/src/main/kotlin',
+      enrichments: {
+        '@skmtc/gen-kotlin-kotlinx': { _generator: { basePackage: 'com.example.api' } }
+      }
+    },
     stackTrail: new StackTrail([]),
     silent: true,
     toGeneratorConfigMap: () => ({
@@ -164,7 +167,12 @@ Deno.test('e2e - keyword properties backtick-escape without a rename annotation'
     spanId: 'keyword',
     startAt: Date.now(),
     document: { type: 'oas', value: keywordDocument },
-    settings: { basePath: './app/src/main/kotlin' },
+    settings: {
+      basePath: './app/src/main/kotlin',
+      enrichments: {
+        '@skmtc/gen-kotlin-kotlinx': { _generator: { basePackage: 'com.example.api' } }
+      }
+    },
     stackTrail: new StackTrail([]),
     silent: true,
     toGeneratorConfigMap: () => ({
@@ -251,7 +259,12 @@ const runSealedFixture = () => {
     spanId: 'fixture',
     startAt: Date.now(),
     document: { type: 'oas', value: sealedDocumentObject },
-    settings: { basePath: './app/src/main/kotlin' },
+    settings: {
+      basePath: './app/src/main/kotlin',
+      enrichments: {
+        '@skmtc/gen-kotlin-kotlinx': { _generator: { basePackage: 'com.example.api' } }
+      }
+    },
     stackTrail: new StackTrail([]),
     silent: true,
     toGeneratorConfigMap: () => ({

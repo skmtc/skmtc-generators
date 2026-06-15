@@ -6,7 +6,7 @@
 import { assertEquals, assertStringIncludes } from 'jsr:@std/assert@^1.0.0'
 import { StackTrail, toArtifacts } from '@skmtc/core'
 import type { OpenAPIV3 } from 'openapi-types'
-import { toKotlinEntry } from '../src/mod.ts'
+import kotlinEntry from '../src/mod.ts'
 
 const documentObject: OpenAPIV3.Document = {
   openapi: '3.0.0',
@@ -55,11 +55,6 @@ const documentObject: OpenAPIV3.Document = {
 }
 
 const runFixture = () => {
-  const kotlinEntry = toKotlinEntry({
-    basePackage: 'com.example.api',
-    scalars: { 'date-time': 'kotlinx.datetime.Instant' }
-  })
-
   return toArtifacts({
     traceId: 'gen-kotlin-renames',
     spanId: 'fixture',
@@ -69,6 +64,10 @@ const runFixture = () => {
       basePath: './app/src/main/kotlin',
       enrichments: {
         '@skmtc/gen-kotlin-kotlinx': {
+          _generator: {
+            basePackage: 'com.example.api',
+            scalars: { 'date-time': 'kotlinx.datetime.Instant' }
+          },
           ListCreditNoteEndpointProductListCreditNotePaginatedResponseModel: {
             main: { name: 'CreditNotePage' }
           },

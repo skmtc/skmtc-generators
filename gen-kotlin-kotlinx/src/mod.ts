@@ -1,55 +1,24 @@
 import { toModelEntry } from '@skmtc/core'
-import { setBasePackage } from './basePackage.ts'
-import { setCustomScalars } from './scalars.ts'
 import { KtModelProjection } from './KtModelProjection.ts'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
 /**
- * Options for {@link toKotlinEntry}.
- */
-export type KotlinEntryOptions = {
-  /**
-   * REQUIRED: the Kotlin package generated models land in
-   * (e.g. `'com.example.api'`). Encoded into every export path —
-   * `@/<basePackage dirs>/<Name>.generated.kt` — so with
-   * `client.json#settings.basePath` pointing at the Gradle source root
-   * (e.g. `./app/src/main/kotlin`), files land on the package-=-folder
-   * convention and `KtFile` derives each `package` directive from the
-   * path. There is deliberately no default.
-   */
-  basePackage: string
-  /**
-   * Map of `format` keys → emitted Kotlin type names, merged on top of
-   * the defaults (every known string format → `String`, `binary` →
-   * `ByteArray`). Pass `replaceScalars: true` to ignore defaults.
-   */
-  scalars?: Record<string, string>
-  /** If true, `scalars` replaces the built-in defaults instead of merging. */
-  replaceScalars?: boolean
-}
-
-/**
- * Factory for the gen-kotlin model entry. Emits Kotlin DTOs from
- * `components.schemas`: `data class` for objects, `enum class` for
- * string enums, `typealias` for everything else — serialization flavor
- * is `kotlinx.serialization` (`@Serializable` + `@SerialName`).
+ * The gen-kotlin-kotlinx model entry. Emits Kotlin DTOs from
+ * `components.schemas`: `data class` for objects, `enum class` for string
+ * enums, `typealias` for everything else — serialization flavor is
+ * `kotlinx.serialization` (`@Serializable` + `@SerialName`).
  *
- * Unlike `gen-typescript` there is NO default-config entry export:
- * `basePackage` has no safe default.
+ * Config (`basePackage`, `scalars`) is read from the `generator` enrichment
+ * scope (`client.json#enrichments[id]._generator`), not constructor options:
+ * the projection's statics read it off the core-loaded umbrella, and value
+ * snippets read it off `context`. So the generator runs CLI-only (a bundled
+ * generator can't take options) and carries no module state.
  */
-export const toKotlinEntry = (options: KotlinEntryOptions) => {
-  setBasePackage(options.basePackage)
-
-  if (options.scalars !== undefined) {
-    setCustomScalars(options.scalars, { replace: options.replaceScalars })
+export default toModelEntry<EnrichmentSchema>({
+  id: denoJson.name,
+  toEnrichmentSchema,
+  transform({ context, refName }) {
+    context.insertModel(KtModelProjection, refName)
   }
-
-  return toModelEntry<EnrichmentSchema>({
-    id: denoJson.name,
-    toEnrichmentSchema,
-    transform({ context, refName }) {
-      context.insertModel(KtModelProjection, refName)
-    }
-  })
-}
+})

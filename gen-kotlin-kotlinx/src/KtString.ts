@@ -1,9 +1,12 @@
 import { createEnumClass, defineAndRegister, KtSnippet } from '@skmtc/lang-kotlin'
+import { toGeneratorEnrichment } from '@skmtc/core'
 import type { GenerateContextType, GeneratorKey, Modifiers, OasString } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
-import { getCustomScalar } from './scalars.ts'
+import { getCustomScalar, toScalarMap } from './scalars.ts'
+import { generatorConfigSchema } from './enrichments.ts'
 import { KtEnumEntries } from './KtEnumEntries.ts'
 import { toEnumValues } from './toEnumEntryName.ts'
+import denoJson from '../deno.json' with { type: 'json' }
 
 type KtStringArgs = {
   context: GenerateContextType
@@ -57,7 +60,11 @@ export class KtString extends KtSnippet {
 
       this.reference = fallbackName
     } else {
-      const scalar = getCustomScalar(this.format) ?? 'String'
+      // Scalar config (format → Kotlin type) is read off `context` — core
+      // populates `settings.enrichments` at the top; the leaf reads it via
+      // the core loader rather than having a map threaded down.
+      const { scalars } = toGeneratorEnrichment(context, denoJson.name, generatorConfigSchema)
+      const scalar = getCustomScalar(this.format, toScalarMap(scalars)) ?? 'String'
 
       // A dotted scalar (`kotlinx.datetime.Instant`) renders its simple
       // name with the import registered — the scalars option now wires

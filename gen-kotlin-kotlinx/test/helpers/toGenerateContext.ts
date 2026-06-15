@@ -1,11 +1,7 @@
 import { GenerateContext, OasDocument } from '@skmtc/core'
 import type { SkmtcParsedDocument } from '@skmtc/core'
 import * as log from 'jsr:@std/log@0.224/logger'
-import { toKotlinEntry } from '../../src/mod.ts'
-
-// Constructing the entry sets the per-run basePackage module state — the
-// test analog of the consumer's `toKotlinEntry({ basePackage })` call.
-const kotlinEntry = toKotlinEntry({ basePackage: 'com.example.api' })
+import kotlinEntry from '../../src/mod.ts'
 
 type ToGenerateContextArgs = {
   oasDocument?: SkmtcParsedDocument
@@ -14,11 +10,18 @@ type ToGenerateContextArgs = {
 export const toGenerateContext = ({ oasDocument }: ToGenerateContextArgs = {}) => {
   const context = new GenerateContext({
     document: oasDocument ?? { type: 'oas', value: new OasDocument() },
-    settings: undefined,
+    // The generator config now rides the `_generator` enrichment scope (the
+    // consumer's `client.json`); the value layer reads it off `context`.
+    settings: {
+      basePath: './app/src/main/kotlin',
+      enrichments: {
+        '@skmtc/gen-kotlin-kotlinx': { _generator: { basePackage: 'com.example.api' } }
+      }
+    },
     logger: new log.Logger('test', 'ERROR'),
     captureCurrentResult: () => {},
     toGeneratorConfigMap: () => ({
-      // @ts-expect-error - factory-emitted transform is monomorphic over Acc
+      // @ts-expect-error - factory entry vs the generic config map (the known variance gap)
       '@skmtc/gen-kotlin-kotlinx': kotlinEntry
     })
   })

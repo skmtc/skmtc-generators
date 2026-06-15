@@ -1,6 +1,5 @@
 import { capitalize, camelCase } from '@skmtc/core'
 import { join } from '@std/path'
-import { getBasePackage } from './basePackage.ts'
 
 /**
  * The tag an operation groups under: the FIRST tag, or `'Default'`
@@ -31,6 +30,6 @@ export const toControllerName = (tag: string): string => {
  * single destination keeps inline-shape synthesis and imports
  * deduplicated). Segments after `@/` ARE the package directories.
  */
-export const toApiExportPath = (tag: string): string => {
-  return join('@', ...getBasePackage().split('.'), `${toTagBase(tag)}Api.generated.kt`)
+export const toApiExportPath = (tag: string, basePackage: string): string => {
+  return join('@', ...basePackage.split('.'), `${toTagBase(tag)}Api.generated.kt`)
 }

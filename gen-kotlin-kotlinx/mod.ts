@@ -1,25 +1,9 @@
-export { toKotlinEntry, type KotlinEntryOptions } from './src/mod.ts'
-export { KtModelProjection } from './src/KtModelProjection.ts'
-export { toKtModelShape } from './src/toKtModelShape.ts'
-export { isSealedUnion, toSealedMembership, type SealedParent } from './src/sealedMembership.ts'
-export { toKtValue, peekSchema, type KtValueArgs } from './src/Kt.ts'
-export { KtDataClassValue } from './src/KtDataClassValue.ts'
-export { KtSealedInterfaceValue } from './src/KtSealedInterfaceValue.ts'
-export { KtEnumEntries } from './src/KtEnumEntries.ts'
-export { KtObjectValue, KtRecord } from './src/KtObjectValue.ts'
-export { KtArray } from './src/KtArray.ts'
-export { KtRef } from './src/KtRef.ts'
-export { KtString } from './src/KtString.ts'
-export { KtBoolean, KtInteger, KtNumber, KtVoid } from './src/KtPrimitives.ts'
-export { KtUnion, KtUnknown } from './src/KtJsonValues.ts'
-export { applyModifiers } from './src/applyModifiers.ts'
-export { toEnumEntryName } from './src/toEnumEntryName.ts'
-export { toKtModelName, toKtModelExportPath, KtModelBase } from './src/base.ts'
-export { toModelAlias, toKtModelDisplayName } from './src/modelNames.ts'
-export { setBasePackage, getBasePackage, resetBasePackage } from './src/basePackage.ts'
+export { default } from './src/mod.ts'
 export {
-  setCustomScalars,
-  getCustomScalar,
-  getCustomScalarMap,
-  resetCustomScalars
-} from './src/scalars.ts'
+  generatorConfigSchema,
+  toEnrichmentSchema,
+  type EnrichmentSchema,
+  type GeneratorConfig
+} from './src/enrichments.ts'
+export { KtModelProjection } from './src/KtModelProjection.ts'
+export { toKtValue, type KtValueArgs } from './src/Kt.ts'

@@ -1,8 +1,14 @@
 import * as v from 'valibot'
-import { toRefName } from '@skmtc/core'
+import { capitalize, camelCase, toRefName } from '@skmtc/core'
 import type { GenerateContextType, RefName } from '@skmtc/core'
-import { toKtModelName } from './base.ts'
 import denoJson from '../deno.json' with { type: 'json' }
+
+/** PascalCase model name from a schema refName. Lives here (not `base.ts`)
+ * so `base.ts` and `enrichments.ts` can both reach it without the
+ * `enrichments → modelNames → base` import cycle. */
+export const toKtModelName = (refName: string): string => {
+  return capitalize(camelCase(refName))
+}
 
 /**
  * The per-variant enrichment value gen-kotlin's model bases declare

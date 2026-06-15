@@ -1,5 +1,6 @@
 import { KtSnippet, createSealedInterface } from '@skmtc/lang-kotlin'
 import { defineAndRegister } from '@skmtc/lang-kotlin'
+import { toGeneratorEnrichment } from '@skmtc/core'
 import type {
   GenerateContextType,
   GeneratorKey,
@@ -10,8 +11,10 @@ import type {
 } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
 import { getInvalidUnionHint, getUnionHint } from './unionHints.ts'
+import { generatorConfigSchema } from './enrichments.ts'
 import { KtSealedInterfaceValue } from './KtSealedInterfaceValue.ts'
 import { toKtModelExportPath } from './base.ts'
+import denoJson from '../deno.json' with { type: 'json' }
 
 type KtUnknownArgs = {
   context: GenerateContextType
@@ -93,7 +96,8 @@ export class KtUnion extends KtSnippet {
       this.sealedName = hint.name
       this.discriminator = hint.propertyName
 
-      const exportPath = toKtModelExportPath(hint.name)
+      const { basePackage } = toGeneratorEnrichment(context, denoJson.name, generatorConfigSchema)
+      const exportPath = toKtModelExportPath(hint.name, basePackage)
 
       // Synthesize the sealed parent once (the accumulator-precedent
       // findDefinition + defineAndRegister pair); members gain their

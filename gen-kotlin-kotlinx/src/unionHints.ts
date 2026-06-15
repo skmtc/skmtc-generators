@@ -71,6 +71,18 @@ const toHintMaps = (context: GenerateContextType): HintMaps => {
     return maps
   }
 
+  // Hint candidates are the entries carrying a `.main` — the reserved
+  // `_generator` / `_stack` scopes have none. With no candidates there are
+  // no hints to resolve, so return before reading the document (which a
+  // value-layer caller may not have parsed).
+  const hasHintCandidate = Object.values(namespace).some(
+    perRef => isRecord(perRef) && isRecord(perRef.main)
+  )
+
+  if (!hasHintCandidate) {
+    return maps
+  }
+
   const schemas = document.value.components?.schemas ?? {}
 
   for (const [refName, perRef] of Object.entries(namespace)) {

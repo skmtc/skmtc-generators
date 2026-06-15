@@ -5,9 +5,11 @@
  * ref-typed worked example beside gen-kotlin is the step-3 e2e).
  */
 import { assertEquals, assertStringIncludes, assertThrows } from 'jsr:@std/assert@^1.0.0'
+import * as v from 'valibot'
 import { StackTrail, toArtifacts } from '@skmtc/core'
 import type { OpenAPIV3 } from 'openapi-types'
-import { toKotlinSpringEntry } from '../src/mod.ts'
+import springEntry from '../src/mod.ts'
+import { generatorConfigSchema } from '../src/enrichments.ts'
 
 const documentObject: OpenAPIV3.Document = {
   openapi: '3.0.0',
@@ -67,20 +69,24 @@ const documentObject: OpenAPIV3.Document = {
 }
 
 const runFixture = () => {
-  // Construct per run — entry construction writes the module-scope
-  // basePackage, and test files sharing one process must not race on it.
-  const springEntry = toKotlinSpringEntry({ basePackage: 'com.example.spring' })
-
   return toArtifacts({
     traceId: 'gen-kotlin-spring-unit',
     spanId: 'fixture',
     startAt: Date.now(),
     document: { type: 'oas', value: documentObject },
-    settings: { basePath: './server/src/main/kotlin' },
+    settings: {
+      basePath: './server/src/main/kotlin',
+      // gen-kotlin-kotlinx's basePackage is needed even when its transform
+      // isn't registered — spring's `toKtValue` reads it for DTO types.
+      enrichments: {
+        '@skmtc/gen-kotlin-spring': { _generator: { basePackage: 'com.example.spring' } },
+        '@skmtc/gen-kotlin-kotlinx': { _generator: { basePackage: 'com.example.spring' } }
+      }
+    },
     stackTrail: new StackTrail([]),
     silent: true,
     toGeneratorConfigMap: () => ({
-      // @ts-expect-error - the factory-emitted entry is monomorphic over EnrichmentType
+      // @ts-expect-error - entry vs the generic config map (the known variance gap)
       '@skmtc/gen-kotlin-spring': springEntry
     })
   })
@@ -196,23 +202,21 @@ Deno.test('untagged operations land in DefaultApi', () => {
   )
 })
 
-Deno.test('basePackage segments are validated up front', () => {
+Deno.test('basePackage segments are validated by the config schema', () => {
   assertThrows(
-    () => toKotlinSpringEntry({ basePackage: 'com.example.object' }),
+    () => v.parse(generatorConfigSchema, { basePackage: 'com.example.object' }),
     Error,
-    'not a valid Kotlin package name'
+    'Kotlin package name'
   )
 
   assertThrows(
-    () => toKotlinSpringEntry({ basePackage: 'com.my-models' }),
+    () => v.parse(generatorConfigSchema, { basePackage: 'com.my-models' }),
     Error,
-    'not a valid Kotlin package name'
+    'Kotlin package name'
   )
 })
 
 Deno.test('serviceMethodName enrichment renames the seam and the delegation in lockstep', () => {
-  const springEntry = toKotlinSpringEntry({ basePackage: 'com.example.spring' })
-
   const { artifacts } = toArtifacts({
     traceId: 'gen-kotlin-spring-rename',
     spanId: 'fixture',
@@ -222,14 +226,16 @@ Deno.test('serviceMethodName enrichment renames the seam and the delegation in l
       basePath: './server/src/main/kotlin',
       enrichments: {
         '@skmtc/gen-kotlin-spring': {
+          _generator: { basePackage: 'com.example.spring' },
           '/users/{id}': { get: { main: { serviceMethodName: 'getUser' } } }
-        }
+        },
+        '@skmtc/gen-kotlin-kotlinx': { _generator: { basePackage: 'com.example.spring' } }
       }
     },
     stackTrail: new StackTrail([]),
     silent: true,
     toGeneratorConfigMap: () => ({
-      // @ts-expect-error - the factory-emitted entry is monomorphic over EnrichmentType
+      // @ts-expect-error - entry vs the generic config map (the known variance gap)
       '@skmtc/gen-kotlin-spring': springEntry
     })
   })

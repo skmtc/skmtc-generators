@@ -9,7 +9,6 @@ import {
   createDataClass,
   defineAndRegister
 } from '@skmtc/lang-kotlin'
-import { getBasePackage } from './basePackage.ts'
 
 /**
  * The generated error channel (spec 29, Milestone G): consumers throw
@@ -75,8 +74,8 @@ export class ApiErrorHandlerValue extends KtSnippet {
  * Emit `ApiError` + `ApiErrorHandler` once per run (the accumulator
  * `findDefinition` dedup) into `<basePackage>/ApiError.generated.kt`.
  */
-export const ensureApiErrorSupport = (context: GenerateContextType): void => {
-  const exportPath = join('@', ...getBasePackage().split('.'), 'ApiError.generated.kt')
+export const ensureApiErrorSupport = (context: GenerateContextType, basePackage: string): void => {
+  const exportPath = join('@', ...basePackage.split('.'), 'ApiError.generated.kt')
 
   if (context.findDefinition({ name: 'ApiError', exportPath })) {
     return
