@@ -120,6 +120,7 @@ const openApiDocument = {
             properties: { note: { type: 'string' } },
             required: ['note']
           },
+          score: { type: 'integer', nullable: true, description: 'The score, or null if not yet scored.' },
           flagged: { type: 'boolean' }
         },
         required: ['summary', 'details', 'flagged']

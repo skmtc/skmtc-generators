@@ -28,6 +28,12 @@ const isExtractableObject = (property: AnySchema): property is ObjectSchema =>
  * copy.
  */
 export const toTsType = (schema: AnySchema, schemaNames: Record<string, string> = {}): string => {
+  const base = toBaseTsType(schema, schemaNames)
+
+  return 'nullable' in schema && schema.nullable === true ? `${base} | null` : base
+}
+
+const toBaseTsType = (schema: AnySchema, schemaNames: Record<string, string>): string => {
   switch (schema.type) {
     case 'ref': {
       const name = toRefName(schema.$ref)
