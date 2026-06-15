@@ -111,12 +111,21 @@ for await (const file of walkTs(RESOURCES_DIR)) {
 const spec = parseYaml(await Deno.readTextFile(SPEC_PATH)) as any
 const specPaths = spec?.paths ?? {}
 
+// openai-node and the spec spell path params differently (`{threadID}` vs
+// `{thread_id}`), so match on the param-name-agnostic shape (`{}`).
+const normalizePath = (path: string): string => path.replace(/\{[^}]+\}/g, '{}')
+const specPathByShape = new Map<string, string>()
+for (const specPath of Object.keys(specPaths)) {
+  specPathByShape.set(normalizePath(specPath), specPath)
+}
+
 // deno-lint-ignore no-explicit-any
 const refName = (schema: any): string | undefined =>
   typeof schema?.$ref === 'string' ? schema.$ref.split('/').pop() : undefined
 
 const opRefs = (path: string, method: string): { responseRef?: string; bodyRef?: string } => {
-  const op = specPaths?.[path]?.[method]
+  const specPath = specPathByShape.get(normalizePath(path))
+  const op = specPath ? specPaths?.[specPath]?.[method] : undefined
   if (!op) return {}
 
   const response =
