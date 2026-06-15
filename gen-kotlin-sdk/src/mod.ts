@@ -1,4 +1,4 @@
-import { toOasOperationEntry } from '@skmtc/core'
+import { toOasOperationEntry, type GeneratedValue, type OasOperationProjection } from '@skmtc/core'
 import { SdkBase } from '@/base.ts'
 import { ensureClient } from '@/client/ensureClient.ts'
 import { toSdkConfig } from '@/config.ts'
@@ -43,27 +43,21 @@ export default toOasOperationEntry<EnrichmentSchema>({
     // affirmDefinition's "Registered definition mismatch". A-TODO: resource-
     // scope the service generatorKey so insertOperation dedupes cleanly and
     // this guard (and the per-projection name/exportPath recompute) can go.
-    for (const ServiceProjection of [
-      KtSdkService,
-      KtSdkServiceImpl,
-      KtSdkServiceAsync,
-      KtSdkServiceAsyncImpl
-    ]) {
-      const name = ServiceProjection.toIdentifierName({
-        operation,
-        enrichments: enrichment,
-        variant
-      })
-      const exportPath = ServiceProjection.toExportPath({
-        operation,
-        enrichments: enrichment,
-        variant
-      })
+    const insertServiceOnce = <Value extends GeneratedValue>(
+      projection: OasOperationProjection<Value, EnrichmentSchema>
+    ) => {
+      const name = projection.toIdentifierName({ operation, enrichments: enrichment, variant })
+      const exportPath = projection.toExportPath({ operation, enrichments: enrichment, variant })
 
       if (!context.findDefinition({ name, exportPath })) {
-        context.insertOperation({ projection: ServiceProjection, operation })
+        context.insertOperation({ projection, operation })
       }
     }
+
+    insertServiceOnce(KtSdkService)
+    insertServiceOnce(KtSdkServiceImpl)
+    insertServiceOnce(KtSdkServiceAsync)
+    insertServiceOnce(KtSdkServiceAsyncImpl)
 
     ensureClient(context)
 

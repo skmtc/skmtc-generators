@@ -1,20 +1,18 @@
 import type { GenerateContextType, OasOperation } from '@skmtc/core'
 import { camelCase, capitalize } from '@skmtc/core'
 import invariant from 'tiny-invariant'
+import type { ServiceFlavor } from '@/base.ts'
 import type { SdkConfig } from '@/SdkConfig.ts'
 import type { SdkOperationEnrichment } from '@/enrichments.ts'
 import { bodyHasRequired, toBodyShape } from '@/params/body/BodySnippet.ts'
 import { lastPathParamName, paramsHaveRequired } from '@/params/toParamFields.ts'
 
 /**
- * The KS-E domain record (note 32 §E-1): one per resource; the four
- * service files (blocking/async × interface/impl) all render over it.
+ * The per-operation facts a service file renders over (note 32 §E-1): one
+ * entry per operation in the resource. The two value snippets
+ * (interface / impl) hold an array of these and render themselves from it —
+ * there is no separate service "model" record.
  */
-export type SdkService = {
-  stem: string
-  operations: SdkServiceOperation[]
-}
-
 export type SdkServiceOperation = {
   methodName: string
   paramsClassName: string
@@ -44,7 +42,7 @@ export type SdkPathSegment =
   | { kind: 'literal'; value: string }
   | { kind: 'param'; index: number; suffix: string }
 
-type ToSdkServiceArgs = {
+type ToServiceOperationsArgs = {
   context: GenerateContextType
   config: SdkConfig
   stem: string
@@ -53,22 +51,22 @@ type ToSdkServiceArgs = {
 }
 
 /**
- * Self-contained build (§E-6): rescans the document for every
- * operation whose enrichment resource matches — a two-op resource
- * builds whole on the first insert; the second insert hits the cache.
+ * Self-contained build (§E-6): rescans the document for every operation
+ * whose enrichment resource matches — a two-op resource builds whole on the
+ * first insert; the second insert hits the cache.
  */
-export const toSdkService = ({
+export const toServiceOperations = ({
   context,
   config,
   stem,
   resource,
   resolveEnrichment
-}: ToSdkServiceArgs): SdkService => {
+}: ToServiceOperationsArgs): SdkServiceOperation[] => {
   invariant(context.document.type === 'oas', '@skmtc/gen-kotlin-sdk: OAS documents only')
 
   const resourceKey = resource.join('/')
 
-  const operations = context.document.value.operations.flatMap(operation => {
+  return context.document.value.operations.flatMap(operation => {
     const enrichment = resolveEnrichment(operation)
 
     if (!enrichment || enrichment.resource.join('/') !== resourceKey) {
@@ -77,8 +75,6 @@ export const toSdkService = ({
 
     return [toServiceOperation({ operation, enrichment, config, stem })]
   })
-
-  return { stem, operations }
 }
 
 type ToServiceOperationArgs = {
@@ -111,9 +107,7 @@ const toServiceOperation = ({
   const responseIsEnvelope = envelope
     ? !schema ||
       schema.type !== 'object' ||
-      Object.keys(schema.properties ?? {}).every(name =>
-        new Set(envelope.fields).has(name)
-      )
+      Object.keys(schema.properties ?? {}).every(name => new Set(envelope.fields).has(name))
     : false
 
   const resourceDir = enrichment.resource.join('').toLowerCase()
@@ -122,12 +116,9 @@ const toServiceOperation = ({
     methodName,
     paramsClassName: `${stem}${pascalMethod}Params`,
     responseClassName:
-      responseIsEnvelope && envelope
-        ? envelope.className
-        : `${stem}${pascalMethod}Response`,
+      responseIsEnvelope && envelope ? envelope.className : `${stem}${pascalMethod}Response`,
     responseIsEnvelope,
-    modelsSubpackage:
-      config.modelsLayout === 'flat' ? 'models' : `models.${resourceDir}`,
+    modelsSubpackage: config.modelsLayout === 'flat' ? 'models' : `models.${resourceDir}`,
     description: operation.description ?? operation.summary ?? '',
     httpVerb: operation.method.toUpperCase(),
     path: operation.path,
@@ -155,4 +146,41 @@ const toPathSegments = (path: string): SdkPathSegment[] => {
 
       return { kind: 'literal', value: segment } as const
     })
+}
+
+/** `<Stem>Service` / `<Stem>ServiceAsync`. */
+export const toServiceName = (stem: string, flavor: ServiceFlavor): string =>
+  `${stem}Service${flavor === 'async' ? 'Async' : ''}`
+
+/** `<Stem>ServiceImpl` / `<Stem>ServiceAsyncImpl`. */
+export const toServiceImplName = (stem: string, flavor: ServiceFlavor): string =>
+  `${toServiceName(stem, flavor)}Impl`
+
+/** Adds params/response model imports for every operation, shared by both
+ * the interface and impl files. */
+export const addModelImports = (
+  operations: SdkServiceOperation[],
+  basePackage: string,
+  imports: Record<string, string[]>
+): void => {
+  for (const operation of operations) {
+    const resourceModule = `${basePackage}.${operation.modelsSubpackage}`
+    const names = (imports[resourceModule] ??= [])
+
+    if (!names.includes(operation.paramsClassName)) {
+      names.push(operation.paramsClassName)
+    }
+
+    if (operation.responseIsEnvelope) {
+      const rootNames = (imports[`${basePackage}.models`] ??= [])
+
+      if (!rootNames.includes(operation.responseClassName)) {
+        rootNames.push(operation.responseClassName)
+      }
+    } else if (!names.includes(operation.responseClassName)) {
+      names.push(operation.responseClassName)
+    }
+
+    names.sort()
+  }
 }
