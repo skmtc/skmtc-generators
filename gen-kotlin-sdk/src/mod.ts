@@ -1,5 +1,5 @@
 import { toOasOperationEntry } from '@skmtc/core'
-import { ResponseModelBase } from '@/base.ts'
+import { SdkBase } from '@/base.ts'
 import { ensureClient } from '@/client/ensureClient.ts'
 import { toSdkConfig } from '@/config.ts'
 import { emitStaticFiles } from '@/emitStaticFiles.ts'
@@ -11,7 +11,7 @@ import {
   KtSdkServiceAsync,
   KtSdkServiceAsyncImpl,
   KtSdkServiceImpl
-} from '@/services/toServiceProjection.ts'
+} from '@/services/serviceProjections.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
 export default toOasOperationEntry<EnrichmentSchema>({
@@ -23,7 +23,7 @@ export default toOasOperationEntry<EnrichmentSchema>({
 
     emitStaticFiles({ context, config })
 
-    const enrichment = ResponseModelBase.toEnrichments({ operation, context, variant })
+    const enrichment = SdkBase.toEnrichments({ operation, context, variant })
 
     // Non-defaultable generator: no subject enrichment → no artifact (the
     // §8 carve-out — isSupported stays a capability claim). `enrichment` is
@@ -38,10 +38,13 @@ export default toOasOperationEntry<EnrichmentSchema>({
     // resource's four service files + the client singletons.
     context.insertOperation({ projection: KtSdkParams, operation })
 
-    // Service files are per-RESOURCE: a two-op resource builds whole
-    // on its first operation's insert (the §E-6 rescan); the second
-    // operation must NOT insert — its different GeneratorKey would
-    // trip the Driver's identity check on the shared Definition.
+    // Service files are per-RESOURCE: a two-op resource builds whole on its
+    // first operation's insert (the §E-6 rescan). The guard is a workaround
+    // for a mis-key: the service Definition has per-resource identity but a
+    // per-operation generatorKey, so a second operation's insert would trip
+    // affirmDefinition's "Registered definition mismatch". A-TODO: resource-
+    // scope the service generatorKey so insertOperation dedupes cleanly and
+    // this guard (and the per-projection name/exportPath recompute) can go.
     for (const ServiceProjection of [
       KtSdkService,
       KtSdkServiceImpl,

@@ -1,13 +1,14 @@
 import type { OasOperationProjectionConstructorArgs, Stringable } from '@skmtc/core'
 import invariant from 'tiny-invariant'
-import { ResponseModelBase } from '@/base.ts'
+import { SdkBase } from '@/base.ts'
 import { toSdkConfig } from '@/config.ts'
 import type { EnrichmentSchema } from '@/enrichments.ts'
 import { SdkModelValue } from '@skmtc/gen-kotlin-jackson-s'
 import { ensureSharedModels } from '@/sharedModels.ts'
 
-/** The per-operation Response model class (note 32 §C). */
-export class KtSdkResponseModel extends ResponseModelBase {
+/** The per-operation Response model class (note 32 §C). Inherits `SdkBase`'s
+ * default identity (the Response-model shape), so it overrides nothing. */
+export class KtSdkResponseModel extends SdkBase {
   value: SdkModelValue
   // The Driver wraps the PROJECTION, so the value protocols are
   // mirrored here as plain fields (the spec-28 gotcha).

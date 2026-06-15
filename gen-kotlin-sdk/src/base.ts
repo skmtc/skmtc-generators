@@ -10,6 +10,9 @@ import {
 } from '@/enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
+export type ServiceFlavor = 'blocking' | 'async'
+export type ServiceRole = 'interface' | 'impl'
+
 /** `<artifactName>-core/src/main/kotlin/<basePackage dirs>` — the core
  * module root every generated `core` file lands under. */
 export const toCoreModuleRoot = (config: SdkConfig): string =>
@@ -26,98 +29,70 @@ export const toClassStem = (enrichment: NonNullable<SdkOperationEnrichment>): st
   return enrichment.classStem ?? capitalize(camelCase(resourceTail))
 }
 
-export const ResponseModelBase = toKtOasOperationProjectionBase<EnrichmentSchema>({
-  id: denoJson.name,
-  toEnrichmentSchema,
-  toIdentifierName({ operation, enrichments, variant }) {
-    // Statics may be probed for unenriched operations (which the
-    // transform never inserts); give them a deterministic name.
-    // Variants-unaware: `variant` is destructured but unused.
-    void variant
+/** The identity-static args a projection's `toIdentifierName`/`toExportPath`
+ * override receives (the `variant` field is unused — variants-unaware). */
+type IdentifierArgs = { operation: OasOperation; enrichments: EnrichmentSchema }
 
-    // The per-operation Stainless config is the umbrella's `subject` leaf.
-    const subject = enrichments.subject
+/**
+ * Per-OPERATION name (Response / Params): enriched `${stem}${Method}<suffix>`,
+ * unenriched `Unenriched${path}<suffix>` (statics may be probed for
+ * unenriched operations the transform never inserts). Each model projection's
+ * `toIdentifierName` override calls this with its suffix.
+ */
+export const toOperationName = ({ operation, enrichments }: IdentifierArgs, suffix: string): string => {
+  const subject = enrichments.subject
 
-    if (!subject) {
-      return `Unenriched${capitalize(camelCase(operation.path))}Response`
-    }
-
-    return `${toClassStem(subject)}${capitalize(camelCase(subject.method))}Response`
-  },
-  toIdentifierType: () => ({ kind: 'class' }),
-  toExportPath({ operation, enrichments, variant }) {
-    const name = this.toIdentifierName({ operation, enrichments, variant })
-
-    const subject = enrichments.subject
-
-    const resourceDir = subject
-      ? subject.resource.join('').toLowerCase()
-      : 'unenriched'
-
-    return `${toCoreModuleRoot(enrichments.stack)}/${toModelsDir(enrichments.stack, resourceDir)}/${name}.kt`
+  if (!subject) {
+    return `Unenriched${capitalize(camelCase(operation.path))}${suffix}`
   }
-})
 
-export const ParamsBase = toKtOasOperationProjectionBase<EnrichmentSchema>({
-  id: denoJson.name,
-  toEnrichmentSchema,
-  toIdentifierName({ operation, enrichments, variant }) {
-    void variant
-
-    const subject = enrichments.subject
-
-    if (!subject) {
-      return `Unenriched${capitalize(camelCase(operation.path))}Params`
-    }
-
-    return `${toClassStem(subject)}${capitalize(camelCase(subject.method))}Params`
-  },
-  toIdentifierType: () => ({ kind: 'class' }),
-  toExportPath({ operation, enrichments, variant }) {
-    const name = this.toIdentifierName({ operation, enrichments, variant })
-
-    const subject = enrichments.subject
-
-    const resourceDir = subject
-      ? subject.resource.join('').toLowerCase()
-      : 'unenriched'
-
-    return `${toCoreModuleRoot(enrichments.stack)}/${toModelsDir(enrichments.stack, resourceDir)}/${name}.kt`
-  }
-})
-
-export type ServiceFlavor = 'blocking' | 'async'
-export type ServiceRole = 'interface' | 'impl'
-
-export const toServiceBase = (flavor: ServiceFlavor, role: ServiceRole) => {
-  const nameSuffix = `Service${flavor === 'async' ? 'Async' : ''}${role === 'impl' ? 'Impl' : ''}`
-  const directory = flavor === 'async' ? 'async' : 'blocking'
-
-  return toKtOasOperationProjectionBase<EnrichmentSchema>({
-    id: denoJson.name,
-    toEnrichmentSchema,
-    toIdentifierName({ operation, enrichments, variant }) {
-      void variant
-
-      const subject = enrichments.subject
-
-      if (!subject) {
-        return `Unenriched${capitalize(camelCase(operation.path))}${nameSuffix}`
-      }
-
-      return `${toClassStem(subject)}${nameSuffix}`
-    },
-    // Constant per base instance: the kind depends on `role` (a closure
-    // parameter known at construction), not the schema — interface bases
-    // declare `interface`, impl bases `class`.
-    toIdentifierType: () => ({ kind: role === 'interface' ? 'interface' : 'class' }),
-    toExportPath({ operation, enrichments, variant }) {
-      const name = this.toIdentifierName({ operation, enrichments, variant })
-
-      return `${toCoreModuleRoot(enrichments.stack)}/services/${directory}/${name}.kt`
-    }
-  })
+  return `${toClassStem(subject)}${capitalize(camelCase(subject.method))}${suffix}`
 }
+
+/**
+ * Per-RESOURCE name (services): enriched `${stem}<suffix>` — NO method, since a
+ * service spans all of a resource's operations (`CardService`, not
+ * `CardCreateService`). Unenriched form matches {@link toOperationName}.
+ */
+export const toResourceName = ({ operation, enrichments }: IdentifierArgs, suffix: string): string => {
+  const subject = enrichments.subject
+
+  if (!subject) {
+    return `Unenriched${capitalize(camelCase(operation.path))}${suffix}`
+  }
+
+  return `${toClassStem(subject)}${suffix}`
+}
+
+const toResourceDir = (enrichments: EnrichmentSchema): string =>
+  enrichments.subject ? enrichments.subject.resource.join('').toLowerCase() : 'unenriched'
+
+/** Model export path (Response / Params): `<core>/models/<resource>/<Name>.kt`. */
+export const toModelExportPath = ({ enrichments }: IdentifierArgs, name: string): string =>
+  `${toCoreModuleRoot(enrichments.stack)}/${toModelsDir(enrichments.stack, toResourceDir(enrichments))}/${name}.kt`
+
+/** Service export path: `<core>/services/<directory>/<Name>.kt`. */
+export const toServiceExportPath = (
+  { enrichments }: IdentifierArgs,
+  directory: ServiceFlavor,
+  name: string
+): string => `${toCoreModuleRoot(enrichments.stack)}/services/${directory}/${name}.kt`
+
+/**
+ * THE single gen-kotlin-sdk projection base. Every projection extends it and
+ * overrides `toIdentifierName` / `toIdentifierType` / `toExportPath` as needed.
+ * The factory binds these statics to this config, so a projection that changes
+ * the name overrides `toExportPath` too — its own override (unbound) resolves
+ * the name through the shared helpers. The base default is the Response-model
+ * shape, which `KtSdkResponseModel` inherits unchanged.
+ */
+export const SdkBase = toKtOasOperationProjectionBase<EnrichmentSchema>({
+  id: denoJson.name,
+  toEnrichmentSchema,
+  toIdentifierName: args => toOperationName(args, 'Response'),
+  toIdentifierType: () => ({ kind: 'class' }),
+  toExportPath: args => toModelExportPath(args, toOperationName(args, 'Response'))
+})
 
 /**
  * Per-operation enrichment lookup shared by services and the client.
@@ -128,4 +103,4 @@ export const toServiceBase = (flavor: ServiceFlavor, role: ServiceRole) => {
 export const resolveEnrichment =
   (context: GenerateContextType) =>
   (operation: OasOperation): SdkOperationEnrichment =>
-    ResponseModelBase.toEnrichments({ operation, context, variant: 'main' }).subject
+    SdkBase.toEnrichments({ operation, context, variant: 'main' }).subject

@@ -1,13 +1,26 @@
-import type { OasOperationProjectionConstructorArgs, Stringable } from '@skmtc/core'
+import type {
+  OasOperationProjectionConstructorArgs,
+  Stringable,
+  ToOasOperationExportPathArgs,
+  ToOasOperationIdentifierNameArgs
+} from '@skmtc/core'
 import type { KtAnnotation } from '@skmtc/lang-kotlin'
-import { ParamsBase } from '@/base.ts'
+import { SdkBase, toModelExportPath, toOperationName } from '@/base.ts'
 import { toSdkConfig } from '@/config.ts'
 import type { EnrichmentSchema } from '@/enrichments.ts'
 import { SdkParamsValue } from '@/params/SdkParamsValue.ts'
 import { ensureSharedModels } from '@/sharedModels.ts'
 
 /** The per-operation Params class (note 32 §D + the F3 body axis). */
-export class KtSdkParams extends ParamsBase {
+export class KtSdkParams extends SdkBase {
+  static override toIdentifierName = (
+    args: ToOasOperationIdentifierNameArgs<EnrichmentSchema>
+  ): string => toOperationName(args, 'Params')
+
+  static override toExportPath = (
+    args: ToOasOperationExportPathArgs<EnrichmentSchema>
+  ): string => toModelExportPath(args, toOperationName(args, 'Params'))
+
   value: SdkParamsValue
   description: string
   annotations: KtAnnotation[]
