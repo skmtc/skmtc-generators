@@ -1,0 +1,50 @@
+import { capitalize, camelCase } from '@skmtc/core'
+import { join } from '@std/path'
+
+/**
+ * The resource class name — the last segment of a dotted resource path,
+ * PascalCased. `'models'` → `Models`; `'chat.completions'` → `Completions`;
+ * `'fine_tuning.jobs'` → `Jobs`.
+ */
+export const toResourceClassName = (resource: string): string => {
+  const segments = resource.split('.')
+  const last = segments[segments.length - 1]
+
+  return capitalize(camelCase(last))
+}
+
+/**
+ * The export path for a resource file. A leaf resource lives as a file in
+ * its parent's directory: `'models'` → `@/resources/models.ts`,
+ * `'chat.completions.messages'` → `@/resources/chat/completions/messages.ts`.
+ *
+ * (A resource that *has* children lives in its own directory —
+ * `chat` → `@/resources/chat/chat.ts` — which needs the global resource
+ * tree; that variant is handled where the tree is known, not here.)
+ */
+export const toResourceExportPath = (resource: string): string => {
+  const segments = resource.split('.')
+  const fileName = `${segments[segments.length - 1]}.ts`
+
+  return join('@', 'resources', ...segments.slice(0, -1), fileName)
+}
+
+/**
+ * The client-call path expression. A parametrised path becomes a `path`
+ * tagged template (`path` + a backtick template with `${param}`
+ * interpolations); a static path becomes a plain quoted string.
+ *
+ * `/models/{model}` → `` path`/models/${model}` ``
+ * `/models`         → `'/models'`
+ */
+export const toClientPath = (path: string): { expression: string; hasParams: boolean } => {
+  const hasParams = /\{[^}]+\}/.test(path)
+
+  if (!hasParams) {
+    return { expression: `'${path}'`, hasParams: false }
+  }
+
+  const template = path.replace(/\{([^}]+)\}/g, (_match, name) => '${' + name + '}')
+
+  return { expression: 'path`' + template + '`', hasParams: true }
+}

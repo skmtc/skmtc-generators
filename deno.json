@@ -68,6 +68,7 @@
     "./gen-csharp",
     "./gen-csharp-aspnet",
     "./gen-kotlin-sdk",
-    "./gen-kotlin-jackson-s"
+    "./gen-kotlin-jackson-s",
+    "./gen-typescript-sdk"
   ]
 }
