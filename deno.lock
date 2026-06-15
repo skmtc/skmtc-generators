@@ -1,8 +1,8 @@
 {
   "version": "5",
   "specifiers": {
-    "jsr:@skmtc/core@0.12.0": "0.12.0",
-    "jsr:@skmtc/lang-typescript@0.7.1": "0.7.1",
+    "jsr:@skmtc/core@0.14.0": "0.14.0",
+    "jsr:@skmtc/lang-typescript@0.9.0": "0.9.0",
     "jsr:@std/fmt@1": "1.0.10",
     "jsr:@std/fmt@^1.0.5": "1.0.10",
     "jsr:@std/fs@^1.0.11": "1.0.24",
@@ -25,8 +25,8 @@
     "npm:valibot@1.1.0": "1.1.0"
   },
   "jsr": {
-    "@skmtc/core@0.12.0": {
-      "integrity": "48c08cdf59f60d2a0024776050d601788206be9db8fda26f98716b5b0117f1fb",
+    "@skmtc/core@0.14.0": {
+      "integrity": "5404bf13186650c093c1e83da789a3771fbf0018de6d9fb38ac060437f6faeed",
       "dependencies": [
         "jsr:@std/fmt@1",
         "jsr:@std/log",
@@ -39,8 +39,8 @@
         "npm:valibot"
       ]
     },
-    "@skmtc/lang-typescript@0.7.1": {
-      "integrity": "e3e9b4039a946259a411de9570e7299d63ee6c53cfd16ab946224529451ffb72",
+    "@skmtc/lang-typescript@0.9.0": {
+      "integrity": "b36c6813b07d02549da8d78938ae4ee3efe84908a210cf2fe28f3699527b3b4c",
       "dependencies": [
         "jsr:@skmtc/core",
         "jsr:@std/path@^1.0.9",
@@ -293,8 +293,8 @@
       },
       "gen-typescript-s": {
         "dependencies": [
-          "jsr:@skmtc/core@0.12.0",
-          "jsr:@skmtc/lang-typescript@0.7.1",
+          "jsr:@skmtc/core@0.14.0",
+          "jsr:@skmtc/lang-typescript@0.9.0",
           "jsr:@std/path@^1.1.2",
           "npm:ts-pattern@^5.8.0",
           "npm:valibot@1.1.0"
@@ -302,8 +302,8 @@
       },
       "gen-typescript-sdk": {
         "dependencies": [
-          "jsr:@skmtc/core@0.12.0",
-          "jsr:@skmtc/lang-typescript@0.7.1",
+          "jsr:@skmtc/core@0.14.0",
+          "jsr:@skmtc/lang-typescript@0.9.0",
           "jsr:@std/path@^1.0.9",
           "npm:tiny-invariant@1.3.3",
           "npm:ts-pattern@^5.8.0",

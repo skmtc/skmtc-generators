@@ -1,4 +1,5 @@
 import { capitalize, camelCase } from '@skmtc/core'
+import type { OasSchema, OasRef } from '@skmtc/core'
 import { join } from '@std/path'
 
 /**
@@ -47,4 +48,26 @@ export const toClientPath = (path: string): { expression: string; hasParams: boo
   const template = path.replace(/\{([^}]+)\}/g, (_match, name) => '${' + name + '}')
 
   return { expression: 'path`' + template + '`', hasParams: true }
+}
+
+/**
+ * A list-shaped success response (`{ object: 'list', data: T[] }`) →
+ * pagination: the item schema (`data`'s element). The list wrapper itself is
+ * never emitted; the method becomes a `getAPIList` / `PagePromise`.
+ */
+export const toPagination = (
+  schema: OasSchema | OasRef<'schema'>
+): { itemSchema: OasSchema | OasRef<'schema'> } | undefined => {
+  const object = schema.isRef() ? schema.resolve() : schema
+  if (object.type !== 'object') return undefined
+
+  const data = object.properties?.['data']
+  const objectProp = object.properties?.['object']
+
+  if (data?.type !== 'array') return undefined
+  if (!(objectProp?.type === 'string' && Array.isArray(objectProp.enums) && objectProp.enums.includes('list'))) {
+    return undefined
+  }
+
+  return { itemSchema: data.items }
 }

@@ -1,11 +1,13 @@
+import { CustomValue } from '@skmtc/core'
 import type { OasOperationProjectionConstructorArgs, OasOperation } from '@skmtc/core'
+import { defineAndRegister, createType } from '@skmtc/lang-typescript'
+import { TsProjection } from '@skmtc/gen-typescript-s'
 import { SdkResourceBase } from './base.ts'
 import { ApiMethod } from './ApiMethod.ts'
-import { collectNamedTypes, toTypeDeclaration, type NamedType } from './toTsType.ts'
+import { toClientPath, toPagination } from './resource.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
 
-// Stainless's canonical method ordering; anything unlisted sorts after, in
-// append order.
+// Stainless's canonical method ordering; anything unlisted sorts after.
 const METHOD_ORDER = ['create', 'retrieve', 'update', 'list', 'delete']
 const methodPriority = (name: string): number => {
   const index = METHOD_ORDER.indexOf(name)
@@ -13,92 +15,105 @@ const methodPriority = (name: string): number => {
 }
 
 /**
- * One resource file, accumulated across every operation that carries the
- * same `resource` enrichment (the `ExpressApp` idiom). Rendered as a
- * `kind: 'class'` definition, so the value below is everything after
- * `export class <Name> ` — the `extends APIResource { … }` heritage and
- * body, then the page-alias / interface / `declare namespace` companions.
+ * One resource file, accumulated across every operation carrying the same
+ * `resource` enrichment. Renders the `export class <Name> extends
+ * APIResource { … }` (kind `class`); the request/response/item **types** are
+ * composed from `@skmtc/gen-typescript-s` via {@link insertNormalizedModel}
+ * — co-located into this file (or imported, per their `exportPath`
+ * enrichment), named/renamed by that generator's `toIdentifierName`.
  */
 export class SdkResource extends SdkResourceBase {
-  /**
-   * The resource-level JSDoc rendered above `export class …`. Public so
-   * `tsLang.toDefinition` reads it off the value (the Driver passes no
-   * description); see lang-typescript's `toValueDescription`.
-   */
   description: string | undefined
 
   #methods: { apiMethod: ApiMethod; methodName: string }[] = []
-  #pageAliases: { name: string; itemType: string }[] = []
-  #schemaNames: Record<string, string>
+  #pageAliases = new Set<string>()
 
   constructor({ context, operation, settings }: OasOperationProjectionConstructorArgs<EnrichmentSchema>) {
     super({ context, operation, settings })
 
-    this.#schemaNames = settings.enrichments.generator?.schemaNames ?? {}
     this.description = settings.enrichments.subject?.resourceDescription
-
-    // Every resource class extends APIResource.
     this.register({ imports: { '../core/resource': ['APIResource'] } })
 
-    // Codegen banner at the top of the file, when configured.
     const fileHeader = settings.enrichments.generator?.fileHeader
     if (fileHeader) {
       this.register({ banner: fileHeader })
     }
   }
 
-  /** Add one operation's method to this resource. */
   append(operation: OasOperation, methodName: string): void {
+    const className = this.settings.identifier.name
+    const { expression: pathExpression, hasParams } = toClientPath(operation.path)
+    const pathParameters = operation.toParams(['path']).map(({ name }) => `${name}: string`)
+    const description = 'description' in operation ? operation.description : undefined
+
+    const successSchema = operation.toSuccessResponse()?.resolve().toSchema()
+    const requestBody = operation.toRequestBody(({ schema }) => schema)
+    const pagination = successSchema ? toPagination(successSchema) : undefined
+
+    let responseType = 'void'
+    let bodyType: string | undefined
+    let paginationInfo: { pageName: string; itemType: string } | undefined
+
+    if (pagination) {
+      const itemType = this.insertNormalizedModel(TsProjection, {
+        schema: pagination.itemSchema,
+        fallbackName: `${className}Item`
+      }).identifier.name
+      const pageName = `${className}Page`
+      paginationInfo = { pageName, itemType }
+      this.#ensurePageAlias(pageName, itemType)
+    } else {
+      if (successSchema) {
+        responseType = this.insertNormalizedModel(TsProjection, {
+          schema: successSchema,
+          fallbackName: `${className}Response`
+        }).identifier.name
+      }
+      if (requestBody) {
+        bodyType = this.insertNormalizedModel(TsProjection, {
+          schema: requestBody,
+          fallbackName: `${className}Params`
+        }).identifier.name
+      }
+    }
+
     const apiMethod = new ApiMethod({
       context: this.context,
       generatorKey: this.generatorKey,
-      operation,
       methodName,
-      resourceClassName: this.settings.identifier.name,
-      schemaNames: this.#schemaNames
+      httpMethod: operation.method,
+      pathExpression,
+      hasParams,
+      pathParameters,
+      description,
+      responseType,
+      bodyType,
+      pagination: paginationInfo
     })
 
     this.#methods.push({ apiMethod, methodName })
     this.register({ imports: apiMethod.imports })
+  }
 
-    if (apiMethod.pageAlias && !this.#pageAliases.some(page => page.name === apiMethod.pageAlias?.name)) {
-      this.#pageAliases.push(apiMethod.pageAlias)
-    }
+  /** The `export type <Resource>Page = Page<Item>` alias, once per resource. */
+  #ensurePageAlias(pageName: string, itemType: string): void {
+    if (this.#pageAliases.has(pageName)) return
+    this.#pageAliases.add(pageName)
+
+    defineAndRegister(this.context, {
+      identifier: createType(pageName),
+      value: new CustomValue({ context: this.context, value: `Page<${itemType}>` }),
+      destinationPath: this.settings.exportPath
+    })
+    this.register({ imports: { '../core/pagination': ['Page'] } })
   }
 
   override toString(): string {
-    const sortedMethods = [...this.#methods].sort(
-      (a, b) => methodPriority(a.methodName) - methodPriority(b.methodName)
-    )
-
-    const methods = sortedMethods.map(({ apiMethod }) => apiMethod.toString()).join('\n\n')
-
-    // Collect every named type reachable from the methods' roots, in method
-    // order, deduped.
-    const namedTypes = new Map<string, NamedType>()
-    for (const { apiMethod } of sortedMethods) {
-      for (const root of apiMethod.typeRoots) {
-        collectNamedTypes(root, this.#schemaNames, namedTypes)
-      }
-    }
-
-    const pageDeclarations = this.#pageAliases.map(
-      page =>
-        `// Note: no pagination actually occurs yet, this is for forwards-compatibility.\nexport type ${page.name} = Page<${page.itemType}>;`
-    )
-
-    const typeDeclarations = [...namedTypes.values()].map(named => toTypeDeclaration(named, this.#schemaNames))
-
-    const reExports = [...namedTypes.keys(), ...this.#pageAliases.map(page => page.name)].map(
-      name => `type ${name} as ${name}`
-    )
-    const namespaceDeclaration =
-      reExports.length > 0
-        ? `export declare namespace ${this.settings.identifier.name} {\n  export { ${reExports.join(', ')} };\n}`
-        : undefined
-
-    return [`extends APIResource {\n${methods}\n}`, ...pageDeclarations, ...typeDeclarations, namespaceDeclaration]
-      .filter(Boolean)
+    const methods = [...this.#methods]
+      .sort((a, b) => methodPriority(a.methodName) - methodPriority(b.methodName))
+      .map(({ apiMethod }) => apiMethod.toString())
       .join('\n\n')
+
+    return `extends APIResource {\n${methods}\n}`
   }
 }
