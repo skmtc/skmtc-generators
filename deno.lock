@@ -10,6 +10,8 @@
     "jsr:@std/io@~0.225.2": "0.225.3",
     "jsr:@std/log@~0.224.6": "0.224.14",
     "jsr:@std/path@^1.0.9": "1.1.5",
+    "jsr:@std/path@^1.1.2": "1.1.5",
+    "jsr:@std/yaml@1": "1.1.1",
     "jsr:@std/yaml@^1.0.5": "1.1.1",
     "npm:@babel/helper-validator-identifier@7.27.1": "7.27.1",
     "npm:@types/babel__helper-validator-identifier@7.15.2": "7.15.2",
@@ -28,7 +30,7 @@
       "dependencies": [
         "jsr:@std/fmt@1",
         "jsr:@std/log",
-        "jsr:@std/path",
+        "jsr:@std/path@^1.0.9",
         "npm:@types/lodash-es",
         "npm:graphql",
         "npm:lodash-es",
@@ -41,7 +43,7 @@
       "integrity": "e3e9b4039a946259a411de9570e7299d63ee6c53cfd16ab946224529451ffb72",
       "dependencies": [
         "jsr:@skmtc/core",
-        "jsr:@std/path",
+        "jsr:@std/path@^1.0.9",
         "npm:@babel/helper-validator-identifier",
         "npm:@types/babel__helper-validator-identifier",
         "npm:tiny-invariant"
@@ -287,6 +289,15 @@
         "dependencies": [
           "jsr:@skmtc/core@0.11.0",
           "jsr:@skmtc/lang-typescript@0.4.0"
+        ]
+      },
+      "gen-typescript-s": {
+        "dependencies": [
+          "jsr:@skmtc/core@0.12.0",
+          "jsr:@skmtc/lang-typescript@0.7.1",
+          "jsr:@std/path@^1.1.2",
+          "npm:ts-pattern@^5.8.0",
+          "npm:valibot@1.1.0"
         ]
       },
       "gen-typescript-sdk": {

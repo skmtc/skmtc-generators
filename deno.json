@@ -18,6 +18,7 @@
     "@skmtc/gen-tanstack-query-fetch-zod": "./gen-tanstack-query-fetch-zod/mod.ts",
     "@skmtc/gen-tanstack-query-supabase-zod": "./gen-tanstack-query-supabase-zod/mod.ts",
     "@skmtc/gen-typescript": "./gen-typescript/mod.ts",
+    "@skmtc/gen-typescript-s": "./gen-typescript-s/mod.ts",
     "@skmtc/gen-valibot": "./gen-valibot/mod.ts",
     "@skmtc/gen-zod": "./gen-zod/mod.ts",
     "@skmtc/gen-arktype": "./gen-arktype/mod.ts",
@@ -69,6 +70,7 @@
     "./gen-csharp-aspnet",
     "./gen-kotlin-sdk",
     "./gen-kotlin-jackson-s",
-    "./gen-typescript-sdk"
+    "./gen-typescript-sdk",
+    "./gen-typescript-s"
   ]
 }
