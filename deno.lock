@@ -1,8 +1,8 @@
 {
   "version": "5",
   "specifiers": {
-    "jsr:@skmtc/core@0.11.0": "0.11.0",
-    "jsr:@skmtc/lang-typescript@0.7.0": "0.7.0",
+    "jsr:@skmtc/core@0.12.0": "0.12.0",
+    "jsr:@skmtc/lang-typescript@0.7.1": "0.7.1",
     "jsr:@std/fmt@1": "1.0.10",
     "jsr:@std/fmt@^1.0.5": "1.0.10",
     "jsr:@std/fs@^1.0.11": "1.0.24",
@@ -23,8 +23,8 @@
     "npm:valibot@1.1.0": "1.1.0"
   },
   "jsr": {
-    "@skmtc/core@0.11.0": {
-      "integrity": "54fe05b3c038d3c274aa32d0a41cfd8831cfc9bfc7633c9133e311c0a4818f47",
+    "@skmtc/core@0.12.0": {
+      "integrity": "48c08cdf59f60d2a0024776050d601788206be9db8fda26f98716b5b0117f1fb",
       "dependencies": [
         "jsr:@std/fmt@1",
         "jsr:@std/log",
@@ -37,8 +37,8 @@
         "npm:valibot"
       ]
     },
-    "@skmtc/lang-typescript@0.7.0": {
-      "integrity": "68945fa8dd983ece9c8c3b013440bc11dffb0040844f5c8a4737c18e6a8257ce",
+    "@skmtc/lang-typescript@0.7.1": {
+      "integrity": "e3e9b4039a946259a411de9570e7299d63ee6c53cfd16ab946224529451ffb72",
       "dependencies": [
         "jsr:@skmtc/core",
         "jsr:@std/path",
@@ -291,8 +291,8 @@
       },
       "gen-typescript-sdk": {
         "dependencies": [
-          "jsr:@skmtc/core@0.11.0",
-          "jsr:@skmtc/lang-typescript@0.7.0",
+          "jsr:@skmtc/core@0.12.0",
+          "jsr:@skmtc/lang-typescript@0.7.1",
           "jsr:@std/path@^1.0.9",
           "npm:tiny-invariant@1.3.3",
           "npm:ts-pattern@^5.8.0",
