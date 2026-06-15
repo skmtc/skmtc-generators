@@ -13,9 +13,23 @@ export const TypescriptBase = toTsModelProjectionBase<EnrichmentSchema>({
     return enrichments.subject?.name ?? capitalize(camelCase(refName))
   },
 
-  toIdentifierType: () => ({ kind: 'type' }),
+  // Objects become `interface` (the Stainless / openai-node shape); enums,
+  // unions and scalars stay `type` aliases.
+  toIdentifierType(refName, context) {
+    const schema = context.resolveSchemaRefOnce(refName, denoJson.name)
+    const isObject = !schema.isRef() && schema.type === 'object'
 
+    return { kind: isObject ? 'interface' : 'type' }
+  },
+
+  // `exportPath` enrichment co-locates a ref into a given file (e.g. its
+  // owning resource file); otherwise one file per model under `@/types`.
   toExportPath({ refName, enrichments, variant }): string {
+    const exportPath = enrichments.subject?.exportPath
+    if (exportPath) {
+      return exportPath
+    }
+
     const name = this.toIdentifierName({ refName, enrichments, variant })
 
     return join('@', 'types', `${decapitalize(name)}.generated.ts`)
