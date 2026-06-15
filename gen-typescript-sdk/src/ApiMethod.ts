@@ -74,6 +74,21 @@ export class ApiMethod extends SnippetBase {
     const responseType = successSchema ? toTsType(successSchema, schemaNames) : 'void'
     this.#collectInlineSchema(successSchema, schemaNames)
 
+    // Request-body method (create / update): a `body` param after any path
+    // params, spread into the call payload.
+    const requestBody = operation.toRequestBody(({ schema }) => schema)
+    if (requestBody) {
+      this.#collectInlineSchema(requestBody, schemaNames)
+      const parameterList = [
+        ...pathParameters,
+        `body: ${toTsType(requestBody, schemaNames)}`,
+        'options?: RequestOptions'
+      ].join(', ')
+      this.#signature = `${methodName}(${parameterList}): APIPromise<${responseType}>`
+      this.#body = `return this._client.${httpMethod}(${pathExpression}, { body, ...options, __security: { bearerAuth: true } });`
+      return
+    }
+
     const parameterList = [...pathParameters, 'options?: RequestOptions'].join(', ')
     this.#signature = `${methodName}(${parameterList}): APIPromise<${responseType}>`
     this.#body = `return this._client.${httpMethod}(${pathExpression}, { ...options, __security: { bearerAuth: true } });`

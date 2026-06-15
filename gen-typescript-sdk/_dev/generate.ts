@@ -48,6 +48,24 @@ const openApiDocument = {
           object: { type: 'string' }
         },
         required: ['id', 'object', 'deleted']
+      },
+      CreateItemRequest: {
+        type: 'object',
+        description: 'Parameters for creating an item.',
+        properties: {
+          name: { type: 'string', description: 'The name of the item.' },
+          quantity: { type: 'integer', description: 'How many to create.' }
+        },
+        required: ['name']
+      },
+      Item: {
+        type: 'object',
+        description: 'A created item.',
+        properties: {
+          id: { type: 'string', description: 'The item identifier.' },
+          name: { type: 'string', description: 'The name of the item.' }
+        },
+        required: ['id', 'name']
       }
     }
   },
@@ -81,6 +99,20 @@ const openApiDocument = {
           '200': { description: 'OK', content: { 'application/json': { schema: { $ref: '#/components/schemas/DeleteModelResponse' } } } }
         }
       }
+    },
+    '/items': {
+      post: {
+        operationId: 'createItem',
+        tags: ['Items'],
+        description: 'Creates an item and returns it.',
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: { $ref: '#/components/schemas/CreateItemRequest' } } }
+        },
+        responses: {
+          '200': { description: 'OK', content: { 'application/json': { schema: { $ref: '#/components/schemas/Item' } } } }
+        }
+      }
     }
   }
 }
@@ -89,7 +121,7 @@ const enrichments = {
   '@skmtc/gen-typescript-sdk': {
     _generator: {
       clientName: 'OpenAI',
-      schemaNames: { DeleteModelResponse: 'ModelDeleted' },
+      schemaNames: { DeleteModelResponse: 'ModelDeleted', CreateItemRequest: 'ItemCreateParams' },
       fileHeader: '// File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.'
     },
     '/models': {
@@ -98,6 +130,9 @@ const enrichments = {
     '/models/{model}': {
       get: { main: { resource: 'models', methodName: 'retrieve' } },
       delete: { main: { resource: 'models', methodName: 'delete' } }
+    },
+    '/items': {
+      post: { main: { resource: 'items', methodName: 'create' } }
     }
   }
 }
