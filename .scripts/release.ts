@@ -23,7 +23,7 @@
 
 import { dirname, fromFileUrl, join } from '@std/path'
 
-const DEFAULT_JSR_URL = 'https://jsr.skmtc.dev/'
+const DEFAULT_JSR_URL = 'https://jsr.skmtc.co.uk/'
 
 export type WorkspacePackage = {
   name: string

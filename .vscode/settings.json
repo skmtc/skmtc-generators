@@ -3,7 +3,7 @@
   "deno.enablePaths": ["./"],
   "deno.suggest.imports.autoDiscover": true,
   "deno.env": {
-    "JSR_URL": "https://jsr.skmtc.dev/"
+    "JSR_URL": "https://jsr.skmtc.co.uk/"
   },
   "[json]": {
     "editor.formatOnSave": true,
