@@ -1,12 +1,12 @@
 {
   "name": "@skmtc/gen-reapit-searchable-dropdown",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "exports": "./mod.ts",
   "tasks": {
     "publish": "JSR_URL=https://jsr.skmtc.co.uk/ deno publish --allow-slow-types --allow-dirty --token=$JSR_AUTH_TOKEN"
   },
   "imports": {
-    "@skmtc/core": "jsr:@skmtc/core@0.11.0",
-    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.4.0"
+    "@skmtc/core": "jsr:@skmtc/core@0.16.1",
+    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.10.4"
   }
 }
