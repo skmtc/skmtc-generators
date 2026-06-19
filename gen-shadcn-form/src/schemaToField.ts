@@ -1,5 +1,13 @@
-import type { CustomValue, GenerateContextType, OasRef, OasSchema, Stringable } from '@skmtc/core'
+import type {
+  CustomValue,
+  GenerateContextType,
+  ModuleExport,
+  OasRef,
+  OasSchema,
+  Stringable
+} from '@skmtc/core'
 import { StringInput } from './fields/StringInput.ts'
+import { CustomInput } from './fields/CustomInput.ts'
 import ShadcnSelectInput from '@skmtc/gen-shadcn-select'
 import invariant from 'tiny-invariant'
 import { Table } from './fields/Table.ts'
@@ -18,6 +26,10 @@ type SchemaToFieldArgs = {
   context: GenerateContextType
   destinationPath: string
   topLevelSchema: OasSchema | OasRef<'schema'>
+  /** Consumer-assigned input component for this field (the `input` enrichment).
+   *  When present it wins over schema-type routing — the field renders the named
+   *  component, type-matched in the hub to accept the field's `lens`. */
+  input?: ModuleExport
 }
 
 export const schemaToField = ({
@@ -28,8 +40,22 @@ export const schemaToField = ({
   name,
   label,
   skipLabel,
-  topLevelSchema
+  topLevelSchema,
+  input
 }: SchemaToFieldArgs): Stringable => {
+  // A consumer-assigned input component overrides schema-type routing entirely:
+  // render it directly (only `lens` is emitted — the prop the hub matcher
+  // verified). Checked first so it applies regardless of the field's shape.
+  if (input) {
+    return new CustomInput({
+      context,
+      name,
+      destinationPath,
+      input,
+      schema: schema.type === 'custom' ? undefined : schema
+    })
+  }
+
   // OpenAPI refs cannot have extensions and as a workaround
   // it represents them as a single member intersection.
   // To handle this edge case we call adjust the arguments
