@@ -16,7 +16,7 @@ import {
 import { TsProjection } from '@skmtc/gen-typescript-s'
 import { SdkResourceBase } from './base.ts'
 import { ApiMethod } from './ApiMethod.ts'
-import { toClientPath, toPagination } from './resource.ts'
+import { toClientPath, toParamName, toPagination } from './resource.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
 
 // Stainless's standing note on every generated `<Resource>Page` alias.
@@ -128,7 +128,7 @@ export class SdkResource extends SdkResourceBase {
     this.#ensureNamespace(className)
 
     const { expression: pathExpression, hasParams } = toClientPath(operation.path)
-    const pathParameters = operation.toParams(['path']).map(({ name }) => `${name}: string`)
+    const pathParameters = operation.toParams(['path']).map(({ name }) => `${toParamName(name)}: string`)
 
     const successSchema = operation.toSuccessResponse()?.resolve().toSchema()
     const requestBody = operation.toRequestBody(({ schema }) => schema)
