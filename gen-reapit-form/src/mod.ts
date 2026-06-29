@@ -1,4 +1,4 @@
-import { synthesizeArgsObject, toGqlOperationEntry, type IsSupportedGqlOperationConfigArgs } from '@skmtc/core'
+import { synthesizeArgsObject, toGqlOperationEntry, type IsSupportedGqlOperationArgs } from '@skmtc/core'
 import { ReapitForm } from './ReapitForm.ts'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
@@ -12,7 +12,7 @@ import denoJson from '../deno.json' with { type: 'json' }
 export const reapitFormEntry = toGqlOperationEntry<EnrichmentSchema>({
   id: denoJson.name,
 
-  isSupported({ operation }: IsSupportedGqlOperationConfigArgs<EnrichmentSchema>) {
+  isSupported({ operation }: IsSupportedGqlOperationArgs) {
     return operation.rootKind === 'mutation' && synthesizeArgsObject(operation) !== undefined
   },
 

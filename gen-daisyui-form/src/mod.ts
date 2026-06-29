@@ -1,4 +1,4 @@
-import { toOasOperationEntry, type IsSupportedOasOperationConfigArgs } from '@skmtc/core'
+import { toOasOperationEntry, type IsSupportedOasOperationArgs } from '@skmtc/core'
 import { DaisyForm } from './DaisyForm.ts'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
@@ -6,7 +6,7 @@ import denoJson from '../deno.json' with { type: 'json' }
 export const daisyFormEntry = toOasOperationEntry<EnrichmentSchema>({
   id: denoJson.name,
 
-  isSupported({ operation }: IsSupportedOasOperationConfigArgs<EnrichmentSchema>) {
+  isSupported({ operation }: IsSupportedOasOperationArgs) {
     return (
       ['post', 'put', 'patch'].includes(operation.method) &&
       Boolean(operation.requestBody?.resolve()?.toSchema()?.resolve().type === 'object')

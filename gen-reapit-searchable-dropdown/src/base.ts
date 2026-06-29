@@ -19,7 +19,7 @@ export const ReapitSearchableDropdownBase = toTsGqlOperationProjectionBase<Enric
     return `${stripped}MultiLookupField`
   },
 
-  toIdentifierType: () => ({ kind: 'variable' }),
+  toIdentifierType: () => ({ type: 'variable' }),
 
   toExportPath({ operation, enrichments }): string {
     const stripped = stripGetPrefix(operation.fieldName)

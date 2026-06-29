@@ -25,7 +25,7 @@ export const SdkResourceBase = toTsOasOperationProjectionBase<EnrichmentSchema>(
     return toResourceClassName(resource)
   },
 
-  toIdentifierType: () => ({ kind: 'class' }),
+  toIdentifierType: () => ({ type: 'class' }),
 
   toExportPath({ enrichments }): string {
     const resource = enrichments.subject?.resource

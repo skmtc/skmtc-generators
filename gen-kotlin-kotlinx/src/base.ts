@@ -40,7 +40,7 @@ export const KtModelBase = toKtModelProjectionBase<EnrichmentSchema>({
   },
 
   toIdentifierType(refName, context) {
-    return { kind: toKtModelShape(context, peekSchema(context, refName)) }
+    return { type: toKtModelShape(context, peekSchema(context, refName)) }
   },
 
   toExportPath({ refName, enrichments }) {

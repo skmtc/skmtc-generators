@@ -18,7 +18,7 @@ export const ShadcnSelectApiBase = toTsOasOperationProjectionBase<EnrichmentSche
     return name
   },
 
-  toIdentifierType: () => ({ kind: 'variable' }),
+  toIdentifierType: () => ({ type: 'variable' }),
 
   toExportPath({ operation, enrichments, variant }): string {
     const name = this.toIdentifierName({ operation, enrichments, variant })

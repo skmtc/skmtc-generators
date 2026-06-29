@@ -7,8 +7,8 @@
     "publish": "JSR_URL=https://jsr.skmtc.co.uk/ deno publish --allow-slow-types --allow-dirty --token=$JSR_AUTH_TOKEN"
   },
   "imports": {
-    "@skmtc/core": "jsr:@skmtc/core@0.16.1",
-    "@skmtc/lang-csharp": "jsr:@skmtc/lang-csharp@0.5.7",
+    "@skmtc/core": "jsr:@skmtc/core@0.22.0",
+    "@skmtc/lang-csharp": "jsr:@skmtc/lang-csharp@0.6.0",
     "@skmtc/gen-csharp": "jsr:@skmtc/gen-csharp@0.2.1"
   }
 }

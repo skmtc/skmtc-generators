@@ -11,7 +11,7 @@ export const TanstackQueryBase = toTsOasOperationProjectionBase<EnrichmentSchema
     return `use${capitalize(toEndpointName(operation))}`
   },
 
-  toIdentifierType: () => ({ kind: 'variable' }),
+  toIdentifierType: () => ({ type: 'variable' }),
 
   toExportPath({ operation, enrichments, variant }): string {
     const name = this.toIdentifierName({ operation, enrichments, variant })

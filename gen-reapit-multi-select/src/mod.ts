@@ -1,4 +1,4 @@
-import { toGqlOperationEntry, type IsSupportedGqlOperationConfigArgs } from '@skmtc/core'
+import { toGqlOperationEntry, type IsSupportedGqlOperationArgs } from '@skmtc/core'
 import { ReapitMultiSelect } from './ReapitMultiSelect.ts'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
@@ -19,7 +19,7 @@ import denoJson from '../deno.json' with { type: 'json' }
 export const reapitMultiSelectEntry = toGqlOperationEntry<EnrichmentSchema>({
   id: denoJson.name,
 
-  isSupported({ context, operation }: IsSupportedGqlOperationConfigArgs<EnrichmentSchema>) {
+  isSupported({ context, operation }: IsSupportedGqlOperationArgs) {
     return ReapitMultiSelect.isSupported({ context, operation })
   },
 

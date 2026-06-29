@@ -36,7 +36,7 @@ export class SdkResource extends SdkResourceBase {
 
     const fileHeader = settings.enrichments.generator?.fileHeader
     if (fileHeader) {
-      this.register({ banner: fileHeader })
+      this.register({ custom: fileHeader })
     }
   }
 

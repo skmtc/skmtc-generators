@@ -15,7 +15,7 @@ export const DaisyFormBase = toTsOasOperationProjectionBase<EnrichmentSchema>({
     return `${verb}${camelCase(operation.path, { upperFirst: true })}Form`
   },
 
-  toIdentifierType: () => ({ kind: 'variable' }),
+  toIdentifierType: () => ({ type: 'variable' }),
 
   toExportPath({ operation, enrichments, variant }): string {
     const name = this.toIdentifierName({ operation, enrichments, variant })

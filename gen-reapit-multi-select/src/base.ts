@@ -24,7 +24,7 @@ export const ReapitMultiSelectBase = toTsGqlOperationProjectionBase<EnrichmentSc
     return `${stripped}MultiSelectField`
   },
 
-  toIdentifierType: () => ({ kind: 'variable' }),
+  toIdentifierType: () => ({ type: 'variable' }),
 
   toExportPath({ operation, enrichments }): string {
     const stripped = stripGetPrefix(operation.fieldName)

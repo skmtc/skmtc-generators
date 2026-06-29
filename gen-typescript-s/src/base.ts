@@ -19,7 +19,7 @@ export const TypescriptBase = toTsModelProjectionBase<EnrichmentSchema>({
     const schema = context.resolveSchemaRefOnce(refName, denoJson.name)
     const isObject = !schema.isRef() && schema.type === 'object'
 
-    return { kind: isObject ? 'interface' : 'type' }
+    return { type: isObject ? 'interface' : 'type' }
   },
 
   // `exportPath` enrichment co-locates a ref into a given file (e.g. its

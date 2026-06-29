@@ -21,7 +21,7 @@ export const ShadcnFormBase = toTsOasOperationProjectionBase<EnrichmentSchema>({
     return withVariant(base, variant)
   },
 
-  toIdentifierType: () => ({ kind: 'variable' }),
+  toIdentifierType: () => ({ type: 'variable' }),
 
   toExportPath({ operation, enrichments, variant }): string {
     const name = this.toIdentifierName({ operation, enrichments, variant })

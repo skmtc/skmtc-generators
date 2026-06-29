@@ -14,7 +14,7 @@ export const MswBase = toTsOasOperationProjectionBase<EnrichmentSchema>({
     return name
   },
 
-  toIdentifierType: () => ({ kind: 'variable' }),
+  toIdentifierType: () => ({ type: 'variable' }),
 
   toExportPath(): string {
     return join('@', 'mocks', `handlers.generated.ts`)

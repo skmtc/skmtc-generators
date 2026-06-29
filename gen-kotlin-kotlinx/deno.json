@@ -7,7 +7,7 @@
     "publish": "JSR_URL=https://jsr.skmtc.co.uk/ deno publish --allow-slow-types --allow-dirty --token=$JSR_AUTH_TOKEN"
   },
   "imports": {
-    "@skmtc/core": "jsr:@skmtc/core@0.16.1",
-    "@skmtc/lang-kotlin": "jsr:@skmtc/lang-kotlin@0.8.7"
+    "@skmtc/core": "jsr:@skmtc/core@0.22.0",
+    "@skmtc/lang-kotlin": "jsr:@skmtc/lang-kotlin@0.9.0"
   }
 }

@@ -48,7 +48,7 @@ export const CsRecordBase = toCsModelProjectionBase<EnrichmentSchema>({
     return enrichments?.subject?.name ?? toCsModelName(refName)
   },
 
-  toIdentifierType: () => ({ kind: 'record' }),
+  toIdentifierType: () => ({ type: 'record' }),
 
   toExportPath({ refName, enrichments }) {
     return toCsModelExportPath(enrichments?.subject?.name ?? toCsModelName(refName))
@@ -64,7 +64,7 @@ export const CsAbstractRecordBase = toCsModelProjectionBase<EnrichmentSchema>({
     return enrichments?.subject?.name ?? toCsModelName(refName)
   },
 
-  toIdentifierType: () => ({ kind: 'abstract-record' }),
+  toIdentifierType: () => ({ type: 'abstract-record' }),
 
   toExportPath({ refName, enrichments }) {
     return toCsModelExportPath(enrichments?.subject?.name ?? toCsModelName(refName))
@@ -80,7 +80,7 @@ export const CsEnumBase = toCsModelProjectionBase<EnrichmentSchema>({
     return enrichments?.subject?.name ?? toCsModelName(refName)
   },
 
-  toIdentifierType: () => ({ kind: 'enum' }),
+  toIdentifierType: () => ({ type: 'enum' }),
 
   toExportPath({ refName, enrichments }) {
     return toCsModelExportPath(enrichments?.subject?.name ?? toCsModelName(refName))

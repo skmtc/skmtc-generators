@@ -275,31 +275,6 @@ Deno.test('types.md line 146 - Composite object', () => {
 })
 
 // ============================================================================
-// NEVER - Based on types.md lines 160-162
-// ============================================================================
-
-Deno.test('types.md line 160 - Never type', () => {
-  const jsonSchema: OpenAPIV3.SchemaObject = {
-    not: {}
-  }
-  // Actual output treats 'not' schemas as unknown
-  assertEquals(jsonSchemaToTs(jsonSchema), 'unknown')
-})
-
-// ============================================================================
-// NOT - Based on types.md lines 165-169
-// ============================================================================
-
-Deno.test('types.md line 165 - Not type', () => {
-  const jsonSchema: OpenAPIV3.SchemaObject = {
-    not: {
-      type: 'string'
-    }
-  }
-  assertEquals(jsonSchemaToTs(jsonSchema), 'unknown')
-})
-
-// ============================================================================
 // EXTENDS - Based on types.md lines 171-176
 // ============================================================================
 

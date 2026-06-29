@@ -4,8 +4,8 @@
   "imports": {
     "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.2.1",
     "@skmtc/gen-zod": "jsr:@skmtc/gen-zod@0.2.1",
-    "@skmtc/core": "jsr:@skmtc/core@0.16.1",
-    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.10.4"
+    "@skmtc/core": "jsr:@skmtc/core@0.22.0",
+    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.11.0"
   },
   "exports": "./mod.ts",
   "tasks": {

@@ -1,6 +1,6 @@
 import { isEmpty } from '@skmtc/core'
 import type { GenerateContextType, OasRef, OasSchema } from '@skmtc/core'
-import type { KtEntityKind } from '@skmtc/lang-kotlin'
+import type { KtEntityType } from '@skmtc/lang-kotlin'
 import { isSealedUnion } from './sealedMembership.ts'
 import { toEnumValues } from './toEnumEntryName.ts'
 
@@ -8,7 +8,7 @@ import { toEnumValues } from './toEnumEntryName.ts'
  * THE shape dispatch — the single, deterministic function that maps a
  * schema to its Kotlin declaration **kind**. Now that `toIdentifierType`
  * is context-aware, this is what was the old per-class `toKtProjection`
- * dispatch, returning a `KtEntityKind` instead of a projection class —
+ * dispatch, returning a `KtEntityType` instead of a projection class —
  * so ONE projection (`KtModelProjection`) covers every refName, its
  * `toIdentifierType` reads the kind from here, and its constructor reads
  * the value-shape from here too: the kind and the value can never
@@ -31,7 +31,7 @@ import { toEnumValues } from './toEnumEntryName.ts'
 export const toKtModelShape = (
   context: GenerateContextType,
   schema: OasSchema | OasRef<'schema'>
-): KtEntityKind => {
+): KtEntityType => {
   if (schema.isRef()) {
     return 'typealias'
   }

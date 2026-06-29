@@ -90,7 +90,7 @@ export const SdkBase = toKtOasOperationProjectionBase<EnrichmentSchema>({
   id: denoJson.name,
   toEnrichmentSchema,
   toIdentifierName: args => toOperationName(args, 'Response'),
-  toIdentifierType: () => ({ kind: 'class' }),
+  toIdentifierType: () => ({ type: 'class' }),
   toExportPath: args => toModelExportPath(args, toOperationName(args, 'Response'))
 })
 

@@ -11,7 +11,7 @@ export const SupabaseHonoBase = toTsOasOperationProjectionBase<EnrichmentSchema>
     return 'app'
   },
 
-  toIdentifierType: () => ({ kind: 'variable' }),
+  toIdentifierType: () => ({ type: 'variable' }),
 
   toExportPath({ operation, enrichments }): string {
     const firstSegment = toFirstSegment(operation)

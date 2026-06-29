@@ -1,10 +1,10 @@
 {
   "version": "5",
   "specifiers": {
-    "jsr:@skmtc/core@0.16.1": "0.16.1",
-    "jsr:@skmtc/lang-csharp@0.5.7": "0.5.7",
-    "jsr:@skmtc/lang-kotlin@0.8.7": "0.8.7",
-    "jsr:@skmtc/lang-typescript@0.10.4": "0.10.4",
+    "jsr:@skmtc/core@0.22.0": "0.22.0",
+    "jsr:@skmtc/lang-csharp@0.6.0": "0.6.0",
+    "jsr:@skmtc/lang-kotlin@0.9.0": "0.9.0",
+    "jsr:@skmtc/lang-typescript@0.11.0": "0.11.0",
     "jsr:@std/assert@1": "1.0.19",
     "jsr:@std/fmt@1": "1.0.10",
     "jsr:@std/fmt@^1.0.5": "1.0.10",
@@ -28,8 +28,8 @@
     "npm:valibot@1.1.0": "1.1.0"
   },
   "jsr": {
-    "@skmtc/core@0.16.1": {
-      "integrity": "3210ec1acf1358688e4252b29b3e7558ceedb034df86575ab0e12a0e6e6e77f7",
+    "@skmtc/core@0.22.0": {
+      "integrity": "0339764bdd3308cf4dbadd900400e2e8b5ce8e12a2fd33ceb42c94b81e9cde64",
       "dependencies": [
         "jsr:@std/fmt@1",
         "jsr:@std/log@~0.224.6",
@@ -42,24 +42,24 @@
         "npm:valibot"
       ]
     },
-    "@skmtc/lang-csharp@0.5.7": {
-      "integrity": "6cb1af3c4dc694afbdcf680d0926de69a3299ada04dcca5d529d00950c9d6401",
+    "@skmtc/lang-csharp@0.6.0": {
+      "integrity": "fcc7765f53dfdf7a46513e90735e331a082aad076028f1388eeb3dd9b9eeb73a",
       "dependencies": [
         "jsr:@skmtc/core",
         "jsr:@std/path@^1.0.9",
         "npm:tiny-invariant@1.3.3"
       ]
     },
-    "@skmtc/lang-kotlin@0.8.7": {
-      "integrity": "d8513c2eb02ba6ab5e4ac62615a09ecb938532d8ecbaa013a19173cd76744343",
+    "@skmtc/lang-kotlin@0.9.0": {
+      "integrity": "2d0c209c54ce08783c187c56f75be8bd4320ab1accb20edcb961b719fad1b6cb",
       "dependencies": [
         "jsr:@skmtc/core",
         "jsr:@std/path@^1.0.9",
         "npm:tiny-invariant@1.3.3"
       ]
     },
-    "@skmtc/lang-typescript@0.10.4": {
-      "integrity": "9870539661a4827cdfb4fcae3dc70be5093283a90c972148101496163df382bd",
+    "@skmtc/lang-typescript@0.11.0": {
+      "integrity": "0ee79db846b4ca70d29847d2701747f4b55c244c699d8e1702f211224bb225ea",
       "dependencies": [
         "jsr:@skmtc/core",
         "jsr:@std/path@^1.0.9",
@@ -138,7 +138,7 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@skmtc/core@0.16.1",
+      "jsr:@skmtc/core@0.22.0",
       "jsr:@std/fmt@1",
       "jsr:@std/log@~0.224.6",
       "jsr:@std/path@^1.1.2",
@@ -153,166 +153,166 @@
     "members": {
       "gen-arktype": {
         "dependencies": [
-          "jsr:@skmtc/core@0.16.1",
-          "jsr:@skmtc/lang-typescript@0.10.4"
+          "jsr:@skmtc/core@0.22.0",
+          "jsr:@skmtc/lang-typescript@0.11.0"
         ]
       },
       "gen-csharp": {
         "dependencies": [
-          "jsr:@skmtc/core@0.16.1",
-          "jsr:@skmtc/lang-csharp@0.5.7"
+          "jsr:@skmtc/core@0.22.0",
+          "jsr:@skmtc/lang-csharp@0.6.0"
         ]
       },
       "gen-csharp-aspnet": {
         "dependencies": [
-          "jsr:@skmtc/core@0.16.1",
+          "jsr:@skmtc/core@0.22.0",
           "jsr:@skmtc/gen-csharp@0.2.1",
-          "jsr:@skmtc/lang-csharp@0.5.7"
+          "jsr:@skmtc/lang-csharp@0.6.0"
         ]
       },
       "gen-daisyui-form": {
         "dependencies": [
-          "jsr:@skmtc/core@0.16.1",
+          "jsr:@skmtc/core@0.22.0",
           "jsr:@skmtc/gen-typescript@0.2.1",
           "jsr:@skmtc/gen-zod@0.2.1",
-          "jsr:@skmtc/lang-typescript@0.10.4"
+          "jsr:@skmtc/lang-typescript@0.11.0"
         ]
       },
       "gen-express": {
         "dependencies": [
-          "jsr:@skmtc/core@0.16.1",
+          "jsr:@skmtc/core@0.22.0",
           "jsr:@skmtc/gen-typescript@0.2.1",
           "jsr:@skmtc/gen-valibot@0.2.1",
-          "jsr:@skmtc/lang-typescript@0.10.4"
+          "jsr:@skmtc/lang-typescript@0.11.0"
         ]
       },
       "gen-kotlin-jackson-s": {
         "dependencies": [
-          "jsr:@skmtc/core@0.16.1",
-          "jsr:@skmtc/lang-kotlin@0.8.7",
+          "jsr:@skmtc/core@0.22.0",
+          "jsr:@skmtc/lang-kotlin@0.9.0",
           "npm:tiny-invariant@^1.3.3",
           "npm:valibot@1.1.0"
         ]
       },
       "gen-kotlin-kotlinx": {
         "dependencies": [
-          "jsr:@skmtc/core@0.16.1",
-          "jsr:@skmtc/lang-kotlin@0.8.7"
+          "jsr:@skmtc/core@0.22.0",
+          "jsr:@skmtc/lang-kotlin@0.9.0"
         ]
       },
       "gen-kotlin-sdk": {
         "dependencies": [
-          "jsr:@skmtc/core@0.16.1",
+          "jsr:@skmtc/core@0.22.0",
           "jsr:@skmtc/gen-kotlin-jackson-s@0.2.1",
-          "jsr:@skmtc/lang-kotlin@0.8.7",
+          "jsr:@skmtc/lang-kotlin@0.9.0",
           "npm:tiny-invariant@^1.3.3",
           "npm:valibot@1.1.0"
         ]
       },
       "gen-kotlin-spring": {
         "dependencies": [
-          "jsr:@skmtc/core@0.16.1",
+          "jsr:@skmtc/core@0.22.0",
           "jsr:@skmtc/gen-kotlin-kotlinx@0.2.1",
-          "jsr:@skmtc/lang-kotlin@0.8.7"
+          "jsr:@skmtc/lang-kotlin@0.9.0"
         ]
       },
       "gen-msw": {
         "dependencies": [
-          "jsr:@skmtc/core@0.16.1",
+          "jsr:@skmtc/core@0.22.0",
           "jsr:@skmtc/gen-typescript@0.2.1",
-          "jsr:@skmtc/lang-typescript@0.10.4"
+          "jsr:@skmtc/lang-typescript@0.11.0"
         ]
       },
       "gen-reapit-form": {
         "dependencies": [
-          "jsr:@skmtc/core@0.16.1",
+          "jsr:@skmtc/core@0.22.0",
           "jsr:@skmtc/gen-reapit-multi-select@0.2.1",
           "jsr:@skmtc/gen-reapit-searchable-dropdown@0.2.1",
           "jsr:@skmtc/gen-typescript@0.2.1",
           "jsr:@skmtc/gen-zod@0.2.1",
-          "jsr:@skmtc/lang-typescript@0.10.4"
+          "jsr:@skmtc/lang-typescript@0.11.0"
         ]
       },
       "gen-reapit-graphql-client": {
         "dependencies": [
-          "jsr:@skmtc/core@0.16.1",
+          "jsr:@skmtc/core@0.22.0",
           "jsr:@skmtc/gen-typescript@0.2.1",
-          "jsr:@skmtc/lang-typescript@0.10.4"
+          "jsr:@skmtc/lang-typescript@0.11.0"
         ]
       },
       "gen-reapit-multi-select": {
         "dependencies": [
-          "jsr:@skmtc/core@0.16.1",
-          "jsr:@skmtc/lang-typescript@0.10.4"
+          "jsr:@skmtc/core@0.22.0",
+          "jsr:@skmtc/lang-typescript@0.11.0"
         ]
       },
       "gen-reapit-searchable-dropdown": {
         "dependencies": [
-          "jsr:@skmtc/core@0.16.1",
-          "jsr:@skmtc/lang-typescript@0.10.4"
+          "jsr:@skmtc/core@0.22.0",
+          "jsr:@skmtc/lang-typescript@0.11.0"
         ]
       },
       "gen-shadcn-form": {
         "dependencies": [
-          "jsr:@skmtc/core@0.16.1",
+          "jsr:@skmtc/core@0.22.0",
           "jsr:@skmtc/gen-tanstack-query-supabase-zod@0.2.1",
           "jsr:@skmtc/gen-typescript@0.2.1",
           "jsr:@skmtc/gen-zod@0.2.1",
-          "jsr:@skmtc/lang-typescript@0.10.4"
+          "jsr:@skmtc/lang-typescript@0.11.0"
         ]
       },
       "gen-shadcn-select": {
         "dependencies": [
-          "jsr:@skmtc/core@0.16.1",
+          "jsr:@skmtc/core@0.22.0",
           "jsr:@skmtc/gen-tanstack-query-supabase-zod@0.2.1",
           "jsr:@skmtc/gen-typescript@0.2.1",
           "jsr:@skmtc/gen-zod@0.2.1",
-          "jsr:@skmtc/lang-typescript@0.10.4"
+          "jsr:@skmtc/lang-typescript@0.11.0"
         ]
       },
       "gen-shadcn-table": {
         "dependencies": [
-          "jsr:@skmtc/core@0.16.1",
+          "jsr:@skmtc/core@0.22.0",
           "jsr:@skmtc/gen-tanstack-query-supabase-zod@0.2.1",
           "jsr:@skmtc/gen-typescript@0.2.1",
           "jsr:@skmtc/gen-zod@0.2.1",
-          "jsr:@skmtc/lang-typescript@0.10.4"
+          "jsr:@skmtc/lang-typescript@0.11.0"
         ]
       },
       "gen-supabase-hono": {
         "dependencies": [
-          "jsr:@skmtc/core@0.16.1",
+          "jsr:@skmtc/core@0.22.0",
           "jsr:@skmtc/gen-typescript@0.2.1",
           "jsr:@skmtc/gen-zod@0.2.1",
-          "jsr:@skmtc/lang-typescript@0.10.4"
+          "jsr:@skmtc/lang-typescript@0.11.0"
         ]
       },
       "gen-tanstack-query-fetch-zod": {
         "dependencies": [
-          "jsr:@skmtc/core@0.16.1",
+          "jsr:@skmtc/core@0.22.0",
           "jsr:@skmtc/gen-typescript@0.2.1",
           "jsr:@skmtc/gen-zod@0.2.1",
-          "jsr:@skmtc/lang-typescript@0.10.4"
+          "jsr:@skmtc/lang-typescript@0.11.0"
         ]
       },
       "gen-tanstack-query-supabase-zod": {
         "dependencies": [
-          "jsr:@skmtc/core@0.16.1",
+          "jsr:@skmtc/core@0.22.0",
           "jsr:@skmtc/gen-typescript@0.2.1",
           "jsr:@skmtc/gen-zod@0.2.1",
-          "jsr:@skmtc/lang-typescript@0.10.4"
+          "jsr:@skmtc/lang-typescript@0.11.0"
         ]
       },
       "gen-typescript": {
         "dependencies": [
-          "jsr:@skmtc/core@0.16.1",
-          "jsr:@skmtc/lang-typescript@0.10.4"
+          "jsr:@skmtc/core@0.22.0",
+          "jsr:@skmtc/lang-typescript@0.11.0"
         ]
       },
       "gen-typescript-s": {
         "dependencies": [
-          "jsr:@skmtc/core@0.16.1",
-          "jsr:@skmtc/lang-typescript@0.10.4",
+          "jsr:@skmtc/core@0.22.0",
+          "jsr:@skmtc/lang-typescript@0.11.0",
           "jsr:@std/path@^1.1.2",
           "npm:ts-pattern@^5.8.0",
           "npm:valibot@1.1.0"
@@ -320,8 +320,8 @@
       },
       "gen-typescript-sdk": {
         "dependencies": [
-          "jsr:@skmtc/core@0.16.1",
-          "jsr:@skmtc/lang-typescript@0.10.4",
+          "jsr:@skmtc/core@0.22.0",
+          "jsr:@skmtc/lang-typescript@0.11.0",
           "jsr:@std/path@^1.0.9",
           "npm:tiny-invariant@1.3.3",
           "npm:ts-pattern@^5.8.0",
@@ -330,14 +330,14 @@
       },
       "gen-valibot": {
         "dependencies": [
-          "jsr:@skmtc/core@0.16.1",
-          "jsr:@skmtc/lang-typescript@0.10.4"
+          "jsr:@skmtc/core@0.22.0",
+          "jsr:@skmtc/lang-typescript@0.11.0"
         ]
       },
       "gen-zod": {
         "dependencies": [
-          "jsr:@skmtc/core@0.16.1",
-          "jsr:@skmtc/lang-typescript@0.10.4"
+          "jsr:@skmtc/core@0.22.0",
+          "jsr:@skmtc/lang-typescript@0.11.0"
         ]
       }
     }
