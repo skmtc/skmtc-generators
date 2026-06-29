@@ -22,6 +22,9 @@ export type ApiMethodArgs = {
   /** Request-body type name, when the operation has a body. */
   bodyType: string | undefined
   pagination: Pagination | undefined
+  /** Binary-download success response: returns the global `Response`, sends an
+   *  `application/binary` Accept header + `__binaryResponse: true`, no named type. */
+  binaryResponse: boolean | undefined
   /** Optional attribution (gen-maps) inputs. */
   generatorKey?: GeneratorKey
   stackTrail?: StackTrail
@@ -60,12 +63,23 @@ export class ApiMethod extends TsSnippet {
       this.body = `return this._client.getAPIList(${args.pathExpression}, Page<${args.pagination.itemType}>, { ...options, __security: { bearerAuth: true } });`
     } else {
       this.register({ imports: { '@/core/api-promise': ['APIPromise'] }, destinationPath })
+      if (args.binaryResponse) {
+        this.register({ imports: { '@/internal/headers': ['buildHeaders'] }, destinationPath })
+      }
       this.parameters = args.bodyType
         ? [...args.pathParameters, `body: ${args.bodyType}`, 'options?: RequestOptions']
         : [...args.pathParameters, 'options?: RequestOptions']
-      const payload = args.bodyType
-        ? '{ body, ...options, __security: { bearerAuth: true } }'
-        : '{ ...options, __security: { bearerAuth: true } }'
+      const payload = `{ ${[
+        args.bodyType ? 'body' : undefined,
+        '...options',
+        args.binaryResponse
+          ? "headers: buildHeaders([{ Accept: 'application/binary' }, options?.headers])"
+          : undefined,
+        '__security: { bearerAuth: true }',
+        args.binaryResponse ? '__binaryResponse: true' : undefined
+      ]
+        .filter(Boolean)
+        .join(', ')} }`
       this.returnType = `APIPromise<${args.responseType}>`
       this.body = `return this._client.${args.httpMethod}(${args.pathExpression}, ${payload});`
     }

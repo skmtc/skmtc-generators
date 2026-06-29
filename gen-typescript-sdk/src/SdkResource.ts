@@ -124,7 +124,7 @@ export class SdkResource extends SdkResourceBase {
   }
 
   append(operation: OasOperation, subject: NonNullable<EnrichmentSchema['subject']>): void {
-    const { methodName, paginated, responseTypeName, bodyTypeName } = subject
+    const { methodName, paginated, responseTypeName, bodyTypeName, binaryResponse } = subject
     const className = this.settings.identifier.name
     this.#ensureNamespace(className)
 
@@ -161,7 +161,10 @@ export class SdkResource extends SdkResourceBase {
       itemTypeBox.name = itemType
       paginationInfo = { pageName, itemType }
     } else {
-      if (successSchema) {
+      if (binaryResponse) {
+        // A binary download — the global `Response`, no co-located schema type.
+        responseType = 'Response'
+      } else if (successSchema) {
         responseType = this.#trackSchema(
           this.insertNormalizedModel(TsProjection, {
             schema: successSchema,
@@ -191,7 +194,8 @@ export class SdkResource extends SdkResourceBase {
       description: operation.description,
       responseType,
       bodyType,
-      pagination: paginationInfo
+      pagination: paginationInfo,
+      binaryResponse
     })
 
     this.#methods.push({

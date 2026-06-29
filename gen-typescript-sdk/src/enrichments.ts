@@ -32,7 +32,10 @@ const subjectEnrichmentSchema = v.optional(
     // schema (no `$ref` to rename) still lands as `BatchCreateParams` /
     // `ModerationCreateResponse` instead of the generic `<Class>Params/Response`.
     responseTypeName: v.optional(v.string()),
-    bodyTypeName: v.optional(v.string())
+    bodyTypeName: v.optional(v.string()),
+    // A binary download (the reference returns the global `Response`). Emits an
+    // `application/binary` Accept header + `__binaryResponse: true`, no named type.
+    binaryResponse: v.optional(v.boolean())
   })
 )
 
