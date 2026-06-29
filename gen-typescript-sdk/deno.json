@@ -1,6 +1,6 @@
 {
   "name": "@skmtc/gen-typescript-sdk",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "exports": "./mod.ts",
   "tasks": {
     "test": "deno test --allow-env --allow-sys --allow-read",

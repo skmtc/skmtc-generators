@@ -12,7 +12,8 @@ import {
   createType,
   createInterface,
   createNamespace,
-  defineAndRegister
+  defineAndRegister,
+  withDescription
 } from '@skmtc/lang-typescript'
 import { TsProjection } from '@skmtc/gen-typescript-s'
 import { SdkResourceBase } from './base.ts'
@@ -150,13 +151,19 @@ export class SdkResource extends SdkResourceBase {
 
     if (usesParamsObject) {
       const lastName = pathParamList[pathParamList.length - 1].name
-      const earlierNames = pathParamList.slice(0, -1).map(({ name }) => name)
+      const earlierParams = pathParamList.slice(0, -1)
+      const earlierNames = earlierParams.map(({ name }) => name)
       const paramsTypeName = `${className}${capitalize(methodName)}Params`
 
       this.#trackSchema(paramsTypeName)
       defineAndRegister(this.context, {
         identifier: createInterface(paramsTypeName),
-        value: `{\n${earlierNames.map(name => `${name}: string;`).join('\n\n')}\n}`,
+        value: `{\n${earlierParams
+          .map(param => {
+            const field = `${param.name}: string;`
+            return param.description ? withDescription(field, { description: param.description }) : field
+          })
+          .join('\n\n')}\n}`,
         destinationPath: this.settings.exportPath
       })
 
