@@ -126,7 +126,6 @@ export class SdkResource extends SdkResourceBase {
   append(operation: OasOperation, subject: NonNullable<EnrichmentSchema['subject']>): void {
     const { methodName, paginated, responseTypeName, bodyTypeName, binaryResponse } = subject
     const className = this.settings.identifier.name
-    this.#ensureNamespace(className)
 
     const { expression: pathExpression, hasParams } = toClientPath(operation.path)
     const pathParameters = operation.toParams(['path']).map(({ name }) => `${toParamName(name)}: string`)
@@ -212,15 +211,17 @@ export class SdkResource extends SdkResourceBase {
 
   /**
    * Register the `declare namespace` re-export once — a same-name companion of
-   * the class. `TsFile` renders companions after the primaries, so it lands last
-   * regardless of when it is registered.
+   * the class. Called LAZILY (from {@link #trackSchema} / {@link #ensurePageAlias}),
+   * so a resource with no co-located types (e.g. a binary-download-only resource)
+   * gets no empty `declare namespace`. `TsFile` renders companions after the
+   * primaries, so it lands last regardless of when it is registered.
    */
-  #ensureNamespace(className: string): void {
+  #ensureNamespace(): void {
     if (this.#namespaceRegistered) return
     this.#namespaceRegistered = true
 
     defineAndRegister(this.context, {
-      identifier: createNamespace(className),
+      identifier: createNamespace(this.settings.identifier.name),
       value: new NamespaceReExport({
         context: this.context,
         generatorKey: this.generatorKey,
@@ -237,6 +238,7 @@ export class SdkResource extends SdkResourceBase {
 
   /** Record a co-located schema name in first-seen order; returns it. */
   #trackSchema(name: string): string {
+    this.#ensureNamespace()
     if (!this.#schemaNames.includes(name)) this.#schemaNames.push(name)
     return name
   }
@@ -244,6 +246,7 @@ export class SdkResource extends SdkResourceBase {
   /** The `export type <Resource>Page = Page<Item>` alias, once per resource. */
   #ensurePageAlias(pageName: string, itemType: { name: string }): void {
     if (this.#pageNames.includes(pageName)) return
+    this.#ensureNamespace()
     this.#pageNames.push(pageName)
 
     defineAndRegister(this.context, {
