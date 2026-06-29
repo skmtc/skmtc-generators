@@ -1,5 +1,5 @@
 import * as v from 'valibot'
-import { moduleExport } from '@skmtc/core'
+import { moduleExport, schemaPath } from '@skmtc/core'
 
 // Per-field override carried by the form's `fields[]` enrichment.
 // `id` matches the field's argument/property name; everything else
@@ -7,7 +7,7 @@ import { moduleExport } from '@skmtc/core'
 // reference protocol — see gen-shadcn-select.
 export const formFieldItem = v.object({
   id: v.string(),
-  accessorPath: v.optional(v.array(v.string())),
+  schemaPath: v.optional(schemaPath),
   input: v.optional(moduleExport),
   label: v.optional(v.string()),
   placeholder: v.optional(v.string()),
