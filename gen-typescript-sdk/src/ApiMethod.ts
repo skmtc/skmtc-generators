@@ -25,6 +25,10 @@ export type ApiMethodArgs = {
   /** Binary-download success response: returns the global `Response`, sends an
    *  `application/binary` Accept header + `__binaryResponse: true`, no named type. */
   binaryResponse: boolean | undefined
+  /** Leading `const { … } = params;` for the params-object pattern (≥2 path
+   *  params): the parent path params arrive via a `params` object and are
+   *  destructured before the call. Prepended to the method body. */
+  destructure: string | undefined
   /** Optional attribution (gen-maps) inputs. */
   generatorKey?: GeneratorKey
   stackTrail?: StackTrail
@@ -82,6 +86,10 @@ export class ApiMethod extends TsSnippet {
         .join(', ')} }`
       this.returnType = `APIPromise<${args.responseType}>`
       this.body = `return this._client.${args.httpMethod}(${args.pathExpression}, ${payload});`
+    }
+
+    if (args.destructure) {
+      this.body = `${args.destructure}\n${this.body}`
     }
   }
 }

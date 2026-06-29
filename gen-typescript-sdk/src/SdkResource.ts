@@ -1,4 +1,4 @@
-import { SnippetBase } from '@skmtc/core'
+import { SnippetBase, capitalize } from '@skmtc/core'
 import type {
   OasOperationProjectionConstructorArgs,
   OasOperation,
@@ -10,6 +10,7 @@ import {
   TsHeritage,
   TsMethod,
   createType,
+  createInterface,
   createNamespace,
   defineAndRegister
 } from '@skmtc/lang-typescript'
@@ -127,9 +128,6 @@ export class SdkResource extends SdkResourceBase {
     const { methodName, paginated, responseTypeName, bodyTypeName, binaryResponse } = subject
     const className = this.settings.identifier.name
 
-    const { expression: pathExpression, hasParams } = toClientPath(operation.path)
-    const pathParameters = operation.toParams(['path']).map(({ name }) => `${toParamName(name)}: string`)
-
     const successSchema = operation.toSuccessResponse()?.resolve().toSchema()
     const requestBody = operation.toRequestBody(({ schema }) => schema)
     // Pagination is an SDK-config fact (the `paginated` enrichment), not a
@@ -137,6 +135,46 @@ export class SdkResource extends SdkResourceBase {
     // we KNOW the method paginates. A `{ object: 'list', data: [] }` response is
     // not enough (e.g. `embeddings.create` has it but is a plain `post`).
     const pagination = paginated && successSchema ? toPagination(successSchema) : undefined
+
+    // Params-object pattern (Stainless): with ≥2 path params, the LAST is a
+    // positional arg and the parent path params arrive via a synthesized
+    // `<Class><Method>Params` interface, destructured before the call. (The
+    // body/pagination params-object variants come later — this is the no-body case.)
+    const pathParamList = operation.toParams(['path'])
+    const usesParamsObject = pathParamList.length >= 2 && !requestBody && !pagination
+
+    let pathExpression: string
+    let hasParams: boolean
+    let pathParameters: string[]
+    let destructure: string | undefined
+
+    if (usesParamsObject) {
+      const lastName = pathParamList[pathParamList.length - 1].name
+      const earlierNames = pathParamList.slice(0, -1).map(({ name }) => name)
+      const paramsTypeName = `${className}${capitalize(methodName)}Params`
+
+      this.#trackSchema(paramsTypeName)
+      defineAndRegister(this.context, {
+        identifier: createInterface(paramsTypeName),
+        value: `{\n${earlierNames.map(name => `${name}: string;`).join('\n\n')}\n}`,
+        destinationPath: this.settings.exportPath
+      })
+
+      // The last path param is camelCased (positional); the parent params keep
+      // their raw names — they are the `params` object's keys.
+      const template = operation.path.replace(/\{([^}]+)\}/g, (_match, name) =>
+        '${' + (name === lastName ? toParamName(name) : name) + '}'
+      )
+      pathExpression = 'path`' + template + '`'
+      hasParams = true
+      pathParameters = [`${toParamName(lastName)}: string`, `params: ${paramsTypeName}`]
+      destructure = `const { ${earlierNames.join(', ')} } = params;`
+    } else {
+      const clientPath = toClientPath(operation.path)
+      pathExpression = clientPath.expression
+      hasParams = clientPath.hasParams
+      pathParameters = pathParamList.map(({ name }) => `${toParamName(name)}: string`)
+    }
 
     let responseType = 'void'
     let bodyType: string | undefined
@@ -194,7 +232,8 @@ export class SdkResource extends SdkResourceBase {
       responseType,
       bodyType,
       pagination: paginationInfo,
-      binaryResponse
+      binaryResponse,
+      destructure
     })
 
     this.#methods.push({
