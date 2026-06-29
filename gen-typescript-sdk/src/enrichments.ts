@@ -26,7 +26,13 @@ const subjectEnrichmentSchema = v.optional(
     resource: v.string(),
     methodName: v.string(),
     resourceDescription: v.optional(v.string()),
-    paginated: v.optional(v.boolean())
+    paginated: v.optional(v.boolean()),
+    // The Stainless type names for the success-response/item and request-body
+    // schemas — used as the `insertNormalizedModel` fallback name so an INLINE
+    // schema (no `$ref` to rename) still lands as `BatchCreateParams` /
+    // `ModerationCreateResponse` instead of the generic `<Class>Params/Response`.
+    responseTypeName: v.optional(v.string()),
+    bodyTypeName: v.optional(v.string())
   })
 )
 

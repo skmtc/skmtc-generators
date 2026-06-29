@@ -123,7 +123,8 @@ export class SdkResource extends SdkResourceBase {
     }
   }
 
-  append(operation: OasOperation, methodName: string, paginated: boolean | undefined): void {
+  append(operation: OasOperation, subject: NonNullable<EnrichmentSchema['subject']>): void {
+    const { methodName, paginated, responseTypeName, bodyTypeName } = subject
     const className = this.settings.identifier.name
     this.#ensureNamespace(className)
 
@@ -154,7 +155,7 @@ export class SdkResource extends SdkResourceBase {
       const itemType = this.#trackSchema(
         this.insertNormalizedModel(TsProjection, {
           schema: pagination.itemSchema,
-          fallbackName: `${className}Item`
+          fallbackName: responseTypeName ?? `${className}Item`
         }).identifier.name
       )
       itemTypeBox.name = itemType
@@ -164,7 +165,7 @@ export class SdkResource extends SdkResourceBase {
         responseType = this.#trackSchema(
           this.insertNormalizedModel(TsProjection, {
             schema: successSchema,
-            fallbackName: `${className}Response`
+            fallbackName: responseTypeName ?? `${className}Response`
           }).identifier.name
         )
       }
@@ -172,7 +173,7 @@ export class SdkResource extends SdkResourceBase {
         bodyType = this.#trackSchema(
           this.insertNormalizedModel(TsProjection, {
             schema: requestBody,
-            fallbackName: `${className}Params`
+            fallbackName: bodyTypeName ?? `${className}Params`
           }).identifier.name
         )
       }
