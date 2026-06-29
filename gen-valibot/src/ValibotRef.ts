@@ -1,12 +1,7 @@
-import { ContentBase, camelCase, decapitalize } from '@skmtc/core'
+import { camelCase, decapitalize } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
 import { applyModifiers } from './applyModifiers.ts'
-import type {
-  GenerateContextType,
-  GeneratorKey,
-  RefName,
-  Modifiers,
-  TypeSystemValue
-} from '@skmtc/core'
+import type { GenerateContextType, GeneratorKey, RefName, Modifiers, OasRef, OasSchema, TypeSystemValue } from '@skmtc/core'
 
 type ValibotRefArgs = {
   context: GenerateContextType
@@ -15,9 +10,11 @@ type ValibotRefArgs = {
   modifiers: Modifiers
   generatorKey: GeneratorKey
   rootRef?: RefName
+  /** The originating ref schema node — for fine-grained attribution. */
+  schema?: OasSchema | OasRef<'schema'>
 }
 
-export class ValibotRef extends ContentBase {
+export class ValibotRef extends TsSnippet {
   type = 'ref' as const
   name: string
   refName: RefName
@@ -31,9 +28,10 @@ export class ValibotRef extends ContentBase {
     destinationPath,
     modifiers,
     generatorKey,
-    rootRef
+    rootRef,
+    schema
   }: ValibotRefArgs) {
-    super({ context, generatorKey })
+    super({ context, generatorKey, stackTrail: schema?.stackTrail.clone() })
 
     this.name = decapitalize(camelCase(refName))
     this.refName = refName
@@ -41,7 +39,7 @@ export class ValibotRef extends ContentBase {
     this.destinationPath = destinationPath
     this.rootRef = rootRef
 
-    context.register({ imports: { valibot: [{ '*': 'v' }] }, destinationPath })
+    this.register({ imports: { valibot: [{ '*': 'v' }] }, destinationPath })
   }
 
   override toString(): string {

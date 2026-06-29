@@ -1,4 +1,4 @@
-import { ContentBase } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
 import type { GeneratorKey, GenerateContextType } from '@skmtc/core'
 
 type ValibotNullArgs = {
@@ -7,13 +7,13 @@ type ValibotNullArgs = {
   generatorKey: GeneratorKey
 }
 
-export class ValibotNull extends ContentBase {
+export class ValibotNull extends TsSnippet {
   type = 'null' as const
 
   constructor({ context, generatorKey, destinationPath }: ValibotNullArgs) {
     super({ context, generatorKey })
 
-    context.register({ imports: { valibot: [{ '*': 'v' }] }, destinationPath })
+    this.register({ imports: { valibot: [{ '*': 'v' }] }, destinationPath })
   }
 
   override toString(): string {

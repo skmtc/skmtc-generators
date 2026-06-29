@@ -1,4 +1,4 @@
-import { ContentBase } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
 import { applyModifiers } from './applyModifiers.ts'
 import type { Modifiers, GeneratorKey, GenerateContextType, OasInteger } from '@skmtc/core'
 
@@ -10,17 +10,17 @@ type ArktypeIntegerArgs = {
   generatorKey: GeneratorKey
 }
 
-export class ArktypeInteger extends ContentBase {
+export class ArktypeInteger extends TsSnippet {
   type = 'integer' as const
   format: string | undefined
   modifiers: Modifiers
   
   constructor({ context, integerSchema, generatorKey, destinationPath, modifiers }: ArktypeIntegerArgs) {
-    super({ context, generatorKey })
+    super({ context, generatorKey, stackTrail: integerSchema.stackTrail.clone() })
     
     this.format = integerSchema.format
     this.modifiers = modifiers
-    context.register({ imports: { arktype: ['type'] }, destinationPath })
+    this.register({ imports: { arktype: ['type'] }, destinationPath })
   }
 
   override toString(): string {

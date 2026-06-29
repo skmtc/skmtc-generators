@@ -1,18 +1,23 @@
-import { Identifier, toOperationBase } from '@skmtc/core'
+import { toTsOasOperationProjectionBase } from '@skmtc/lang-typescript'
 import { join } from '@std/path'
 import { toFirstSegment } from './toFirstSegment.ts'
+import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
-export const ExpressAppBase = toOperationBase({
+export const ExpressAppBase = toTsOasOperationProjectionBase<EnrichmentSchema>({
   id: denoJson.name,
 
-  toIdentifier(): Identifier {
-    return Identifier.createVariable('app')
+  toIdentifierName(): string {
+    return 'app'
   },
 
-  toExportPath(operation): string {
+  toIdentifierType: () => ({ type: 'variable' }),
+
+  toExportPath({ operation, enrichments }): string {
     const firstSegment = toFirstSegment(operation)
 
     return join('@', `${firstSegment}`, `routes.generated.ts`)
-  }
+  },
+
+  toEnrichmentSchema
 })

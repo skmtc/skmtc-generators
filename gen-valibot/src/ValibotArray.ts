@@ -1,26 +1,20 @@
-import { ContentBase } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
 import { toValibotValue } from './Valibot.ts'
 import { applyModifiers } from './applyModifiers.ts'
-import type {
-  GenerateContextType,
-  GeneratorKey,
-  RefName,
-  TypeSystemValue,
-  Modifiers,
-  OasRef,
-  OasSchema
-} from '@skmtc/core'
+import type { GenerateContextType, GeneratorKey, RefName, TypeSystemValue, Modifiers, OasRef, OasSchema } from '@skmtc/core'
 
 type ValibotArrayArgs = {
   context: GenerateContextType
   destinationPath: string
   items: OasSchema | OasRef<'schema'>
+  /** The originating array schema node — for fine-grained attribution. */
+  schema?: OasSchema | OasRef<'schema'>
   modifiers: Modifiers
   generatorKey: GeneratorKey
   rootRef?: RefName
 }
 
-export class ValibotArray extends ContentBase {
+export class ValibotArray extends TsSnippet {
   type = 'array' as const
   items: TypeSystemValue
   modifiers: Modifiers
@@ -31,9 +25,10 @@ export class ValibotArray extends ContentBase {
     destinationPath,
     items,
     modifiers,
-    rootRef
+    rootRef,
+    schema
   }: ValibotArrayArgs) {
-    super({ context, generatorKey })
+    super({ context, generatorKey, stackTrail: schema?.stackTrail.clone() })
 
     this.modifiers = modifiers
 
@@ -45,7 +40,7 @@ export class ValibotArray extends ContentBase {
       rootRef
     })
 
-    context.register({ imports: { valibot: [{ '*': 'v' }] }, destinationPath })
+    this.register({ imports: { valibot: [{ '*': 'v' }] }, destinationPath })
   }
 
   override toString(): string {

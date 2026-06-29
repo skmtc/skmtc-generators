@@ -1,4 +1,4 @@
-import { ContentBase } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
 import { match, P } from 'ts-pattern'
 import { applyModifiers } from './applyModifiers.ts'
 import type { Modifiers, GeneratorKey, GenerateContextType, OasString } from '@skmtc/core'
@@ -11,20 +11,20 @@ type ArktypeStringArgs = {
   generatorKey: GeneratorKey
 }
 
-export class ArktypeString extends ContentBase {
+export class ArktypeString extends TsSnippet {
   type = 'string' as const
   format: string | undefined
   enums: string[] | (string | null)[] | undefined
   modifiers: Modifiers
   
   constructor({ context, stringSchema, generatorKey, destinationPath, modifiers }: ArktypeStringArgs) {
-    super({ context, generatorKey })
+    super({ context, generatorKey, stackTrail: stringSchema.stackTrail.clone() })
 
     this.enums = stringSchema.enums
     this.format = stringSchema.format
     this.modifiers = modifiers
 
-    context.register({ imports: { arktype: ['type'] }, destinationPath })
+    this.register({ imports: { arktype: ['type'] }, destinationPath })
   }
 
   override toString(): string {

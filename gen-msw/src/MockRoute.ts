@@ -1,7 +1,8 @@
-import { type OperationInsertableArgs, type TypeSystemValue, collateExamples } from '@skmtc/core'
+import { type OasOperationProjectionConstructorArgs, type TypeSystemValue, collateExamples } from '@skmtc/core'
 import { MswBase } from './base.ts'
 import { isEmpty } from '@skmtc/core'
 import { toTsValue, TsNever } from '@skmtc/gen-typescript'
+import type { EnrichmentSchema } from './enrichments.ts'
 
 export class MockRoute extends MswBase {
   responseData: unknown
@@ -9,7 +10,7 @@ export class MockRoute extends MswBase {
   responseType: TypeSystemValue
   pathParamsType: TypeSystemValue
 
-  constructor({ context, operation, settings }: OperationInsertableArgs) {
+  constructor({ context, operation, settings }: OasOperationProjectionConstructorArgs<EnrichmentSchema>) {
     super({ context, operation, settings })
 
     const response = operation.toSuccessResponse()?.resolve().content?.['application/json']

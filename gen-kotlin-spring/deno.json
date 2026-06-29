@@ -1,0 +1,14 @@
+{
+  "name": "@skmtc/gen-kotlin-spring",
+  "version": "0.4.1",
+  "exports": "./mod.ts",
+  "tasks": {
+    "test": "deno test --allow-env --allow-sys --allow-read",
+    "publish": "JSR_URL=https://jsr.skmtc.co.uk/ deno publish --allow-slow-types --allow-dirty --token=$JSR_AUTH_TOKEN"
+  },
+  "imports": {
+    "@skmtc/core": "jsr:@skmtc/core@0.22.0",
+    "@skmtc/lang-kotlin": "jsr:@skmtc/lang-kotlin@0.9.0",
+    "@skmtc/gen-kotlin-kotlinx": "jsr:@skmtc/gen-kotlin-kotlinx@0.2.1"
+  }
+}

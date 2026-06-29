@@ -1,32 +1,35 @@
-import { toOperationEntry } from '@skmtc/core'
+import { toOasOperationEntry } from '@skmtc/core'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import { isListResponse } from '@skmtc/gen-tanstack-query-supabase-zod'
 import { ShadcnSelectField } from './ShadcnSelectField.ts'
 import { ShadcnSelectApiBase } from './base.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
-export const ShadcnSelectApiEntry = toOperationEntry<EnrichmentSchema>({
+export const ShadcnSelectApiEntry = toOasOperationEntry<EnrichmentSchema>({
   id: denoJson.name,
 
   toEnrichmentSchema,
 
   isSupported: ({ operation }) => operation.method === 'get' && isListResponse(operation),
 
-  transform: ({ context, operation }) => {
-    context.insertOperation(ShadcnSelectField, operation)
+  transform: ({ context, operation, variant }) => {
+    context.insertOperation({ projection: ShadcnSelectField, operation, variant })
   },
 
-  toPreviewModule: ({ operation }) => ({
-    name: ShadcnSelectApiBase.toIdentifier(operation).name,
-    exportPath: ShadcnSelectApiBase.toExportPath(operation),
-    group: 'inputs'
-  }),
+  toPreviewModule: ({ context, operation, variant }) => {
+    const enrichments = ShadcnSelectApiBase.toEnrichments({ operation, context, variant })
+    return {
+      name: ShadcnSelectApiBase.toIdentifierName({ operation, enrichments, variant }),
+      exportPath: ShadcnSelectApiBase.toExportPath({ operation, enrichments, variant })
+    }
+  },
 
-  toMappingModule: ({ operation }) => ({
-    name: ShadcnSelectField.toIdentifier(operation).name,
-    exportPath: ShadcnSelectField.toExportPath(operation),
-    group: 'inputs',
-    itemType: 'input',
-    schema: 'string'
-  })
+  toMappingModule: ({ context, operation, variant }) => {
+    const enrichments = ShadcnSelectField.toEnrichments({ operation, context, variant })
+    return {
+      name: ShadcnSelectField.toIdentifierName({ operation, enrichments, variant }),
+      exportPath: ShadcnSelectField.toExportPath({ operation, enrichments, variant }),
+      schema: 'string'
+    }
+  }
 })

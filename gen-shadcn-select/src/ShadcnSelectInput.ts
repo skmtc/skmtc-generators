@@ -1,11 +1,12 @@
+import { FunctionParameter, createVariable } from '@skmtc/lang-typescript'
 import invariant from 'tiny-invariant'
-import type { OperationInsertableArgs } from '@skmtc/core'
+import type { OasOperationProjectionConstructorArgs } from '@skmtc/core'
 import { TanstackQuery, toListKeyAndItem } from '@skmtc/gen-tanstack-query-supabase-zod'
 import { ShadcnSelectApiBase } from './base.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
 import { PathParams } from './PathParams.ts'
-import { CustomValue, FunctionParameter, Identifier } from '@skmtc/core'
-import { TsInsertable } from '@skmtc/gen-typescript'
+import { CustomValue } from '@skmtc/core'
+import { TsProjection } from '@skmtc/gen-typescript'
 import { InputOption } from './InputOption.ts'
 export class ShadcnSelectInput extends ShadcnSelectApiBase {
   clientName: string
@@ -15,7 +16,7 @@ export class ShadcnSelectInput extends ShadcnSelectApiBase {
   itemName: string
   listKey: string
 
-  constructor({ context, operation, settings }: OperationInsertableArgs<EnrichmentSchema>) {
+  constructor({ context, operation, settings }: OasOperationProjectionConstructorArgs<EnrichmentSchema>) {
     super({ context, operation, settings })
 
     const { schema, key } = toListKeyAndItem(operation)
@@ -34,8 +35,8 @@ export class ShadcnSelectInput extends ShadcnSelectApiBase {
     this.option = new InputOption({
       context,
       itemName: this.itemName,
-      formatter: settings.enrichments?.input.formatter,
-      accessorPath: settings.enrichments?.input.accessorPath ?? [],
+      formatter: settings.enrichments.subject?.input.formatter,
+      accessorPath: settings.enrichments.subject?.input.accessorPath ?? [],
       destinationPath: settings.exportPath
     })
 
@@ -57,7 +58,7 @@ export class ShadcnSelectInput extends ShadcnSelectApiBase {
         required: false
       })
 
-    const typeDefinition = this.insertNormalizedModel(TsInsertable, {
+    const typeDefinition = this.insertNormalizedModel(TsProjection, {
       schema: inputPropsSchema,
       fallbackName: `${settings.identifier.name}Props`
     })
@@ -69,7 +70,7 @@ export class ShadcnSelectInput extends ShadcnSelectApiBase {
       operation,
       settings: {
         ...settings,
-        identifier: Identifier.createVariable('pathParams')
+        identifier: createVariable('pathParams')
       }
     })
 

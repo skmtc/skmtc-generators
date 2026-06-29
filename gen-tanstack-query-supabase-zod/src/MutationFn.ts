@@ -1,19 +1,12 @@
 // @deno-types="npm:@types/babel__helper-validator-identifier@7.15.2"
 import { isIdentifierName } from 'npm:@babel/helper-validator-identifier@7.22.20'
-import {
-  capitalize,
-  handleKey,
-  List,
-  FunctionParameter,
-  toPathTemplate,
-  camelCase,
-  OasVoid,
-  decapitalize
-} from '@skmtc/core'
-import type { OperationInsertableArgs, ListObject, Stringable } from '@skmtc/core'
-import { TsInsertable } from '@skmtc/gen-typescript'
+import { handleKey, List, FunctionParameter, toPathTemplate, type ListObject } from '@skmtc/lang-typescript'
+import { capitalize, camelCase, OasVoid, decapitalize } from '@skmtc/core'
+import type { OasOperationProjectionConstructorArgs, Stringable } from '@skmtc/core'
+import { TsProjection } from '@skmtc/gen-typescript'
 import { TanstackQueryBase } from './base.ts'
-import { ZodInsertable } from '@skmtc/gen-zod'
+import type { EnrichmentSchema } from './enrichments.ts'
+import { ZodProjection } from '@skmtc/gen-zod'
 
 export class MutationFn extends TanstackQueryBase {
   parameter: FunctionParameter
@@ -23,7 +16,7 @@ export class MutationFn extends TanstackQueryBase {
   headerParams: ListObject<Stringable>
   tsArgsName: string
 
-  constructor({ context, operation, settings }: OperationInsertableArgs) {
+  constructor({ context, operation, settings }: OasOperationProjectionConstructorArgs<EnrichmentSchema>) {
     super({ context, operation, settings })
 
     this.queryParamArgs = List.toObject(operation.toParams(['query']).map(({ name }) => name))
@@ -40,7 +33,7 @@ export class MutationFn extends TanstackQueryBase {
       return parametersObject.addProperty({ name: 'body', schema, required: true })
     })
 
-    const typeDefinition = this.insertNormalizedModel(TsInsertable, {
+    const typeDefinition = this.insertNormalizedModel(TsProjection, {
       schema: parametersWithBody ?? parametersObject,
       fallbackName: `${capitalize(settings.identifier.name)}Args`
     })
@@ -54,14 +47,14 @@ export class MutationFn extends TanstackQueryBase {
       skipEmpty: true
     })
 
-    const zodResponse = this.insertNormalizedModel(ZodInsertable, {
+    const zodResponse = this.insertNormalizedModel(ZodProjection, {
       schema: operation.toSuccessResponse()?.resolve().toSchema() ?? OasVoid.empty(),
       fallbackName: `${decapitalize(settings.identifier.name)}Response`
     })
 
     this.zodResponseName = zodResponse.identifier.name
 
-    const tsResponse = this.insertNormalizedModel(TsInsertable, {
+    const tsResponse = this.insertNormalizedModel(TsProjection, {
       schema: operation.toSuccessResponse()?.resolve().toSchema() ?? OasVoid.empty(),
       fallbackName: `${capitalize(settings.identifier.name)}Response`
     })

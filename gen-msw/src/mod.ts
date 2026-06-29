@@ -1,13 +1,17 @@
-import { Identifier, toOperationEntry } from '@skmtc/core'
+import { toOasOperationEntry } from '@skmtc/core'
+import { defineAndRegister, createVariable } from '@skmtc/lang-typescript'
 import { MockRoute } from './MockRoute.ts'
 import { MockRoutesList } from './MockRoutesList.ts'
+import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
-export const MswEntry = toOperationEntry({
+export const MswEntry = toOasOperationEntry<EnrichmentSchema>({
   id: denoJson.name,
 
+  toEnrichmentSchema,
+
   transform: ({ context, operation }) => {
-    const insertedRoute = context.insertOperation(MockRoute, operation)
+    const insertedRoute = context.insertOperation({ projection: MockRoute, operation: operation })
 
     const { exportPath } = insertedRoute.settings
 
@@ -24,8 +28,8 @@ export const MswEntry = toOperationEntry({
       return
     }
 
-    const routesList = context.defineAndRegister({
-      identifier: Identifier.createVariable('toRoutesList'),
+    const routesList = defineAndRegister(context, {
+      identifier: createVariable('toRoutesList'),
       value: new MockRoutesList({ context }),
       destinationPath: exportPath
     })

@@ -1,144 +1,144 @@
-import { assertEquals } from 'jsr:@std/assert@^1.0.0'
-import { ZodRef } from '../../src/ZodRef.ts'
-import { RefName, StackTrail } from '@skmtc/core'
-import { toGenerateContext } from '../helpers/toGenerateContext.ts'
-import { toParseContext } from '../helpers/toParseContext.ts'
+import { assertEquals } from "jsr:@std/assert@^1.0.0";
+import { ZodRef } from "../../src/ZodRef.ts";
+import { RefName, StackTrail } from "@skmtc/core";
+import { toGenerateContext } from "../helpers/toGenerateContext.ts";
+import { toParseContext } from "../helpers/toParseContext.ts";
 
-Deno.test('ZodRef - basic reference', () => {
+Deno.test("ZodRef - basic reference", () => {
   const schemas = {
     User: {
-      type: 'object' as const,
+      type: "object" as const,
       properties: {
-        id: { type: 'string' as const }
+        id: { type: "string" as const },
       },
-      required: ['id']
-    }
-  }
+      required: ["id"],
+    },
+  };
 
-  const stackTrail = new StackTrail(['TEST'])
-  const parseContext = toParseContext({ schemas })
-  const oasDocument = parseContext.parse(stackTrail)
-  const context = toGenerateContext({ oasDocument })
+  const stackTrail = new StackTrail(["TEST"]);
+  const parseContext = toParseContext({ schemas });
+  const oasDocument = parseContext.parse(stackTrail);
+  const context = toGenerateContext({ oasDocument });
 
   const zodRef = new ZodRef({
     context,
-    refName: 'User' as RefName,
+    refName: "User" as RefName,
     modifiers: { required: true },
-    destinationPath: '/test'
-  })
+    destinationPath: "/test",
+  });
 
   // ZodRef will reference the schema by name
-  assertEquals(zodRef.constructor.name, 'ZodRef')
-})
+  assertEquals(zodRef.constructor.name, "ZodRef");
+});
 
-Deno.test('ZodRef - nullable reference', () => {
+Deno.test("ZodRef - nullable reference", () => {
   const schemas = {
     Product: {
-      type: 'object' as const,
+      type: "object" as const,
       properties: {
-        id: { type: 'string' as const }
+        id: { type: "string" as const },
       },
-      required: ['id']
-    }
-  }
+      required: ["id"],
+    },
+  };
 
-  const stackTrail = new StackTrail(['TEST'])
-  const parseContext = toParseContext({ schemas })
-  const oasDocument = parseContext.parse(stackTrail)
-  const context = toGenerateContext({ oasDocument })
+  const stackTrail = new StackTrail(["TEST"]);
+  const parseContext = toParseContext({ schemas });
+  const oasDocument = parseContext.parse(stackTrail);
+  const context = toGenerateContext({ oasDocument });
 
   const zodRef = new ZodRef({
     context,
-    refName: 'Product' as RefName,
+    refName: "Product" as RefName,
     modifiers: { required: true, nullable: true },
-    destinationPath: '/test'
-  })
+    destinationPath: "/test",
+  });
 
   // Check that it's a ZodRef instance
-  assertEquals(zodRef.constructor.name, 'ZodRef')
-})
+  assertEquals(zodRef.constructor.name, "ZodRef");
+});
 
-Deno.test('ZodRef - optional reference', () => {
+Deno.test("ZodRef - optional reference", () => {
   const schemas = {
     Category: {
-      type: 'object' as const,
+      type: "object" as const,
       properties: {
-        name: { type: 'string' as const }
+        name: { type: "string" as const },
       },
-      required: ['name']
-    }
-  }
+      required: ["name"],
+    },
+  };
 
-  const stackTrail = new StackTrail(['TEST'])
-  const parseContext = toParseContext({ schemas })
-  const oasDocument = parseContext.parse(stackTrail)
-  const context = toGenerateContext({ oasDocument })
+  const stackTrail = new StackTrail(["TEST"]);
+  const parseContext = toParseContext({ schemas });
+  const oasDocument = parseContext.parse(stackTrail);
+  const context = toGenerateContext({ oasDocument });
 
   const zodRef = new ZodRef({
     context,
-    refName: 'Category' as RefName,
+    refName: "Category" as RefName,
     modifiers: { required: false },
-    destinationPath: '/test'
-  })
+    destinationPath: "/test",
+  });
 
   // Check that it's a ZodRef instance
-  assertEquals(zodRef.constructor.name, 'ZodRef')
-})
+  assertEquals(zodRef.constructor.name, "ZodRef");
+});
 
-Deno.test('ZodRef - recursive reference', () => {
+Deno.test("ZodRef - recursive reference", () => {
   const schemas = {
     TreeNode: {
-      type: 'object' as const,
+      type: "object" as const,
       properties: {
-        value: { type: 'string' as const },
+        value: { type: "string" as const },
         children: {
-          type: 'array' as const,
-          items: { $ref: '#/components/schemas/TreeNode' }
-        }
+          type: "array" as const,
+          items: { $ref: "#/components/schemas/TreeNode" },
+        },
       },
-      required: ['value']
-    }
-  }
+      required: ["value"],
+    },
+  };
 
-  const stackTrail = new StackTrail(['TEST'])
-  const parseContext = toParseContext({ schemas })
-  const oasDocument = parseContext.parse(stackTrail)
-  const context = toGenerateContext({ oasDocument })
+  const stackTrail = new StackTrail(["TEST"]);
+  const parseContext = toParseContext({ schemas });
+  const oasDocument = parseContext.parse(stackTrail);
+  const context = toGenerateContext({ oasDocument });
 
   const zodRef = new ZodRef({
     context,
-    refName: 'TreeNode' as RefName,
+    refName: "TreeNode" as RefName,
     modifiers: { required: true },
-    destinationPath: '/test'
-  })
+    destinationPath: "/test",
+  });
 
   // Check that it's a ZodRef instance
-  assertEquals(zodRef.constructor.name, 'ZodRef')
-})
+  assertEquals(zodRef.constructor.name, "ZodRef");
+});
 
-Deno.test('ZodRef - camelCase reference name transformation', () => {
+Deno.test("ZodRef - camelCase reference name transformation", () => {
   const schemas = {
-    'user-profile': {
-      type: 'object' as const,
+    "user-profile": {
+      type: "object" as const,
       properties: {
-        name: { type: 'string' as const }
+        name: { type: "string" as const },
       },
-      required: ['name']
-    }
-  }
+      required: ["name"],
+    },
+  };
 
-  const stackTrail = new StackTrail(['TEST'])
-  const parseContext = toParseContext({ schemas })
-  const oasDocument = parseContext.parse(stackTrail)
-  const context = toGenerateContext({ oasDocument })
+  const stackTrail = new StackTrail(["TEST"]);
+  const parseContext = toParseContext({ schemas });
+  const oasDocument = parseContext.parse(stackTrail);
+  const context = toGenerateContext({ oasDocument });
 
   const zodRef = new ZodRef({
     context,
-    refName: 'user-profile' as RefName,
+    refName: "user-profile" as RefName,
     modifiers: { required: true },
-    destinationPath: '/test'
-  })
+    destinationPath: "/test",
+  });
 
   // Check that it's a ZodRef instance
-  assertEquals(zodRef.constructor.name, 'ZodRef')
-})
+  assertEquals(zodRef.constructor.name, "ZodRef");
+});

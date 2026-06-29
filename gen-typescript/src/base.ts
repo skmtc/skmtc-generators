@@ -1,19 +1,22 @@
-import { capitalize, decapitalize, Identifier, toModelBase, camelCase } from '@skmtc/core'
-import type { RefName } from '@skmtc/core'
+import { capitalize, decapitalize, camelCase } from '@skmtc/core'
+import { toTsModelProjectionBase } from '@skmtc/lang-typescript'
 import { join } from '@std/path'
+import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 
-export const TypescriptBase = toModelBase({
+export const TypescriptBase = toTsModelProjectionBase<EnrichmentSchema>({
   id: '@skmtc/gen-typescript',
 
-  toIdentifier(refName: RefName): Identifier {
-    const name = capitalize(camelCase(refName))
-
-    return Identifier.createType(name)
+  toIdentifierName({ refName }): string {
+    return capitalize(camelCase(refName))
   },
 
-  toExportPath(refName: RefName): string {
-    const { name } = this.toIdentifier(refName)
+  toIdentifierType: () => ({ type: 'type' }),
+
+  toExportPath({ refName, enrichments, variant }): string {
+    const name = this.toIdentifierName({ refName, enrichments, variant })
 
     return join('@', 'types', `${decapitalize(name)}.generated.ts`)
-  }
+  },
+
+  toEnrichmentSchema
 })

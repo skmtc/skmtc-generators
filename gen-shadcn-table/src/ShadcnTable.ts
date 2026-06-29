@@ -1,18 +1,18 @@
+import { createVariable } from '@skmtc/lang-typescript'
 import invariant from 'tiny-invariant'
-import type { OperationInsertableArgs } from '@skmtc/core'
+import type { OasOperationProjectionConstructorArgs } from '@skmtc/core'
 import { TanstackColumns } from './TanstackColumns.ts'
 import { TanstackQuery, toListKeyAndItem } from '@skmtc/gen-tanstack-query-supabase-zod'
 import { ShadcnTableBase } from './base.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
 import { PathParams } from './PathParams.ts'
-import { Identifier } from '@skmtc/core'
 
 export class ShadcnTable extends ShadcnTableBase {
   columnsName: string
   clientName: string
   pathParams: PathParams
   listKey: string
-  constructor({ context, operation, settings }: OperationInsertableArgs<EnrichmentSchema>) {
+  constructor({ context, operation, settings }: OasOperationProjectionConstructorArgs<EnrichmentSchema>) {
     super({ context, operation, settings })
 
     const { schema, key } = toListKeyAndItem(operation)
@@ -33,7 +33,7 @@ export class ShadcnTable extends ShadcnTableBase {
       operation,
       settings: {
         ...settings,
-        identifier: Identifier.createVariable('pathParams')
+        identifier: createVariable('pathParams')
       }
     })
 
@@ -45,7 +45,7 @@ export class ShadcnTable extends ShadcnTableBase {
   }
 
   override toString(): string {
-    const { title, description } = this.settings.enrichments?.table ?? {}
+    const { title, description } = this.settings.enrichments.subject?.table ?? {}
 
     return `(${this.pathParams}) => {
   const { data } = ${this.clientName}(${this.pathParams.destructuredPathParams})

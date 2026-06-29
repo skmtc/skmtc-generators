@@ -1,27 +1,30 @@
-import { List, Identifier, capitalize } from '@skmtc/core'
-import { TsInsertable } from '@skmtc/gen-typescript'
+import { List, type ListArray } from '@skmtc/lang-typescript'
+import { capitalize } from '@skmtc/core'
+import { TsProjection } from '@skmtc/gen-typescript'
 import invariant from 'tiny-invariant'
 import { TableColumn } from './TableColumn.ts'
-import type { ListArray, OasOperation, OperationInsertableArgs } from '@skmtc/core'
+import type { OasOperationProjectionConstructorArgs, ToOasOperationIdentifierNameArgs } from '@skmtc/core'
 import { toListKeyAndItem } from '@skmtc/gen-tanstack-query-supabase-zod'
 import { ShadcnTableBase } from './base.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
 
 export class TanstackColumns extends ShadcnTableBase {
   columns: ListArray<TableColumn>
-  constructor({ context, operation, settings }: OperationInsertableArgs<EnrichmentSchema>) {
+  constructor({ context, operation, settings }: OasOperationProjectionConstructorArgs<EnrichmentSchema>) {
     super({ context, operation, settings })
 
     const { schema } = toListKeyAndItem(operation)
 
     invariant(schema.resolve().type === 'object', 'Expected object type')
 
-    const rowTypeDefinition = this.insertNormalizedModel(TsInsertable, {
+    const rowTypeDefinition = this.insertNormalizedModel(TsProjection, {
       schema,
-      fallbackName: capitalize(`${ShadcnTableBase.toIdentifier(operation).name}RowType`)
+      fallbackName: capitalize(
+        `${ShadcnTableBase.toIdentifierName({ operation, enrichments: settings.enrichments, variant: settings.variant })}RowType`
+      )
     })
 
-    const columns = settings.enrichments?.table?.columns?.map(column => {
+    const columns = settings.enrichments.subject?.table?.columns?.map(column => {
       return new TableColumn({
         context: this.context,
         label: column.label,
@@ -41,8 +44,8 @@ export class TanstackColumns extends ShadcnTableBase {
     })
   }
 
-  static override toIdentifier(_operation: OasOperation) {
-    return Identifier.createVariable(`columns`)
+  static override toIdentifierName(_args: ToOasOperationIdentifierNameArgs<EnrichmentSchema>): string {
+    return 'columns'
   }
 
   override toString(): string {

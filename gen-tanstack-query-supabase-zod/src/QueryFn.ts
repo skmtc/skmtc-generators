@@ -1,26 +1,21 @@
-import {
-  List,
-  capitalize,
-  toPathTemplate,
-  FunctionParameter,
-  decapitalize,
-  OasVoid
-} from '@skmtc/core'
-import type { ListObject, OperationInsertableArgs } from '@skmtc/core'
+import { List, toPathTemplate, FunctionParameter, type ListObject } from '@skmtc/lang-typescript'
+import { capitalize, decapitalize, OasVoid } from '@skmtc/core'
+import type { OasOperationProjectionConstructorArgs } from '@skmtc/core'
 import { TanstackQueryBase } from './base.ts'
-import { TsInsertable } from '@skmtc/gen-typescript'
-import { ZodInsertable } from '@skmtc/gen-zod'
+import type { EnrichmentSchema } from './enrichments.ts'
+import { TsProjection } from '@skmtc/gen-typescript'
+import { ZodProjection } from '@skmtc/gen-zod'
 
 export class QueryFn extends TanstackQueryBase {
   zodResponseName: string
   parameter: FunctionParameter
   queryParamArgs: ListObject<string>
-  constructor({ context, operation, settings }: OperationInsertableArgs) {
+  constructor({ context, operation, settings }: OasOperationProjectionConstructorArgs<EnrichmentSchema>) {
     super({ context, operation, settings })
 
     this.queryParamArgs = List.toObject(operation.toParams(['query']).map(({ name }) => name))
 
-    const typeDefinition = this.insertNormalizedModel(TsInsertable, {
+    const typeDefinition = this.insertNormalizedModel(TsProjection, {
       schema: operation.toParametersObject(),
       fallbackName: `${capitalize(settings.identifier.name)}Args`
     })
@@ -32,7 +27,7 @@ export class QueryFn extends TanstackQueryBase {
       skipEmpty: true
     })
 
-    const zodResponse = this.insertNormalizedModel(ZodInsertable, {
+    const zodResponse = this.insertNormalizedModel(ZodProjection, {
       schema: operation.toSuccessResponse()?.resolve().toSchema() ?? OasVoid.empty(),
       fallbackName: `${decapitalize(settings.identifier.name)}Response`
     })

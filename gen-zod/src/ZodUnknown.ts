@@ -1,21 +1,28 @@
-import { ContentBase, type GeneratorKey, type GenerateContextType } from '@skmtc/core'
+import { type GenerateContextType, type GeneratorKey, type OasRef, type OasSchema } from '@skmtc/core'
+import { TsSnippet } from "@skmtc/lang-typescript";
 
 type ConstructorArgs = {
-  context: GenerateContextType
-  destinationPath: string
-  generatorKey: GeneratorKey
-}
+  context: GenerateContextType;
+  destinationPath: string;
+  generatorKey: GeneratorKey;
+  /**
+   * The originating schema node — for fine-grained attribution. Optional:
+   * `ZodUnknown` is also built internally (e.g. a record's unknown value)
+   * with no originating node, in which case the pointer is inherited.
+   */
+  schema?: OasSchema | OasRef<"schema">;
+};
 
-export class ZodUnknown extends ContentBase {
-  type = 'unknown' as const
+export class ZodUnknown extends TsSnippet {
+  type = "unknown" as const;
 
-  constructor({ context, destinationPath, generatorKey }: ConstructorArgs) {
-    super({ context, generatorKey })
+  constructor({ context, destinationPath, generatorKey, schema }: ConstructorArgs) {
+    super({ context, generatorKey, stackTrail: schema?.stackTrail.clone() });
 
-    context.register({ imports: { zod: ['z'] }, destinationPath })
+    this.register({ imports: { zod: ["z"] }, destinationPath });
   }
 
   override toString(): string {
-    return `z.unknown()`
+    return `z.unknown()`;
   }
 }

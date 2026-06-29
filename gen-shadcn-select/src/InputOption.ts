@@ -1,5 +1,5 @@
-import { ContentBase } from '@skmtc/core'
 import type { GenerateContextType, ModuleExport } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
 
 type InputOptionProps = {
   context: GenerateContextType
@@ -9,14 +9,14 @@ type InputOptionProps = {
   destinationPath: string
 }
 
-export class InputOption extends ContentBase {
+export class InputOption extends TsSnippet {
   formatter: ModuleExport | undefined
   accessorPath: string
   constructor({ context, itemName, formatter, accessorPath, destinationPath }: InputOptionProps) {
     super({ context })
 
     this.formatter = formatter
-    // TODO: Create helper function to safely serialise the accessor path
+    // TODO: Create helper function to safely serialize the accessor path
 
     this.accessorPath =
       accessorPath?.length > 0 ? [itemName, ...accessorPath].join('.') : [itemName, 'id'].join('.')

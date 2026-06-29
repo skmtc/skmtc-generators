@@ -1,17 +1,6 @@
-import { ContentBase, isEmpty } from '@skmtc/core'
-import type {
-  GenerateContextType,
-  GeneratorKey,
-  OasRef,
-  OasSchema,
-  OasObject,
-  CustomValue,
-  RefName,
-  TypeSystemObjectProperties,
-  TypeSystemRecord,
-  TypeSystemValue,
-  Modifiers
-} from '@skmtc/core'
+import { SnippetBase, isEmpty } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
+import type { GenerateContextType, GeneratorKey, OasRef, OasSchema, OasObject, CustomValue, RefName, TypeSystemObjectProperties, TypeSystemRecord, TypeSystemValue, Modifiers } from '@skmtc/core'
 import { toValibotValue } from './Valibot.ts'
 import { applyModifiers } from './applyModifiers.ts'
 import { ValibotUnknown } from './ValibotUnknown.ts'
@@ -26,7 +15,7 @@ type ValibotObjectProps = {
   rootRef?: RefName
 }
 
-export class ValibotObject extends ContentBase {
+export class ValibotObject extends TsSnippet {
   type = 'object' as const
   recordProperties: TypeSystemRecord | null
   objectProperties: TypeSystemObjectProperties | null
@@ -40,7 +29,7 @@ export class ValibotObject extends ContentBase {
     modifiers,
     rootRef
   }: ValibotObjectProps) {
-    super({ context, generatorKey })
+    super({ context, generatorKey, stackTrail: objectSchema.stackTrail.clone() })
 
     this.modifiers = modifiers
 
@@ -70,7 +59,7 @@ export class ValibotObject extends ContentBase {
         })
       : null
 
-    context.register({ imports: { valibot: [{ '*': 'v' }] }, destinationPath })
+    this.register({ imports: { valibot: [{ '*': 'v' }] }, destinationPath })
   }
 
   override toString(): string {
@@ -100,7 +89,7 @@ type ValibotObjectPropertiesArgs = {
   rootRef?: RefName
 }
 
-class ValibotObjectProperties extends ContentBase {
+class ValibotObjectProperties extends SnippetBase {
   properties: Record<string, TypeSystemValue>
   required: string[]
 
@@ -151,7 +140,7 @@ type ValibotRecordArgs = {
   rootRef?: RefName
 }
 
-class ValibotRecord extends ContentBase {
+class ValibotRecord extends SnippetBase {
   value: TypeSystemValue | 'true'
 
   constructor({ context, generatorKey, destinationPath, schema, rootRef }: ValibotRecordArgs) {

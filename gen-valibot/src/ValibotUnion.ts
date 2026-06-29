@@ -1,14 +1,5 @@
-import { ContentBase } from '@skmtc/core'
-import type {
-  GenerateContextType,
-  GeneratorKey,
-  RefName,
-  TypeSystemValue,
-  Modifiers,
-  OasRef,
-  OasSchema,
-  OasDiscriminator
-} from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
+import type { GenerateContextType, GeneratorKey, RefName, TypeSystemValue, Modifiers, OasRef, OasSchema, OasDiscriminator } from '@skmtc/core'
 import { toValibotValue } from './Valibot.ts'
 import { applyModifiers } from './applyModifiers.ts'
 
@@ -16,13 +7,15 @@ type ValibotUnionArgs = {
   context: GenerateContextType
   destinationPath: string
   members: (OasSchema | OasRef<'schema'>)[]
+  /** The originating union schema node — for fine-grained attribution. */
+  schema?: OasSchema | OasRef<'schema'>
   discriminator?: OasDiscriminator
   modifiers: Modifiers
   generatorKey: GeneratorKey
   rootRef?: RefName
 }
 
-export class ValibotUnion extends ContentBase {
+export class ValibotUnion extends TsSnippet {
   type = 'union' as const
   members: TypeSystemValue[]
   discriminator: string | undefined
@@ -35,9 +28,10 @@ export class ValibotUnion extends ContentBase {
     members,
     discriminator,
     modifiers,
-    rootRef
+    rootRef,
+    schema
   }: ValibotUnionArgs) {
-    super({ context, generatorKey })
+    super({ context, generatorKey, stackTrail: schema?.stackTrail.clone() })
 
     this.members = members.map(member => {
       return toValibotValue({ destinationPath, schema: member, required: true, context, rootRef })
@@ -46,7 +40,7 @@ export class ValibotUnion extends ContentBase {
     this.discriminator = discriminator?.propertyName
     this.modifiers = modifiers
 
-    context.register({ imports: { valibot: [{ '*': 'v' }] }, destinationPath })
+    this.register({ imports: { valibot: [{ '*': 'v' }] }, destinationPath })
   }
 
   override toString(): string {

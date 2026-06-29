@@ -1,11 +1,12 @@
-import type { Stringable, GenerateContextType, ListArray } from '@skmtc/core'
-import { ContentBase, List } from '@skmtc/core'
+import { List, type ListArray } from '@skmtc/lang-typescript'
+import type { Stringable, GenerateContextType } from '@skmtc/core'
+import { SnippetBase } from '@skmtc/core'
 
 type ConstructorArgs = {
   context: GenerateContextType
 }
 
-export class MockRoutesList extends ContentBase {
+export class MockRoutesList extends SnippetBase {
   list: ListArray<Stringable>
   constructor({ context }: ConstructorArgs) {
     super({ context })

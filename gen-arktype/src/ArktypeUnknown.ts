@@ -1,18 +1,21 @@
-import { ContentBase } from '@skmtc/core'
+import type { OasRef, OasSchema } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
 import type { GeneratorKey, GenerateContextType } from '@skmtc/core'
 
 type ArktypeUnknownArgs = {
+  /** Originating schema node — for fine-grained attribution. */
+  schema?: OasSchema | OasRef<'schema'>
   context: GenerateContextType
   destinationPath: string
   generatorKey: GeneratorKey
 }
 
-export class ArktypeUnknown extends ContentBase {
+export class ArktypeUnknown extends TsSnippet {
   type = 'unknown' as const
   
-  constructor({ context, generatorKey, destinationPath }: ArktypeUnknownArgs) {
-    super({ context, generatorKey })
-    context.register({ imports: { arktype: ['type'] }, destinationPath })
+  constructor({ context, generatorKey, destinationPath, schema }: ArktypeUnknownArgs) {
+    super({ context, generatorKey, stackTrail: schema?.stackTrail.clone() })
+    this.register({ imports: { arktype: ['type'] }, destinationPath })
   }
 
   override toString(): string {

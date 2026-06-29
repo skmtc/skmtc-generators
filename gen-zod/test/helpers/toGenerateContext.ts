@@ -1,23 +1,25 @@
-import { GenerateContext, OasDocument, StackTrail } from '@skmtc/core'
-import * as log from 'jsr:@std/log@0.224/logger'
-import { zodEntry } from '../../src/mod.ts'
+import { GenerateContext, OasDocument } from "@skmtc/core";
+import type { SkmtcParsedDocument } from "@skmtc/core";
+import * as log from "jsr:@std/log@0.224/logger";
+import { zodEntry } from "../../src/mod.ts";
 
 type ToGenerateContextArgs = {
-  oasDocument?: OasDocument
-}
+  oasDocument?: SkmtcParsedDocument;
+};
 
-export const toGenerateContext = ({ oasDocument }: ToGenerateContextArgs = {}) => {
+export const toGenerateContext = (
+  { oasDocument }: ToGenerateContextArgs = {},
+) => {
   const context = new GenerateContext({
-    oasDocument: oasDocument ?? new OasDocument(),
+    document: oasDocument ?? { type: "oas", value: new OasDocument() },
     settings: undefined,
-    logger: new log.Logger('test', 'ERROR'),
-    stackTrail: new StackTrail(),
+    logger: new log.Logger("test", "ERROR"),
     captureCurrentResult: () => {},
-    // @ts-expect-error - mock implementation
     toGeneratorConfigMap: () => ({
-      '@skmtc/gen-zod': zodEntry
-    })
-  })
+      // @ts-expect-error - factory-emitted transform is monomorphic over Acc
+      "@skmtc/gen-zod": zodEntry,
+    }),
+  });
 
-  return context
-}
+  return context;
+};

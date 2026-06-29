@@ -1,0 +1,89 @@
+import { createEnumClass, defineAndRegister, KtSnippet } from '@skmtc/lang-kotlin'
+import { toGeneratorEnrichment } from '@skmtc/core'
+import type { GenerateContextType, GeneratorKey, Modifiers, OasString } from '@skmtc/core'
+import { applyModifiers } from './applyModifiers.ts'
+import { getCustomScalar, toScalarMap } from './scalars.ts'
+import { generatorConfigSchema } from './enrichments.ts'
+import { KtEnumEntries } from './KtEnumEntries.ts'
+import { toEnumValues } from './toEnumEntryName.ts'
+import denoJson from '../deno.json' with { type: 'json' }
+
+type KtStringArgs = {
+  context: GenerateContextType
+  stringSchema: OasString
+  modifiers: Modifiers
+  generatorKey: GeneratorKey
+  destinationPath: string
+  /** Name for a synthesized enum class when the schema carries enums. */
+  fallbackName: string
+}
+
+/**
+ * String schema → Kotlin type. Plain strings map through the scalar map
+ * (`String` for known formats, `ByteArray` for `binary`); a string with
+ * enums synthesizes a named `enum class` sibling in the destination file
+ * (Kotlin has no anonymous/inline enums) and references it by name —
+ * the `findDefinition` + `defineAndRegister` sibling pattern, deduped by
+ * `(fallbackName, destinationPath)`.
+ */
+export class KtString extends KtSnippet {
+  type = 'string' as const
+  format: string | undefined
+  enums: string[] | (string | null)[] | undefined
+  modifiers: Modifiers
+  private reference: string
+
+  constructor({ context, stringSchema, modifiers, generatorKey, destinationPath, fallbackName }: KtStringArgs) {
+    super({ context, generatorKey, stackTrail: stringSchema.stackTrail.clone() })
+
+    this.format = stringSchema.format
+    this.enums = stringSchema.enums
+    this.modifiers = modifiers
+
+    const values = toEnumValues(stringSchema.enums)
+
+    if (values.length > 0) {
+      const existing = context.findDefinition({ name: fallbackName, exportPath: destinationPath })
+
+      if (!existing) {
+        defineAndRegister(context, {
+          identifier: createEnumClass(fallbackName),
+          value: new KtEnumEntries({
+            context,
+            values,
+            destinationPath,
+            stackTrail: stringSchema.stackTrail.clone()
+          }),
+          destinationPath
+        })
+      }
+
+      this.reference = fallbackName
+    } else {
+      // Scalar config (format → Kotlin type) is read off `context` — core
+      // populates `settings.enrichments` at the top; the leaf reads it via
+      // the core loader rather than having a map threaded down.
+      const { scalars } = toGeneratorEnrichment(context, denoJson.name, generatorConfigSchema)
+      const scalar = getCustomScalar(this.format, toScalarMap(scalars)) ?? 'String'
+
+      // A dotted scalar (`kotlinx.datetime.Instant`) renders its simple
+      // name with the import registered — the scalars option now wires
+      // imports itself instead of requiring a cloned generator (spec 29).
+      const lastDot = scalar.lastIndexOf('.')
+
+      if (lastDot > 0) {
+        const module = scalar.slice(0, lastDot)
+        const name = scalar.slice(lastDot + 1)
+
+        this.register({ imports: { [module]: [name] }, destinationPath })
+        this.reference = name
+      } else {
+        this.reference = scalar
+      }
+    }
+  }
+
+  override toString(): string {
+    return applyModifiers(this.reference, this.modifiers)
+  }
+}

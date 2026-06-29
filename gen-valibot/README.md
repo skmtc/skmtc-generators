@@ -4,32 +4,37 @@
 
 OpenAPI to [Valibot](https://valibot.dev/) schema generator for [Skmtc](https://skm.tc).
 
-Generate type-safe Valibot validation schemas from your OpenAPI specifications. Valibot is a modular, lightweight schema library with excellent TypeScript support and tree-shaking capabilities.
+## Supported Features
 
-## Installation
+- **Primitive types**: string, number, integer, boolean
+- **Complex types**: object, array, union (oneOf/anyOf)
+- **Modifiers**: nullable, optional
+- **Enums**: Single values (literal) and multiple values (picklist)
+- **String formats**: date-time (isoDateTime)
+- **Integer validation**: Uses `v.pipe(v.number(), v.integer())`
+- **References**: Schema references via `$ref`
+- **Additional properties**: Record types and intersections
+- **Nested structures**: Deeply nested objects and arrays
 
-Install Deno
+## Getting started
+
+### Install Skmtc
 
 ```bash
-# On MacOS/Linux
-curl -fsSL https://deno.land/install.sh | sh
-
-# On Windows
-irm https://deno.land/install.ps1 | iex
+deno install -g -A --unstable-worker-options jsr:@skmtc/cli -n skmtc -f
 ```
 
-Install Skmtc
+**Skmtc** runs on [Deno](https://deno.com). You can install it using 
+- `curl -fsSL https://deno.land/install.sh | sh` on MacOS/Linux
+- `irm https://deno.land/install.ps1 | iex` on Windows
+
+### Create project and generate artifacts using TUI
 
 ```bash
-deno install -g -A --unstable-worker-options jsr:@skmtc/cli@0.0.388 -n skmtc -f
-```
-
-## Create project and generate artifacts using TUI (recommended)
-
-```bash
-# Create project then Generate artifacts
 skmtc
 ```
+
+![](assets/demo.gif)
 
 ## Create project and generate artifacts using CLI
 
@@ -83,7 +88,7 @@ skmtc generate <project name> <path or url to openapi schema>
 ```typescript
 import * as v from "valibot"
 
-export const User = v.object({
+export const user = v.object({
   id: v.string(),
   age: v.number(),
   isActive: v.optional(v.boolean())
@@ -121,8 +126,8 @@ export const User = v.object({
 <td valign="top">
 
 ```typescript
-export const Status = v.picklist(["active", "inactive", "pending"])
-export const Role = v.literal("admin")
+export const status = v.picklist(["active", "inactive", "pending"])
+export const role = v.literal("admin")
 ```
 
 </td>
@@ -166,7 +171,7 @@ export const Role = v.literal("admin")
 <td valign="top">
 
 ```typescript
-export const Team = v.object({
+export const team = v.object({
   name: v.string(),
   members: v.array(v.object({
     id: v.string(),
@@ -209,7 +214,7 @@ export const Team = v.object({
 <td valign="top">
 
 ```typescript
-export const Profile = v.object({
+export const profile = v.object({
   bio: v.nullable(v.string()),
   website: v.optional(v.string())
 })
@@ -258,7 +263,7 @@ export const Profile = v.object({
 <td valign="top">
 
 ```typescript
-export const Pet = v.union([
+export const pet = v.union([
   v.object({
     type: v.literal("cat"),
     meow: v.boolean()
@@ -303,7 +308,7 @@ export const Pet = v.union([
 <td valign="top">
 
 ```typescript
-export const Event = v.object({
+export const event = v.object({
   createdAt: v.pipe(v.string(), v.isoDateTime())
 })
 ```
@@ -335,7 +340,7 @@ export const Event = v.object({
 <td valign="top">
 
 ```typescript
-export const Metadata = v.record(v.string(), v.string())
+export const metadata = v.record(v.string(), v.string())
 ```
 
 </td>
@@ -369,7 +374,7 @@ With both properties and additionalProperties:
 <td valign="top">
 
 ```typescript
-export const Config = v.intersect([
+export const config = v.intersect([
   v.object({ id: v.string() }),
   v.record(v.string(), v.number())
 ])
@@ -378,18 +383,6 @@ export const Config = v.intersect([
 </td>
 </tr>
 </table>
-
-## Supported Features
-
-- **Primitive types**: string, number, integer, boolean
-- **Complex types**: object, array, union (oneOf/anyOf)
-- **Modifiers**: nullable, optional
-- **Enums**: Single values (literal) and multiple values (picklist)
-- **String formats**: date-time (isoDateTime)
-- **Integer validation**: Uses `v.pipe(v.number(), v.integer())`
-- **References**: Schema references via `$ref`
-- **Additional properties**: Record types and intersections
-- **Nested structures**: Deeply nested objects and arrays
 
 ## Testing
 

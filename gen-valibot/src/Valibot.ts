@@ -37,11 +37,20 @@ export const toValibotValue: SchemaToValueFn = ({
         refName: toRefName(ref.$ref),
         modifiers,
         generatorKey,
-        rootRef
+        rootRef,
+        schema: ref
       })
     })
-    .with({ type: 'array' }, ({ items }) => {
-      return new ValibotArray({ context, destinationPath, modifiers, items, generatorKey, rootRef })
+    .with({ type: 'array' }, arraySchema => {
+      return new ValibotArray({
+        context,
+        destinationPath,
+        modifiers,
+        items: arraySchema.items,
+        generatorKey,
+        rootRef,
+        schema: arraySchema
+      })
     })
     .with({ type: 'object' }, objectSchema => {
       return new ValibotObject({
@@ -53,27 +62,30 @@ export const toValibotValue: SchemaToValueFn = ({
         rootRef
       })
     })
-    .with({ type: 'union' }, ({ members, discriminator }) => {
+    .with({ type: 'union' }, unionSchema => {
       return new ValibotUnion({
         context,
         destinationPath,
-        members,
-        discriminator,
+        members: unionSchema.members,
+        discriminator: unionSchema.discriminator,
         modifiers,
         generatorKey,
-        rootRef
+        rootRef,
+        schema: unionSchema
       })
     })
     .with(
       { type: 'number' },
-      () => new ValibotNumber({ context, modifiers, destinationPath, generatorKey })
+      numberSchema =>
+        new ValibotNumber({ context, modifiers, destinationPath, generatorKey, schema: numberSchema })
     )
     .with({ type: 'integer' }, integerSchema => {
       return new ValibotInteger({ context, integerSchema, modifiers, destinationPath, generatorKey })
     })
     .with(
       { type: 'boolean' },
-      () => new ValibotBoolean({ context, modifiers, destinationPath, generatorKey })
+      booleanSchema =>
+        new ValibotBoolean({ context, modifiers, destinationPath, generatorKey, schema: booleanSchema })
     )
     .with({ type: 'void' }, () => new ValibotVoid({ context, destinationPath, generatorKey }))
     .with(
@@ -81,6 +93,10 @@ export const toValibotValue: SchemaToValueFn = ({
       stringSchema =>
         new ValibotString({ context, stringSchema, modifiers, destinationPath, generatorKey })
     )
-    .with({ type: 'unknown' }, () => new ValibotUnknown({ context, destinationPath, generatorKey }))
+    .with(
+      { type: 'unknown' },
+      unknownSchema =>
+        new ValibotUnknown({ context, destinationPath, generatorKey, schema: unknownSchema })
+    )
     .exhaustive()
 }

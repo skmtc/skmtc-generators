@@ -1,18 +1,20 @@
 {
   "name": "@skmtc/gen-shadcn-form",
-  "version": "0.0.48",
-  "exports": "./mod.ts",
+  "version": "0.2.2",
   "imports": {
-    "@skmtc/gen-tanstack-query-supabase-zod": "jsr:@skmtc/gen-tanstack-query-supabase-zod@^0.0.48",
-    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@^0.0.48",
-    "@skmtc/gen-zod": "jsr:@skmtc/gen-zod@^0.0.48"
+    "@skmtc/gen-tanstack-query-supabase-zod": "jsr:@skmtc/gen-tanstack-query-supabase-zod@0.2.1",
+    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.2.1",
+    "@skmtc/gen-zod": "jsr:@skmtc/gen-zod@0.2.1",
+    "@skmtc/core": "jsr:@skmtc/core@0.22.0",
+    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.11.0"
   },
+  "exports": "./mod.ts",
   "tasks": {
     "test": "deno test --allow-env --allow-sys --allow-read || true",
     "test:coverage": "deno test --allow-env --allow-sys --allow-read --coverage=coverage || true",
     "coverage:report": "deno coverage coverage --lcov --output=coverage.lcov 2>/dev/null || echo 'No coverage data'",
     "coverage:html": "deno coverage coverage --html || true",
     "coverage:check": "deno coverage coverage --detailed || true",
-    "publish": "deno publish --allow-slow-types --allow-dirty --token=$JSR_AUTH_TOKEN"
+    "publish": "JSR_URL=https://jsr.skmtc.co.uk/ deno publish --allow-slow-types --allow-dirty --token=$JSR_AUTH_TOKEN"
   }
 }

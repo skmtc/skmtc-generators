@@ -1,19 +1,24 @@
-import { ContentBase } from '@skmtc/core'
-import type { GeneratorKey, GenerateContextType } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
+import type { GeneratorKey, GenerateContextType, OasRef, OasSchema } from '@skmtc/core'
 
 type ValibotUnknownArgs = {
   context: GenerateContextType
   destinationPath: string
   generatorKey: GeneratorKey
+  /**
+   * The originating schema node — for fine-grained attribution. Optional:
+   * `ValibotUnknown` may also be built internally with no originating node.
+   */
+  schema?: OasSchema | OasRef<'schema'>
 }
 
-export class ValibotUnknown extends ContentBase {
+export class ValibotUnknown extends TsSnippet {
   type = 'unknown' as const
 
-  constructor({ context, generatorKey, destinationPath }: ValibotUnknownArgs) {
-    super({ context, generatorKey })
+  constructor({ context, generatorKey, destinationPath, schema }: ValibotUnknownArgs) {
+    super({ context, generatorKey, stackTrail: schema?.stackTrail.clone() })
 
-    context.register({ imports: { valibot: [{ '*': 'v' }] }, destinationPath })
+    this.register({ imports: { valibot: [{ '*': 'v' }] }, destinationPath })
   }
 
   override toString(): string {

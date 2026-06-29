@@ -1,21 +1,23 @@
-import { List, OasVoid, toEndpointName, capitalize, type ListArray } from '@skmtc/core'
-import type { OperationInsertableArgs } from '@skmtc/core'
+import { List, type ListArray } from '@skmtc/lang-typescript'
+import { OasVoid, toEndpointName, capitalize } from '@skmtc/core'
+import type { OasOperationProjectionConstructorArgs } from '@skmtc/core'
 import { MutationFn } from './MutationFn.ts'
 import { TanstackQueryBase } from './base.ts'
-import { TsInsertable } from '@skmtc/gen-typescript'
+import type { EnrichmentSchema } from './enrichments.ts'
+import { TsProjection } from '@skmtc/gen-typescript'
 
 export class MutationEndpoint extends TanstackQueryBase {
   tags: ListArray<string>
   mutationFn: MutationFn
   requestBodyTsName: string
-  constructor({ context, operation, settings }: OperationInsertableArgs) {
+  constructor({ context, operation, settings }: OasOperationProjectionConstructorArgs<EnrichmentSchema>) {
     super({ context, operation, settings })
 
     this.tags = List.toArray(operation.tags?.map(tag => `'${tag}'`) ?? [])
 
     this.mutationFn = new MutationFn({ context, operation, settings })
 
-    const requestBody = this.insertNormalizedModel(TsInsertable, {
+    const requestBody = this.insertNormalizedModel(TsProjection, {
       schema: operation.toRequestBody(({ schema }) => schema) ?? OasVoid.empty(),
       fallbackName: capitalize(`${toEndpointName(operation)}Body`)
     })

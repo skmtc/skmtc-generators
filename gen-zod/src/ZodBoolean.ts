@@ -1,26 +1,55 @@
-import { applyModifiers } from './applyModifiers.ts'
-import { type Modifiers, type GeneratorKey, ContentBase, type GenerateContextType } from '@skmtc/core'
+import { applyModifiers } from "./applyModifiers.ts";
+import { type GenerateContextType, type GeneratorKey, type Modifiers, type OasBoolean } from '@skmtc/core'
+import { TsSnippet } from "@skmtc/lang-typescript";
 
 type ZodBooleanArgs = {
-  context: GenerateContextType
-  modifiers: Modifiers
-  destinationPath: string
-  generatorKey: GeneratorKey
-}
+  context: GenerateContextType;
+  modifiers: Modifiers;
+  /**
+   * The parsed boolean schema. Carries `enums` (the boolean values
+   * the schema constrains to) so a single-value enum can be emitted
+   * as `z.literal(true)` / `z.literal(false)` rather than a wider
+   * `z.boolean()`. Without this, discriminated unions on literal
+   * booleans lose their narrowing at the consumer's type level —
+   * friction #17 in the FieldPlan dogfood log.
+   */
+  schema: OasBoolean;
+  destinationPath: string;
+  generatorKey: GeneratorKey;
+};
 
-export class ZodBoolean extends ContentBase {
-  type = 'boolean' as const
-  modifiers: Modifiers
+export class ZodBoolean extends TsSnippet {
+  type = "boolean" as const;
+  modifiers: Modifiers;
+  enums?: boolean[] | (boolean | null)[];
 
-  constructor({ context, modifiers, destinationPath, generatorKey }: ZodBooleanArgs) {
-    super({ context, generatorKey })
+  constructor(
+    { context, modifiers, schema, destinationPath, generatorKey }:
+      ZodBooleanArgs,
+  ) {
+    super({ context, generatorKey, stackTrail: schema.stackTrail.clone() });
 
-    this.modifiers = modifiers
+    this.modifiers = modifiers;
+    this.enums = schema.enums;
 
-    context.register({ imports: { zod: ['z'] }, destinationPath })
+    this.register({ imports: { zod: ["z"] }, destinationPath });
   }
 
   override toString(): string {
-    return applyModifiers(`z.boolean()`, this.modifiers)
+    const { enums } = this;
+
+    if (enums && Array.isArray(enums)) {
+      // Matches the same `length === 1` → `z.literal(...)` shape used
+      // by `ZodNumber`, `ZodInteger`, and `ZodString`. Multi-value
+      // enums on a boolean (`enum: [true, false]`) carry no extra
+      // information vs an unconstrained boolean — fall through to
+      // `z.boolean()`.
+      const content = enums.length === 1
+        ? `z.literal(${enums[0]})`
+        : `z.boolean()`;
+      return applyModifiers(content, this.modifiers);
+    }
+
+    return applyModifiers(`z.boolean()`, this.modifiers);
   }
 }

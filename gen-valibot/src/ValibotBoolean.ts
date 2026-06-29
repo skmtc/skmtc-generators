@@ -1,24 +1,26 @@
-import { ContentBase } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
 import { applyModifiers } from './applyModifiers.ts'
-import type { Modifiers, GeneratorKey, GenerateContextType } from '@skmtc/core'
+import type { Modifiers, GeneratorKey, GenerateContextType, OasRef, OasSchema } from '@skmtc/core'
 
 type ValibotBooleanArgs = {
   context: GenerateContextType
   modifiers: Modifiers
   destinationPath: string
   generatorKey: GeneratorKey
+  /** The originating boolean schema node — for fine-grained attribution. */
+  schema?: OasSchema | OasRef<'schema'>
 }
 
-export class ValibotBoolean extends ContentBase {
+export class ValibotBoolean extends TsSnippet {
   type = 'boolean' as const
   modifiers: Modifiers
 
-  constructor({ context, generatorKey, destinationPath, modifiers }: ValibotBooleanArgs) {
-    super({ context, generatorKey })
+  constructor({ context, generatorKey, destinationPath, modifiers, schema }: ValibotBooleanArgs) {
+    super({ context, generatorKey, stackTrail: schema?.stackTrail.clone() })
 
     this.modifiers = modifiers
 
-    context.register({ imports: { valibot: [{ '*': 'v' }] }, destinationPath })
+    this.register({ imports: { valibot: [{ '*': 'v' }] }, destinationPath })
   }
 
   override toString(): string {

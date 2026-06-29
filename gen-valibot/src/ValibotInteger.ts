@@ -1,4 +1,4 @@
-import { ContentBase } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
 import { applyModifiers } from './applyModifiers.ts'
 import type { Modifiers, GeneratorKey, GenerateContextType, OasInteger } from '@skmtc/core'
 
@@ -10,16 +10,16 @@ type ValibotIntegerArgs = {
   generatorKey: GeneratorKey
 }
 
-export class ValibotInteger extends ContentBase {
+export class ValibotInteger extends TsSnippet {
   type = 'integer' as const
   modifiers: Modifiers
 
-  constructor({ context, generatorKey, destinationPath, modifiers }: ValibotIntegerArgs) {
-    super({ context, generatorKey })
+  constructor({ context, generatorKey, destinationPath, modifiers, integerSchema }: ValibotIntegerArgs) {
+    super({ context, generatorKey, stackTrail: integerSchema.stackTrail.clone() })
 
     this.modifiers = modifiers
 
-    context.register({ imports: { valibot: [{ '*': 'v' }] }, destinationPath })
+    this.register({ imports: { valibot: [{ '*': 'v' }] }, destinationPath })
   }
 
   override toString(): string {

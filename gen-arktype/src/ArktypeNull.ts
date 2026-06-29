@@ -1,4 +1,4 @@
-import { ContentBase } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
 import type { GeneratorKey, GenerateContextType } from '@skmtc/core'
 
 type ArktypeNullArgs = {
@@ -7,12 +7,12 @@ type ArktypeNullArgs = {
   generatorKey: GeneratorKey
 }
 
-export class ArktypeNull extends ContentBase {
+export class ArktypeNull extends TsSnippet {
   type = 'null' as const
   
   constructor({ context, generatorKey, destinationPath }: ArktypeNullArgs) {
     super({ context, generatorKey })
-    context.register({ imports: { arktype: ['type'] }, destinationPath })
+    this.register({ imports: { arktype: ['type'] }, destinationPath })
   }
 
   override toString(): string {

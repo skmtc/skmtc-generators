@@ -1,19 +1,23 @@
-import { decapitalize, Identifier, toModelBase, type RefName, camelCase } from '@skmtc/core'
+import { decapitalize, camelCase } from '@skmtc/core'
+import { toTsModelProjectionBase } from '@skmtc/lang-typescript'
 import { join } from '@std/path'
+import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
-export const ArktypeBase = toModelBase({
+export const ArktypeBase = toTsModelProjectionBase<EnrichmentSchema>({
   id: denoJson.name,
 
-  toIdentifier(refName: RefName): Identifier {
-    const name = decapitalize(camelCase(refName))
-
-    return Identifier.createVariable(name)
+  toIdentifierName({ refName }): string {
+    return decapitalize(camelCase(refName))
   },
 
-  toExportPath(refName: RefName): string {
-    const { name } = this.toIdentifier(refName)
+  toIdentifierType: () => ({ type: 'variable' }),
+
+  toExportPath({ refName, enrichments, variant }): string {
+    const name = this.toIdentifierName({ refName, enrichments, variant })
 
     return join('@', 'types', `${decapitalize(name)}.generated.ts`)
-  }
+  },
+
+  toEnrichmentSchema
 })

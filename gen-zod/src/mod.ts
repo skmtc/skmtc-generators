@@ -1,10 +1,12 @@
 import { toModelEntry } from '@skmtc/core'
-import { ZodInsertable } from './ZodInsertable.ts'
-import denoJson from '../deno.json' with { type: 'json' }
+import { ZodProjection } from "./ZodProjection.ts";
+import { toEnrichmentSchema, type EnrichmentSchema } from "./enrichments.ts";
+import denoJson from "../deno.json" with { type: "json" };
 
-export const zodEntry = toModelEntry({
+export const zodEntry = toModelEntry<EnrichmentSchema>({
   id: denoJson.name,
+  toEnrichmentSchema,
   transform({ context, refName }) {
-    context.insertModel(ZodInsertable, refName)
-  }
-})
+    context.insertModel(ZodProjection, refName);
+  },
+});

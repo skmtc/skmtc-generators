@@ -1,22 +1,30 @@
-import { camelCase, capitalize, Identifier, toMethodVerb, toOperationBase } from '@skmtc/core'
+import { camelCase, capitalize, toMethodVerb, withVariant } from '@skmtc/core'
+import { toTsOasOperationProjectionBase } from '@skmtc/lang-typescript'
 import { join } from '@std/path'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
-export const ShadcnFormBase = toOperationBase<EnrichmentSchema>({
+export const ShadcnFormBase = toTsOasOperationProjectionBase<EnrichmentSchema>({
   id: denoJson.name,
 
   toEnrichmentSchema,
 
-  toIdentifier(operation): Identifier {
+  toIdentifierName({ operation, variant }): string {
     const verb = capitalize(toMethodVerb(operation.method))
-    const name = `${verb}${camelCase(operation.path, { upperFirst: true })}Form`
+    const base = `${verb}${camelCase(operation.path, { upperFirst: true })}Form`
 
-    return Identifier.createVariable(name)
+    // `withVariant` returns `base` unchanged for `'main'` (no suffix)
+    // and appends a PascalCased variant suffix otherwise. Internal
+    // sibling Projections derive their fallbackName from
+    // `settings.identifier.name`, so the variant suffix flows through
+    // every model name the form constructs.
+    return withVariant(base, variant)
   },
 
-  toExportPath(operation): string {
-    const { name } = this.toIdentifier(operation)
+  toIdentifierType: () => ({ type: 'variable' }),
+
+  toExportPath({ operation, enrichments, variant }): string {
+    const name = this.toIdentifierName({ operation, enrichments, variant })
 
     return join('@', 'forms', `${name}.generated.tsx`)
   }

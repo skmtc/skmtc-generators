@@ -1,5 +1,6 @@
-import { ContentBase } from '@skmtc/core'
-import type { GenerateContextType, ListObject } from '@skmtc/core'
+import type { ListObject } from '@skmtc/lang-typescript'
+import { SnippetBase } from '@skmtc/core'
+import type { GenerateContextType } from '@skmtc/core'
 
 type ResponseArgs = {
   context: GenerateContextType
@@ -8,7 +9,7 @@ type ResponseArgs = {
   destinationPath: string
 }
 
-export class Response extends ContentBase {
+export class Response extends SnippetBase {
   serviceName: string
   serviceArgs: ListObject<string>
 

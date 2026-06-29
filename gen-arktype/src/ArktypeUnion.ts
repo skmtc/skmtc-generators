@@ -1,8 +1,12 @@
-import { ContentBase, type TypeSystemValue, type GenerateContextType, type Modifiers, type GeneratorKey, type RefName } from '@skmtc/core'
+import type { OasRef, OasSchema } from '@skmtc/core'
+import type { TypeSystemValue, GenerateContextType, Modifiers, GeneratorKey, RefName } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
 import { applyModifiers } from './applyModifiers.ts'
 import { toArktypeValue } from './Arktype.ts'
 
 type ArktypeUnionArgs = {
+  /** Originating schema node — for fine-grained attribution. */
+  schema?: OasSchema | OasRef<'schema'>
   context: GenerateContextType
   members: any[]
   discriminator?: any
@@ -12,18 +16,18 @@ type ArktypeUnionArgs = {
   rootRef?: RefName
 }
 
-export class ArktypeUnion extends ContentBase {
+export class ArktypeUnion extends TsSnippet {
   type = 'union' as const
   members: TypeSystemValue[]
   discriminator: any
   modifiers: Modifiers
   
-  constructor({ context, members, discriminator, modifiers, destinationPath, generatorKey, rootRef }: ArktypeUnionArgs) {
-    super({ context, generatorKey })
+  constructor({ context, members, discriminator, modifiers, destinationPath, generatorKey, rootRef, schema }: ArktypeUnionArgs) {
+    super({ context, generatorKey, stackTrail: schema?.stackTrail.clone() })
     
     this.discriminator = discriminator
     this.modifiers = modifiers
-    context.register({ imports: { arktype: ['type'] }, destinationPath })
+    this.register({ imports: { arktype: ['type'] }, destinationPath })
 
     this.members = members.map(member => 
       toArktypeValue({

@@ -1,0 +1,68 @@
+{
+  "openapi": "3.0.0",
+  "info": { "title": "DaisyForm sample", "version": "0.0.0" },
+  "paths": {
+    "/customers": {
+      "post": {
+        "operationId": "createCustomer",
+        "summary": "Create a customer",
+        "x-daisy-form": {
+          "submitColor": "success",
+          "showCard": false
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CustomerInput" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Customer" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CustomerInput": {
+        "type": "object",
+        "required": ["fullName", "email", "tier"],
+        "properties": {
+          "fullName": { "type": "string", "x-label": "Full name" },
+          "email": { "type": "string", "format": "email" },
+          "age": { "type": "integer", "minimum": 0 },
+          "balance": { "type": "number" },
+          "marketingOptIn": { "type": "boolean", "x-label": "Marketing opt-in" },
+          "tier": { "type": "string", "enum": ["free", "pro", "enterprise"] },
+          "notes": { "type": "string", "format": "textarea" },
+          "address": {
+            "type": "object",
+            "required": ["line1", "city", "country"],
+            "properties": {
+              "line1": { "type": "string" },
+              "line2": { "type": "string" },
+              "city": { "type": "string" },
+              "country": { "type": "string" }
+            }
+          }
+        }
+      },
+      "Customer": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "fullName": { "type": "string" }
+        }
+      }
+    }
+  }
+}

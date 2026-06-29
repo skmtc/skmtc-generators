@@ -1,6 +1,14 @@
 {
   "imports": {
-    "@skmtc/core": "jsr:@skmtc/core@^0.0.974",
+    "@skmtc/core": "jsr:@skmtc/core@0.22.0",
+    "@std/log": "jsr:@std/log@^0.224.6",
+    "@std/fmt/colors": "jsr:@std/fmt@^1.0.0/colors",
+    "@std/path/normalize": "jsr:@std/path@^1.1.2/normalize",
+    "@std/path/join": "jsr:@std/path@^1.1.2/join",
+    "@types/lodash-es": "npm:@types/lodash-es@4.17.12",
+    "lodash-es/get": "npm:lodash-es@4.17.21/get.js",
+    "lodash-es/set": "npm:lodash-es@4.17.21/set.js",
+    "graphql": "npm:graphql@^16.9.0",
     "@skmtc/gen-express": "./gen-express/mod.ts",
     "@skmtc/gen-msw": "./gen-msw/mod.ts",
     "@skmtc/gen-shadcn-form": "./gen-shadcn-form/mod.ts",
@@ -10,19 +18,32 @@
     "@skmtc/gen-tanstack-query-fetch-zod": "./gen-tanstack-query-fetch-zod/mod.ts",
     "@skmtc/gen-tanstack-query-supabase-zod": "./gen-tanstack-query-supabase-zod/mod.ts",
     "@skmtc/gen-typescript": "./gen-typescript/mod.ts",
+    "@skmtc/gen-typescript-s": "./gen-typescript-s/mod.ts",
     "@skmtc/gen-valibot": "./gen-valibot/mod.ts",
     "@skmtc/gen-zod": "./gen-zod/mod.ts",
     "@skmtc/gen-arktype": "./gen-arktype/mod.ts",
+    "@skmtc/gen-daisyui-form": "./gen-daisyui-form/mod.ts",
+    "@skmtc/gen-reapit-form": "./gen-reapit-form/mod.ts",
+    "@skmtc/gen-reapit-searchable-dropdown": "./gen-reapit-searchable-dropdown/mod.ts",
+    "@skmtc/gen-reapit-multi-select": "./gen-reapit-multi-select/mod.ts",
+    "@skmtc/gen-reapit-graphql-client": "./gen-reapit-graphql-client/mod.ts",
+    "@skmtc/gen-kotlin-kotlinx": "./gen-kotlin-kotlinx/mod.ts",
+    "@skmtc/gen-kotlin-spring": "./gen-kotlin-spring/mod.ts",
     "@std/path": "jsr:@std/path@^1.1.2",
     "openapi-types": "npm:openapi-types@^12.1.3",
     "tiny-invariant": "npm:tiny-invariant@^1.3.3",
     "ts-pattern": "npm:ts-pattern@^5.8.0",
-    "valibot": "npm:valibot@1.1.0"
+    "valibot": "npm:valibot@1.1.0",
+    "@skmtc/gen-csharp": "./gen-csharp/mod.ts",
+    "@skmtc/gen-csharp-aspnet": "./gen-csharp-aspnet/mod.ts",
+    "@skmtc/gen-kotlin-sdk": "./gen-kotlin-sdk/mod.ts",
+    "@skmtc/gen-kotlin-jackson-s": "./gen-kotlin-jackson-s/mod.ts"
   },
   "tasks": {
-    "test": "deno task --cwd=gen-typescript test && deno task --cwd=gen-zod test && deno task --cwd=gen-valibot test && deno task --cwd=gen-arktype test",
-    "check": "deno check gen-typescript/mod.ts && deno check gen-zod/mod.ts && deno check gen-valibot/mod.ts && deno check gen-arktype/mod.ts && deno check gen-msw/mod.ts && deno check gen-shadcn-form/mod.ts && deno check gen-shadcn-select/mod.ts && deno check gen-shadcn-table/mod.ts && deno check gen-supabase-hono/mod.ts && deno check gen-express/mod.ts && deno check gen-tanstack-query-fetch-zod/mod.ts && deno check gen-tanstack-query-supabase-zod/mod.ts",
-    "publish": "deno task --cwd=gen-arktype publish && deno task --cwd=gen-valibot publish && deno task --cwd=gen-zod publish && deno task --cwd=gen-typescript publish && deno task --cwd=gen-supabase-hono publish && deno task --cwd=gen-express publish && deno task --cwd=gen-msw publish && deno task --cwd=gen-tanstack-query-fetch-zod publish && deno task --cwd=gen-tanstack-query-supabase-zod publish && deno task --cwd=gen-shadcn-form publish && deno task --cwd=gen-shadcn-table publish && deno task --cwd=gen-shadcn-select publish"
+    "test": "deno task --cwd=gen-typescript test && deno task --cwd=gen-zod test && deno task --cwd=gen-valibot test && deno task --cwd=gen-arktype test && deno task --cwd=gen-kotlin-kotlinx test && deno task --cwd=gen-kotlin-spring test && deno task --cwd=gen-csharp test && deno task --cwd=gen-csharp-aspnet test",
+    "check": "deno check gen-typescript/mod.ts && deno check gen-zod/mod.ts && deno check gen-valibot/mod.ts && deno check gen-arktype/mod.ts && deno check gen-msw/mod.ts && deno check gen-shadcn-form/mod.ts && deno check gen-shadcn-select/mod.ts && deno check gen-shadcn-table/mod.ts && deno check gen-supabase-hono/mod.ts && deno check gen-express/mod.ts && deno check gen-tanstack-query-fetch-zod/mod.ts && deno check gen-tanstack-query-supabase-zod/mod.ts && deno check gen-kotlin-kotlinx/mod.ts && deno check gen-kotlin-spring/mod.ts && deno check gen-csharp/mod.ts && deno check gen-csharp-aspnet/mod.ts",
+    "release": "deno run --allow-read --allow-write --allow-env --allow-net --allow-run .scripts/release.ts",
+    "publish": "deno task --cwd=gen-typescript publish && deno task --cwd=gen-zod publish && deno task --cwd=gen-valibot publish && deno task --cwd=gen-arktype publish && deno task --cwd=gen-msw publish && deno task --cwd=gen-supabase-hono publish && deno task --cwd=gen-express publish && deno task --cwd=gen-tanstack-query-fetch-zod publish && deno task --cwd=gen-tanstack-query-supabase-zod publish && deno task --cwd=gen-daisyui-form publish && deno task --cwd=gen-reapit-form publish && deno task --cwd=gen-shadcn-form publish && deno task --cwd=gen-shadcn-select publish && deno task --cwd=gen-shadcn-table publish"
   },
   "nodeModulesDir": "none",
   "workspace": [
@@ -37,6 +58,19 @@
     "./gen-shadcn-select",
     "./gen-msw",
     "./gen-supabase-hono",
-    "./gen-express"
+    "./gen-express",
+    "./gen-daisyui-form",
+    "./gen-reapit-form",
+    "./gen-reapit-searchable-dropdown",
+    "./gen-reapit-multi-select",
+    "./gen-reapit-graphql-client",
+    "./gen-kotlin-kotlinx",
+    "./gen-kotlin-spring",
+    "./gen-csharp",
+    "./gen-csharp-aspnet",
+    "./gen-kotlin-sdk",
+    "./gen-kotlin-jackson-s",
+    "./gen-typescript-sdk",
+    "./gen-typescript-s"
   ]
 }

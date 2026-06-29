@@ -1,15 +1,16 @@
-import type { OperationInsertableArgs } from '@skmtc/core'
+import type { OasOperationProjectionConstructorArgs } from '@skmtc/core'
 import { match } from 'ts-pattern'
 import { QueryEndpoint } from './QueryEndpoint.ts'
 import { PaginatedQueryEndpoint } from './PaginatedQueryEndpoint.ts'
 import { MutationEndpoint } from './MutationEndpoint.ts'
 import { TanstackQueryBase } from './base.ts'
+import type { EnrichmentSchema } from './enrichments.ts'
 import { isListResponse } from './listFns.ts'
 
 export class TanstackQuery extends TanstackQueryBase {
   client: PaginatedQueryEndpoint | QueryEndpoint | MutationEndpoint
 
-  constructor({ context, operation, settings }: OperationInsertableArgs) {
+  constructor({ context, operation, settings }: OasOperationProjectionConstructorArgs<EnrichmentSchema>) {
     super({ context, operation, settings })
 
     this.client = match(operation)

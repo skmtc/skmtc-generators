@@ -1,14 +1,12 @@
-import { ContentBase, camelCase, decapitalize } from '@skmtc/core'
+import type { OasRef, OasSchema } from '@skmtc/core'
+import { camelCase, decapitalize } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
 import { applyModifiers } from './applyModifiers.ts'
-import type {
-  GenerateContextType,
-  GeneratorKey,
-  RefName,
-  Modifiers,
-  TypeSystemValue
-} from '@skmtc/core'
+import type { GenerateContextType, GeneratorKey, RefName, Modifiers, TypeSystemValue } from '@skmtc/core'
 
 type ArktypeRefArgs = {
+  /** Originating schema node — for fine-grained attribution. */
+  schema?: OasSchema | OasRef<'schema'>
   context: GenerateContextType
   destinationPath: string
   refName: RefName
@@ -17,7 +15,7 @@ type ArktypeRefArgs = {
   rootRef?: RefName
 }
 
-export class ArktypeRef extends ContentBase {
+export class ArktypeRef extends TsSnippet {
   type = 'ref' as const
   name: string
   refName: RefName
@@ -25,8 +23,8 @@ export class ArktypeRef extends ContentBase {
   destinationPath: string
   rootRef?: RefName
 
-  constructor({ context, refName, destinationPath, modifiers, generatorKey, rootRef }: ArktypeRefArgs) {
-    super({ context, generatorKey })
+  constructor({ context, refName, destinationPath, modifiers, generatorKey, rootRef, schema }: ArktypeRefArgs) {
+    super({ context, generatorKey, stackTrail: schema?.stackTrail.clone() })
 
     this.name = decapitalize(camelCase(refName))
     this.refName = refName
@@ -34,7 +32,7 @@ export class ArktypeRef extends ContentBase {
     this.destinationPath = destinationPath
     this.rootRef = rootRef
 
-    context.register({ imports: { arktype: ['type'] }, destinationPath })
+    this.register({ imports: { arktype: ['type'] }, destinationPath })
   }
 
   override toString(): string {
