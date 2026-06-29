@@ -35,7 +35,12 @@ const subjectEnrichmentSchema = v.optional(
     bodyTypeName: v.optional(v.string()),
     // A binary download (the reference returns the global `Response`). Emits an
     // `application/binary` Accept header + `__binaryResponse: true`, no named type.
-    binaryResponse: v.optional(v.boolean())
+    binaryResponse: v.optional(v.boolean()),
+    // The `__security` scheme key for this operation, mapped from the op's (or the
+    // document's global) OpenAPI security requirement to the SDK's scheme name
+    // (`ApiKeyAuth`→`bearerAuth`, `AdminApiKeyAuth`→`adminAPIKeyAuth`). Read from
+    // the operation's security, not hardcoded.
+    securityScheme: v.optional(v.string())
   })
 )
 

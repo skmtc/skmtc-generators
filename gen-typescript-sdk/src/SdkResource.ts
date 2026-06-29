@@ -126,7 +126,8 @@ export class SdkResource extends SdkResourceBase {
   }
 
   append(operation: OasOperation, subject: NonNullable<EnrichmentSchema['subject']>): void {
-    const { methodName, paginated, responseTypeName, bodyTypeName, binaryResponse } = subject
+    const { methodName, paginated, responseTypeName, bodyTypeName, binaryResponse, securityScheme } =
+      subject
     const className = this.settings.identifier.name
 
     const successSchema = operation.toSuccessResponse()?.resolve().toSchema()
@@ -240,7 +241,8 @@ export class SdkResource extends SdkResourceBase {
       bodyType,
       pagination: paginationInfo,
       binaryResponse,
-      destructure
+      destructure,
+      securityScheme
     })
 
     this.#methods.push({

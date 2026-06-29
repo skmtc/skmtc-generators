@@ -29,6 +29,9 @@ export type ApiMethodArgs = {
    *  params): the parent path params arrive via a `params` object and are
    *  destructured before the call. Prepended to the method body. */
   destructure: string | undefined
+  /** The `__security` scheme key (from the op's OpenAPI security). Defaults to
+   *  `bearerAuth` when absent. */
+  securityScheme: string | undefined
   /** Optional attribution (gen-maps) inputs. */
   generatorKey?: GeneratorKey
   stackTrail?: StackTrail
@@ -60,11 +63,13 @@ export class ApiMethod extends TsSnippet {
 
     this.description = args.description ? wrapDescription(args.description) : undefined
 
+    const securityKey = args.securityScheme ?? 'bearerAuth'
+
     if (args.pagination) {
       this.register({ imports: { '@/core/pagination': ['Page', 'PagePromise'] }, destinationPath })
       this.parameters = ['options?: RequestOptions']
       this.returnType = `PagePromise<${args.pagination.pageName}, ${args.pagination.itemType}>`
-      this.body = `return this._client.getAPIList(${args.pathExpression}, Page<${args.pagination.itemType}>, { ...options, __security: { bearerAuth: true } });`
+      this.body = `return this._client.getAPIList(${args.pathExpression}, Page<${args.pagination.itemType}>, { ...options, __security: { ${securityKey}: true } });`
     } else {
       this.register({ imports: { '@/core/api-promise': ['APIPromise'] }, destinationPath })
       if (args.binaryResponse) {
@@ -79,7 +84,7 @@ export class ApiMethod extends TsSnippet {
         args.binaryResponse
           ? "headers: buildHeaders([{ Accept: 'application/binary' }, options?.headers])"
           : undefined,
-        '__security: { bearerAuth: true }',
+        `__security: { ${securityKey}: true }`,
         args.binaryResponse ? '__binaryResponse: true' : undefined
       ]
         .filter(Boolean)
