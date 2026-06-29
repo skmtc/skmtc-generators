@@ -1,5 +1,5 @@
 import { SnippetBase, isEmpty } from '@skmtc/core'
-import { TsSnippet, handleKey } from '@skmtc/lang-typescript'
+import { TsSnippet, handleKey, withDescription } from '@skmtc/lang-typescript'
 import type { GenerateContextType, OasRef, GeneratorKey, OasSchema, OasObject, CustomValue, RefName, TypeSystemObjectProperties, TypeSystemRecord, TypeSystemValue, Modifiers } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
 import { toTsValue } from './Ts.ts'
@@ -87,6 +87,10 @@ type TsObjectPropertiesArgs = {
 class TsObjectProperties extends SnippetBase {
   properties: Record<string, TypeSystemValue>
   required: string[]
+  /** Per-property schema description (the JSDoc), keyed like `properties`. Kept
+   *  separate so `properties` still satisfies the core `TypeSystemObjectProperties`
+   *  contract (`Record<string, TypeSystemValue>`). */
+  descriptions: Record<string, string | undefined>
 
   constructor({
     context,
@@ -99,6 +103,7 @@ class TsObjectProperties extends SnippetBase {
     super({ context, generatorKey })
 
     this.required = required
+    this.descriptions = {}
 
     this.properties = Object.fromEntries(
       Object.entries(properties).map(([key, property]) => {
@@ -110,19 +115,30 @@ class TsObjectProperties extends SnippetBase {
           rootRef
         })
 
-        return [handleKey(key), value]
+        const handled = handleKey(key)
+        this.descriptions[handled] =
+          'description' in property && typeof property.description === 'string'
+            ? property.description
+            : undefined
+
+        return [handled, value]
       })
     )
   }
 
   override toString(): string {
-    return `{${Object.entries(this.properties)
-      .map(([key, value]) => {
-        const optionality = 'modifiers' in value ? (value.modifiers.required ? '' : '?') : ''
+    // Each property on its own line, with its JSDoc and a blank line between —
+    // openai-node's layout (Prettier preserves the blank lines + JSDoc but never
+    // inserts them, and re-indents). `;` terminator (interface member).
+    const members = Object.entries(this.properties).map(([key, value]) => {
+      const optionality = 'modifiers' in value ? (value.modifiers.required ? '' : '?') : ''
+      const declaration = `${key}${optionality}: ${value};`
+      const description = this.descriptions[key]
 
-        return `${key}${optionality}: ${value}`
-      })
-      .join(', ')}}`
+      return description ? withDescription(declaration, { description }) : declaration
+    })
+
+    return `{\n${members.join('\n\n')}\n}`
   }
 }
 

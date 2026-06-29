@@ -13,10 +13,16 @@ type ConstructorArgs = {
 
 export class TsProjection extends TypescriptBase {
   value: TypeSystemValue
+  /** The schema's own description — rendered as the type/interface JSDoc. The
+   *  Driver reads it off the projection value via `toValueDescription`. */
+  description: string | undefined
   constructor({ context, refName, settings, rootRef }: ConstructorArgs) {
     super({ context, refName, settings })
 
     const schema = context.resolveSchemaRefOnce(refName, TypescriptBase.id)
+
+    this.description =
+      !schema.isRef() && typeof schema.description === 'string' ? schema.description : undefined
 
     this.value = toTsValue({
       schema,

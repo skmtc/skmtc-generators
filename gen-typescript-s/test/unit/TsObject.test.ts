@@ -20,7 +20,7 @@ Deno.test('TsObject - simple object with required properties', () => {
     generatorKey: toGeneratorOnlyKey({ generatorId: '@skmtc/gen-typescript' })
   })
 
-  assertEquals(tsObject.toString(), '{id: string, name: string}')
+  assertEquals(tsObject.toString(), '{\nid: string;\n\nname: string;\n}')
 })
 
 Deno.test('TsObject - object with optional properties', () => {
@@ -43,7 +43,7 @@ Deno.test('TsObject - object with optional properties', () => {
 
   assertEquals(
     tsObject.toString(),
-    '{id: string, name?: string | undefined, age?: (number | null) | undefined}'
+    '{\nid: string;\n\nname?: string | undefined;\n\nage?: (number | null) | undefined;\n}'
   )
 })
 
@@ -94,7 +94,7 @@ Deno.test('TsObject - object with properties and additionalProperties', () => {
     generatorKey: toGeneratorOnlyKey({ generatorId: '@skmtc/gen-typescript' })
   })
 
-  assertEquals(tsObject.toString(), '{id: string} | Record<string, number>')
+  assertEquals(tsObject.toString(), '{\nid: string;\n} | Record<string, number>')
 })
 
 Deno.test('TsObject - nullable object', () => {
@@ -113,7 +113,7 @@ Deno.test('TsObject - nullable object', () => {
     generatorKey: toGeneratorOnlyKey({ generatorId: '@skmtc/gen-typescript' })
   })
 
-  assertEquals(tsObject.toString(), '{name: string} | null')
+  assertEquals(tsObject.toString(), '{\nname: string;\n} | null')
 })
 
 Deno.test('TsObject - optional object', () => {
@@ -132,5 +132,5 @@ Deno.test('TsObject - optional object', () => {
     generatorKey: toGeneratorOnlyKey({ generatorId: '@skmtc/gen-typescript' })
   })
 
-  assertEquals(tsObject.toString(), '{value: string} | undefined')
+  assertEquals(tsObject.toString(), '{\nvalue: string;\n} | undefined')
 })
