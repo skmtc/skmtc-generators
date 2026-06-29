@@ -15,12 +15,18 @@ import * as v from 'valibot'
  * `resourceDescription` is the resource-level JSDoc rendered above the
  * `export class` — a resource fact, so any operation of the resource may
  * carry it (the accumulator takes the first non-empty one).
+ *
+ * `paginated` — whether the method is a `getAPIList`/`PagePromise` (vs a plain
+ * `APIPromise`). A list-shaped `{ object: 'list', data: [] }` response does NOT
+ * imply pagination (e.g. `embeddings.create` returns that shape but is a `post`),
+ * so the truth comes from the SDK config, not a response-shape heuristic.
  */
 const subjectEnrichmentSchema = v.optional(
   v.object({
     resource: v.string(),
     methodName: v.string(),
-    resourceDescription: v.optional(v.string())
+    resourceDescription: v.optional(v.string()),
+    paginated: v.optional(v.boolean())
   })
 )
 

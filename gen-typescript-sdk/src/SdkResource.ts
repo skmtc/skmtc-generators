@@ -123,7 +123,7 @@ export class SdkResource extends SdkResourceBase {
     }
   }
 
-  append(operation: OasOperation, methodName: string): void {
+  append(operation: OasOperation, methodName: string, paginated: boolean | undefined): void {
     const className = this.settings.identifier.name
     this.#ensureNamespace(className)
 
@@ -132,7 +132,11 @@ export class SdkResource extends SdkResourceBase {
 
     const successSchema = operation.toSuccessResponse()?.resolve().toSchema()
     const requestBody = operation.toRequestBody(({ schema }) => schema)
-    const pagination = successSchema ? toPagination(successSchema) : undefined
+    // Pagination is an SDK-config fact (the `paginated` enrichment), not a
+    // response-shape guess — `toPagination` only extracts the item schema once
+    // we KNOW the method paginates. A `{ object: 'list', data: [] }` response is
+    // not enough (e.g. `embeddings.create` has it but is a plain `post`).
+    const pagination = paginated && successSchema ? toPagination(successSchema) : undefined
 
     let responseType = 'void'
     let bodyType: string | undefined

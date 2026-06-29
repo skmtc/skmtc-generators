@@ -31,7 +31,7 @@ export const typescriptSdkEntry = toOasOperationEntry<EnrichmentSchema>({
 
     invariant(resource?.value instanceof SdkResource, 'resource must be an instance of SdkResource')
 
-    resource.value.append(operation, subject.methodName)
+    resource.value.append(operation, subject.methodName, subject.paginated)
   }
 })
 
