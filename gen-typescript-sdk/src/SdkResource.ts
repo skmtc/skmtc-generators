@@ -20,7 +20,8 @@ import { toClientPath, toPagination } from './resource.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
 
 // Stainless's standing note on every generated `<Resource>Page` alias.
-const PAGE_ALIAS_NOTE = 'Note: no pagination actually occurs yet, this is for forwards-compatibility.'
+const PAGE_ALIAS_NOTE =
+  'Note: no pagination actually occurs yet, this is for forwards-compatibility.'
 
 // Stainless's canonical method ordering; anything unlisted sorts after.
 const METHOD_ORDER = ['create', 'retrieve', 'update', 'list', 'delete']
@@ -39,13 +40,19 @@ const methodPriority = (name: string): number => {
 class NamespaceReExport extends SnippetBase {
   #getNames: () => string[]
 
-  constructor(args: { context: GenerateContextType; generatorKey?: GeneratorKey; getNames: () => string[] }) {
+  constructor(args: {
+    context: GenerateContextType
+    generatorKey?: GeneratorKey
+    getNames: () => string[]
+  }) {
     super({ context: args.context, generatorKey: args.generatorKey })
     this.#getNames = args.getNames
   }
 
   override toString(): string {
-    const reExports = this.#getNames().map(name => `type ${name} as ${name}`).join(', ')
+    const reExports = this.#getNames()
+      .map(name => `type ${name} as ${name}`)
+      .join(', ')
 
     return `{\n  export { ${reExports} };\n}`
   }
@@ -60,7 +67,11 @@ class NamespaceReExport extends SnippetBase {
 class PageAliasValue extends SnippetBase {
   #itemType: { name: string }
 
-  constructor(args: { context: GenerateContextType; generatorKey?: GeneratorKey; itemType: { name: string } }) {
+  constructor(args: {
+    context: GenerateContextType
+    generatorKey?: GeneratorKey
+    itemType: { name: string }
+  }) {
     super({ context: args.context, generatorKey: args.generatorKey })
     this.#itemType = args.itemType
   }
@@ -88,7 +99,11 @@ export class SdkResource extends SdkResourceBase {
   #pageNames: string[] = []
   #namespaceRegistered = false
 
-  constructor({ context, operation, settings }: OasOperationProjectionConstructorArgs<EnrichmentSchema>) {
+  constructor({
+    context,
+    operation,
+    settings
+  }: OasOperationProjectionConstructorArgs<EnrichmentSchema>) {
     super({ context, operation, settings })
 
     this.description = settings.enrichments.subject?.resourceDescription
@@ -99,7 +114,7 @@ export class SdkResource extends SdkResourceBase {
       context,
       destinationPath: settings.exportPath,
       generatorKey: this.generatorKey,
-      extends: { name: 'APIResource', exportPath: '../core/resource' }
+      extends: { name: 'APIResource', exportPath: '@/core/resource' }
     })
 
     const fileHeader = settings.enrichments.generator?.fileHeader
@@ -114,7 +129,6 @@ export class SdkResource extends SdkResourceBase {
 
     const { expression: pathExpression, hasParams } = toClientPath(operation.path)
     const pathParameters = operation.toParams(['path']).map(({ name }) => `${name}: string`)
-    const description = 'description' in operation ? operation.description : undefined
 
     const successSchema = operation.toSuccessResponse()?.resolve().toSchema()
     const requestBody = operation.toRequestBody(({ schema }) => schema)
@@ -161,12 +175,15 @@ export class SdkResource extends SdkResourceBase {
     }
 
     const apiMethod = new ApiMethod({
+      context: this.context,
+      destinationPath: this.settings.exportPath,
+      generatorKey: this.generatorKey,
       methodName,
       httpMethod: operation.method,
       pathExpression,
       hasParams,
       pathParameters,
-      description,
+      description: operation.description,
       responseType,
       bodyType,
       pagination: paginationInfo
@@ -182,7 +199,6 @@ export class SdkResource extends SdkResourceBase {
       }),
       methodName
     })
-    this.register({ imports: apiMethod.imports })
   }
 
   /**
@@ -223,11 +239,15 @@ export class SdkResource extends SdkResourceBase {
 
     defineAndRegister(this.context, {
       identifier: createType(pageName),
-      value: new PageAliasValue({ context: this.context, generatorKey: this.generatorKey, itemType }),
+      value: new PageAliasValue({
+        context: this.context,
+        generatorKey: this.generatorKey,
+        itemType
+      }),
       leadingComment: PAGE_ALIAS_NOTE,
       destinationPath: this.settings.exportPath
     })
-    this.register({ imports: { '../core/pagination': ['Page'] } })
+    this.register({ imports: { '@/core/pagination': ['Page'] } })
   }
 
   override toString(): string {
