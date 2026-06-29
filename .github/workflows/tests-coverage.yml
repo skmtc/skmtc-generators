@@ -6,6 +6,12 @@ on:
   pull_request:
     branches: [ main ]
 
+# @skmtc/* are published to the private JSR registry, not public jsr.io.
+# Without this, deno resolves `jsr:@skmtc/core@…` from jsr.io and fails with
+# "JSR package version not found". Reads are public, so no auth token needed.
+env:
+  JSR_URL: https://jsr.skmtc.co.uk/
+
 jobs:
   coverage:
     runs-on: ubuntu-latest
