@@ -61,20 +61,53 @@ const runFixture = () =>
 Deno.test('e2e - generates one Markdown file per operation, no parse errors', () => {
   const { artifacts, manifest } = runFixture()
 
-  assertEquals(Object.keys(artifacts), ['src/docs/pets/pets-id-GET.md', 'src/docs/index.md'])
+  assertEquals(Object.keys(artifacts), [
+    'src/docs/pets/pets-id-GET.md',
+    'src/docs/index.md',
+    'src/docs/index.json',
+    'src/docs/pets/index.md'
+  ])
   assertEquals(manifest.parseIssues.filter(issue => issue.level === 'error'), [])
 })
 
-Deno.test('e2e - accumulates a discovery index linking each operation', () => {
+Deno.test('e2e - accumulates the top index, a per-tag index and the JSON catalog', () => {
   const { artifacts } = runFixture()
 
+  // Top index: a lightweight tag directory.
   assertEquals(
     artifacts['src/docs/index.md'],
     [
       '# Fixture API',
-      '> Reference for 1 operation, each linking to a self-contained document.',
-      '## pets\n\n- [Get pet by ID](pets/pets-id-GET.md) — `GET` `/pets/{id}`'
+      '> Reference for 1 operation, grouped by tag.',
+      '- [pets](pets/index.md) — 1 operation'
     ].join('\n\n')
+  )
+
+  // Per-tag index: the tag's operations, linked within the folder.
+  assertEquals(
+    artifacts['src/docs/pets/index.md'],
+    ['# pets', '- [Get pet by ID](pets-id-GET.md) — `GET` `/pets/{id}`'].join('\n\n')
+  )
+
+  // Catalog: one structured record per operation.
+  assertEquals(
+    artifacts['src/docs/index.json'],
+    JSON.stringify(
+      {
+        title: 'Fixture API',
+        operations: [
+          {
+            method: 'GET',
+            path: '/pets/{id}',
+            tags: ['pets'],
+            summary: 'Get pet by ID',
+            file: 'pets/pets-id-GET.md'
+          }
+        ]
+      },
+      null,
+      2
+    )
   )
 })
 
