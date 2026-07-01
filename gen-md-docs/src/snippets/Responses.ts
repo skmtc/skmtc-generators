@@ -3,6 +3,7 @@ import {
   type GenerateContextType,
   type OasResponse,
   type OasHeader,
+  type OasLink,
   type OasRef
 } from '@skmtc/core'
 import { Name } from './Name.ts'
@@ -62,6 +63,7 @@ class ResponseEntry extends SnippetBase {
   description: Description
   mediaTypeLine: string | undefined
   headers: Header[]
+  links: Link[]
   schema: Schema | undefined
   example: Example
 
@@ -78,6 +80,11 @@ class ResponseEntry extends SnippetBase {
 
       return resolved !== undefined ? [new Header({ context, name, header: resolved, definitions })] : []
     })
+    this.links = Object.entries(response?.links ?? {}).flatMap(([name, link]) => {
+      const resolved = safeResolve(link)
+
+      return resolved !== undefined ? [new Link({ context, name, link: resolved })] : []
+    })
     this.schema = content.schema
       ? new Schema({ context, name: undefined, schema: content.schema, required: undefined, definitions })
       : undefined
@@ -91,8 +98,19 @@ class ResponseEntry extends SnippetBase {
       this.headers.length > 0
         ? ['**Headers**', this.headers.map(header => `- ${header}`).join('\n')].join('\n\n')
         : ''
+    const links =
+      this.links.length > 0
+        ? ['**Links**', this.links.map(link => `- ${link}`).join('\n')].join('\n\n')
+        : ''
 
-    return [heading, this.mediaTypeLine ?? '', this.schema?.toString() ?? '', headers, this.example.toString()]
+    return [
+      heading,
+      this.mediaTypeLine ?? '',
+      this.schema?.toString() ?? '',
+      headers,
+      links,
+      this.example.toString()
+    ]
       .filter(part => part !== '')
       .join('\n\n')
   }
@@ -137,5 +155,41 @@ class Header extends SnippetBase {
       [`${this.name}`, description && `— ${description}`].filter(part => part !== '').join(' ')
 
     return this.deprecated ? `${base} _(deprecated)_` : base
+  }
+}
+
+type LinkArgs = {
+  context: GenerateContextType
+  name: string
+  link: OasLink
+}
+
+/**
+ * One response link — a design-time pointer to another operation. Renders its
+ * name, the target operation (`operationId` or `operationRef`) and description.
+ */
+class Link extends SnippetBase {
+  name: Name
+  target: string | undefined
+  description: Description
+
+  constructor({ context, name, link }: LinkArgs) {
+    super({ context })
+
+    this.name = new Name({ context, name })
+    this.target = link.operationId ?? link.operationRef
+    this.description = new Description({ context, description: link.description })
+  }
+
+  override toString(): string {
+    const description = this.description.toString()
+
+    return [
+      `${this.name}`,
+      this.target !== undefined ? `→ \`${this.target}\`` : '',
+      description && `— ${description}`
+    ]
+      .filter(part => part !== '')
+      .join(' ')
   }
 }

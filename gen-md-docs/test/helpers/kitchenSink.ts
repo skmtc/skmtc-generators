@@ -137,7 +137,14 @@ export const kitchenSinkDocument: OpenAPIV3.Document = {
         responses: {
           '201': {
             description: 'Created',
-            content: { 'application/json': { schema: { $ref: '#/components/schemas/Pet' } } }
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/Pet' } } },
+            links: {
+              GetPetById: {
+                operationId: 'getPet',
+                parameters: { petId: '$response.body#/id' },
+                description: 'The created pet can be fetched by its `id`.'
+              }
+            }
           },
           '422': {
             description: 'Validation failed',
@@ -235,6 +242,7 @@ export const kitchenSinkDocument: OpenAPIV3.Document = {
     schemas: {
       Pet: {
         type: 'object',
+        externalDocs: { url: 'https://docs.example.com/pets/model', description: 'Pet model reference' },
         required: ['id', 'name'],
         properties: {
           id: { type: 'integer', format: 'int64', readOnly: true },

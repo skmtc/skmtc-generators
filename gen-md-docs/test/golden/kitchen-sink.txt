@@ -249,6 +249,8 @@ _deprecated, not exploded_
 - **category** [`Category`](#category) _Pet category_
 - **friends** [`Pet[]`](#pet)
 
+**See also:** [Pet model reference](https://docs.example.com/pets/model)
+
 ### Error
 
 `object`
@@ -298,6 +300,10 @@ The pet to create.
 
 [`Pet`](#pet)
 
+**Links**
+
+- **GetPetById** → `getPet` — The created pet can be fetched by its `id`.
+
 ### `422` — Validation failed
 
 [`ValidationError`](#validationerror)
@@ -328,6 +334,8 @@ The pet to create.
 - **tags** `string[]`
 - **category** [`Category`](#category) _Pet category_
 - **friends** [`Pet[]`](#pet)
+
+**See also:** [Pet model reference](https://docs.example.com/pets/model)
 
 ### ValidationError
 
@@ -398,6 +406,8 @@ tags:
 - **tags** `string[]`
 - **category** [`Category`](#category) _Pet category_
 - **friends** [`Pet[]`](#pet)
+
+**See also:** [Pet model reference](https://docs.example.com/pets/model)
 
 ### Error
 

@@ -10,6 +10,7 @@ import {
 import { Name } from './Name.ts'
 import { TypeInfo } from './TypeInfo.ts'
 import { Description } from './Description.ts'
+import { ExternalDocs } from './ExternalDocs.ts'
 import { safeResolve } from '../safeResolve.ts'
 
 type SchemaArgs = {
@@ -223,6 +224,7 @@ type TypeDefinitionArgs = {
 class TypeDefinition extends SnippetBase {
   name: string
   schema: Schema | undefined
+  externalDocs: ExternalDocs
 
   constructor({ context, ref, definitions }: TypeDefinitionArgs) {
     super({ context, stackTrail: ref.stackTrail.clone() })
@@ -234,9 +236,16 @@ class TypeDefinition extends SnippetBase {
       resolved !== undefined
         ? new Schema({ context, name: undefined, schema: resolved, required: undefined, definitions })
         : undefined
+    this.externalDocs = new ExternalDocs({
+      context,
+      externalDocs:
+        resolved !== undefined && 'externalDocs' in resolved ? resolved.externalDocs : undefined
+    })
   }
 
   override toString(): string {
-    return this.schema !== undefined ? `### ${this.name}\n\n${this.schema}` : `### ${this.name}`
+    return [`### ${this.name}`, this.schema?.toString(), this.externalDocs.toString()]
+      .filter(part => part !== undefined && part !== '')
+      .join('\n\n')
   }
 }
