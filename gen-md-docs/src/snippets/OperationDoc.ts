@@ -2,6 +2,7 @@ import { SnippetBase, type GenerateContextType, type OasOperation } from '@skmtc
 import { Frontmatter } from './Frontmatter.ts'
 import { Summary } from './Summary.ts'
 import { PathMethod } from './PathMethod.ts'
+import { Security } from './Security.ts'
 import { Parameters } from './Parameters.ts'
 import { Section } from './Section.ts'
 import { Responses } from './Responses.ts'
@@ -30,11 +31,17 @@ export class OperationDoc extends SnippetBase {
     super({ context, stackTrail: operation.stackTrail.clone() })
 
     const definitions = new Definitions({ context })
+    const document = context.document.type === 'oas' ? context.document.value : undefined
 
     this.parts = [
       new Frontmatter({ context, operation }),
       new Summary({ context, summary: operation.summary, description: operation.description }),
       new PathMethod({ context, method: operation.method, path: operation.path }),
+      new Security({
+        context,
+        security: operation.security ?? document?.security,
+        securitySchemes: document?.components?.securitySchemes
+      }),
       new Parameters({ context, title: 'Path parameters', parameters: operation.toParams(['path']), definitions }),
       new Parameters({ context, title: 'Query parameters', parameters: operation.toParams(['query']), definitions }),
       new Parameters({ context, title: 'Headers', parameters: operation.toParams(['header']), definitions }),
