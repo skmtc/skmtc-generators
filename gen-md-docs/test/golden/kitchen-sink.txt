@@ -1,0 +1,414 @@
+==== api/docs/health-GET.md ====
+
+---
+type: operation
+title: "Health check"
+operationId: "healthCheck"
+method: GET
+path: "/health"
+---
+
+# Health check
+
+`GET` `/health`
+
+## Responses
+
+### `200` — Healthy
+
+`object`
+- **status** `string` (`ok`, `degraded`)
+
+```json
+{
+  "status": "ok"
+}
+```
+
+==== api/docs/index.json ====
+
+{
+  "title": "Kitchen Sink API",
+  "operations": [
+    {
+      "operationId": "getRoot",
+      "method": "GET",
+      "path": "/",
+      "tags": [
+        "meta"
+      ],
+      "summary": "API root",
+      "file": "meta/root-GET.md"
+    },
+    {
+      "operationId": "healthCheck",
+      "method": "GET",
+      "path": "/health",
+      "tags": [],
+      "summary": "Health check",
+      "file": "health-GET.md"
+    },
+    {
+      "operationId": "listPets",
+      "method": "GET",
+      "path": "/pets",
+      "tags": [
+        "pets"
+      ],
+      "summary": "List pets",
+      "file": "pets/pets-GET.md"
+    },
+    {
+      "operationId": "createPet",
+      "method": "POST",
+      "path": "/pets",
+      "tags": [
+        "pets"
+      ],
+      "summary": "Create a pet",
+      "file": "pets/pets-POST.md"
+    },
+    {
+      "operationId": "getPet",
+      "method": "GET",
+      "path": "/pets/{petId}",
+      "tags": [
+        "pets"
+      ],
+      "summary": "Get a pet",
+      "file": "pets/pets-petId-GET.md"
+    },
+    {
+      "operationId": "uploadPhoto",
+      "method": "PUT",
+      "path": "/pets/{petId}/photo",
+      "tags": [
+        "pets"
+      ],
+      "summary": "Upload a photo",
+      "file": "pets/pets-petId-photo-PUT.md"
+    },
+    {
+      "operationId": "getInventory",
+      "method": "GET",
+      "path": "/store/inventory",
+      "tags": [
+        "store"
+      ],
+      "summary": "Inventory levels",
+      "file": "store/store-inventory-GET.md"
+    }
+  ]
+}
+
+==== api/docs/index.md ====
+
+# Kitchen Sink API
+
+> Reference for 7 operations, grouped by tag.
+
+- [meta](meta/index.md) — 1 operation
+- [pets](pets/index.md) — 4 operations
+- [store](store/index.md) — 1 operation
+
+## Other
+
+- [Health check](health-GET.md) — `GET` `/health`
+
+==== api/docs/meta/index.md ====
+
+# meta
+
+- [API root](root-GET.md) — `GET` `/`
+
+==== api/docs/meta/root-GET.md ====
+
+---
+type: operation
+title: "API root"
+operationId: "getRoot"
+method: GET
+path: "/"
+tags:
+  - "meta"
+---
+
+# API root
+
+`GET` `/`
+
+## Responses
+
+### `200` — Service metadata
+
+`object`
+- **version** `string`
+
+==== api/docs/pets/index.md ====
+
+# pets
+
+- [List pets](pets-GET.md) — `GET` `/pets`
+- [Create a pet](pets-POST.md) — `POST` `/pets`
+- [Get a pet](pets-petId-GET.md) — `GET` `/pets/{petId}`
+- [Upload a photo](pets-petId-photo-PUT.md) — `PUT` `/pets/{petId}/photo`
+
+==== api/docs/pets/pets-GET.md ====
+
+---
+type: operation
+title: "List pets"
+operationId: "listPets"
+method: GET
+path: "/pets"
+tags:
+  - "pets"
+---
+
+# List pets
+
+Returns all pets, optionally filtered.
+
+`GET` `/pets`
+
+## Query parameters
+
+**limit** `integer` (minimum: 1, maximum: 100, default: `20`) — Maximum results
+
+**tags** `string[]`
+
+## Headers
+
+**X-Request-Id** `string` uuid
+
+## Responses
+
+### `200` — A list of pets
+
+[`Pet[]`](#pet)
+
+### `400` — Bad request
+
+[`Error`](#error)
+
+## Referenced types
+
+### Pet
+
+`object`
+- **id** `integer` int64 required read-only
+- **name** `string` required (min length: 1, max length: 50)
+- **status** `string` (`active`, `inactive`) (default: `active`)
+- **tags** `string[]`
+- **category** [`Category`](#category)
+- **friends** [`Pet[]`](#pet)
+
+### Error
+
+`object`
+- **code** `integer` required
+- **message** `string` required
+
+### Category
+
+`object`
+- **id** `integer`
+- **name** `string`
+
+==== api/docs/pets/pets-POST.md ====
+
+---
+type: operation
+title: "Create a pet"
+operationId: "createPet"
+method: POST
+path: "/pets"
+tags:
+  - "pets"
+---
+
+# Create a pet
+
+`POST` `/pets`
+
+## Security
+
+- `apiKey` (API key in header `X-API-Key`)
+
+## Request body
+
+[`NewPet`](#newpet)
+
+## Responses
+
+### `201` — Created
+
+[`Pet`](#pet)
+
+### `422` — Validation failed
+
+[`ValidationError`](#validationerror)
+
+### `default` — Unexpected error
+
+[`Error`](#error)
+
+## Referenced types
+
+### NewPet
+
+`object`
+- **name** `string` required (min length: 1)
+- **status** `string` (`active`, `inactive`)
+- **category** [`Category`](#category)
+- **photoUrls** `string[]` (min items: 1)
+- **metadata** `union`
+  - `string`
+  - `integer`
+
+### Pet
+
+`object`
+- **id** `integer` int64 required read-only
+- **name** `string` required (min length: 1, max length: 50)
+- **status** `string` (`active`, `inactive`) (default: `active`)
+- **tags** `string[]`
+- **category** [`Category`](#category)
+- **friends** [`Pet[]`](#pet)
+
+### ValidationError
+
+`object`
+- **errors** `object[]`
+  - **field** `string`
+  - **message** `string`
+
+### Error
+
+`object`
+- **code** `integer` required
+- **message** `string` required
+
+### Category
+
+`object`
+- **id** `integer`
+- **name** `string`
+
+==== api/docs/pets/pets-petId-GET.md ====
+
+---
+type: operation
+title: "Get a pet"
+operationId: "getPet"
+method: GET
+path: "/pets/{petId}"
+tags:
+  - "pets"
+---
+
+# Get a pet
+
+`GET` `/pets/{petId}`
+
+## Path parameters
+
+**petId** `string` required — The pet identifier
+
+## Cookies
+
+**session** `string`
+
+## Responses
+
+### `200` — The pet
+
+[`Pet`](#pet)
+
+### `404` — Not found
+
+[`Error`](#error)
+
+## Referenced types
+
+### Pet
+
+`object`
+- **id** `integer` int64 required read-only
+- **name** `string` required (min length: 1, max length: 50)
+- **status** `string` (`active`, `inactive`) (default: `active`)
+- **tags** `string[]`
+- **category** [`Category`](#category)
+- **friends** [`Pet[]`](#pet)
+
+### Error
+
+`object`
+- **code** `integer` required
+- **message** `string` required
+
+### Category
+
+`object`
+- **id** `integer`
+- **name** `string`
+
+==== api/docs/pets/pets-petId-photo-PUT.md ====
+
+---
+type: operation
+title: "Upload a photo"
+operationId: "uploadPhoto"
+method: PUT
+path: "/pets/{petId}/photo"
+tags:
+  - "pets"
+---
+
+# Upload a photo
+
+`PUT` `/pets/{petId}/photo`
+
+## Path parameters
+
+**petId** `string` required
+
+## Request body
+
+Content type: `application/octet-stream`
+
+`string` binary
+
+## Responses
+
+### `204` — No content
+
+==== api/docs/store/index.md ====
+
+# store
+
+- [Inventory levels](store-inventory-GET.md) — `GET` `/store/inventory`
+
+==== api/docs/store/store-inventory-GET.md ====
+
+---
+type: operation
+title: "Inventory levels"
+operationId: "getInventory"
+method: GET
+path: "/store/inventory"
+tags:
+  - "store"
+deprecated: true
+---
+
+# Inventory levels
+
+`GET` `/store/inventory`
+
+## Responses
+
+### `200` — Inventory counts
+
+`object`
+- **total** `integer`
