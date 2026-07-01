@@ -5,10 +5,11 @@ import { camelCase, type OasOperation } from '@skmtc/core'
  * its first tag, named as the path (each segment camelCased, joined by hyphens)
  * with the upper-cased method last, e.g.
  * `@/docs/actions/repos-owner-repo-actions-runs-runId-rerun-POST.md`.
- * Untagged operations land directly under `@/docs`.
+ * The root path `/` has no segments, so it is named `root`. Untagged operations
+ * land directly under `@/docs`.
  */
 export const toDocsExportPath = (operation: OasOperation): string => {
-  const name = `${toPathName(operation.path)}-${operation.method.toUpperCase()}.md`
+  const name = `${toPathName(operation.path) || 'root'}-${operation.method.toUpperCase()}.md`
   const tag = operation.tags?.[0]
 
   return tag ? `@/docs/${toKebabCase(tag)}/${name}` : `@/docs/${name}`

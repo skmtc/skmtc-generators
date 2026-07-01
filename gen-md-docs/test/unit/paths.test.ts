@@ -35,3 +35,17 @@ Deno.test('toDocsExportPath - untagged operations land directly under docs', () 
 
   assertEquals(toDocsExportPath(parsed.value.operations[0]), '@/docs/ping-GET.md')
 })
+
+Deno.test('toDocsExportPath - names the root path "root", not an empty segment', () => {
+  const parsed = toParsedDocument({
+    openapi: '3.0.0',
+    info: { title: 'Test', version: '1.0.0' },
+    paths: {
+      '/': { get: { tags: ['meta'], responses: { '200': { description: 'ok' } } } }
+    }
+  })
+
+  assert(parsed.type === 'oas')
+
+  assertEquals(toDocsExportPath(parsed.value.operations[0]), '@/docs/meta/root-GET.md')
+})
