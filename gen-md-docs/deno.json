@@ -1,0 +1,13 @@
+{
+  "name": "@skmtc/gen-md-docs",
+  "version": "0.0.1",
+  "exports": "./mod.ts",
+  "tasks": {
+    "test": "deno test --allow-env --allow-sys --allow-read"
+  },
+  "imports": {
+    "@skmtc/core": "jsr:@skmtc/core@0.22.2",
+    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.12.4",
+    "openapi-types": "npm:openapi-types@^12.1.3"
+  }
+}

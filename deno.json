@@ -71,6 +71,7 @@
     "./gen-kotlin-sdk",
     "./gen-kotlin-jackson-s",
     "./gen-typescript-sdk",
-    "./gen-typescript-s"
+    "./gen-typescript-s",
+    "./gen-md-docs"
   ]
 }
