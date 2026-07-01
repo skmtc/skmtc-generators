@@ -10,6 +10,7 @@ import {
 import { Name } from './Name.ts'
 import { TypeInfo } from './TypeInfo.ts'
 import { Description } from './Description.ts'
+import { safeResolve } from '../safeResolve.ts'
 
 type SchemaArgs = {
   context: GenerateContextType
@@ -50,14 +51,16 @@ export class Schema extends SnippetBase {
   }: SchemaArgs) {
     super({ context, stackTrail: schema.stackTrail.clone() })
 
-    const resolved = schema.resolve()
+    const resolved = safeResolve(schema)
     const properties = toExpansion(schema, definitions)
 
     this.name = new Name({ context, name })
     this.typeInfo = new TypeInfo({ context, schema, required })
     this.description = new Description({
       context,
-      description: description ?? ('description' in resolved ? resolved.description : undefined)
+      description:
+        description ??
+        (resolved !== undefined && 'description' in resolved ? resolved.description : undefined)
     })
     this.properties =
       properties.length > 0
@@ -125,7 +128,9 @@ const toExpansion = (
   definitions: Definitions
 ): Property[] => {
   if (schema.isRef()) {
-    definitions.add(schema)
+    if (safeResolve(schema) !== undefined) {
+      definitions.add(schema)
+    }
 
     return []
   }
@@ -204,22 +209,21 @@ type TypeDefinitionArgs = {
 /** One entry in the {@link Definitions} section: `### Name` over the resolved type's shape. */
 class TypeDefinition extends SnippetBase {
   name: string
-  schema: Schema
+  schema: Schema | undefined
 
   constructor({ context, ref, definitions }: TypeDefinitionArgs) {
     super({ context, stackTrail: ref.stackTrail.clone() })
 
+    const resolved = safeResolve(ref)
+
     this.name = camelCase(ref.toRefName(), { upperFirst: true })
-    this.schema = new Schema({
-      context,
-      name: undefined,
-      schema: ref.resolve(),
-      required: undefined,
-      definitions
-    })
+    this.schema =
+      resolved !== undefined
+        ? new Schema({ context, name: undefined, schema: resolved, required: undefined, definitions })
+        : undefined
   }
 
   override toString(): string {
-    return `### ${this.name}\n\n${this.schema}`
+    return this.schema !== undefined ? `### ${this.name}\n\n${this.schema}` : `### ${this.name}`
   }
 }

@@ -3,6 +3,7 @@ import { Schema, type Definitions } from './Schema.ts'
 import { Description } from './Description.ts'
 import { Example } from './Example.ts'
 import { toExample } from '../toExample.ts'
+import { safeResolve } from '../safeResolve.ts'
 
 type ResponsesArgs = {
   context: GenerateContextType
@@ -25,7 +26,7 @@ export class Responses extends SnippetBase {
 
     this.entries = Object.entries(responses).map(
       ([code, response]) =>
-        new ResponseEntry({ context, code, response: response.resolve(), definitions })
+        new ResponseEntry({ context, code, response: safeResolve(response), definitions })
     )
   }
 
@@ -41,11 +42,13 @@ export class Responses extends SnippetBase {
 type ResponseEntryArgs = {
   context: GenerateContextType
   code: string
-  response: OasResponse
+  response: OasResponse | undefined
   definitions?: Definitions
 }
 
-/** One response: `### ` + status, an em-dash description, its schema, an example. */
+/** One response: `### ` + status, an em-dash description, its schema, an example.
+ * `response` is `undefined` when its `$ref` could not be resolved — the status
+ * code still documents, without a schema. */
 class ResponseEntry extends SnippetBase {
   code: string
   description: Description
@@ -53,12 +56,12 @@ class ResponseEntry extends SnippetBase {
   example: Example
 
   constructor({ context, code, response, definitions }: ResponseEntryArgs) {
-    const schema = response.toSchema()
+    const schema = response?.toSchema()
 
     super({ context, stackTrail: schema?.stackTrail.clone() })
 
     this.code = code
-    this.description = new Description({ context, description: response.description })
+    this.description = new Description({ context, description: response?.description })
     this.schema = schema
       ? new Schema({ context, name: undefined, schema, required: undefined, definitions })
       : undefined

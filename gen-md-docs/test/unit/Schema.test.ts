@@ -141,6 +141,39 @@ Deno.test('Schema - renders numeric range with read-only and deprecated flags', 
   assertEquals(snippet.toString(), '**age** `number` deprecated read-only (minimum: 0, maximum: 120)')
 })
 
+Deno.test('Schema - an unresolvable $ref degrades to a plain name with no definition', () => {
+  const parsed = toParsedDocument({
+    openapi: '3.0.0',
+    info: { title: 'Test', version: '1.0.0' },
+    paths: {
+      '/x': {
+        post: {
+          requestBody: {
+            content: { 'application/json': { schema: { $ref: '#/components/schemas/Missing' } } }
+          },
+          responses: { '200': { description: 'ok' } }
+        }
+      }
+    }
+  })
+
+  assert(parsed.type === 'oas')
+
+  const bodyRef = parsed.value.operations[0].toRequestBody(({ schema }) => schema)
+  assertExists(bodyRef)
+
+  const context = toGenerateContext({ oasDocument: parsed })
+  const definitions = new Definitions({ context })
+
+  // No crash: the dangling ref renders as a plain name, with no anchor link.
+  const body = new Schema({ context, name: undefined, schema: bodyRef, required: false, definitions })
+  assertEquals(body.toString(), '`Missing`')
+
+  // And it is never registered, so no broken definition is emitted.
+  definitions.build()
+  assertEquals(definitions.toString(), '')
+})
+
 Deno.test('Schema - renders a $ref by name; Definitions defines it once, cycle-safe', () => {
   const parsed = toParsedDocument({
     openapi: '3.0.0',

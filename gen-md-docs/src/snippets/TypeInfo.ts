@@ -1,6 +1,7 @@
 import { camelCase, SnippetBase, type GenerateContextType, type OasSchema, type OasRef } from '@skmtc/core'
 import { List } from '@skmtc/lang-typescript'
 import { Enums } from './Enums.ts'
+import { safeResolve } from '../safeResolve.ts'
 
 type TypeInfoArgs = {
   context: GenerateContextType
@@ -30,27 +31,27 @@ export class TypeInfo extends SnippetBase {
   constructor({ context, schema, required }: TypeInfoArgs) {
     super({ context, stackTrail: schema.stackTrail.clone() })
 
-    const resolved = schema.resolve()
-    const nullable = 'nullable' in resolved ? resolved.nullable : undefined
+    const resolved = safeResolve(schema)
+    const nullable = resolved !== undefined && 'nullable' in resolved ? resolved.nullable : undefined
 
     this.type = toTypeName(schema)
     this.anchor = toRefAnchor(schema)
     this.modifiers = new List(
       [
-        'format' in resolved ? resolved.format : undefined,
+        resolved !== undefined && 'format' in resolved ? resolved.format : undefined,
         nullable === true && 'nullable',
         required === true && 'required',
-        'deprecated' in resolved && resolved.deprecated === true && 'deprecated',
-        'readOnly' in resolved && resolved.readOnly === true && 'read-only',
-        'writeOnly' in resolved && resolved.writeOnly === true && 'write-only'
+        resolved !== undefined && 'deprecated' in resolved && resolved.deprecated === true && 'deprecated',
+        resolved !== undefined && 'readOnly' in resolved && resolved.readOnly === true && 'read-only',
+        resolved !== undefined && 'writeOnly' in resolved && resolved.writeOnly === true && 'write-only'
       ].filter(Boolean),
       { separator: ' ' }
     )
     this.enums = new Enums({
       context,
-      enums: 'enums' in resolved ? resolved.enums : undefined
+      enums: resolved !== undefined && 'enums' in resolved ? resolved.enums : undefined
     })
-    this.constraints = new List(toConstraints(resolved), {
+    this.constraints = new List(resolved !== undefined ? toConstraints(resolved) : [], {
       separator: ', ',
       bookends: '()',
       skipEmpty: true
@@ -84,7 +85,9 @@ const toTypeName = (schema: OasSchema | OasRef<'schema'>): string => {
  */
 const toRefAnchor = (schema: OasSchema | OasRef<'schema'>): string | undefined => {
   if (schema.isRef()) {
-    return camelCase(schema.toRefName(), { upperFirst: true }).toLowerCase()
+    return safeResolve(schema) !== undefined
+      ? camelCase(schema.toRefName(), { upperFirst: true }).toLowerCase()
+      : undefined
   }
 
   const resolved = schema.resolve()
