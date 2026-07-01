@@ -51,3 +51,39 @@ Deno.test('Responses - renders the empty string when there are no responses', ()
 
   assertEquals(responses.toString(), '')
 })
+
+Deno.test('Responses - surfaces a non-JSON content type and its schema', () => {
+  const parsed = toParsedDocument({
+    openapi: '3.0.0',
+    info: { title: 'Test', version: '1.0.0' },
+    paths: {
+      '/download': {
+        get: {
+          responses: {
+            '200': {
+              description: 'The file',
+              content: { 'application/octet-stream': { schema: { type: 'string', format: 'binary' } } }
+            }
+          }
+        }
+      }
+    }
+  })
+
+  assert(parsed.type === 'oas')
+
+  const context = toGenerateContext({ oasDocument: parsed })
+  const responses = new Responses({
+    context,
+    responses: parsed.value.operations[0].responses,
+    definitions: new Definitions({ context })
+  })
+
+  assertEquals(
+    responses.toString(),
+    [
+      '## Responses',
+      '### `200` — The file\n\nContent type: `application/octet-stream`\n\n`string` binary'
+    ].join('\n\n')
+  )
+})

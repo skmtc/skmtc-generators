@@ -7,6 +7,8 @@ import { Parameters } from './Parameters.ts'
 import { Section } from './Section.ts'
 import { Responses } from './Responses.ts'
 import { Definitions } from './Schema.ts'
+import { safeResolve } from '../safeResolve.ts'
+import { toContent } from '../toContent.ts'
 
 type OperationDocArgs = {
   context: GenerateContextType
@@ -32,6 +34,8 @@ export class OperationDoc extends SnippetBase {
 
     const definitions = new Definitions({ context })
     const document = context.document.type === 'oas' ? context.document.value : undefined
+    const requestBody = operation.requestBody ? safeResolve(operation.requestBody) : undefined
+    const requestContent = toContent(requestBody?.content)
 
     this.parts = [
       new Frontmatter({ context, operation }),
@@ -49,9 +53,10 @@ export class OperationDoc extends SnippetBase {
       new Section({
         context,
         title: 'Request body',
-        schema: operation.toRequestBody(({ schema }) => schema),
+        schema: requestContent.schema,
         description: undefined,
-        definitions
+        definitions,
+        mediaTypes: requestContent.mediaTypes
       }),
       new Responses({ context, responses: operation.responses, definitions })
     ]

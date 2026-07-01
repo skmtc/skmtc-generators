@@ -1,5 +1,5 @@
 import { assertEquals } from 'jsr:@std/assert@^1.0.0'
-import { OasNumber, OasObject } from '@skmtc/core'
+import { OasNumber, OasObject, OasString } from '@skmtc/core'
 import { Section } from '../../src/snippets/Section.ts'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
 
@@ -48,4 +48,28 @@ Deno.test('Section - renders the empty string with neither schema nor descriptio
   })
 
   assertEquals(snippet.toString(), '')
+})
+
+Deno.test('Section - annotates a non-JSON content type, but not plain application/json', () => {
+  const binary = new Section({
+    context: toGenerateContext(),
+    title: 'Request body',
+    schema: new OasString({ format: 'binary' }),
+    description: undefined,
+    mediaTypes: ['application/octet-stream']
+  })
+  assertEquals(
+    binary.toString(),
+    '## Request body\n\nContent type: `application/octet-stream`\n\n`string` binary'
+  )
+
+  // A plain single application/json is left unannotated.
+  const json = new Section({
+    context: toGenerateContext(),
+    title: 'Request body',
+    schema: new OasString({}),
+    description: undefined,
+    mediaTypes: ['application/json']
+  })
+  assertEquals(json.toString(), '## Request body\n\n`string`')
 })

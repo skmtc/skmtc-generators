@@ -4,6 +4,7 @@ import { Description } from './Description.ts'
 import { Example } from './Example.ts'
 import { toExample } from '../toExample.ts'
 import { safeResolve } from '../safeResolve.ts'
+import { toContent, toMediaTypeLine } from '../toContent.ts'
 
 type ResponsesArgs = {
   context: GenerateContextType
@@ -52,27 +53,29 @@ type ResponseEntryArgs = {
 class ResponseEntry extends SnippetBase {
   code: string
   description: Description
+  mediaTypeLine: string | undefined
   schema: Schema | undefined
   example: Example
 
   constructor({ context, code, response, definitions }: ResponseEntryArgs) {
-    const schema = response?.toSchema()
+    const content = toContent(response?.content)
 
-    super({ context, stackTrail: schema?.stackTrail.clone() })
+    super({ context, stackTrail: content.schema?.stackTrail.clone() })
 
     this.code = code
     this.description = new Description({ context, description: response?.description })
-    this.schema = schema
-      ? new Schema({ context, name: undefined, schema, required: undefined, definitions })
+    this.mediaTypeLine = toMediaTypeLine(content.mediaTypes)
+    this.schema = content.schema
+      ? new Schema({ context, name: undefined, schema: content.schema, required: undefined, definitions })
       : undefined
-    this.example = new Example({ context, example: toExample(schema) })
+    this.example = new Example({ context, example: toExample(content.schema) })
   }
 
   override toString(): string {
     const description = this.description.toString()
     const heading = description ? `### \`${this.code}\` — ${description}` : `### \`${this.code}\``
 
-    return [heading, this.schema?.toString() ?? '', this.example.toString()]
+    return [heading, this.mediaTypeLine ?? '', this.schema?.toString() ?? '', this.example.toString()]
       .filter(part => part !== '')
       .join('\n\n')
   }
