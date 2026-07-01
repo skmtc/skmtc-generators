@@ -116,6 +116,31 @@ Deno.test('Schema - renders union members as bullets', () => {
   assertEquals(snippet.toString(), '`union`\n- `string`\n- `number`')
 })
 
+Deno.test('Schema - renders string length, pattern and default constraints', () => {
+  const snippet = new Schema({
+    context: toGenerateContext(),
+    name: 'username',
+    schema: new OasString({ minLength: 3, maxLength: 20, pattern: '^[a-z]+$', default: 'guest' }),
+    required: true
+  })
+
+  assertEquals(
+    snippet.toString(),
+    '**username** `string` required (min length: 3, max length: 20, pattern: `^[a-z]+$`, default: `guest`)'
+  )
+})
+
+Deno.test('Schema - renders numeric range with read-only and deprecated flags', () => {
+  const snippet = new Schema({
+    context: toGenerateContext(),
+    name: 'age',
+    schema: new OasNumber({ minimum: 0, maximum: 120, readOnly: true, deprecated: true }),
+    required: false
+  })
+
+  assertEquals(snippet.toString(), '**age** `number` deprecated read-only (minimum: 0, maximum: 120)')
+})
+
 Deno.test('Schema - renders a $ref by name; Definitions defines it once, cycle-safe', () => {
   const parsed = toParsedDocument({
     openapi: '3.0.0',

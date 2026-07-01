@@ -9,22 +9,23 @@ type TypeInfoArgs = {
 }
 
 /**
- * Renders a schema's type annotation and its modifiers — the Markdown
- * counterpart of the docs viewer's `TypeInfo`.
+ * Renders a schema's type annotation, its modifiers and its constraints — the
+ * Markdown counterpart of the docs viewer's `TypeInfo`.
  *
- * Everything is derived from the schema: the display type (a `$ref`'s name,
- * `Item[]` for an array, otherwise the type), the `format` / `nullable` /
- * `required` modifiers (arranged into a space-separated {@link List}), and the
- * allowed values (a composed {@link Enums}). A `$ref`-based type links to its
- * entry in the document's "Referenced types" section (`[`Name`](#name)`), so a
- * reference jumps straight to its definition. Example:
- * `` `string` date-time required (`a`, `b`) ``.
+ * Everything is derived from the schema: the display type (a `$ref`'s name, with
+ * a link to its definition; `Item[]` for an array; otherwise the type), the flag
+ * modifiers (`format` / `nullable` / `required` / `deprecated` / `read-only` /
+ * `write-only`, space-separated), the allowed values (a composed {@link Enums}),
+ * and the validation constraints an agent needs to build a valid value (length,
+ * range, `pattern`, item bounds, `default` — a parenthetical group). Example:
+ * `` `string` required (min length: 3, pattern: `^[a-z]+$`) ``.
  */
 export class TypeInfo extends SnippetBase {
   type: string
   anchor: string | undefined
   modifiers: List
   enums: Enums
+  constraints: List
 
   constructor({ context, schema, required }: TypeInfoArgs) {
     super({ context, stackTrail: schema.stackTrail.clone() })
@@ -38,7 +39,10 @@ export class TypeInfo extends SnippetBase {
       [
         'format' in resolved ? resolved.format : undefined,
         nullable === true && 'nullable',
-        required === true && 'required'
+        required === true && 'required',
+        'deprecated' in resolved && resolved.deprecated === true && 'deprecated',
+        'readOnly' in resolved && resolved.readOnly === true && 'read-only',
+        'writeOnly' in resolved && resolved.writeOnly === true && 'write-only'
       ].filter(Boolean),
       { separator: ' ' }
     )
@@ -46,12 +50,19 @@ export class TypeInfo extends SnippetBase {
       context,
       enums: 'enums' in resolved ? resolved.enums : undefined
     })
+    this.constraints = new List(toConstraints(resolved), {
+      separator: ', ',
+      bookends: '()',
+      skipEmpty: true
+    })
   }
 
   override toString(): string {
     const type = this.anchor ? `[\`${this.type}\`](#${this.anchor})` : `\`${this.type}\``
 
-    return [type, `${this.modifiers}`, `${this.enums}`].filter(part => part !== '').join(' ')
+    return [type, `${this.modifiers}`, `${this.enums}`, `${this.constraints}`]
+      .filter(part => part !== '')
+      .join(' ')
   }
 }
 
@@ -80,3 +91,56 @@ const toRefAnchor = (schema: OasSchema | OasRef<'schema'>): string | undefined =
 
   return resolved.type === 'array' ? toRefAnchor(resolved.items) : undefined
 }
+
+/** The validation constraints present on a schema, in a stable order. */
+const toConstraints = (resolved: OasSchema): (string | undefined)[] => [
+  'minLength' in resolved && resolved.minLength !== undefined
+    ? `min length: ${resolved.minLength}`
+    : undefined,
+  'maxLength' in resolved && resolved.maxLength !== undefined
+    ? `max length: ${resolved.maxLength}`
+    : undefined,
+  'pattern' in resolved && resolved.pattern !== undefined
+    ? `pattern: \`${resolved.pattern}\``
+    : undefined,
+  toBound(resolved, 'minimum'),
+  toBound(resolved, 'maximum'),
+  'multipleOf' in resolved && resolved.multipleOf !== undefined
+    ? `multiple of: ${resolved.multipleOf}`
+    : undefined,
+  'minItems' in resolved && resolved.minItems !== undefined
+    ? `min items: ${resolved.minItems}`
+    : undefined,
+  'maxItems' in resolved && resolved.maxItems !== undefined
+    ? `max items: ${resolved.maxItems}`
+    : undefined,
+  'uniqueItems' in resolved && resolved.uniqueItems === true ? 'unique items' : undefined,
+  toDefault(resolved)
+]
+
+/** A numeric bound with its exclusivity, e.g. `minimum: 0` or `maximum: 10 (exclusive)`. */
+const toBound = (resolved: OasSchema, bound: 'minimum' | 'maximum'): string | undefined => {
+  if (bound === 'minimum') {
+    if (!('minimum' in resolved) || resolved.minimum === undefined) {
+      return undefined
+    }
+
+    const exclusive = 'exclusiveMinimum' in resolved && resolved.exclusiveMinimum === true
+
+    return `minimum: ${resolved.minimum}${exclusive ? ' (exclusive)' : ''}`
+  }
+
+  if (!('maximum' in resolved) || resolved.maximum === undefined) {
+    return undefined
+  }
+
+  const exclusive = 'exclusiveMaximum' in resolved && resolved.exclusiveMaximum === true
+
+  return `maximum: ${resolved.maximum}${exclusive ? ' (exclusive)' : ''}`
+}
+
+/** The default value, rendered as inline code. */
+const toDefault = (resolved: OasSchema): string | undefined =>
+  'default' in resolved && resolved.default !== undefined && resolved.default !== null
+    ? `default: \`${resolved.default}\``
+    : undefined
