@@ -61,8 +61,21 @@ const runFixture = () =>
 Deno.test('e2e - generates one Markdown file per operation, no parse errors', () => {
   const { artifacts, manifest } = runFixture()
 
-  assertEquals(Object.keys(artifacts), ['src/docs/pets/pets-id-GET.md'])
+  assertEquals(Object.keys(artifacts), ['src/docs/pets/pets-id-GET.md', 'src/docs/index.md'])
   assertEquals(manifest.parseIssues.filter(issue => issue.level === 'error'), [])
+})
+
+Deno.test('e2e - accumulates a discovery index linking each operation', () => {
+  const { artifacts } = runFixture()
+
+  assertEquals(
+    artifacts['src/docs/index.md'],
+    [
+      '# Fixture API',
+      '> Reference for 1 operation, each linking to a self-contained document.',
+      '## pets\n\n- [Get pet by ID](pets/pets-id-GET.md) — `GET` `/pets/{id}`'
+    ].join('\n\n')
+  )
 })
 
 Deno.test('e2e - the operation document renders the composed Markdown', () => {
