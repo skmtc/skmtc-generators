@@ -62,7 +62,7 @@ const toRequirementLine = (
     .join(' + ')
 }
 
-/** A scheme reference: its name, its kind (when resolvable) and its scopes. */
+/** A scheme reference: its name, its kind (when resolvable), scopes and description. */
 const toSchemeText = (
   name: string,
   scopes: string[],
@@ -71,14 +71,20 @@ const toSchemeText = (
   const kind = scheme !== undefined ? ` (${toSchemeKind(scheme)})` : ''
   const scopeList =
     scopes.length > 0 ? ` — scopes: ${scopes.map(scope => `\`${scope}\``).join(', ')}` : ''
+  const description =
+    scheme?.description !== undefined && scheme.description !== ''
+      ? ` — ${scheme.description}`
+      : ''
 
-  return `\`${name}\`${kind}${scopeList}`
+  return `\`${name}\`${kind}${scopeList}${description}`
 }
 
 const toSchemeKind = (scheme: OasSecurityScheme): string => {
   switch (scheme.type) {
     case 'http':
-      return `HTTP ${scheme.scheme}`
+      return scheme.bearerFormat !== undefined
+        ? `HTTP ${scheme.scheme} (${scheme.bearerFormat})`
+        : `HTTP ${scheme.scheme}`
     case 'apiKey':
       return `API key in ${scheme.location} \`${scheme.name}\``
     case 'oauth2':

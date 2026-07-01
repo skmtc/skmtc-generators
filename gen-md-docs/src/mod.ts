@@ -6,7 +6,7 @@ import {
   type Stringable
 } from '@skmtc/core'
 import { OperationDoc } from './snippets/OperationDoc.ts'
-import { TopIndex, TagIndex, Catalog, type IndexEntry } from './snippets/DocsIndex.ts'
+import { TopIndex, TagIndex, Catalog, type IndexEntry, type Server } from './snippets/DocsIndex.ts'
 import { toDocsExportPath } from './paths.ts'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
@@ -47,31 +47,55 @@ type AddToIndexesArgs = {
 /** Accumulate the operation into the top index, its per-tag index, and the catalog. */
 const addToIndexes = ({ context, operation, destinationPath }: AddToIndexesArgs): void => {
   const entry = toIndexEntry(operation, destinationPath)
-  const title = context.document.type === 'oas' ? context.document.value.info.title : 'API reference'
+  const document = context.document.type === 'oas' ? context.document.value : undefined
+  const title = document?.info.title ?? 'API reference'
+  const servers: Server[] = (document?.servers ?? []).map(server => ({
+    url: server.url,
+    description: server.description
+  }))
 
   getOrCreate(
     context,
     topIndexPath,
     (content): content is TopIndex => content instanceof TopIndex,
-    () => new TopIndex({ context, title })
+    () =>
+      new TopIndex({
+        context,
+        title,
+        version: document?.info.version,
+        description: document?.info.description,
+        servers,
+        externalDocs: document?.externalDocs,
+        securitySchemes: document?.components?.securitySchemes
+      })
   ).add(entry)
 
   getOrCreate(
     context,
     catalogPath,
     (content): content is Catalog => content instanceof Catalog,
-    () => new Catalog({ context, title })
+    () => new Catalog({ context, title, servers })
   ).add(entry)
 
   if (entry.tagFolder !== '') {
     // `@/docs/<tag>/<file>.md` -> `@/docs/<tag>/index.md`
     const tagIndexPath = destinationPath.replace(/[^/]+$/, 'index.md')
+    const tagName = entry.tags[0] ?? entry.tagFolder
 
     getOrCreate(
       context,
       tagIndexPath,
       (content): content is TagIndex => content instanceof TagIndex,
-      () => new TagIndex({ context, tag: entry.tags[0] ?? entry.tagFolder })
+      () => {
+        const tag = document?.tags?.find(candidate => candidate.name === tagName)
+
+        return new TagIndex({
+          context,
+          tag: tagName,
+          description: tag?.description,
+          externalDocs: tag?.externalDocs
+        })
+      }
     ).add(entry)
   }
 }

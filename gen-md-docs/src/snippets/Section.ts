@@ -12,6 +12,7 @@ type SectionArgs = {
   description: string | undefined
   definitions?: Definitions
   mediaTypes?: string[]
+  required?: boolean
 }
 
 /**
@@ -26,15 +27,25 @@ type SectionArgs = {
  */
 export class Section extends SnippetBase {
   title: string
+  required: boolean
   description: Description
   mediaTypeLine: string | undefined
   schema: Schema | undefined
   example: Example
 
-  constructor({ context, title, schema, description, definitions, mediaTypes }: SectionArgs) {
+  constructor({
+    context,
+    title,
+    schema,
+    description,
+    definitions,
+    mediaTypes,
+    required
+  }: SectionArgs) {
     super({ context, stackTrail: schema?.stackTrail.clone() })
 
     this.title = title
+    this.required = required === true
     this.description = new Description({ context, description })
     this.mediaTypeLine = mediaTypes !== undefined ? toMediaTypeLine(mediaTypes) : undefined
     this.schema = schema
@@ -51,7 +62,14 @@ export class Section extends SnippetBase {
       return ''
     }
 
-    return [`## ${this.title}`, description, this.mediaTypeLine ?? '', schema, this.example.toString()]
+    return [
+      `## ${this.title}`,
+      this.required ? '**Required.**' : '',
+      description,
+      this.mediaTypeLine ?? '',
+      schema,
+      this.example.toString()
+    ]
       .filter(part => part !== '')
       .join('\n\n')
   }

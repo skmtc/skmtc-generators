@@ -6,6 +6,7 @@ import { Security } from './Security.ts'
 import { Parameters } from './Parameters.ts'
 import { Section } from './Section.ts'
 import { Responses } from './Responses.ts'
+import { ExternalDocs } from './ExternalDocs.ts'
 import { Definitions } from './Schema.ts'
 import { safeResolve } from '../safeResolve.ts'
 import { toContent } from '../toContent.ts'
@@ -34,13 +35,15 @@ export class OperationDoc extends SnippetBase {
 
     const definitions = new Definitions({ context })
     const document = context.document.type === 'oas' ? context.document.value : undefined
+    const servers = (document?.servers ?? []).map(server => server.url)
     const requestBody = operation.requestBody ? safeResolve(operation.requestBody) : undefined
     const requestContent = toContent(requestBody?.content)
 
     this.parts = [
-      new Frontmatter({ context, operation }),
+      new Frontmatter({ context, operation, servers }),
       new Summary({ context, summary: operation.summary, description: operation.description }),
       new PathMethod({ context, method: operation.method, path: operation.path }),
+      new ExternalDocs({ context, externalDocs: operation.externalDocs }),
       new Security({
         context,
         security: operation.security ?? document?.security,
@@ -54,9 +57,10 @@ export class OperationDoc extends SnippetBase {
         context,
         title: 'Request body',
         schema: requestContent.schema,
-        description: undefined,
+        description: requestBody?.description,
         definitions,
-        mediaTypes: requestContent.mediaTypes
+        mediaTypes: requestContent.mediaTypes,
+        required: requestBody?.required
       }),
       new Responses({ context, responses: operation.responses, definitions })
     ]

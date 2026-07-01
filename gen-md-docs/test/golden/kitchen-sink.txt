@@ -6,6 +6,9 @@ title: "Health check"
 operationId: "healthCheck"
 method: GET
 path: "/health"
+servers:
+  - "https://api.example.com/v1"
+  - "https://staging.example.com/v1"
 ---
 
 # Health check
@@ -29,6 +32,10 @@ path: "/health"
 
 {
   "title": "Kitchen Sink API",
+  "servers": [
+    "https://api.example.com/v1",
+    "https://staging.example.com/v1"
+  ],
   "operations": [
     {
       "operationId": "getRoot",
@@ -105,6 +112,25 @@ path: "/health"
 
 # Kitchen Sink API
 
+> Version 1.0.0.
+
+A deliberately exhaustive API used to exercise the docs generator.
+
+**See also:** [Full documentation](https://docs.example.com)
+
+## Servers
+
+- `https://api.example.com/v1` — Production
+- `https://staging.example.com/v1`
+
+## Authentication
+
+- `apiKey` — API key in header `X-API-Key` — A project API key.
+- `bearerAuth` — HTTP bearer (JWT)
+- `oauth2` — OAuth2 — authorization code (authorize `https://auth.example.com/authorize`, token `https://auth.example.com/token`); scopes: `pets:read` (Read pets), `pets:write` (Create and update pets)
+
+## Operations
+
 > Reference for 7 operations, grouped by tag.
 
 - [meta](meta/index.md) — 1 operation
@@ -129,6 +155,9 @@ title: "API root"
 operationId: "getRoot"
 method: GET
 path: "/"
+servers:
+  - "https://api.example.com/v1"
+  - "https://staging.example.com/v1"
 tags:
   - "meta"
 ---
@@ -148,6 +177,10 @@ tags:
 
 # pets
 
+Everything about pets.
+
+**See also:** [https://docs.example.com/pets](https://docs.example.com/pets)
+
 - [List pets](pets-GET.md) — `GET` `/pets`
 - [Create a pet](pets-POST.md) — `POST` `/pets`
 - [Get a pet](pets-petId-GET.md) — `GET` `/pets/{petId}`
@@ -161,6 +194,9 @@ title: "List pets"
 operationId: "listPets"
 method: GET
 path: "/pets"
+servers:
+  - "https://api.example.com/v1"
+  - "https://staging.example.com/v1"
 tags:
   - "pets"
 ---
@@ -177,6 +213,11 @@ Returns all pets, optionally filtered.
 
 **tags** `string[]`
 
+_deprecated, not exploded_
+
+**filter** `object`
+- **color** `string`
+
 ## Headers
 
 **X-Request-Id** `string` uuid
@@ -186,6 +227,11 @@ Returns all pets, optionally filtered.
 ### `200` — A list of pets
 
 [`Pet[]`](#pet)
+
+**Headers**
+
+- **X-Total-Count** `integer` — Total number of pets
+- **X-RateLimit-Remaining** `integer`
 
 ### `400` — Bad request
 
@@ -200,7 +246,7 @@ Returns all pets, optionally filtered.
 - **name** `string` required (min length: 1, max length: 50)
 - **status** `string` (`active`, `inactive`) (default: `active`)
 - **tags** `string[]`
-- **category** [`Category`](#category)
+- **category** [`Category`](#category) _Pet category_
 - **friends** [`Pet[]`](#pet)
 
 ### Error
@@ -211,7 +257,7 @@ Returns all pets, optionally filtered.
 
 ### Category
 
-`object`
+`object` _Pet category_
 - **id** `integer`
 - **name** `string`
 
@@ -223,6 +269,9 @@ title: "Create a pet"
 operationId: "createPet"
 method: POST
 path: "/pets"
+servers:
+  - "https://api.example.com/v1"
+  - "https://staging.example.com/v1"
 tags:
   - "pets"
 ---
@@ -233,9 +282,13 @@ tags:
 
 ## Security
 
-- `apiKey` (API key in header `X-API-Key`)
+- `oauth2` (OAuth2) — scopes: `pets:write`
 
 ## Request body
+
+**Required.**
+
+The pet to create.
 
 [`NewPet`](#newpet)
 
@@ -260,7 +313,7 @@ tags:
 `object`
 - **name** `string` required (min length: 1)
 - **status** `string` (`active`, `inactive`)
-- **category** [`Category`](#category)
+- **category** [`Category`](#category) _Pet category_
 - **photoUrls** `string[]` (min items: 1)
 - **metadata** `union`
   - `string`
@@ -273,7 +326,7 @@ tags:
 - **name** `string` required (min length: 1, max length: 50)
 - **status** `string` (`active`, `inactive`) (default: `active`)
 - **tags** `string[]`
-- **category** [`Category`](#category)
+- **category** [`Category`](#category) _Pet category_
 - **friends** [`Pet[]`](#pet)
 
 ### ValidationError
@@ -291,7 +344,7 @@ tags:
 
 ### Category
 
-`object`
+`object` _Pet category_
 - **id** `integer`
 - **name** `string`
 
@@ -303,6 +356,9 @@ title: "Get a pet"
 operationId: "getPet"
 method: GET
 path: "/pets/{petId}"
+servers:
+  - "https://api.example.com/v1"
+  - "https://staging.example.com/v1"
 tags:
   - "pets"
 ---
@@ -310,6 +366,8 @@ tags:
 # Get a pet
 
 `GET` `/pets/{petId}`
+
+**See also:** [Retrieval guide](https://docs.example.com/pets/get)
 
 ## Path parameters
 
@@ -338,7 +396,7 @@ tags:
 - **name** `string` required (min length: 1, max length: 50)
 - **status** `string` (`active`, `inactive`) (default: `active`)
 - **tags** `string[]`
-- **category** [`Category`](#category)
+- **category** [`Category`](#category) _Pet category_
 - **friends** [`Pet[]`](#pet)
 
 ### Error
@@ -349,7 +407,7 @@ tags:
 
 ### Category
 
-`object`
+`object` _Pet category_
 - **id** `integer`
 - **name** `string`
 
@@ -361,6 +419,9 @@ title: "Upload a photo"
 operationId: "uploadPhoto"
 method: PUT
 path: "/pets/{petId}/photo"
+servers:
+  - "https://api.example.com/v1"
+  - "https://staging.example.com/v1"
 tags:
   - "pets"
 ---
@@ -375,6 +436,8 @@ tags:
 
 ## Request body
 
+**Required.**
+
 Content type: `application/octet-stream`
 
 `string` binary
@@ -387,6 +450,8 @@ Content type: `application/octet-stream`
 
 # store
 
+Store and inventory operations.
+
 - [Inventory levels](store-inventory-GET.md) — `GET` `/store/inventory`
 
 ==== api/docs/store/store-inventory-GET.md ====
@@ -397,6 +462,9 @@ title: "Inventory levels"
 operationId: "getInventory"
 method: GET
 path: "/store/inventory"
+servers:
+  - "https://api.example.com/v1"
+  - "https://staging.example.com/v1"
 tags:
   - "store"
 deprecated: true
@@ -410,5 +478,5 @@ deprecated: true
 
 ### `200` — Inventory counts
 
-`object`
-- **total** `integer`
+`object` (min properties: 1) _Inventory_
+- **«additional properties»** `integer`

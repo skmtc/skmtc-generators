@@ -37,6 +37,7 @@ type SchemaArgs = {
 export class Schema extends SnippetBase {
   name: Name
   typeInfo: TypeInfo
+  title: string | undefined
   description: Description
   properties: Properties | undefined
 
@@ -56,6 +57,7 @@ export class Schema extends SnippetBase {
 
     this.name = new Name({ context, name })
     this.typeInfo = new TypeInfo({ context, schema, required })
+    this.title = resolved !== undefined && 'title' in resolved ? resolved.title : undefined
     this.description = new Description({
       context,
       description:
@@ -70,7 +72,12 @@ export class Schema extends SnippetBase {
 
   override toString(): string {
     const description = this.description.toString()
-    const row = [`${this.name}`, `${this.typeInfo}`, description && `— ${description}`]
+    const row = [
+      `${this.name}`,
+      `${this.typeInfo}`,
+      this.title ? `_${this.title}_` : '',
+      description && `— ${description}`
+    ]
       .filter(part => part !== '')
       .join(' ')
 
@@ -137,7 +144,7 @@ const toExpansion = (
 
   switch (schema.type) {
     case 'object':
-      return toObjectProperties(schema)
+      return [...toObjectProperties(schema), ...toAdditionalProperties(schema)]
     case 'array':
       return toExpansion(schema.items, definitions)
     case 'union':
@@ -159,6 +166,12 @@ const toObjectProperties = (object: OasObject): Property[] =>
   Object.entries(object.properties ?? {}).flatMap(([name, schema]) =>
     schema.type === 'custom' ? [] : [{ name, schema, required: object.required?.includes(name) }]
   )
+
+/** A map's value type, as an `«additional properties»` row, when it is a schema (not a boolean). */
+const toAdditionalProperties = (object: OasObject): Property[] =>
+  object.additionalProperties !== undefined && typeof object.additionalProperties !== 'boolean'
+    ? [{ name: '«additional properties»', schema: object.additionalProperties, required: undefined }]
+    : []
 
 /**
  * Collects the `$ref` types referenced across one document and renders each of

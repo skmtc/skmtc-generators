@@ -16,7 +16,24 @@ export const kitchenSinkBasePath = 'api'
  */
 export const kitchenSinkDocument: OpenAPIV3.Document = {
   openapi: '3.0.0',
-  info: { title: 'Kitchen Sink API', version: '1.0.0' },
+  info: {
+    title: 'Kitchen Sink API',
+    version: '1.0.0',
+    description: 'A deliberately exhaustive API used to exercise the docs generator.'
+  },
+  servers: [
+    { url: 'https://api.example.com/v1', description: 'Production' },
+    { url: 'https://staging.example.com/v1' }
+  ],
+  externalDocs: { url: 'https://docs.example.com', description: 'Full documentation' },
+  tags: [
+    {
+      name: 'pets',
+      description: 'Everything about pets.',
+      externalDocs: { url: 'https://docs.example.com/pets' }
+    },
+    { name: 'store', description: 'Store and inventory operations.' }
+  ],
   paths: {
     '/': {
       get: {
@@ -69,12 +86,32 @@ export const kitchenSinkDocument: OpenAPIV3.Document = {
             description: 'Maximum results',
             schema: { type: 'integer', minimum: 1, maximum: 100, default: 20 }
           },
-          { name: 'tags', in: 'query', schema: { type: 'array', items: { type: 'string' } } },
+          {
+            name: 'tags',
+            in: 'query',
+            deprecated: true,
+            style: 'form',
+            explode: false,
+            schema: { type: 'array', items: { type: 'string' } }
+          },
+          {
+            name: 'filter',
+            in: 'query',
+            content: {
+              'application/json': {
+                schema: { type: 'object', properties: { color: { type: 'string' } } }
+              }
+            }
+          },
           { name: 'X-Request-Id', in: 'header', schema: { type: 'string', format: 'uuid' } }
         ],
         responses: {
           '200': {
             description: 'A list of pets',
+            headers: {
+              'X-Total-Count': { description: 'Total number of pets', schema: { type: 'integer' } },
+              'X-RateLimit-Remaining': { schema: { type: 'integer' } }
+            },
             content: {
               'application/json': {
                 schema: { type: 'array', items: { $ref: '#/components/schemas/Pet' } }
@@ -91,9 +128,10 @@ export const kitchenSinkDocument: OpenAPIV3.Document = {
         tags: ['pets'],
         operationId: 'createPet',
         summary: 'Create a pet',
-        security: [{ apiKey: [] }],
+        security: [{ oauth2: ['pets:write'] }],
         requestBody: {
           required: true,
+          description: 'The pet to create.',
           content: { 'application/json': { schema: { $ref: '#/components/schemas/NewPet' } } }
         },
         responses: {
@@ -119,6 +157,7 @@ export const kitchenSinkDocument: OpenAPIV3.Document = {
         tags: ['pets'],
         operationId: 'getPet',
         summary: 'Get a pet',
+        externalDocs: { url: 'https://docs.example.com/pets/get', description: 'Retrieval guide' },
         parameters: [
           {
             name: 'petId',
@@ -165,7 +204,12 @@ export const kitchenSinkDocument: OpenAPIV3.Document = {
             description: 'Inventory counts',
             content: {
               'application/json': {
-                schema: { type: 'object', properties: { total: { type: 'integer' } } }
+                schema: {
+                  type: 'object',
+                  title: 'Inventory',
+                  minProperties: 1,
+                  additionalProperties: { type: 'integer' }
+                }
               }
             }
           }
@@ -175,7 +219,18 @@ export const kitchenSinkDocument: OpenAPIV3.Document = {
   },
   components: {
     securitySchemes: {
-      apiKey: { type: 'apiKey', name: 'X-API-Key', in: 'header' }
+      apiKey: { type: 'apiKey', name: 'X-API-Key', in: 'header', description: 'A project API key.' },
+      bearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+      oauth2: {
+        type: 'oauth2',
+        flows: {
+          authorizationCode: {
+            authorizationUrl: 'https://auth.example.com/authorize',
+            tokenUrl: 'https://auth.example.com/token',
+            scopes: { 'pets:read': 'Read pets', 'pets:write': 'Create and update pets' }
+          }
+        }
+      }
     },
     schemas: {
       Pet: {
@@ -192,6 +247,7 @@ export const kitchenSinkDocument: OpenAPIV3.Document = {
       },
       Category: {
         type: 'object',
+        title: 'Pet category',
         properties: { id: { type: 'integer' }, name: { type: 'string' } }
       },
       NewPet: {

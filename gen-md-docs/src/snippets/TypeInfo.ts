@@ -118,6 +118,12 @@ const toConstraints = (resolved: OasSchema): (string | undefined)[] => [
     ? `max items: ${resolved.maxItems}`
     : undefined,
   'uniqueItems' in resolved && resolved.uniqueItems === true ? 'unique items' : undefined,
+  'minProperties' in resolved && resolved.minProperties !== undefined
+    ? `min properties: ${resolved.minProperties}`
+    : undefined,
+  'maxProperties' in resolved && resolved.maxProperties !== undefined
+    ? `max properties: ${resolved.maxProperties}`
+    : undefined,
   toDefault(resolved)
 ]
 

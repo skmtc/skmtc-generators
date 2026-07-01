@@ -3,6 +3,7 @@ import { SnippetBase, type GenerateContextType, type OasOperation } from '@skmtc
 type FrontmatterArgs = {
   context: GenerateContextType
   operation: OasOperation
+  servers?: string[]
 }
 
 /**
@@ -14,7 +15,7 @@ type FrontmatterArgs = {
 export class Frontmatter extends SnippetBase {
   lines: string[]
 
-  constructor({ context, operation }: FrontmatterArgs) {
+  constructor({ context, operation, servers }: FrontmatterArgs) {
     super({ context, stackTrail: operation.stackTrail.clone() })
 
     this.lines = [
@@ -25,7 +26,8 @@ export class Frontmatter extends SnippetBase {
         : []),
       `method: ${operation.method.toUpperCase()}`,
       `path: ${toYamlString(operation.path)}`,
-      ...toTagLines(operation.tags),
+      ...toListLines('servers', servers),
+      ...toListLines('tags', operation.tags),
       ...(operation.deprecated === true ? ['deprecated: true'] : [])
     ]
   }
@@ -35,10 +37,10 @@ export class Frontmatter extends SnippetBase {
   }
 }
 
-/** A YAML block list for tags, or nothing when there are none. */
-const toTagLines = (tags: string[] | undefined): string[] =>
-  tags !== undefined && tags.length > 0
-    ? ['tags:', ...tags.map(tag => `  - ${toYamlString(tag)}`)]
+/** A named YAML block list, or nothing when there are no values. */
+const toListLines = (key: string, values: string[] | undefined): string[] =>
+  values !== undefined && values.length > 0
+    ? [`${key}:`, ...values.map(value => `  - ${toYamlString(value)}`)]
     : []
 
 /** A safely double-quoted YAML scalar — paths, titles and ids carry `:` `{` `#`. */

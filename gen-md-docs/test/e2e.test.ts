@@ -73,11 +73,13 @@ Deno.test('e2e - generates one Markdown file per operation, no parse errors', ()
 Deno.test('e2e - accumulates the top index, a per-tag index and the JSON catalog', () => {
   const { artifacts } = runFixture()
 
-  // Top index: a lightweight tag directory.
+  // Top index: version + a lightweight tag directory.
   assertEquals(
     artifacts['src/docs/index.md'],
     [
       '# Fixture API',
+      '> Version 1.0.0.',
+      '## Operations',
       '> Reference for 1 operation, grouped by tag.',
       '- [pets](pets/index.md) — 1 operation'
     ].join('\n\n')
@@ -95,6 +97,7 @@ Deno.test('e2e - accumulates the top index, a per-tag index and the JSON catalog
     JSON.stringify(
       {
         title: 'Fixture API',
+        servers: [],
         operations: [
           {
             method: 'GET',
