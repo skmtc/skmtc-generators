@@ -56,8 +56,8 @@ Deno.test('OperationDoc - composes the full operation document', () => {
       '`GET` `/pets/{id}`',
       '## Path parameters',
       '**id** `string` required — The pet identifier',
-      '## Response',
-      'A pet',
+      '## Responses',
+      '### `200` — A pet',
       '`object`\n- **id** `integer`\n- **name** `string`'
     ].join('\n\n')
   )
