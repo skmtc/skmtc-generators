@@ -116,7 +116,7 @@ Deno.test('toTsValue - array of objects', () => {
       required: ['id']
     }
   }
-  assertEquals(schemaToTs(schema), 'Array<{id: string}>')
+  assertEquals(schemaToTs(schema), 'Array<{\nid: string;\n}>')
 })
 
 // ============================================================================
@@ -132,7 +132,7 @@ Deno.test('toTsValue - simple object', () => {
     },
     required: ['name', 'age']
   }
-  assertEquals(schemaToTs(schema), '{name: string, age: number}')
+  assertEquals(schemaToTs(schema), '{\nname: string;\n\nage: number;\n}')
 })
 
 Deno.test('toTsValue - object with optional properties', () => {
@@ -144,7 +144,7 @@ Deno.test('toTsValue - object with optional properties', () => {
     },
     required: ['name']
   }
-  assertEquals(schemaToTs(schema), '{name: string, age?: number | undefined}')
+  assertEquals(schemaToTs(schema), '{\nname: string;\n\nage?: number | undefined;\n}')
 })
 
 Deno.test('toTsValue - empty object', () => {
@@ -171,7 +171,7 @@ Deno.test('toTsValue - object with properties and additionalProperties', () => {
     required: ['id'],
     additionalProperties: { type: 'number' }
   }
-  assertEquals(schemaToTs(schema), '{id: string} | Record<string, number>')
+  assertEquals(schemaToTs(schema), '{\nid: string;\n} | Record<string, number>')
 })
 
 Deno.test('toTsValue - nested object', () => {
@@ -195,7 +195,7 @@ Deno.test('toTsValue - nested object', () => {
     },
     required: ['user']
   }
-  assertEquals(schemaToTs(schema), '{user: {id: string, profile: {name: string}}}')
+  assertEquals(schemaToTs(schema), '{\nuser: {\nid: string;\n\nprofile: {\nname: string;\n};\n};\n}')
 })
 
 Deno.test('toTsValue - object with special characters in keys', () => {
@@ -207,7 +207,7 @@ Deno.test('toTsValue - object with special characters in keys', () => {
     },
     required: ['special-key', 'another.key']
   }
-  assertEquals(schemaToTs(schema), "{'special-key': string, 'another.key': number}")
+  assertEquals(schemaToTs(schema), "{\n'special-key': string;\n\n'another.key': number;\n}")
 })
 
 // ============================================================================
@@ -249,7 +249,10 @@ Deno.test('toTsValue - union with objects', () => {
       }
     ]
   }
-  assertEquals(schemaToTs(schema), "{type: 'cat', meow: boolean} | {type: 'dog', bark: boolean}")
+  assertEquals(
+    schemaToTs(schema),
+    "{\ntype: 'cat';\n\nmeow: boolean;\n} | {\ntype: 'dog';\n\nbark: boolean;\n}"
+  )
 })
 
 // ============================================================================
@@ -273,7 +276,7 @@ Deno.test('toTsValue - nullable object', () => {
     required: ['id'],
     nullable: true
   }
-  assertEquals(schemaToTs(schema), '{id: string} | null')
+  assertEquals(schemaToTs(schema), '{\nid: string;\n} | null')
 })
 
 Deno.test('toTsValue - optional property (via required flag)', () => {
@@ -368,7 +371,10 @@ Deno.test('toTsValue - deeply nested structure', () => {
     },
     required: ['level1']
   }
-  assertEquals(schemaToTs(schema), '{level1: {level2: Array<{level3: {value: string}}>}}')
+  assertEquals(
+    schemaToTs(schema),
+    '{\nlevel1: {\nlevel2: Array<{\nlevel3: {\nvalue: string;\n};\n}>;\n};\n}'
+  )
 })
 
 Deno.test('toTsValue - additionalProperties with boolean true', () => {
@@ -425,7 +431,7 @@ Deno.test('toTsValue - object with all optional properties', () => {
   }
   assertEquals(
     schemaToTs(schema),
-    '{prop1?: string | undefined, prop2?: number | undefined, prop3?: boolean | undefined}'
+    '{\nprop1?: string | undefined;\n\nprop2?: number | undefined;\n\nprop3?: boolean | undefined;\n}'
   )
 })
 

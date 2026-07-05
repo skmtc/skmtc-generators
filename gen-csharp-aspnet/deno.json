@@ -10,5 +10,6 @@
     "@skmtc/core": "jsr:@skmtc/core@0.22.0",
     "@skmtc/lang-csharp": "jsr:@skmtc/lang-csharp@0.6.0",
     "@skmtc/gen-csharp": "jsr:@skmtc/gen-csharp@0.2.1"
-  }
+  },
+  "private": true
 }

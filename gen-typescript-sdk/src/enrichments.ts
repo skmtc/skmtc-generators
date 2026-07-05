@@ -15,12 +15,32 @@ import * as v from 'valibot'
  * `resourceDescription` is the resource-level JSDoc rendered above the
  * `export class` — a resource fact, so any operation of the resource may
  * carry it (the accumulator takes the first non-empty one).
+ *
+ * `paginated` — whether the method is a `getAPIList`/`PagePromise` (vs a plain
+ * `APIPromise`). A list-shaped `{ object: 'list', data: [] }` response does NOT
+ * imply pagination (e.g. `embeddings.create` returns that shape but is a `post`),
+ * so the truth comes from the SDK config, not a response-shape heuristic.
  */
 const subjectEnrichmentSchema = v.optional(
   v.object({
     resource: v.string(),
     methodName: v.string(),
-    resourceDescription: v.optional(v.string())
+    resourceDescription: v.optional(v.string()),
+    paginated: v.optional(v.boolean()),
+    // The Stainless type names for the success-response/item and request-body
+    // schemas — used as the `insertNormalizedModel` fallback name so an INLINE
+    // schema (no `$ref` to rename) still lands as `BatchCreateParams` /
+    // `ModerationCreateResponse` instead of the generic `<Class>Params/Response`.
+    responseTypeName: v.optional(v.string()),
+    bodyTypeName: v.optional(v.string()),
+    // A binary download (the reference returns the global `Response`). Emits an
+    // `application/binary` Accept header + `__binaryResponse: true`, no named type.
+    binaryResponse: v.optional(v.boolean()),
+    // The `__security` scheme key for this operation, mapped from the op's (or the
+    // document's global) OpenAPI security requirement to the SDK's scheme name
+    // (`ApiKeyAuth`→`bearerAuth`, `AdminApiKeyAuth`→`adminAPIKeyAuth`). Read from
+    // the operation's security, not hardcoded.
+    securityScheme: v.optional(v.string())
   })
 )
 

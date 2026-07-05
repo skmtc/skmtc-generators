@@ -4,7 +4,7 @@ import { TsSnippet, List, createVariable, TsDefinition, type ListObject } from '
 import { Column } from './Column.ts'
 type ConstructorArgs = {
   context: GenerateContextType
-  formatter: ModuleExport
+  formatter: ModuleExport | undefined
   destinationPath: string
   accessorPath: string[]
   label: string | undefined
@@ -74,10 +74,15 @@ const getLabel = ({ label, name }: GetLabelArgs) => {
 
 type GetCellArgs = {
   context: GenerateContextType
-  formatter: ModuleExport
+  formatter: ModuleExport | undefined
   destinationPath: string
 }
 
+// No formatter → return undefined so `toFilteredRecord` drops the `cell`
+// property and tanstack renders the raw accessor value.
 const getCell = ({ context, formatter, destinationPath }: GetCellArgs) => {
+  if (!formatter) {
+    return undefined
+  }
   return `({cell}) => ${new Column({ context, formatter, destinationPath })}`
 }

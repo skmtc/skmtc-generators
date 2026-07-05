@@ -1,0 +1,16 @@
+{
+  "name": "@skmtc/gen-md-docs",
+  "version": "0.1.1",
+  "exports": "./mod.ts",
+  "tasks": {
+    "test": "deno test --allow-env --allow-sys --allow-read",
+    "test:update": "UPDATE_GOLDEN=1 deno test --allow-env --allow-sys --allow-read --allow-write",
+    "test:live": "LIVE=1 deno test --allow-env --allow-sys --allow-read --allow-net",
+    "publish": "JSR_URL=https://jsr.skmtc.co.uk/ deno publish --allow-slow-types --allow-dirty --token=$JSR_AUTH_TOKEN"
+  },
+  "imports": {
+    "@skmtc/core": "jsr:@skmtc/core@0.24.0",
+    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.12.9",
+    "openapi-types": "npm:openapi-types@^12.1.3"
+  }
+}

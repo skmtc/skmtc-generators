@@ -120,7 +120,7 @@ Deno.test('types.md line 50 - Simple object', () => {
       }
     }
   }
-  assertEquals(jsonSchemaToTs(jsonSchema), '{x: number, y: number}')
+  assertEquals(jsonSchemaToTs(jsonSchema), '{\nx: number;\n\ny: number;\n}')
 })
 
 // ============================================================================
@@ -182,7 +182,7 @@ Deno.test('types.md line 89 - Const object', () => {
     }
   }
   // Actual output treats enum values as their base types
-  assertEquals(jsonSchemaToTs(jsonSchema), '{x: number, y: number}')
+  assertEquals(jsonSchemaToTs(jsonSchema), '{\nx: number;\n\ny: number;\n}')
 })
 
 // ============================================================================
@@ -251,7 +251,7 @@ Deno.test('types.md line 125 - Intersection type', () => {
     ]
   }
   // Actual output merges allOf into single object
-  assertEquals(jsonSchemaToTs(jsonSchema), '{x: number, y: number}')
+  assertEquals(jsonSchemaToTs(jsonSchema), '{\nx: number;\n\ny: number;\n}')
 })
 
 // ============================================================================
@@ -271,7 +271,7 @@ Deno.test('types.md line 146 - Composite object', () => {
       }
     }
   }
-  assertEquals(jsonSchemaToTs(jsonSchema), '{x: number, y: number}')
+  assertEquals(jsonSchemaToTs(jsonSchema), '{\nx: number;\n\ny: number;\n}')
 })
 
 // ============================================================================
@@ -331,7 +331,7 @@ Deno.test('types.md line 197 - Mapped type', () => {
       }
     }
   }
-  assertEquals(jsonSchemaToTs(jsonSchema), '{x: number, y: number}')
+  assertEquals(jsonSchemaToTs(jsonSchema), '{\nx: number;\n\ny: number;\n}')
 })
 
 // ============================================================================
@@ -377,7 +377,10 @@ Deno.test('types.md line 233 - Partial type', () => {
       }
     }
   }
-  assertEquals(jsonSchemaToTs(jsonSchema), '{x?: number | undefined, y?: number | undefined}')
+  assertEquals(
+    jsonSchemaToTs(jsonSchema),
+    '{\nx?: number | undefined;\n\ny?: number | undefined;\n}'
+  )
 })
 
 // ============================================================================
@@ -397,7 +400,7 @@ Deno.test('types.md line 246 - Required type', () => {
       }
     }
   }
-  assertEquals(jsonSchemaToTs(jsonSchema), '{x: number, y: number}')
+  assertEquals(jsonSchemaToTs(jsonSchema), '{\nx: number;\n\ny: number;\n}')
 })
 
 // ============================================================================
@@ -414,7 +417,7 @@ Deno.test('types.md line 260 - Pick type', () => {
       }
     }
   }
-  assertEquals(jsonSchemaToTs(jsonSchema), '{x: number}')
+  assertEquals(jsonSchemaToTs(jsonSchema), '{\nx: number;\n}')
 })
 
 // ============================================================================
@@ -431,7 +434,7 @@ Deno.test('types.md line 271 - Omit type', () => {
       }
     }
   }
-  assertEquals(jsonSchemaToTs(jsonSchema), '{y: number}')
+  assertEquals(jsonSchemaToTs(jsonSchema), '{\ny: number;\n}')
 })
 
 // ============================================================================

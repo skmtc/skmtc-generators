@@ -13,5 +13,6 @@
     "@skmtc/gen-kotlin-jackson-s": "jsr:@skmtc/gen-kotlin-jackson-s@0.2.1",
     "valibot": "npm:valibot@1.1.0",
     "tiny-invariant": "npm:tiny-invariant@^1.3.3"
-  }
+  },
+  "private": true
 }

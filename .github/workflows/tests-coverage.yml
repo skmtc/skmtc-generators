@@ -6,12 +6,9 @@ on:
   pull_request:
     branches: [ main ]
 
-# @skmtc/* are published to the private JSR registry, not public jsr.io.
-# Without this, deno resolves `jsr:@skmtc/core@…` from jsr.io and fails with
-# "JSR package version not found". Reads are public, so no auth token needed.
-env:
-  JSR_URL: https://jsr.skmtc.co.uk/
-
+# The TS-track generators resolve @skmtc/core + @skmtc/lang-typescript from
+# public jsr.io (the non-TS lang generators are private, out of the workspace,
+# and not covered by this matrix), so no registry override is needed.
 jobs:
   coverage:
     runs-on: ubuntu-latest

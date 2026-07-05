@@ -1,13 +1,14 @@
-import { SnippetBase } from '@skmtc/core'
-import type { GenerateContextType, GeneratorKey } from '@skmtc/core'
-import { toJsDoc } from './toJsDoc.ts'
+import type { GenerateContextType, GeneratorKey, StackTrail } from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
+import { wrapDescription } from './wrapDescription.ts'
 
 /** Pagination shape for a `list` method. */
 export type Pagination = { pageName: string; itemType: string }
 
 export type ApiMethodArgs = {
   context: GenerateContextType
-  generatorKey?: GeneratorKey
+  /** The file the method is rendered into — where its runtime imports register. */
+  destinationPath: string
   methodName: string
   httpMethod: string
   /** Path expression — `path\`/x/${id}\`` or `'/x'`. */
@@ -21,56 +22,79 @@ export type ApiMethodArgs = {
   /** Request-body type name, when the operation has a body. */
   bodyType: string | undefined
   pagination: Pagination | undefined
+  /** Binary-download success response: returns the global `Response`, sends an
+   *  `application/binary` Accept header + `__binaryResponse: true`, no named type. */
+  binaryResponse: boolean | undefined
+  /** Leading `const { … } = params;` for the params-object pattern (≥2 path
+   *  params): the parent path params arrive via a `params` object and are
+   *  destructured before the call. Prepended to the method body. */
+  destructure: string | undefined
+  /** The `__security` scheme key (from the op's OpenAPI security). Defaults to
+   *  `bearerAuth` when absent. */
+  securityScheme: string | undefined
+  /** Optional attribution (gen-maps) inputs. */
+  generatorKey?: GeneratorKey
+  stackTrail?: StackTrail
 }
 
 /**
- * One method on a resource class — pure rendering. The type *names* are
- * resolved by {@link SdkResource} (composing with `gen-typescript-s`); this
- * snippet just lays out the JSDoc, signature and `this._client` call, and
- * exposes the runtime {@link imports} it needs.
+ * The shape of one resource-class method, derived from an operation: its
+ * parameter list, return type, body and JSDoc. A {@link TsSnippet} (a leaf
+ * entity): it registers the runtime imports it needs into `destinationPath`
+ * (the resource file). {@link SdkResource} builds a `TsMethod` from the
+ * computed facts — `TsMethod` does the rendering, this owns the imports.
  */
-export class ApiMethod extends SnippetBase {
-  imports: Record<string, string[]>
-  #text: string
+export class ApiMethod extends TsSnippet {
+  parameters: string[]
+  returnType: string
+  body: string
+  /** JSDoc text, wrapped at 80 columns — no comment markers; `TsMethod` adds the gutter. */
+  description: string | undefined
 
   constructor(args: ApiMethodArgs) {
-    super({ context: args.context, generatorKey: args.generatorKey })
+    super({ context: args.context, generatorKey: args.generatorKey, stackTrail: args.stackTrail })
 
-    this.imports = {}
-    this.#addImport('../internal/request-options', 'RequestOptions')
+    const { destinationPath } = args
+
+    this.register({ imports: { '@/internal/request-options': ['RequestOptions'] }, destinationPath })
     if (args.hasParams) {
-      this.#addImport('../internal/utils/path', 'path')
+      this.register({ imports: { '@/internal/utils/path': ['path'] }, destinationPath })
     }
 
-    const jsDoc = args.description ? `${toJsDoc(args.description)}\n` : ''
+    this.description = args.description ? wrapDescription(args.description) : undefined
+
+    const securityKey = args.securityScheme ?? 'bearerAuth'
 
     if (args.pagination) {
-      this.#addImport('../core/pagination', 'Page', 'PagePromise')
-      const signature = `${args.methodName}(options?: RequestOptions): PagePromise<${args.pagination.pageName}, ${args.pagination.itemType}>`
-      const body = `return this._client.getAPIList(${args.pathExpression}, Page<${args.pagination.itemType}>, { ...options, __security: { bearerAuth: true } });`
-      this.#text = `${jsDoc}${signature} {\n    ${body}\n  }`
-      return
+      this.register({ imports: { '@/core/pagination': ['Page', 'PagePromise'] }, destinationPath })
+      this.parameters = ['options?: RequestOptions']
+      this.returnType = `PagePromise<${args.pagination.pageName}, ${args.pagination.itemType}>`
+      this.body = `return this._client.getAPIList(${args.pathExpression}, Page<${args.pagination.itemType}>, { ...options, __security: { ${securityKey}: true } });`
+    } else {
+      this.register({ imports: { '@/core/api-promise': ['APIPromise'] }, destinationPath })
+      if (args.binaryResponse) {
+        this.register({ imports: { '@/internal/headers': ['buildHeaders'] }, destinationPath })
+      }
+      this.parameters = args.bodyType
+        ? [...args.pathParameters, `body: ${args.bodyType}`, 'options?: RequestOptions']
+        : [...args.pathParameters, 'options?: RequestOptions']
+      const payload = `{ ${[
+        args.bodyType ? 'body' : undefined,
+        '...options',
+        args.binaryResponse
+          ? "headers: buildHeaders([{ Accept: 'application/binary' }, options?.headers])"
+          : undefined,
+        `__security: { ${securityKey}: true }`,
+        args.binaryResponse ? '__binaryResponse: true' : undefined
+      ]
+        .filter(Boolean)
+        .join(', ')} }`
+      this.returnType = `APIPromise<${args.responseType}>`
+      this.body = `return this._client.${args.httpMethod}(${args.pathExpression}, ${payload});`
     }
 
-    this.#addImport('../core/api-promise', 'APIPromise')
-
-    const parameters = args.bodyType
-      ? [...args.pathParameters, `body: ${args.bodyType}`, 'options?: RequestOptions']
-      : [...args.pathParameters, 'options?: RequestOptions']
-    const payload = args.bodyType
-      ? '{ body, ...options, __security: { bearerAuth: true } }'
-      : '{ ...options, __security: { bearerAuth: true } }'
-
-    const signature = `${args.methodName}(${parameters.join(', ')}): APIPromise<${args.responseType}>`
-    const body = `return this._client.${args.httpMethod}(${args.pathExpression}, ${payload});`
-    this.#text = `${jsDoc}${signature} {\n    ${body}\n  }`
-  }
-
-  #addImport(module: string, ...names: string[]): void {
-    this.imports[module] = [...(this.imports[module] ?? []), ...names]
-  }
-
-  override toString(): string {
-    return this.#text
+    if (args.destructure) {
+      this.body = `${args.destructure}\n${this.body}`
+    }
   }
 }

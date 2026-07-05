@@ -31,12 +31,21 @@ export const toResourceExportPath = (resource: string): string => {
 }
 
 /**
+ * A path parameter's TypeScript name. Stainless camelCases the OpenAPI
+ * parameter name and upper-cases the `Id` acronym: `batch_id` → `batchID`,
+ * `thread_id` → `threadID`, `model` → `model`. Used for BOTH the positional
+ * argument and the `path` interpolation so they line up.
+ */
+export const toParamName = (name: string): string => camelCase(name).replace(/Id$/, 'ID')
+
+/**
  * The client-call path expression. A parametrised path becomes a `path`
  * tagged template (`path` + a backtick template with `${param}`
- * interpolations); a static path becomes a plain quoted string.
+ * interpolations); a static path becomes a plain quoted string. Params are
+ * named via {@link toParamName}.
  *
- * `/models/{model}` → `` path`/models/${model}` ``
- * `/models`         → `'/models'`
+ * `/batches/{batch_id}` → `` path`/batches/${batchID}` ``
+ * `/models`            → `'/models'`
  */
 export const toClientPath = (path: string): { expression: string; hasParams: boolean } => {
   const hasParams = /\{[^}]+\}/.test(path)
@@ -45,7 +54,7 @@ export const toClientPath = (path: string): { expression: string; hasParams: boo
     return { expression: `'${path}'`, hasParams: false }
   }
 
-  const template = path.replace(/\{([^}]+)\}/g, (_match, name) => '${' + name + '}')
+  const template = path.replace(/\{([^}]+)\}/g, (_match, name) => '${' + toParamName(name) + '}')
 
   return { expression: 'path`' + template + '`', hasParams: true }
 }

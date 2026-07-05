@@ -23,8 +23,9 @@ Deno.test('TsProjection - simple object type', () => {
 
   const tsProjection = context.insertModel(TsProjection, 'User' as RefName)
 
-  // Should generate an object with required properties
-  assertEquals(`${tsProjection.toValue()}`, '{id: string, name: string}')
+  // Should generate an object with required properties (one member per line,
+  // `;`-terminated, blank-line separated — the openai-node interface layout).
+  assertEquals(`${tsProjection.toValue()}`, '{\nid: string;\n\nname: string;\n}')
 })
 
 Deno.test('TsProjection - object with optional properties', () => {
@@ -49,7 +50,7 @@ Deno.test('TsProjection - object with optional properties', () => {
 
   assertEquals(
     `${tsProjection.toValue()}`,
-    '{id: string, name: string, description?: string | undefined}'
+    '{\nid: string;\n\nname: string;\n\ndescription?: string | undefined;\n}'
   )
 })
 

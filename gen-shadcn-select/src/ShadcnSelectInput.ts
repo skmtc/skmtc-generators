@@ -3,7 +3,7 @@ import invariant from 'tiny-invariant'
 import type { OasOperationProjectionConstructorArgs } from '@skmtc/core'
 import { TanstackQuery, toListKeyAndItem } from '@skmtc/gen-tanstack-query-supabase-zod'
 import { ShadcnSelectApiBase } from './base.ts'
-import type { EnrichmentSchema } from './enrichments.ts'
+import { toProperties, type EnrichmentSchema } from './enrichments.ts'
 import { PathParams } from './PathParams.ts'
 import { CustomValue } from '@skmtc/core'
 import { TsProjection } from '@skmtc/gen-typescript'
@@ -35,8 +35,8 @@ export class ShadcnSelectInput extends ShadcnSelectApiBase {
     this.option = new InputOption({
       context,
       itemName: this.itemName,
-      formatter: settings.enrichments.subject?.input.formatter,
-      accessorPath: settings.enrichments.subject?.input.accessorPath ?? [],
+      formatter: settings.enrichments.subject?.input.moduleSelect.module,
+      accessorPath: toProperties(settings.enrichments.subject?.input.moduleSelect.schemaPath ?? []),
       destinationPath: settings.exportPath
     })
 
