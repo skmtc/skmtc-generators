@@ -3,17 +3,21 @@ import type { OasOperationProjectionConstructorArgs, Stringable } from '@skmtc/c
 import { SnippetBase } from '@skmtc/core'
 import invariant from 'tiny-invariant'
 import { schemaToField, getLabel } from './schemaToField.ts'
-import type { EnrichmentSchema } from './enrichments.ts'
+import { toProperties, type EnrichmentSchema } from './enrichments.ts'
 
 export class FormFields extends SnippetBase {
   fields: ListLines<Stringable> | undefined
   constructor({ context, operation, settings }: OasOperationProjectionConstructorArgs<EnrichmentSchema>) {
     super({ context })
 
-    // Per-field overrides from the subject enrichment, keyed by `id` (= the
-    // property name). Carries the consumer-assigned `input` component + `label`.
+    // Per-field overrides from the subject enrichment, keyed by the leading
+    // property of the binding's schemaPath. Carries the consumer-assigned
+    // component + `label`.
     const overrides = new Map(
-      (settings.enrichments.subject?.fields ?? []).map(field => [field.id, field])
+      (settings.enrichments.subject?.fields ?? []).map(field => [
+        toProperties(field.moduleSelect.schemaPath)[0],
+        field
+      ])
     )
 
     this.fields = operation.toRequestBody(({ schema: parentSchema }) => {
@@ -32,7 +36,7 @@ export class FormFields extends SnippetBase {
           destinationPath: settings.exportPath,
           label: override?.label ?? getLabel({ schema, name }),
           isRequired: Boolean(resolved.required?.includes(name)),
-          input: override?.input
+          input: override?.moduleSelect.module
         })
       })
     })

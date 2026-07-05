@@ -1,15 +1,14 @@
-import { moduleExport } from '@skmtc/core'
+import { lensInputModuleType, moduleSelect } from '@skmtc/core'
 import * as v from 'valibot'
 
 // Per-field override carried by the form's `fields[]` enrichment.
-// `id` is the dotted accessor path identifying which field this
-// override applies to (e.g. `"primaryAddress.type"` for nested
-// fields); every other property is optional so callers carry only
-// the data they want to set.
+// `moduleSelect` is the field binding, one unit: its `schemaPath` identifies
+// which field the override applies to (property segments; nested fields are
+// deeper paths like ['primaryAddress', 'type']) and the optional `module`
+// points the field at a consumer component. Everything else is optional so
+// callers carry only the data they want to set.
 export const formFieldItem = v.object({
-  id: v.string(),
-  accessorPath: v.optional(v.array(v.string())),
-  input: v.optional(moduleExport),
+  moduleSelect: v.pipe(moduleSelect(lensInputModuleType), v.title('Input')),
   label: v.optional(v.string()),
   placeholder: v.optional(v.string()),
   // GraphQL Query field name backing this argument. When set, the
@@ -57,3 +56,11 @@ const enrichmentSchema = v.object({
 export type EnrichmentSchema = v.InferOutput<typeof enrichmentSchema>
 
 export const toEnrichmentSchema = () => enrichmentSchema
+
+// A schemaPath may lead with a target token (the editor writes target-first
+// paths); the property segments follow it.
+const PATH_TARGETS = ['RequestBody', 'SuccessResponse', 'Model']
+export const toProperties = (schemaPath: string[]): string[] =>
+  schemaPath.length > 0 && PATH_TARGETS.includes(schemaPath[0])
+    ? schemaPath.slice(1)
+    : schemaPath

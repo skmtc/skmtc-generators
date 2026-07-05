@@ -6,7 +6,7 @@ import { TableColumn } from './TableColumn.ts'
 import type { OasOperationProjectionConstructorArgs, ToOasOperationIdentifierNameArgs } from '@skmtc/core'
 import { toListKeyAndItem } from '@skmtc/gen-tanstack-query-supabase-zod'
 import { ShadcnTableBase } from './base.ts'
-import type { EnrichmentSchema } from './enrichments.ts'
+import { toProperties, type EnrichmentSchema } from './enrichments.ts'
 
 export class TanstackColumns extends ShadcnTableBase {
   columns: ListArray<TableColumn>
@@ -28,8 +28,8 @@ export class TanstackColumns extends ShadcnTableBase {
       return new TableColumn({
         context: this.context,
         label: column.label,
-        formatter: column.formatter,
-        accessorPath: column.accessorPath,
+        formatter: column.moduleSelect.module,
+        accessorPath: toProperties(column.moduleSelect.schemaPath),
         objectName: rowTypeDefinition.identifier.name,
         destinationPath: settings.exportPath
       })

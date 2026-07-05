@@ -38,6 +38,8 @@ export type WorkspacePackage = {
   imports: Record<string, string>
   /** Names of other workspace packages this one depends on. */
   deps: string[]
+  /** `private: true` in deno.json — never published, regardless of registry state. */
+  isPrivate: boolean
 }
 
 /** Patch-bump a `x.y.z` version: `0.6.2` → `0.6.3`. */
@@ -171,6 +173,7 @@ type DenoJson = {
   version?: string
   imports?: Record<string, string>
   workspace?: string[]
+  private?: boolean
   [key: string]: unknown
 }
 
@@ -205,6 +208,7 @@ export const discoverWorkspace = async (
       version: cfg.version as string,
       dir,
       imports,
+      isPrivate: cfg.private === true,
       deps: [
         ...new Set(
           Object.values(imports)
@@ -252,6 +256,11 @@ export const release = async (): Promise<void> => {
   const published = new Set<string>()
   const neverPublished = new Set<string>()
   for (const pkg of packages) {
+    if (pkg.isPrivate) {
+      console.log(`  private    ${pkg.name}@${pkg.version}  (never published)`)
+      neverPublished.add(pkg.name)
+      continue
+    }
     const state = await registryState(jsrUrl, pkg.name, pkg.version)
     if (state.state === 'unknown-package') {
       console.log(`  skipped    ${pkg.name}@${pkg.version}  (not on this registry — new packages publish manually)`)

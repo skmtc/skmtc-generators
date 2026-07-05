@@ -1,6 +1,6 @@
 {
   "name": "@skmtc/gen-zod",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "exports": "./mod.ts",
   "tasks": {
     "test": "deno test --allow-env --allow-sys --allow-read",
@@ -11,7 +11,7 @@
     "publish": "JSR_URL=https://jsr.skmtc.co.uk/ deno publish --allow-slow-types --allow-dirty --token=$JSR_AUTH_TOKEN"
   },
   "imports": {
-    "@skmtc/core": "jsr:@skmtc/core@0.22.0",
-    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.11.0"
+    "@skmtc/core": "jsr:@skmtc/core@0.24.0",
+    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.12.9"
   }
 }

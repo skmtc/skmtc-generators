@@ -9,5 +9,6 @@
   "imports": {
     "@skmtc/core": "jsr:@skmtc/core@0.22.0",
     "@skmtc/lang-kotlin": "jsr:@skmtc/lang-kotlin@0.9.0"
-  }
+  },
+  "private": true
 }

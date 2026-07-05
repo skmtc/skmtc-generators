@@ -5,6 +5,7 @@ import { ZodProjection } from '@skmtc/gen-zod'
 import invariant from 'tiny-invariant'
 import denoJson from '../deno.json' with { type: 'json' }
 import { ReapitFormBase } from './base.ts'
+import { toProperties } from './enrichments.ts'
 import type { EnrichmentSchema, FormFieldItem } from './enrichments.ts'
 import { schemaToField } from './schemaToField.ts'
 import { toCoerceBlock } from './toCoerceBlock.ts'
@@ -82,12 +83,12 @@ export class ReapitForm extends ReapitFormBase {
     // Compose one field per top-level argument. Field child instances
     // register their own imports against `settings.exportPath` during
     // construction. Per-field overrides come from
-    // `settings.enrichments.subject?.form?.fields`, keyed by `id`
-    // interpreted as the dotted accessor path (so nested overrides like
+    // `settings.enrichments.subject?.form?.fields`, keyed by the binding's
+    // schemaPath joined as a dotted accessor path (so nested overrides like
     // `primaryAddress.type` are supported, not just top-level args).
     const fieldOverrides = new Map<string, FormFieldItem>()
     for (const override of settings.enrichments.subject?.form?.fields ?? []) {
-      fieldOverrides.set(override.id, override)
+      fieldOverrides.set(toProperties(override.moduleSelect.schemaPath).join('.'), override)
     }
     const required = args.required ?? []
     const fieldLines = Object.entries(args.properties ?? {}).map(([propName, propSchema]) =>

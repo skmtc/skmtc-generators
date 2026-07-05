@@ -22,14 +22,5 @@ export const ShadcnSelectApiEntry = toOasOperationEntry<EnrichmentSchema>({
       name: ShadcnSelectApiBase.toIdentifierName({ operation, enrichments, variant }),
       exportPath: ShadcnSelectApiBase.toExportPath({ operation, enrichments, variant })
     }
-  },
-
-  toMappingModule: ({ context, operation, variant }) => {
-    const enrichments = ShadcnSelectField.toEnrichments({ operation, context, variant })
-    return {
-      name: ShadcnSelectField.toIdentifierName({ operation, enrichments, variant }),
-      exportPath: ShadcnSelectField.toExportPath({ operation, enrichments, variant }),
-      schema: 'string'
-    }
   }
 })

@@ -1,12 +1,26 @@
 import * as v from 'valibot'
-import { moduleExport } from '@skmtc/core'
+import { moduleSelect } from '@skmtc/core'
 
-// Per-column override. `formatter` references a consumer-side cell
-// renderer module; the generator emits the column wired to it.
+// The cell-formatter binding CONTRACT: a candidate fits when it accepts the
+// cell's (normalized) value — display components, NOT the form's lens inputs.
+// Declared on the moduleSelect; the editor's matcher inlines it to narrow
+// candidates via `typeof Candidate extends FormatterModule<FieldType>`.
+export const formatterModuleType = `type Primitive = string | number | boolean | bigint | symbol | null | undefined | Date
+type Normalize<T> = [T] extends [Primitive]
+  ? NonNullable<T>
+  : T extends ReadonlyArray<infer U>
+    ? Array<Normalize<U>>
+    : { [K in keyof T]?: Normalize<NonNullable<T[K]>> }
+
+export type FormatterModule<F> = (props: { value: Normalize<F> }) => unknown`
+
+// Per-column override, one binding unit: `schemaPath` identifies the
+// response-item property the column maps to (the accessor path is the
+// column's identity — no separate `id`), and the optional `module` points
+// the cell at a consumer-side renderer. With no `module`, the cell renders
+// the raw value.
 export const tableColumnItem = v.object({
-  id: v.string(),
-  accessorPath: v.array(v.string()),
-  formatter: moduleExport,
+  moduleSelect: v.pipe(moduleSelect(formatterModuleType), v.title('Formatter')),
   label: v.string()
 })
 
@@ -38,3 +52,12 @@ export const enrichmentSchema = v.object({
 export type EnrichmentSchema = v.InferOutput<typeof enrichmentSchema>
 
 export const toEnrichmentSchema = () => enrichmentSchema
+
+// A schemaPath may lead with a target token (the editor writes target-first
+// paths); the property segments follow it.
+const PATH_TARGETS = ['RequestBody', 'SuccessResponse', 'Model']
+export const toProperties = (schemaPath: string[]): string[] =>
+  schemaPath.length > 0 && PATH_TARGETS.includes(schemaPath[0])
+    ? schemaPath.slice(1)
+    : schemaPath
+
