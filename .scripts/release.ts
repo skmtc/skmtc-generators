@@ -3,6 +3,12 @@
  * Release: cascade workspace version bumps down the dependency tree
  * and publish to the JSR registry.
  *
+ * ALREADY-PUBLISHED ONLY: a package the registry has never seen (404 on
+ * meta.json) is skipped entirely — never planned, never published. CI can
+ * therefore run this against public jsr.io without auto-creating the
+ * mirror-only generators (kotlin/csharp/reapit/…); publishing a NEW package
+ * is a deliberate manual act, not a cascade side effect.
+ *
  * The registry is the single source of truth for what is published;
  * each package's `deno.json` is the source of truth for its version.
  * There is no local state file — that was a cache that drifted out of
@@ -117,13 +123,19 @@ export type PlannedRelease = {
  */
 export const planRelease = (
   packages: WorkspacePackage[],
-  publishedVersions: ReadonlySet<string>
+  publishedVersions: ReadonlySet<string>,
+  neverPublished: ReadonlySet<string> = new Set()
 ): Map<string, PlannedRelease> => {
   const names = new Set(packages.map(p => p.name))
   const plan = new Map<string, PlannedRelease>()
   const finalVersion = new Map(packages.map(p => [p.name, p.version]))
 
   for (const pkg of toDependencyOrder(packages)) {
+    // Never-published packages are not release candidates: they still get
+    // their pins read for cascade bookkeeping, but are never planned.
+    if (neverPublished.has(pkg.name)) {
+      continue
+    }
     const imports = { ...pkg.imports }
     let importsChanged = false
 
@@ -204,16 +216,21 @@ export const discoverWorkspace = async (
   })
 }
 
-/** Whether `name@version` is already published on the registry. */
-const isPublished = async (
+type RegistryState =
+  | { state: 'unknown-package' }
+  | { state: 'known'; hasVersion: boolean }
+
+/** The registry's view of `name@version`: package never published (404),
+ *  or known with/without this exact version. */
+const registryState = async (
   jsrUrl: string,
   name: string,
   version: string
-): Promise<boolean> => {
+): Promise<RegistryState> => {
   const res = await fetch(`${jsrUrl}${name}/meta.json`)
   if (res.status === 404) {
     await res.body?.cancel()
-    return false
+    return { state: 'unknown-package' }
   }
   if (!res.ok) {
     throw new Error(
@@ -221,24 +238,31 @@ const isPublished = async (
     )
   }
   const meta = (await res.json()) as { versions?: Record<string, unknown> }
-  return Boolean(meta.versions?.[version])
+  return { state: 'known', hasVersion: Boolean(meta.versions?.[version]) }
 }
 
 export const release = async (): Promise<void> => {
   const rootDir = join(dirname(fromFileUrl(import.meta.url)), '..')
   const jsrUrl = (Deno.env.get('JSR_URL') ?? DEFAULT_JSR_URL).replace(/\/*$/, '/')
+  const dryRun = Deno.args.includes('--dry-run')
 
-  console.log(`Registry: ${jsrUrl}\n`)
+  console.log(`Registry: ${jsrUrl}${dryRun ? '  (dry run)' : ''}\n`)
   const packages = await discoverWorkspace(rootDir)
 
   const published = new Set<string>()
+  const neverPublished = new Set<string>()
   for (const pkg of packages) {
-    const isUp = await isPublished(jsrUrl, pkg.name, pkg.version)
-    console.log(`  ${isUp ? 'published' : 'PENDING  '}  ${pkg.name}@${pkg.version}`)
-    if (isUp) published.add(`${pkg.name}@${pkg.version}`)
+    const state = await registryState(jsrUrl, pkg.name, pkg.version)
+    if (state.state === 'unknown-package') {
+      console.log(`  skipped    ${pkg.name}@${pkg.version}  (not on this registry — new packages publish manually)`)
+      neverPublished.add(pkg.name)
+      continue
+    }
+    console.log(`  ${state.hasVersion ? 'published' : 'PENDING  '}  ${pkg.name}@${pkg.version}`)
+    if (state.hasVersion) published.add(`${pkg.name}@${pkg.version}`)
   }
 
-  const plan = planRelease(packages, published)
+  const plan = planRelease(packages, published, neverPublished)
   if (plan.size === 0) {
     console.log('\nNothing to publish — every deno.json version is already on the registry.')
     return
@@ -255,6 +279,11 @@ export const release = async (): Promise<void> => {
     console.log(`  ${pkg.name}@${planned.version}  (${kind})`)
   }
 
+  if (dryRun) {
+    console.log('\nDry run — no deno.json updates, nothing published.')
+    return
+  }
+
   console.log('\nApplying version + import updates...')
   for (const pkg of order) {
     const planned = plan.get(pkg.name) as PlannedRelease
@@ -269,9 +298,20 @@ export const release = async (): Promise<void> => {
   for (const pkg of order) {
     const planned = plan.get(pkg.name) as PlannedRelease
     console.log(`\n--- ${pkg.name}@${planned.version} ---`)
+    // Direct `deno publish` rather than the per-package task: the tasks
+    // hardcode the local mirror + token, but the target registry is the
+    // JSR_URL this script already runs against. Auth: --token when the env
+    // carries one (local mirror), otherwise OIDC (CI against jsr.io).
+    const token = Deno.env.get('JSR_AUTH_TOKEN')
     const result = await new Deno.Command('deno', {
-      args: ['task', 'publish'],
+      args: [
+        'publish',
+        '--allow-slow-types',
+        '--allow-dirty',
+        ...(token ? [`--token=${token}`] : [])
+      ],
       cwd: pkg.dir,
+      env: { JSR_URL: jsrUrl },
       stdout: 'inherit',
       stderr: 'inherit'
     }).output()

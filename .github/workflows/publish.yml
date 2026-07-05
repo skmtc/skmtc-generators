@@ -1,0 +1,52 @@
+# Publish generators to PUBLIC jsr.io on merge to main, via the cascade
+# script (.scripts/release.ts) — authenticated with GitHub OIDC (no token).
+#
+# ALREADY-PUBLISHED ONLY: the release script skips any package jsr.io has
+# never seen (404 on meta.json), so the mirror-only generators (kotlin /
+# csharp / reapit / daisyui / …) are never auto-created here. Publishing a
+# NEW generator to jsr.io is a deliberate manual act: publish it once by
+# hand, link it to this repo in its jsr.io settings, and from then on the
+# cascade keeps it current.
+#
+# Runs on every merge to main: any already-published package whose deno.json
+# version isn't yet on jsr.io ships; merges with no version bumps are a
+# no-op ("nothing to publish"). Bump versions and merge — that IS the
+# release. workflow_dispatch remains for manual re-runs after a partial
+# failure (already-published versions are skipped on re-run).
+#
+# OIDC requires the `id-token: write` permission below AND each published
+# @skmtc/gen-* package on jsr.io to be linked to THIS GitHub repository in
+# its package settings.
+
+name: Publish
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      # Target public jsr.io — the release script queries and publishes
+      # against this registry (locally it defaults to the mirror).
+      JSR_URL: https://jsr.io/
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
+
+      - name: Install Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Release via cascade to jsr.io
+        run: deno task release
