@@ -6,7 +6,7 @@
     "test": "deno test --allow-env --allow-sys --allow-read",
     "test:update": "UPDATE_GOLDEN=1 deno test --allow-env --allow-sys --allow-read --allow-write",
     "test:live": "LIVE=1 deno test --allow-env --allow-sys --allow-read --allow-net",
-    "publish": "JSR_URL=https://jsr.skmtc.co.uk/ deno publish --allow-slow-types --allow-dirty --token=$JSR_AUTH_TOKEN"
+    "publish": "deno publish --allow-slow-types --allow-dirty"
   },
   "imports": {
     "@skmtc/core": "jsr:@skmtc/core@0.24.0",
