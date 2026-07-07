@@ -2,6 +2,7 @@
   "name": "@skmtc/gen-shadcn-form",
   "version": "0.3.0",
   "imports": {
+    "@skmtc/gen-shadcn-select": "jsr:@skmtc/gen-shadcn-select@0.3.0",
     "@skmtc/gen-tanstack-query-supabase-zod": "jsr:@skmtc/gen-tanstack-query-supabase-zod@0.2.1",
     "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.2.1",
     "@skmtc/gen-zod": "jsr:@skmtc/gen-zod@0.2.1",
