@@ -8,7 +8,7 @@
     "coverage:report": "deno coverage coverage --lcov --output=coverage.lcov 2>/dev/null || echo 'No coverage data'",
     "coverage:html": "deno coverage coverage --html || true",
     "coverage:check": "deno coverage coverage --detailed || true",
-    "publish": "JSR_URL=https://jsr.skmtc.co.uk/ deno publish --allow-slow-types --allow-dirty --token=$JSR_AUTH_TOKEN"
+    "publish": "deno publish --allow-slow-types --allow-dirty"
   },
   "imports": {
     "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.2.1",
