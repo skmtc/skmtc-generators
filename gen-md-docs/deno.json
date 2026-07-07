@@ -9,8 +9,8 @@
     "publish": "deno publish --allow-slow-types --allow-dirty"
   },
   "imports": {
-    "@skmtc/core": "jsr:@skmtc/core@0.24.0",
-    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.12.9",
+    "@skmtc/core": "jsr:@skmtc/core@0.26.0",
+    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.12.11",
     "openapi-types": "npm:openapi-types@^12.1.3"
   }
 }
