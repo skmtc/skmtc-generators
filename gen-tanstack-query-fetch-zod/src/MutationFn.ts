@@ -63,7 +63,7 @@ export class MutationFn extends TanstackQueryBase {
   }
 
   override toString(): string {
-    return `async () => {      
+    return `async (${this.parameter}) => {
       const res = await fetch(\`${toPathTemplate(this.operation.path)}\`, {
         method: '${this.operation.method.toUpperCase()}',
         ${this.parameter.hasProperty('body') ? 'body: JSON.stringify(body),' : ''}
