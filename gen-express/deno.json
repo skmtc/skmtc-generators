@@ -5,8 +5,8 @@
   "imports": {
     "@skmtc/gen-valibot": "jsr:@skmtc/gen-valibot@0.2.4",
     "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.2.4",
-    "@skmtc/core": "jsr:@skmtc/core@0.28.0",
-    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.12.13"
+    "@skmtc/core": "jsr:@skmtc/core@0.28.2",
+    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.12.15"
   },
   "tasks": {
     "test": "deno test --allow-env --allow-sys --allow-read || true",
@@ -15,5 +15,10 @@
     "coverage:html": "deno coverage coverage --html || true",
     "coverage:check": "deno coverage coverage --detailed || true",
     "publish": "deno publish --allow-slow-types --allow-dirty"
+  },
+  "lint": {
+    "plugins": [
+      "jsr:@skmtc/lint-plugin@0.1.0"
+    ]
   }
 }
