@@ -1,9 +1,9 @@
 import { assertEquals } from 'jsr:@std/assert@^1.0.0'
-import { ArktypeArray } from '../../src/ArktypeArray.ts'
+import { ArktypeArray } from '@skmtc/gen-arktype'
 import { OasString } from '@skmtc/core'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
 import { toGeneratorOnlyKey } from '@skmtc/core'
-import { arktypeEntry } from '../../src/mod.ts'
+import arktypeEntry from '@skmtc/gen-arktype'
 
 Deno.test('ArktypeArray - array of strings', () => {
   const arktypeArray = new ArktypeArray({
@@ -14,7 +14,7 @@ Deno.test('ArktypeArray - array of strings', () => {
     destinationPath: '/test'
   })
 
-  assertEquals(arktypeArray.toString(), 'type("string[]")')
+  assertEquals(arktypeArray.toString(), '"string[]"')
 })
 
 Deno.test('ArktypeArray - nullable array', () => {
@@ -26,7 +26,7 @@ Deno.test('ArktypeArray - nullable array', () => {
     destinationPath: '/test'
   })
 
-  assertEquals(arktypeArray.toString(), 'type("string[] | null")')
+  assertEquals(arktypeArray.toString(), '"string[] | null"')
 })
 
 Deno.test('ArktypeArray - optional array', () => {
@@ -38,5 +38,5 @@ Deno.test('ArktypeArray - optional array', () => {
     destinationPath: '/test'
   })
 
-  assertEquals(arktypeArray.toString(), 'type("string[] | undefined")')
+  assertEquals(arktypeArray.toString(), '"string[] | undefined"')
 })

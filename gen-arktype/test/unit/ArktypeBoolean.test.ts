@@ -1,8 +1,8 @@
 import { assertEquals } from 'jsr:@std/assert@^1.0.0'
-import { ArktypeBoolean } from '../../src/ArktypeBoolean.ts'
+import { ArktypeBoolean } from '@skmtc/gen-arktype'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
 import { toGeneratorOnlyKey } from '@skmtc/core'
-import { arktypeEntry } from '../../src/mod.ts'
+import arktypeEntry from '@skmtc/gen-arktype'
 
 Deno.test('ArktypeBoolean - basic boolean type', () => {
   const arktypeBoolean = new ArktypeBoolean({
@@ -12,7 +12,7 @@ Deno.test('ArktypeBoolean - basic boolean type', () => {
     destinationPath: '/test'
   })
 
-  assertEquals(arktypeBoolean.toString(), 'type("boolean")')
+  assertEquals(arktypeBoolean.toString(), '"boolean"')
 })
 
 Deno.test('ArktypeBoolean - nullable boolean', () => {
@@ -23,7 +23,7 @@ Deno.test('ArktypeBoolean - nullable boolean', () => {
     destinationPath: '/test'
   })
 
-  assertEquals(arktypeBoolean.toString(), 'type("boolean | null")')
+  assertEquals(arktypeBoolean.toString(), '"boolean | null"')
 })
 
 Deno.test('ArktypeBoolean - optional boolean', () => {
@@ -34,7 +34,7 @@ Deno.test('ArktypeBoolean - optional boolean', () => {
     destinationPath: '/test'
   })
 
-  assertEquals(arktypeBoolean.toString(), 'type("boolean | undefined")')
+  assertEquals(arktypeBoolean.toString(), '"boolean | undefined"')
 })
 
 Deno.test('ArktypeBoolean - optional and nullable boolean', () => {
@@ -45,5 +45,5 @@ Deno.test('ArktypeBoolean - optional and nullable boolean', () => {
     destinationPath: '/test'
   })
 
-  assertEquals(arktypeBoolean.toString(), 'type("boolean | null | undefined")')
+  assertEquals(arktypeBoolean.toString(), '"boolean | null | undefined"')
 })

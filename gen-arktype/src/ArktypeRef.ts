@@ -1,8 +1,10 @@
 import type { OasRef, OasSchema } from '@skmtc/core'
-import { camelCase, decapitalize } from '@skmtc/core'
+import { ModelDriver, toModelGeneratorKey } from '@skmtc/core'
 import { TsSnippet } from '@skmtc/lang-typescript'
-import { applyModifiers } from './applyModifiers.ts'
-import type { GenerateContextType, GeneratorKey, RefName, Modifiers, TypeSystemValue } from '@skmtc/core'
+import { applyValueModifiers } from './applyModifiers.ts'
+import { ArktypeProjection } from './ArktypeProjection.ts'
+import { arktypeEntry } from './mod.ts'
+import type { GenerateContextType, RefName, Modifiers } from '@skmtc/core'
 
 type ArktypeRefArgs = {
   /** Originating schema node — for fine-grained attribution. */
@@ -11,39 +13,83 @@ type ArktypeRefArgs = {
   destinationPath: string
   refName: RefName
   modifiers: Modifiers
-  generatorKey: GeneratorKey
   rootRef?: RefName
 }
 
 export class ArktypeRef extends TsSnippet {
   type = 'ref' as const
-  name: string
-  refName: RefName
+  // A name only resolves inside an arktype scope, so a ref can never be spelled
+  // in string syntax: `type("user")` reports `'user' is unresolvable`. It is
+  // referenced as the `Type` value itself.
+  stringSyntax = undefined
+  atomicStringSyntax = undefined
   modifiers: Modifiers
-  destinationPath: string
-  rootRef?: RefName
+  name: string
+  terminal: boolean
 
-  constructor({ context, refName, destinationPath, modifiers, generatorKey, rootRef, schema }: ArktypeRefArgs) {
-    super({ context, generatorKey, stackTrail: schema?.stackTrail.clone() })
+  constructor({ context, refName, destinationPath, modifiers, rootRef, schema }: ArktypeRefArgs) {
+    super({
+      context,
+      generatorKey: toModelGeneratorKey({
+        generatorId: arktypeEntry.id,
+        refName,
+        variant: 'main'
+      }),
+      stackTrail: schema?.stackTrail.clone()
+    })
 
-    this.name = decapitalize(camelCase(refName))
-    this.refName = refName
+    if (context.modelDepth[`${arktypeEntry.id}:${refName}`] > 0) {
+      // A back-reference to a model still open on the build stack. Driving it
+      // again would recurse forever, so read its settings without building.
+      //
+      // `ZodRef` also bumps the counter here, because `ZodProjection` reads
+      // `> 1` to decide whether to annotate the export and break TypeScript's
+      // circular inference. Arktype has no such annotation — a cycle cannot be
+      // expressed in a lone `type(…)` at all (see `toString`) — so nothing
+      // would read the bump, and it is not made.
+      const settings = context.toModelContentSettings({
+        refName,
+        projection: ArktypeProjection,
+        variant: 'main'
+      })
+
+      // Not always the same file: with mutual recursion (A → B → A) the
+      // back-reference lands in B, so the name still has to be imported. The
+      // engine cannot stitch this one, because nothing was inserted.
+      this.register({
+        imports: { [settings.exportPath]: [settings.identifier.name] },
+        destinationPath
+      })
+
+      this.name = settings.identifier.name
+      this.terminal = true
+    } else {
+      // Building the referenced model is what makes it exist AND what stitches
+      // its import into this file.
+      const { settings } = new ModelDriver({
+        context,
+        refName,
+        destinationPath,
+        rootRef,
+        projection: ArktypeProjection,
+        variant: 'main'
+      })
+
+      this.name = settings.identifier.name
+      this.terminal = false
+    }
+
     this.modifiers = modifiers
-    this.destinationPath = destinationPath
-    this.rootRef = rootRef
-
-    this.register({ imports: { arktype: ['type'] }, destinationPath })
   }
 
   override toString(): string {
-    const identifier = decapitalize(camelCase(this.refName))
-    
-    // If no modifiers, just return the identifier
-    if (this.modifiers.required && !this.modifiers.nullable) {
-      return identifier
-    }
-    
-    // Apply modifiers to the reference
-    return applyModifiers(identifier, this.modifiers)
+    // A thunk is arktype's spelling for a cyclic reference, but it only defers
+    // inside a `scope` / `type.module` — a lone `type(…)` invokes it while
+    // parsing, so a self-recursive model still throws at run time. Emitted
+    // because it is the closest correct shape; genuine cycles need the whole
+    // file to become one `type.module({ … })`.
+    const value = this.terminal ? `() => ${this.name}` : this.name
+
+    return applyValueModifiers(value, this.modifiers)
   }
 }

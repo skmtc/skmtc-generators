@@ -9,13 +9,16 @@ type ArktypeVoidArgs = {
 
 export class ArktypeVoid extends TsSnippet {
   type = 'void' as const
-  
-  constructor({ context, generatorKey, destinationPath }: ArktypeVoidArgs) {
+  // `void` is not an arktype keyword — `type("void")` fails to parse. An absent
+  // value is `undefined`.
+  stringSyntax = 'undefined'
+  atomicStringSyntax = 'undefined'
+
+  constructor({ context, generatorKey }: ArktypeVoidArgs) {
     super({ context, generatorKey })
-    this.register({ imports: { arktype: ['type'] }, destinationPath })
   }
 
   override toString(): string {
-    return 'type("void")'
+    return `"${this.stringSyntax}"`
   }
 }

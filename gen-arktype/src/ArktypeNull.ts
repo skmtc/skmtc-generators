@@ -7,15 +7,21 @@ type ArktypeNullArgs = {
   generatorKey: GeneratorKey
 }
 
+/**
+ * Unreachable from the router: core's schema union has no `null` type, so
+ * nullability arrives as `modifiers.nullable` instead. Kept because it is part
+ * of the package's public surface.
+ */
 export class ArktypeNull extends TsSnippet {
   type = 'null' as const
-  
-  constructor({ context, generatorKey, destinationPath }: ArktypeNullArgs) {
+  stringSyntax = 'null'
+  atomicStringSyntax = 'null'
+
+  constructor({ context, generatorKey }: ArktypeNullArgs) {
     super({ context, generatorKey })
-    this.register({ imports: { arktype: ['type'] }, destinationPath })
   }
 
   override toString(): string {
-    return 'type("null")'
+    return `"${this.stringSyntax}"`
   }
 }

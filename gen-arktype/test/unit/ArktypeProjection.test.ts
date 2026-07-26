@@ -1,5 +1,5 @@
 import { assertEquals } from 'jsr:@std/assert@^1.0.0'
-import { ArktypeProjection } from '../../src/ArktypeProjection.ts'
+import { ArktypeProjection } from '@skmtc/gen-arktype'
 import { type RefName, StackTrail } from '@skmtc/core'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
 import { toParseContext } from '../helpers/toParseContext.ts'

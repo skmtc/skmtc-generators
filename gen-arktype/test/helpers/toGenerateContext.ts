@@ -1,7 +1,7 @@
 import { GenerateContext, OasDocument } from '@skmtc/core'
 import type { SkmtcParsedDocument } from '@skmtc/core'
 import * as log from 'jsr:@std/log@0.224/logger'
-import { arktypeEntry } from '../../src/mod.ts'
+import arktypeEntry from '@skmtc/gen-arktype'
 
 type ToGenerateContextArgs = {
   oasDocument?: SkmtcParsedDocument

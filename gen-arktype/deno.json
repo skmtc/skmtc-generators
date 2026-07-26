@@ -4,6 +4,7 @@
   "exports": "./mod.ts",
   "tasks": {
     "test": "deno test --allow-env --allow-sys --allow-read",
+    "test:typecheck": "TYPECHECK=1 deno test --allow-env --allow-sys --allow-read --allow-write --allow-run=deno --allow-net test/typecheck.test.ts",
     "test:coverage": "deno test --allow-env --allow-sys --allow-read --coverage=coverage",
     "coverage:report": "deno coverage coverage --lcov --output=coverage.lcov",
     "coverage:html": "deno coverage coverage --html",

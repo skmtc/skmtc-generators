@@ -1,8 +1,8 @@
 import { assertEquals } from 'jsr:@std/assert@^1.0.0'
-import { ArktypeVoid } from '../../src/ArktypeVoid.ts'
+import { ArktypeVoid } from '@skmtc/gen-arktype'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
 import { toGeneratorOnlyKey } from '@skmtc/core'
-import { arktypeEntry } from '../../src/mod.ts'
+import arktypeEntry from '@skmtc/gen-arktype'
 
 Deno.test('ArktypeVoid - basic void type', () => {
   const arktypeVoid = new ArktypeVoid({
@@ -11,5 +11,5 @@ Deno.test('ArktypeVoid - basic void type', () => {
     destinationPath: '/test'
   })
 
-  assertEquals(arktypeVoid.toString(), 'type("void")')
+  assertEquals(arktypeVoid.toString(), '"undefined"')
 })

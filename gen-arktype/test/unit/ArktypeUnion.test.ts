@@ -1,9 +1,9 @@
 import { assertEquals } from 'jsr:@std/assert@^1.0.0'
-import { ArktypeUnion } from '../../src/ArktypeUnion.ts'
+import { ArktypeUnion } from '@skmtc/gen-arktype'
 import { OasString, OasNumber, OasBoolean } from '@skmtc/core'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
 import { toGeneratorOnlyKey } from '@skmtc/core'
-import { arktypeEntry } from '../../src/mod.ts'
+import arktypeEntry from '@skmtc/gen-arktype'
 
 Deno.test('ArktypeUnion - simple union with two types', () => {
   const arktypeUnion = new ArktypeUnion({
@@ -15,7 +15,7 @@ Deno.test('ArktypeUnion - simple union with two types', () => {
     destinationPath: '/test'
   })
 
-  assertEquals(arktypeUnion.toString(), 'type("string | number")')
+  assertEquals(arktypeUnion.toString(), '"string | number"')
 })
 
 Deno.test('ArktypeUnion - union with three types', () => {
@@ -32,7 +32,7 @@ Deno.test('ArktypeUnion - union with three types', () => {
     destinationPath: '/test'
   })
 
-  assertEquals(arktypeUnion.toString(), 'type("string | number | boolean")')
+  assertEquals(arktypeUnion.toString(), '"string | number | boolean"')
 })
 
 Deno.test('ArktypeUnion - nullable union', () => {
@@ -45,7 +45,7 @@ Deno.test('ArktypeUnion - nullable union', () => {
     destinationPath: '/test'
   })
 
-  assertEquals(arktypeUnion.toString(), 'type("string | number | null")')
+  assertEquals(arktypeUnion.toString(), '"string | number | null"')
 })
 
 Deno.test('ArktypeUnion - optional union', () => {
@@ -58,5 +58,5 @@ Deno.test('ArktypeUnion - optional union', () => {
     destinationPath: '/test'
   })
 
-  assertEquals(arktypeUnion.toString(), 'type("string | number | undefined")')
+  assertEquals(arktypeUnion.toString(), '"string | number | undefined"')
 })

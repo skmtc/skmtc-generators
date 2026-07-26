@@ -45,6 +45,14 @@ jobs:
       working-directory: ${{ matrix.generator }}
       run: deno task test:coverage
 
+    # gen-arktype compiles its own generated output against real arktype, whose
+    # definition parser is type-level — so `deno check` over the emitted files
+    # is what proves they are valid. Opt-in because it needs write/run/net.
+    - name: Typecheck generated output for ${{ matrix.generator }}
+      if: matrix.generator == 'gen-arktype'
+      working-directory: ${{ matrix.generator }}
+      run: deno task test:typecheck
+
     - name: Generate LCOV report for ${{ matrix.generator }}
       working-directory: ${{ matrix.generator }}
       run: deno task coverage:report

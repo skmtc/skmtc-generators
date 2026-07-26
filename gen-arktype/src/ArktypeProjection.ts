@@ -1,6 +1,6 @@
-import { type TypeSystemValue, type GenerateContextType, type RefName, type ContentSettings } from '@skmtc/core'
+import type { GenerateContextType, RefName, ContentSettings } from '@skmtc/core'
 import { createVariable } from '@skmtc/lang-typescript'
-import { toArktypeValue } from './Arktype.ts'
+import { type ArktypeValue, toArktypeValue } from './Arktype.ts'
 import { ArktypeBase } from './base.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
 
@@ -13,8 +13,8 @@ type ConstructorArgs = {
 }
 
 export class ArktypeProjection extends ArktypeBase {
-  value: TypeSystemValue
-  
+  value: ArktypeValue
+
   constructor({ context, refName, settings, destinationPath, rootRef }: ConstructorArgs) {
     super({ context, refName, settings })
 
@@ -27,15 +27,19 @@ export class ArktypeProjection extends ArktypeBase {
       context,
       rootRef
     })
+
+    // The `type(…)` call is what turns a definition into a Type, so it belongs
+    // here, once, at the top — values below compose as plain definitions.
+    this.register({ imports: { arktype: ['type'] } })
   }
 
-  static schemaToValueFn = (...args: Parameters<typeof toArktypeValue>) => {
+  static schemaToValueFn = (...args: Parameters<typeof toArktypeValue>): ArktypeValue => {
     return toArktypeValue(...args)
   }
 
   static createIdentifier = createVariable
 
-  override toString() {
-    return `${this.value}`
+  override toString(): string {
+    return `type(${this.value})`
   }
 }

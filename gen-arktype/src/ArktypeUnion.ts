@@ -1,15 +1,16 @@
-import type { OasRef, OasSchema } from '@skmtc/core'
-import type { TypeSystemValue, GenerateContextType, Modifiers, GeneratorKey, RefName } from '@skmtc/core'
+import type { OasDiscriminator, OasRef, OasSchema } from '@skmtc/core'
+import type { GenerateContextType, Modifiers, GeneratorKey, RefName } from '@skmtc/core'
 import { TsSnippet } from '@skmtc/lang-typescript'
-import { applyModifiers } from './applyModifiers.ts'
-import { toArktypeValue } from './Arktype.ts'
+import { applyModifiers, applyValueModifiers } from './applyModifiers.ts'
+import { toAtomicSyntax } from './toAtomicSyntax.ts'
+import { type ArktypeValue, toArktypeValue } from './Arktype.ts'
 
 type ArktypeUnionArgs = {
   /** Originating schema node — for fine-grained attribution. */
   schema?: OasSchema | OasRef<'schema'>
   context: GenerateContextType
-  members: any[]
-  discriminator?: any
+  members: (OasSchema | OasRef<'schema'>)[]
+  discriminator?: OasDiscriminator
   modifiers: Modifiers
   destinationPath: string
   generatorKey: GeneratorKey
@@ -18,18 +19,28 @@ type ArktypeUnionArgs = {
 
 export class ArktypeUnion extends TsSnippet {
   type = 'union' as const
-  members: TypeSystemValue[]
-  discriminator: any
+  members: ArktypeValue[]
+  discriminator: string | undefined
   modifiers: Modifiers
-  
-  constructor({ context, members, discriminator, modifiers, destinationPath, generatorKey, rootRef, schema }: ArktypeUnionArgs) {
-    super({ context, generatorKey, stackTrail: schema?.stackTrail.clone() })
-    
-    this.discriminator = discriminator
-    this.modifiers = modifiers
-    this.register({ imports: { arktype: ['type'] }, destinationPath })
+  stringSyntax: string | undefined
+  atomicStringSyntax: string | undefined
 
-    this.members = members.map(member => 
+  constructor({
+    context,
+    members,
+    discriminator,
+    modifiers,
+    destinationPath,
+    generatorKey,
+    rootRef,
+    schema
+  }: ArktypeUnionArgs) {
+    super({ context, generatorKey, stackTrail: schema?.stackTrail.clone() })
+
+    this.discriminator = discriminator?.propertyName
+    this.modifiers = modifiers
+
+    this.members = members.map(member =>
       toArktypeValue({
         schema: member,
         required: true,
@@ -38,32 +49,34 @@ export class ArktypeUnion extends TsSnippet {
         rootRef
       })
     )
-  }
 
-  private extractInnerType(str: string): string {
-    if (str.startsWith('type("') && str.endsWith('")')) {
-      // Handle type("...") format
-      return str.slice(6, -2) // Remove type(" and ")
-    } else if (str.startsWith('type(') && str.endsWith(')')) {
-      // Handle type({...}) format (objects)
-      return str.slice(5, -1) // Remove type( and )
-    }
-    // Handle raw string format
-    return str
+    // A union is spellable in string syntax only when every member is.
+    const memberSyntaxes = this.members.flatMap(member => member.stringSyntax ?? [])
+
+    this.stringSyntax =
+      memberSyntaxes.length === this.members.length && memberSyntaxes.length > 0
+        ? applyModifiers(memberSyntaxes.join(' | '), modifiers)
+        : undefined
+
+    this.atomicStringSyntax =
+      this.stringSyntax === undefined ? undefined : toAtomicSyntax(this.stringSyntax)
   }
 
   override toString(): string {
-    const memberTypes = this.members.map(member => {
-      // For objects in unions, use the string literal version (no quoted primitives)
-      if (member.type === 'object' && 'toStringLiteral' in member) {
-        return (member as any).toStringLiteral()
-      } else {
-        const memberStr = member.toString()
-        return this.extractInnerType(memberStr)
-      }
-    })
+    if (this.stringSyntax !== undefined) {
+      return `"${this.stringSyntax}"`
+    }
 
-    const unionType = memberTypes.join(' | ')
-    return applyModifiers(unionType, this.modifiers)
+    // Arktype's union tuple is binary, so members fold left into nested pairs:
+    // `[[a, "|", b], "|", c]`. A flat `[a, "|", b, "|", c]` silently drops
+    // everything past the first pair.
+    const memberValues = this.members.map(member => `${member}`)
+
+    const folded =
+      memberValues.length === 0
+        ? '"never"'
+        : memberValues.reduce((left, right) => `[${left}, "|", ${right}]`)
+
+    return applyValueModifiers(folded, this.modifiers)
   }
 }

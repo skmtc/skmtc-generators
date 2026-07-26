@@ -1,8 +1,17 @@
-import { type TypeSystemValue, type GenerateContextType, type Modifiers, type GeneratorKey, type OasObject, type RefName, type TypeSystemRecord, type TypeSystemObjectProperties, isEmpty } from '@skmtc/core'
-import { TsSnippet, handleKey } from '@skmtc/lang-typescript'
+import {
+  type GenerateContextType,
+  type Modifiers,
+  type GeneratorKey,
+  type OasObject,
+  type RefName,
+  type TypeSystemRecord,
+  type TypeSystemObjectProperties,
+  isEmpty
+} from '@skmtc/core'
+import { TsSnippet } from '@skmtc/lang-typescript'
 import { ArktypeUnknown } from './ArktypeUnknown.ts'
-import { applyModifiers } from './applyModifiers.ts'
-import { toArktypeValue } from './Arktype.ts'
+import { applyValueModifiers } from './applyModifiers.ts'
+import { type ArktypeValue, toArktypeValue } from './Arktype.ts'
 
 type ArktypeObjectArgs = {
   context: GenerateContextType
@@ -18,185 +27,76 @@ export class ArktypeObject extends TsSnippet {
   recordProperties: TypeSystemRecord | null
   objectProperties: TypeSystemObjectProperties | null
   modifiers: Modifiers
-  private properties: Record<string, TypeSystemValue>
-  private additionalProperties: TypeSystemValue | undefined
-  private required: string[]
-  private hasPropertiesAndAdditional: boolean
-  
-  constructor({ context, objectSchema, modifiers, destinationPath, generatorKey, rootRef }: ArktypeObjectArgs) {
+  // An object is never spellable in arktype's string syntax — `type("{ a:
+  // string }")` fails to parse, because that syntax has no object literals.
+  stringSyntax = undefined
+  atomicStringSyntax = undefined
+  properties: Record<string, ArktypeValue>
+  additionalProperties: ArktypeValue | undefined
+  required: string[]
+
+  constructor({
+    context,
+    objectSchema,
+    modifiers,
+    destinationPath,
+    generatorKey,
+    rootRef
+  }: ArktypeObjectArgs) {
     super({ context, generatorKey, stackTrail: objectSchema.stackTrail.clone() })
-    
+
     this.modifiers = modifiers
-    this.required = objectSchema.required || []
-    this.register({ imports: { arktype: ['type'] }, destinationPath })
+    this.required = objectSchema.required ?? []
 
-    // Handle properties
-    this.properties = {}
-    if (objectSchema.properties) {
-      Object.entries(objectSchema.properties).forEach(([key, value]) => {
-        // Always pass required: true for object properties
-        // Optionality is handled at the object key level with the "?" syntax
-        this.properties[key] = toArktypeValue({
-          schema: value,
-          required: true,
-          destinationPath,
-          context,
-          rootRef
-        })
-      })
-    }
+    this.properties = Object.fromEntries(
+      Object.entries(objectSchema.properties ?? {}).map(([key, property]) => [
+        key,
+        // Always `required: true` — a property's optionality is carried by the
+        // `key?` spelling below, not by the value.
+        toArktypeValue({ schema: property, required: true, destinationPath, context, rootRef })
+      ])
+    )
 
-    // Handle additionalProperties
-    this.additionalProperties = undefined
-    if (objectSchema.additionalProperties) {
-      if (objectSchema.additionalProperties === true) {
-        // additionalProperties: true means Record<string, unknown>.
-        // ArktypeUnknown renders the same `type("unknown")` and, unlike an
-        // inline literal, registers the `arktype` import it needs.
-        this.additionalProperties = new ArktypeUnknown({
-          context,
-          generatorKey,
-          destinationPath
-        })
-      } else {
-        this.additionalProperties = toArktypeValue({
-          schema: objectSchema.additionalProperties,
-          required: true,
-          destinationPath,
-          context,
-          rootRef
-        })
-      }
-    }
+    const { additionalProperties } = objectSchema
 
-    this.hasPropertiesAndAdditional = Object.keys(this.properties).length > 0 && !!this.additionalProperties
+    this.additionalProperties = additionalProperties
+      ? additionalProperties === true || isEmpty(additionalProperties)
+        ? // `additionalProperties: true` means an unconstrained value.
+          new ArktypeUnknown({ context, generatorKey, destinationPath })
+        : toArktypeValue({
+            schema: additionalProperties,
+            required: true,
+            destinationPath,
+            context,
+            rootRef
+          })
+      : undefined
 
-    // Set required TypeSystemValue interface properties
+    // Set for the core `TypeSystemObject` contract; this generator composes
+    // through `properties` / `additionalProperties` instead.
     this.recordProperties = null
     this.objectProperties = null
   }
 
-  private extractInnerType(str: string): string {
-    if (str.startsWith('type("') && str.endsWith('")')) {
-      // Handle type("...") format
-      return str.slice(6, -2) // Remove type(" and ")
-    } else if (str.startsWith('type(') && str.endsWith(')')) {
-      // Handle type({...}) format (objects)
-      return str.slice(5, -1) // Remove type( and )
-    }
-    // Handle raw string format
-    return str
-  }
-
-  /** Get object literal for use in string contexts (no quoted primitives) */
-  toStringLiteral(): string {
-    return this.generateObjectString(false)
-  }
-
   override toString(): string {
-    return this.generateObjectString(true)
-  }
+    const entries = Object.entries(this.properties).map(([key, value]) => {
+      const name = this.required.includes(key) ? key : `${key}?`
+      // Quoted unless the whole key is a bare identifier — `age?` and
+      // `user-name` both need quotes.
+      const needsQuotes = /[^a-zA-Z0-9_$]/.test(name) || /^\d/.test(name)
 
-  private generateObjectString(quotePrimitives: boolean): string {
-    // Handle pure additionalProperties case
-    if (Object.keys(this.properties).length === 0 && this.additionalProperties) {
-      const additionalType = this.extractInnerType(this.additionalProperties.toString())
-      const recordType = `Record<string, ${additionalType}>`
-      return quotePrimitives ? applyModifiers(recordType, this.modifiers) : recordType
+      return `${needsQuotes ? `"${name}"` : name}: ${value}`
+    })
+
+    if (this.additionalProperties) {
+      // An index signature, which composes inside the same literal — unlike
+      // `Record<…>`, which only exists in string syntax and so cannot hold an
+      // object or a ref.
+      entries.push(`"[string]": ${this.additionalProperties}`)
     }
 
-    // Handle empty object
-    if (Object.keys(this.properties).length === 0) {
-      // For empty objects, return type({}) or {}
-      if (quotePrimitives && this.modifiers.required && !this.modifiers.nullable) {
-        return 'type({})'
-      }
-      return quotePrimitives ? applyModifiers('{}', this.modifiers) : '{}'
-    }
+    const literal = entries.length ? `{ ${entries.join(', ')} }` : '{}'
 
-    // Handle object with properties
-    const props = Object.entries(this.properties).map(([key, value]) => {
-      const isRequired = this.required.includes(key)
-      const keyStr = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(key) ? key : `"${key}"`
-      const finalKey = isRequired ? keyStr : `"${key}?"`
-      const valueStr = this.extractInnerType(value.toString())
-      
-      // Quote primitive types based on context, but not object literals
-      // Special case: if the value is an array of objects, don't quote it
-      const isObjectLiteral = valueStr.startsWith('{') && valueStr.endsWith('}')
-      const isArrayOfObjects = valueStr.includes('}[]')
-      const formattedValue = (quotePrimitives && !isObjectLiteral && !isArrayOfObjects) ? `"${valueStr}"` : valueStr
-      
-      return `${finalKey}: ${formattedValue}`
-    }).join(', ')
-
-    const objectType = `{ ${props} }`
-
-    // Handle object with properties AND additionalProperties
-    if (this.hasPropertiesAndAdditional) {
-      const additionalType = this.extractInnerType(this.additionalProperties!.toString())
-      const combinedType = `${objectType} & Record<string, ${additionalType}>`
-      
-      if (quotePrimitives) {
-        // Get object properties without additionalProperties to avoid recursion
-        const props = Object.entries(this.properties).map(([key, value]) => {
-          const isRequired = this.required.includes(key)
-          const keyStr = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(key) ? key : `"${key}"`
-          const finalKey = isRequired ? keyStr : `"${key}?"`
-          const valueStr = this.extractInnerType(value.toString())
-          
-          // Don't quote primitives in string literal format
-          return `${finalKey}: ${valueStr}`
-        }).join(', ')
-
-        const stringLiteralObject = `{ ${props} }`
-        const stringLiteralCombined = `${stringLiteralObject} & Record<string, ${additionalType}>`
-        const parts = [stringLiteralCombined]
-
-        if (this.modifiers.nullable) {
-          parts.push('null')
-        }
-
-        if (!this.modifiers.required) {
-          parts.push('undefined')
-        }
-
-        if (parts.length === 1) {
-          return `type("${stringLiteralCombined}")`
-        }
-
-        return `type("${parts.join(' | ')}")`
-      }
-      
-      return combinedType
-    }
-
-    // For basic objects
-    if (quotePrimitives && this.modifiers.required && !this.modifiers.nullable) {
-      return `type(${objectType})`
-    }
-
-    // For objects with modifiers, we need to handle the string literal case
-    if (quotePrimitives) {
-      // Use string literal format in modifier contexts (unions, nullable)
-      const stringLiteralObject = this.generateObjectString(false)
-      const parts = [stringLiteralObject]
-
-      if (this.modifiers.nullable) {
-        parts.push('null')
-      }
-
-      if (!this.modifiers.required) {
-        parts.push('undefined')
-      }
-
-      if (parts.length === 1) {
-        return `type("${stringLiteralObject}")`
-      }
-
-      return `type("${parts.join(' | ')}")`
-    }
-
-    return objectType
+    return applyValueModifiers(literal, this.modifiers)
   }
 }

@@ -12,13 +12,14 @@ type ArktypeUnknownArgs = {
 
 export class ArktypeUnknown extends TsSnippet {
   type = 'unknown' as const
-  
-  constructor({ context, generatorKey, destinationPath, schema }: ArktypeUnknownArgs) {
+  stringSyntax = 'unknown'
+  atomicStringSyntax = 'unknown'
+
+  constructor({ context, generatorKey, schema }: ArktypeUnknownArgs) {
     super({ context, generatorKey, stackTrail: schema?.stackTrail.clone() })
-    this.register({ imports: { arktype: ['type'] }, destinationPath })
   }
 
   override toString(): string {
-    return 'type("unknown")'
+    return `"${this.stringSyntax}"`
   }
 }

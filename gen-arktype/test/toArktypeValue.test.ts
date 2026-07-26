@@ -1,6 +1,6 @@
 import { assertEquals } from 'jsr:@std/assert@^1.0.0'
 import { toSchemaV3, StackTrail } from '@skmtc/core'
-import { toArktypeValue } from '../src/Arktype.ts'
+import { toArktypeValue } from '@skmtc/gen-arktype'
 import type { OpenAPIV3 } from 'openapi-types'
 import { toParseContext } from './helpers/toParseContext.ts'
 import { toGenerateContext } from './helpers/toGenerateContext.ts'
@@ -29,22 +29,22 @@ function schemaToArktype(
 
 Deno.test('toArktypeValue - string type', () => {
   const schema: OpenAPIV3.SchemaObject = { type: 'string' }
-  assertEquals(schemaToArktype(schema), 'type("string")')
+  assertEquals(schemaToArktype(schema), '"string"')
 })
 
 Deno.test('toArktypeValue - number type', () => {
   const schema: OpenAPIV3.SchemaObject = { type: 'number' }
-  assertEquals(schemaToArktype(schema), 'type("number")')
+  assertEquals(schemaToArktype(schema), '"number"')
 })
 
 Deno.test('toArktypeValue - integer type', () => {
   const schema: OpenAPIV3.SchemaObject = { type: 'integer' }
-  assertEquals(schemaToArktype(schema), 'type("number")')
+  assertEquals(schemaToArktype(schema), '"number"')
 })
 
 Deno.test('toArktypeValue - boolean type', () => {
   const schema: OpenAPIV3.SchemaObject = { type: 'boolean' }
-  assertEquals(schemaToArktype(schema), 'type("boolean")')
+  assertEquals(schemaToArktype(schema), '"boolean"')
 })
 
 // ============================================================================
@@ -56,7 +56,7 @@ Deno.test('toArktypeValue - string with single enum value', () => {
     type: 'string',
     enum: ['active']
   }
-  assertEquals(schemaToArktype(schema), 'type("\'active\'")')
+  assertEquals(schemaToArktype(schema), '"\'active\'"')
 })
 
 Deno.test('toArktypeValue - string with multiple enum values', () => {
@@ -64,7 +64,7 @@ Deno.test('toArktypeValue - string with multiple enum values', () => {
     type: 'string',
     enum: ['active', 'inactive', 'pending']
   }
-  assertEquals(schemaToArktype(schema), "type(\"'active' | 'inactive' | 'pending'\")")
+  assertEquals(schemaToArktype(schema), "\"'active' | 'inactive' | 'pending'\"")
 })
 
 // ============================================================================
@@ -76,7 +76,7 @@ Deno.test('toArktypeValue - array of strings', () => {
     type: 'array',
     items: { type: 'string' }
   }
-  assertEquals(schemaToArktype(schema), 'type("string[]")')
+  assertEquals(schemaToArktype(schema), '"string[]"')
 })
 
 Deno.test('toArktypeValue - array of numbers', () => {
@@ -84,7 +84,7 @@ Deno.test('toArktypeValue - array of numbers', () => {
     type: 'array',
     items: { type: 'number' }
   }
-  assertEquals(schemaToArktype(schema), 'type("number[]")')
+  assertEquals(schemaToArktype(schema), '"number[]"')
 })
 
 Deno.test('toArktypeValue - nested arrays', () => {
@@ -95,7 +95,7 @@ Deno.test('toArktypeValue - nested arrays', () => {
       items: { type: 'string' }
     }
   }
-  assertEquals(schemaToArktype(schema), 'type("string[][]")')
+  assertEquals(schemaToArktype(schema), '"string[][]"')
 })
 
 Deno.test('toArktypeValue - array of objects', () => {
@@ -109,7 +109,7 @@ Deno.test('toArktypeValue - array of objects', () => {
       required: ['name']
     }
   }
-  assertEquals(schemaToArktype(schema), 'type("{ name: string }[]")')
+  assertEquals(schemaToArktype(schema), '[{ name: "string" }, "[]"]')
 })
 
 // ============================================================================
@@ -125,7 +125,7 @@ Deno.test('toArktypeValue - simple object', () => {
     },
     required: ['name', 'age']
   }
-  assertEquals(schemaToArktype(schema), 'type({ name: "string", age: "number" })')
+  assertEquals(schemaToArktype(schema), '{ name: "string", age: "number" }')
 })
 
 Deno.test('toArktypeValue - object with optional properties', () => {
@@ -137,14 +137,14 @@ Deno.test('toArktypeValue - object with optional properties', () => {
     },
     required: ['name']
   }
-  assertEquals(schemaToArktype(schema), 'type({ name: "string", "age?": "number" })')
+  assertEquals(schemaToArktype(schema), '{ name: "string", "age?": "number" }')
 })
 
 Deno.test('toArktypeValue - empty object', () => {
   const schema: OpenAPIV3.SchemaObject = {
     type: 'object'
   }
-  assertEquals(schemaToArktype(schema), 'type({})')
+  assertEquals(schemaToArktype(schema), '{}')
 })
 
 Deno.test('toArktypeValue - object with additionalProperties', () => {
@@ -152,7 +152,7 @@ Deno.test('toArktypeValue - object with additionalProperties', () => {
     type: 'object',
     additionalProperties: { type: 'string' }
   }
-  assertEquals(schemaToArktype(schema), 'type("Record<string, string>")')
+  assertEquals(schemaToArktype(schema), '{ "[string]": "string" }')
 })
 
 Deno.test('toArktypeValue - object with properties and additionalProperties', () => {
@@ -164,7 +164,7 @@ Deno.test('toArktypeValue - object with properties and additionalProperties', ()
     required: ['name'],
     additionalProperties: { type: 'number' }
   }
-  assertEquals(schemaToArktype(schema), 'type("{ name: string } & Record<string, number>")')
+  assertEquals(schemaToArktype(schema), '{ name: "string", "[string]": "number" }')
 })
 
 Deno.test('toArktypeValue - nested object', () => {
@@ -181,7 +181,7 @@ Deno.test('toArktypeValue - nested object', () => {
     },
     required: ['user']
   }
-  assertEquals(schemaToArktype(schema), 'type({ user: { name: "string" } })')
+  assertEquals(schemaToArktype(schema), '{ user: { name: "string" } }')
 })
 
 Deno.test('toArktypeValue - object with special characters in keys', () => {
@@ -193,7 +193,7 @@ Deno.test('toArktypeValue - object with special characters in keys', () => {
     },
     required: ['user-name', 'user.email']
   }
-  assertEquals(schemaToArktype(schema), 'type({ "user-name": "string", "user.email": "string" })')
+  assertEquals(schemaToArktype(schema), '{ "user-name": "string", "user.email": "string" }')
 })
 
 // ============================================================================
@@ -204,14 +204,14 @@ Deno.test('toArktypeValue - simple union (oneOf)', () => {
   const schema: OpenAPIV3.SchemaObject = {
     oneOf: [{ type: 'string' }, { type: 'number' }]
   }
-  assertEquals(schemaToArktype(schema), 'type("string | number")')
+  assertEquals(schemaToArktype(schema), '"string | number"')
 })
 
 Deno.test('toArktypeValue - simple union (anyOf)', () => {
   const schema: OpenAPIV3.SchemaObject = {
     anyOf: [{ type: 'string' }, { type: 'number' }]
   }
-  assertEquals(schemaToArktype(schema), 'type("string | number")')
+  assertEquals(schemaToArktype(schema), '"string | number"')
 })
 
 Deno.test('toArktypeValue - union with objects', () => {
@@ -229,7 +229,7 @@ Deno.test('toArktypeValue - union with objects', () => {
       }
     ]
   }
-  assertEquals(schemaToArktype(schema), 'type("{ name: string } | { count: number }")')
+  assertEquals(schemaToArktype(schema), '[{ name: "string" }, "|", { count: "number" }]')
 })
 
 // ============================================================================
@@ -238,7 +238,7 @@ Deno.test('toArktypeValue - union with objects', () => {
 
 Deno.test('toArktypeValue - nullable string', () => {
   const schema: OpenAPIV3.SchemaObject = { type: 'string', nullable: true }
-  assertEquals(schemaToArktype(schema), 'type("string | null")')
+  assertEquals(schemaToArktype(schema), '"string | null"')
 })
 
 Deno.test('toArktypeValue - nullable object', () => {
@@ -248,17 +248,17 @@ Deno.test('toArktypeValue - nullable object', () => {
     required: ['name'],
     nullable: true
   }
-  assertEquals(schemaToArktype(schema), 'type("{ name: string } | null")')
+  assertEquals(schemaToArktype(schema), '[{ name: "string" }, "|", "null"]')
 })
 
 Deno.test('toArktypeValue - optional property (via required flag)', () => {
   const schema: OpenAPIV3.SchemaObject = { type: 'string' }
-  assertEquals(schemaToArktype(schema, false), 'type("string | undefined")')
+  assertEquals(schemaToArktype(schema, false), '"string | undefined"')
 })
 
 Deno.test('toArktypeValue - optional and nullable', () => {
   const schema: OpenAPIV3.SchemaObject = { type: 'string', nullable: true }
-  assertEquals(schemaToArktype(schema, false), 'type("string | null | undefined")')
+  assertEquals(schemaToArktype(schema, false), '"string | null | undefined"')
 })
 
 Deno.test('toArktypeValue - nullable array', () => {
@@ -267,7 +267,7 @@ Deno.test('toArktypeValue - nullable array', () => {
     items: { type: 'string' },
     nullable: true
   }
-  assertEquals(schemaToArktype(schema), 'type("string[] | null")')
+  assertEquals(schemaToArktype(schema), '"string[] | null"')
 })
 
 // ============================================================================
@@ -334,7 +334,7 @@ Deno.test('toArktypeValue - deeply nested structure', () => {
     },
     required: ['data']
   }
-  assertEquals(schemaToArktype(schema), 'type({ data: { user: { profiles: "string[]" } }[] })')
+  assertEquals(schemaToArktype(schema), '{ data: [{ user: { profiles: "string[]" } }, "[]"] }')
 })
 
 Deno.test('toArktypeValue - additionalProperties with boolean true', () => {
@@ -342,7 +342,7 @@ Deno.test('toArktypeValue - additionalProperties with boolean true', () => {
     type: 'object',
     additionalProperties: true
   }
-  assertEquals(schemaToArktype(schema), 'type("Record<string, unknown>")')
+  assertEquals(schemaToArktype(schema), '{ "[string]": "unknown" }')
 })
 
 Deno.test('toArktypeValue - additionalProperties with empty object', () => {
@@ -350,7 +350,7 @@ Deno.test('toArktypeValue - additionalProperties with empty object', () => {
     type: 'object',
     additionalProperties: {}
   }
-  assertEquals(schemaToArktype(schema), 'type("Record<string, unknown>")')
+  assertEquals(schemaToArktype(schema), '{ "[string]": "unknown" }')
 })
 
 Deno.test('toArktypeValue - integer with format', () => {
@@ -358,7 +358,7 @@ Deno.test('toArktypeValue - integer with format', () => {
     type: 'integer',
     format: 'int64'
   }
-  assertEquals(schemaToArktype(schema), 'type("number")')
+  assertEquals(schemaToArktype(schema), '"number"')
 })
 
 Deno.test('toArktypeValue - string with format', () => {
@@ -366,7 +366,7 @@ Deno.test('toArktypeValue - string with format', () => {
     type: 'string',
     format: 'date-time'
   }
-  assertEquals(schemaToArktype(schema), 'type("string")')
+  assertEquals(schemaToArktype(schema), '"string"')
 })
 
 Deno.test('toArktypeValue - array with nullable items', () => {
@@ -377,7 +377,7 @@ Deno.test('toArktypeValue - array with nullable items', () => {
       nullable: true
     }
   }
-  assertEquals(schemaToArktype(schema), 'type("(string | null)[]")')
+  assertEquals(schemaToArktype(schema), '"(string | null)[]"')
 })
 
 Deno.test('toArktypeValue - object with all optional properties', () => {
@@ -389,12 +389,12 @@ Deno.test('toArktypeValue - object with all optional properties', () => {
     }
     // No required array means all properties are optional
   }
-  assertEquals(schemaToArktype(schema), 'type({ "name?": "string", "age?": "number" })')
+  assertEquals(schemaToArktype(schema), '{ "name?": "string", "age?": "number" }')
 })
 
 Deno.test('toArktypeValue - union with nullable member', () => {
   const schema: OpenAPIV3.SchemaObject = {
     oneOf: [{ type: 'string', nullable: true }, { type: 'number' }]
   }
-  assertEquals(schemaToArktype(schema), 'type("string | null | number")')
+  assertEquals(schemaToArktype(schema), '"string | null | number"')
 })

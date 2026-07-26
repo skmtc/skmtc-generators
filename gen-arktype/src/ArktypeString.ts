@@ -1,6 +1,7 @@
 import { TsSnippet } from '@skmtc/lang-typescript'
 import { match, P } from 'ts-pattern'
 import { applyModifiers } from './applyModifiers.ts'
+import { toAtomicSyntax } from './toAtomicSyntax.ts'
 import type { Modifiers, GeneratorKey, GenerateContextType, OasString } from '@skmtc/core'
 
 type ArktypeStringArgs = {
@@ -13,31 +14,38 @@ type ArktypeStringArgs = {
 
 export class ArktypeString extends TsSnippet {
   type = 'string' as const
+  stringSyntax: string
+  atomicStringSyntax: string
+  modifiers: Modifiers
+  /** Carried for the core `TypeSystemString` contract. */
   format: string | undefined
   enums: string[] | (string | null)[] | undefined
-  modifiers: Modifiers
-  
-  constructor({ context, stringSchema, generatorKey, destinationPath, modifiers }: ArktypeStringArgs) {
+
+  constructor({ context, stringSchema, generatorKey, modifiers }: ArktypeStringArgs) {
     super({ context, generatorKey, stackTrail: stringSchema.stackTrail.clone() })
 
-    this.enums = stringSchema.enums
-    this.format = stringSchema.format
     this.modifiers = modifiers
+    this.format = stringSchema.format
+    this.enums = stringSchema.enums
 
-    this.register({ imports: { arktype: ['type'] }, destinationPath })
+    const content = match({ enums: stringSchema.enums })
+      .with({ enums: P.array() }, matched => matched.enums.map(toEnumMember).join(' | '))
+      .otherwise(() => 'string')
+
+    this.stringSyntax = applyModifiers(content, modifiers)
+    this.atomicStringSyntax = toAtomicSyntax(this.stringSyntax)
   }
 
   override toString(): string {
-    const { enums } = this
-
-    const content = match({ enums })
-      .with({ enums: P.array() }, matched => {
-        return matched.enums.length === 1
-          ? `'${matched.enums[0]}'`
-          : matched.enums.map(str => `'${str}'`).join(' | ')
-      })
-      .otherwise(() => 'string')
-
-    return applyModifiers(content, this.modifiers)
+    return `"${this.stringSyntax}"`
   }
 }
+
+/**
+ * Renders one enum member as arktype string syntax. A `null` member is the
+ * `null` keyword, not the four-character string `'null'`, and a value carrying
+ * a quote or a backslash has to escape it — either would otherwise end the
+ * literal early and produce a definition arktype cannot parse.
+ */
+const toEnumMember = (value: string | null): string =>
+  value === null ? 'null' : `'${value.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`
