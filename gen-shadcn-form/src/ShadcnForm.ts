@@ -185,7 +185,7 @@ export const subtractPathFromSchema = ({
 
   invariant(resolved.type === 'object', 'Schema must be an object')
 
-  const pathItemSchema = resolved.properties?.[path as keyof typeof resolved.properties]
+  const pathItemSchema = resolved.properties?.[path]
 
   invariant(pathItemSchema?.type !== 'custom', 'Path item schema must not be custom')
 

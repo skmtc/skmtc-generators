@@ -7,6 +7,30 @@ import { DaisyFormBase } from './base.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
 import { FormFields } from './FormFields.ts'
 
+type DaisyFormExtension = {
+  submitColor?: string
+  showCard?: boolean
+}
+
+/**
+ * Reads the `x-daisy-form` operation extension, which bypasses core's
+ * `formItem` enrichment schema (that would strip unknown keys) and so arrives
+ * unvalidated. Every field is checked at runtime rather than asserted.
+ */
+const toDaisyFormExtension = (value: unknown): DaisyFormExtension => {
+  if (typeof value !== 'object' || value === null) {
+    return {}
+  }
+
+  const submitColor = 'submitColor' in value ? value.submitColor : undefined
+  const showCard = 'showCard' in value ? value.showCard : undefined
+
+  return {
+    submitColor: typeof submitColor === 'string' ? submitColor : undefined,
+    showCard: typeof showCard === 'boolean' ? showCard : undefined
+  }
+}
+
 export class DaisyForm extends DaisyFormBase {
   fields: FormFields
   tsBodyName: string
@@ -48,14 +72,8 @@ export class DaisyForm extends DaisyFormBase {
     this.submitLabel = enrichment?.submitLabel ?? 'Submit'
 
     // DaisyUI-specific overrides come from the `x-daisy-form` operation
-    // extension, which bypasses core's formItem schema (it would strip
-    // unknown keys). Shape: { submitColor?: DaisyColor, showCard?: boolean,
-    // size?: 'xs'|'sm'|'md'|'lg' }
-    const ext = (operation.extensionFields?.['x-daisy-form'] ?? {}) as {
-      submitColor?: string
-      showCard?: boolean
-      size?: 'xs' | 'sm' | 'md' | 'lg'
-    }
+    // extension. Shape: { submitColor?: DaisyColor, showCard?: boolean }
+    const ext = toDaisyFormExtension(operation.extensionFields?.['x-daisy-form'])
     this.submitColor = ext.submitColor ?? 'primary'
     this.showCard = ext.showCard ?? true
 
