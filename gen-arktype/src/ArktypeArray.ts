@@ -1,15 +1,16 @@
 import type { OasRef, OasSchema } from '@skmtc/core'
-import type { TypeSystemValue, GenerateContextType, Modifiers, GeneratorKey, RefName } from '@skmtc/core'
+import type { GenerateContextType, Modifiers, GeneratorKey, RefName } from '@skmtc/core'
 import { TsSnippet } from '@skmtc/lang-typescript'
-import { applyModifiers } from './applyModifiers.ts'
-import { toArktypeValue } from './Arktype.ts'
+import { applyModifiers, applyValueModifiers } from './applyModifiers.ts'
+import { toAtomicSyntax } from './toAtomicSyntax.ts'
+import { type ArktypeValue, toArktypeValue } from './Arktype.ts'
 
 type ArktypeArrayArgs = {
   /** Originating schema node — for fine-grained attribution. */
   schema?: OasSchema | OasRef<'schema'>
   context: GenerateContextType
   modifiers: Modifiers
-  items: any
+  items: OasSchema | OasRef<'schema'>
   destinationPath: string
   generatorKey: GeneratorKey
   rootRef?: RefName
@@ -17,14 +18,23 @@ type ArktypeArrayArgs = {
 
 export class ArktypeArray extends TsSnippet {
   type = 'array' as const
-  items: TypeSystemValue
+  items: ArktypeValue
   modifiers: Modifiers
-  
-  constructor({ context, items, modifiers, destinationPath, generatorKey, rootRef, schema }: ArktypeArrayArgs) {
+  stringSyntax: string | undefined
+  atomicStringSyntax: string | undefined
+
+  constructor({
+    context,
+    items,
+    modifiers,
+    destinationPath,
+    generatorKey,
+    rootRef,
+    schema
+  }: ArktypeArrayArgs) {
     super({ context, generatorKey, stackTrail: schema?.stackTrail.clone() })
-    
+
     this.modifiers = modifiers
-    this.register({ imports: { arktype: ['type'] }, destinationPath })
 
     this.items = toArktypeValue({
       schema: items,
@@ -33,34 +43,21 @@ export class ArktypeArray extends TsSnippet {
       context,
       rootRef
     })
+
+    // An array is spellable in string syntax only when its item type is — an
+    // object or a ref item forces the tuple form.
+    const itemSyntax = this.items.atomicStringSyntax
+
+    this.stringSyntax =
+      itemSyntax === undefined ? undefined : applyModifiers(`${itemSyntax}[]`, modifiers)
+
+    this.atomicStringSyntax =
+      this.stringSyntax === undefined ? undefined : toAtomicSyntax(this.stringSyntax)
   }
 
   override toString(): string {
-    // For objects in arrays, use the string literal version (no quoted primitives)
-    let innerType: string
-    if (this.items.type === 'object' && 'toStringLiteral' in this.items) {
-      innerType = (this.items as any).toStringLiteral()
-    } else {
-      const itemsStr = this.items.toString()
-      
-      // Extract the inner type from type("...") or type({...}) if present
-      if (itemsStr.startsWith('type("') && itemsStr.endsWith('")')) {
-        // Handle type("...") format
-        innerType = itemsStr.slice(6, -2) // Remove type(" and ")
-      } else if (itemsStr.startsWith('type(') && itemsStr.endsWith(')')) {
-        // Handle type({...}) format (objects)
-        innerType = itemsStr.slice(5, -1) // Remove type( and )
-      } else {
-        // Handle raw string format
-        innerType = itemsStr
-      }
-    }
-
-    // For complex union types in arrays, wrap in parentheses
-    const needsParentheses = innerType.includes(' | ') && !innerType.startsWith('(')
-    const finalInnerType = needsParentheses ? `(${innerType})` : innerType
-    const arrayType = `${finalInnerType}[]`
-    
-    return applyModifiers(arrayType, this.modifiers)
+    return this.stringSyntax === undefined
+      ? applyValueModifiers(`[${this.items}, "[]"]`, this.modifiers)
+      : `"${this.stringSyntax}"`
   }
 }

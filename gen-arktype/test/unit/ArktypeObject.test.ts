@@ -1,9 +1,9 @@
 import { assertEquals } from 'jsr:@std/assert@^1.0.0'
-import { ArktypeObject } from '../../src/ArktypeObject.ts'
+import { ArktypeObject } from '@skmtc/gen-arktype'
 import { OasObject, OasString, OasNumber } from '@skmtc/core'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
 import { toGeneratorOnlyKey } from '@skmtc/core'
-import { arktypeEntry } from '../../src/mod.ts'
+import arktypeEntry from '@skmtc/gen-arktype'
 
 Deno.test('ArktypeObject - simple object with required properties', () => {
   const arktypeObject = new ArktypeObject({
@@ -21,7 +21,7 @@ Deno.test('ArktypeObject - simple object with required properties', () => {
     destinationPath: '/test'
   })
 
-  assertEquals(arktypeObject.toString(), 'type({ name: "string", age: "number" })')
+  assertEquals(arktypeObject.toString(), '{ name: "string", age: "number" }')
 })
 
 Deno.test('ArktypeObject - object with optional properties', () => {
@@ -40,7 +40,7 @@ Deno.test('ArktypeObject - object with optional properties', () => {
     destinationPath: '/test'
   })
 
-  assertEquals(arktypeObject.toString(), 'type({ name: "string", "age?": "number" })')
+  assertEquals(arktypeObject.toString(), '{ name: "string", "age?": "number" }')
 })
 
 Deno.test('ArktypeObject - empty object', () => {
@@ -56,7 +56,7 @@ Deno.test('ArktypeObject - empty object', () => {
     destinationPath: '/test'
   })
 
-  assertEquals(arktypeObject.toString(), 'type({})')
+  assertEquals(arktypeObject.toString(), '{}')
 })
 
 Deno.test('ArktypeObject - object with additionalProperties', () => {
@@ -72,7 +72,7 @@ Deno.test('ArktypeObject - object with additionalProperties', () => {
     destinationPath: '/test'
   })
 
-  assertEquals(arktypeObject.toString(), 'type("Record<string, string>")')
+  assertEquals(arktypeObject.toString(), '{ "[string]": "string" }')
 })
 
 Deno.test('ArktypeObject - object with properties and additionalProperties', () => {
@@ -90,7 +90,7 @@ Deno.test('ArktypeObject - object with properties and additionalProperties', () 
     destinationPath: '/test'
   })
 
-  assertEquals(arktypeObject.toString(), 'type("{ name: string } & Record<string, number>")')
+  assertEquals(arktypeObject.toString(), '{ name: "string", "[string]": "number" }')
 })
 
 Deno.test('ArktypeObject - nullable object', () => {
@@ -108,7 +108,7 @@ Deno.test('ArktypeObject - nullable object', () => {
     destinationPath: '/test'
   })
 
-  assertEquals(arktypeObject.toString(), 'type("{ name: string } | null")')
+  assertEquals(arktypeObject.toString(), '[{ name: "string" }, "|", "null"]')
 })
 
 Deno.test('ArktypeObject - optional object', () => {
@@ -126,5 +126,5 @@ Deno.test('ArktypeObject - optional object', () => {
     destinationPath: '/test'
   })
 
-  assertEquals(arktypeObject.toString(), 'type("{ name: string } | undefined")')
+  assertEquals(arktypeObject.toString(), '[{ name: "string" }, "|", "undefined"]')
 })

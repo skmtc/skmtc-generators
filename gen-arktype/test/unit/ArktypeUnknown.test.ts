@@ -1,8 +1,8 @@
 import { assertEquals } from 'jsr:@std/assert@^1.0.0'
-import { ArktypeUnknown } from '../../src/ArktypeUnknown.ts'
+import { ArktypeUnknown } from '@skmtc/gen-arktype'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
 import { toGeneratorOnlyKey } from '@skmtc/core'
-import { arktypeEntry } from '../../src/mod.ts'
+import arktypeEntry from '@skmtc/gen-arktype'
 
 Deno.test('ArktypeUnknown - basic unknown type', () => {
   const arktypeUnknown = new ArktypeUnknown({
@@ -11,5 +11,5 @@ Deno.test('ArktypeUnknown - basic unknown type', () => {
     destinationPath: '/test'
   })
 
-  assertEquals(arktypeUnknown.toString(), 'type("unknown")')
+  assertEquals(arktypeUnknown.toString(), '"unknown"')
 })

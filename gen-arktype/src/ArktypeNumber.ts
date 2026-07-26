@@ -1,6 +1,7 @@
 import type { OasRef, OasSchema } from '@skmtc/core'
 import { TsSnippet } from '@skmtc/lang-typescript'
 import { applyModifiers } from './applyModifiers.ts'
+import { toAtomicSyntax } from './toAtomicSyntax.ts'
 import type { Modifiers, GeneratorKey, GenerateContextType } from '@skmtc/core'
 
 type ArktypeNumberArgs = {
@@ -14,16 +15,19 @@ type ArktypeNumberArgs = {
 
 export class ArktypeNumber extends TsSnippet {
   type = 'number' as const
+  stringSyntax: string
+  atomicStringSyntax: string
   modifiers: Modifiers
-  
-  constructor({ context, generatorKey, destinationPath, modifiers, schema }: ArktypeNumberArgs) {
+
+  constructor({ context, generatorKey, modifiers, schema }: ArktypeNumberArgs) {
     super({ context, generatorKey, stackTrail: schema?.stackTrail.clone() })
-    
+
     this.modifiers = modifiers
-    this.register({ imports: { arktype: ['type'] }, destinationPath })
+    this.stringSyntax = applyModifiers('number', modifiers)
+    this.atomicStringSyntax = toAtomicSyntax(this.stringSyntax)
   }
 
   override toString(): string {
-    return applyModifiers('number', this.modifiers)
+    return `"${this.stringSyntax}"`
   }
 }

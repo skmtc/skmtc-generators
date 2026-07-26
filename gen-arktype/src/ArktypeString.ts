@@ -1,6 +1,7 @@
 import { TsSnippet } from '@skmtc/lang-typescript'
 import { match, P } from 'ts-pattern'
 import { applyModifiers } from './applyModifiers.ts'
+import { toAtomicSyntax } from './toAtomicSyntax.ts'
 import type { Modifiers, GeneratorKey, GenerateContextType, OasString } from '@skmtc/core'
 
 type ArktypeStringArgs = {
@@ -13,31 +14,29 @@ type ArktypeStringArgs = {
 
 export class ArktypeString extends TsSnippet {
   type = 'string' as const
+  stringSyntax: string
+  atomicStringSyntax: string
+  modifiers: Modifiers
+  /** Carried for the core `TypeSystemString` contract. */
   format: string | undefined
   enums: string[] | (string | null)[] | undefined
-  modifiers: Modifiers
-  
-  constructor({ context, stringSchema, generatorKey, destinationPath, modifiers }: ArktypeStringArgs) {
+
+  constructor({ context, stringSchema, generatorKey, modifiers }: ArktypeStringArgs) {
     super({ context, generatorKey, stackTrail: stringSchema.stackTrail.clone() })
 
-    this.enums = stringSchema.enums
-    this.format = stringSchema.format
     this.modifiers = modifiers
+    this.format = stringSchema.format
+    this.enums = stringSchema.enums
 
-    this.register({ imports: { arktype: ['type'] }, destinationPath })
+    const content = match({ enums: stringSchema.enums })
+      .with({ enums: P.array() }, matched => matched.enums.map(value => `'${value}'`).join(' | '))
+      .otherwise(() => 'string')
+
+    this.stringSyntax = applyModifiers(content, modifiers)
+    this.atomicStringSyntax = toAtomicSyntax(this.stringSyntax)
   }
 
   override toString(): string {
-    const { enums } = this
-
-    const content = match({ enums })
-      .with({ enums: P.array() }, matched => {
-        return matched.enums.length === 1
-          ? `'${matched.enums[0]}'`
-          : matched.enums.map(str => `'${str}'`).join(' | ')
-      })
-      .otherwise(() => 'string')
-
-    return applyModifiers(content, this.modifiers)
+    return `"${this.stringSyntax}"`
   }
 }

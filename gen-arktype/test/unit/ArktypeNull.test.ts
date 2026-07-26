@@ -1,8 +1,8 @@
 import { assertEquals } from 'jsr:@std/assert@^1.0.0'
-import { ArktypeNull } from '../../src/ArktypeNull.ts'
+import { ArktypeNull } from '@skmtc/gen-arktype'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
 import { toGeneratorOnlyKey } from '@skmtc/core'
-import { arktypeEntry } from '../../src/mod.ts'
+import arktypeEntry from '@skmtc/gen-arktype'
 
 Deno.test('ArktypeNull - basic null type', () => {
   const arktypeNull = new ArktypeNull({
@@ -11,5 +11,5 @@ Deno.test('ArktypeNull - basic null type', () => {
     destinationPath: '/test'
   })
 
-  assertEquals(arktypeNull.toString(), 'type("null")')
+  assertEquals(arktypeNull.toString(), '"null"')
 })

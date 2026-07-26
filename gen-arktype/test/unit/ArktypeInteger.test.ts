@@ -1,9 +1,9 @@
 import { assertEquals } from 'jsr:@std/assert@^1.0.0'
-import { ArktypeInteger } from '../../src/ArktypeInteger.ts'
+import { ArktypeInteger } from '@skmtc/gen-arktype'
 import { OasInteger } from '@skmtc/core'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
 import { toGeneratorOnlyKey } from '@skmtc/core'
-import { arktypeEntry } from '../../src/mod.ts'
+import arktypeEntry from '@skmtc/gen-arktype'
 
 Deno.test('ArktypeInteger - basic integer type', () => {
   const arktypeInteger = new ArktypeInteger({
@@ -14,7 +14,7 @@ Deno.test('ArktypeInteger - basic integer type', () => {
     destinationPath: '/test'
   })
 
-  assertEquals(arktypeInteger.toString(), 'type("number")')
+  assertEquals(arktypeInteger.toString(), '"number"')
 })
 
 Deno.test('ArktypeInteger - with format', () => {
@@ -26,7 +26,7 @@ Deno.test('ArktypeInteger - with format', () => {
     destinationPath: '/test'
   })
 
-  assertEquals(arktypeInteger.toString(), 'type("number")')
+  assertEquals(arktypeInteger.toString(), '"number"')
 })
 
 Deno.test('ArktypeInteger - nullable integer', () => {
@@ -38,7 +38,7 @@ Deno.test('ArktypeInteger - nullable integer', () => {
     destinationPath: '/test'
   })
 
-  assertEquals(arktypeInteger.toString(), 'type("number | null")')
+  assertEquals(arktypeInteger.toString(), '"number | null"')
 })
 
 Deno.test('ArktypeInteger - optional integer', () => {
@@ -50,5 +50,5 @@ Deno.test('ArktypeInteger - optional integer', () => {
     destinationPath: '/test'
   })
 
-  assertEquals(arktypeInteger.toString(), 'type("number | undefined")')
+  assertEquals(arktypeInteger.toString(), '"number | undefined"')
 })
