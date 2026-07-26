@@ -1,9 +1,11 @@
-import { toSchemaV3 } from '@skmtc/core'
-import { toZodValue } from '../gen-zod/src/Zod.ts'
+import { StackTrail, toSchemaV3 } from '@skmtc/core'
+import { toZodValue } from '@skmtc/gen-zod'
 import type { OpenAPIV3 } from 'openapi-types'
+// Test helpers are deliberately not part of gen-zod's public exports, so these
+// two stay path-relative — the alternative is publishing test scaffolding as
+// package API.
 import { toParseContext } from '../gen-zod/test/helpers/toParseContext.ts'
 import { toGenerateContext } from '../gen-zod/test/helpers/toGenerateContext.ts'
-import { StackTrail } from '@skmtc/core'
 
 // Helper to convert schema and get Zod string (copied from toZodValue.test.ts)
 function schemaToZod(
