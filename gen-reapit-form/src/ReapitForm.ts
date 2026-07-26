@@ -1,6 +1,11 @@
 import { toGeneratorOnlyKey, synthesizeArgsObject, capitalize, decapitalize } from '@skmtc/core'
-import type { GqlOperationProjectionConstructorArgs, OasObject } from '@skmtc/core'
-import { defineAndRegister, createType } from '@skmtc/lang-typescript'
+import type {
+  GqlOperationProjectionConstructorArgs,
+  OasObject,
+  GenerateContextType,
+  GeneratorKey
+} from '@skmtc/core'
+import { defineAndRegister, createType, TsSnippet } from '@skmtc/lang-typescript'
 import { ZodProjection } from '@skmtc/gen-zod'
 import invariant from 'tiny-invariant'
 import denoJson from '../deno.json' with { type: 'json' }
@@ -11,6 +16,33 @@ import { schemaToField } from './schemaToField.ts'
 import { toCoerceBlock } from './toCoerceBlock.ts'
 
 const id = denoJson.name
+
+type ZodInferValueArgs = {
+  context: GenerateContextType
+  generatorKey: GeneratorKey
+  schemaName: string
+}
+
+/**
+ * The right-hand side of `export type <Name>Args = z.infer<typeof <name>Schema>`.
+ *
+ * A Snippet rather than an inline `{ toString }` literal: it carries context,
+ * is `instanceof SnippetBase`, and its generator-only key stays visible to
+ * attribution. The key marks this as shared sibling content in the file rather
+ * than the operation's primary Definition (the form class itself).
+ */
+class ZodInferValue extends TsSnippet {
+  readonly schemaName: string
+
+  constructor({ context, generatorKey, schemaName }: ZodInferValueArgs) {
+    super({ context, generatorKey })
+    this.schemaName = schemaName
+  }
+
+  override toString(): string {
+    return `z.infer<typeof ${this.schemaName}>`
+  }
+}
 
 /**
  * Reapit-elements form for one GraphQL Mutation.
@@ -115,10 +147,11 @@ export class ReapitForm extends ReapitFormBase {
     defineAndRegister(context, {
       identifier: createType(this.tsArgsName),
       destinationPath: settings.exportPath,
-      value: {
+      value: new ZodInferValue({
+        context,
         generatorKey: toGeneratorOnlyKey({ generatorId: id }),
-        toString: () => `z.infer<typeof ${this.zodArgsName}>`
-      }
+        schemaName: this.zodArgsName
+      })
     })
   }
 
