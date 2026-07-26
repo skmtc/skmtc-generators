@@ -151,9 +151,7 @@ export const schemaToField = ({
 
   if (schema.type === 'string') {
     if (schema.enums?.length) {
-      const enums = schema.enums.filter(
-        (item): item is string => typeof item === 'string'
-      ) as string[]
+      const enums = schema.enums.flatMap(item => (typeof item === 'string' ? [item] : []))
 
       return new SelectInput({
         context,

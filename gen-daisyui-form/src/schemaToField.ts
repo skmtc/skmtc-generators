@@ -1,4 +1,4 @@
-import type { CustomValue, GenerateContextType, OasObject, OasRef, OasSchema, Stringable } from '@skmtc/core'
+import type { CustomValue, GenerateContextType, OasRef, OasSchema, Stringable } from '@skmtc/core'
 import { StringInput } from './fields/StringInput.ts'
 import { NumberInput } from './fields/NumberInput.ts'
 import { IntegerInput } from './fields/IntegerInput.ts'
@@ -42,7 +42,7 @@ export const schemaToField = (args: SchemaToFieldArgs): Stringable => {
   if (schema.type === 'object') {
     return new ObjectInput({
       context,
-      schema: schema as OasObject,
+      schema,
       name,
       label: label ?? getLabel({ schema, name }),
       destinationPath,
