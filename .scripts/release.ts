@@ -6,7 +6,7 @@
  * ALREADY-PUBLISHED ONLY: a package the registry has never seen (404 on
  * meta.json) is skipped entirely — never planned, never published. CI can
  * therefore run this against public jsr.io without auto-creating the
- * mirror-only generators (kotlin/csharp/reapit/…); publishing a NEW package
+ * mirror-only generators (kotlin/…); publishing a NEW package
  * is a deliberate manual act, not a cascade side effect.
  *
  * The registry is the single source of truth for what is published;
