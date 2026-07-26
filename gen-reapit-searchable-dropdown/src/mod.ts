@@ -41,13 +41,13 @@ export const reapitSearchableDropdownEntry = toGqlOperationEntry<EnrichmentSchem
 })
 
 const unwrapPagedItem = (schema: OasSchema | OasRef<'schema'>): OasObject | undefined => {
-  const resolved = schema.isRef() ? schema.resolve() : schema
+  const resolved = schema.resolve()
   if (resolved.type !== 'object' || !resolved.properties) return undefined
   const embedded = resolved.properties['_embedded']
   if (!embedded) return undefined
-  const arr = embedded.isRef() ? embedded.resolve() : embedded
+  const arr = embedded.resolve()
   if (arr.type !== 'array' || !arr.items) return undefined
-  const item = arr.items.isRef() ? arr.items.resolve() : arr.items
+  const item = arr.items.resolve()
   if (item.type !== 'object') return undefined
   return item
 }
@@ -55,7 +55,7 @@ const unwrapPagedItem = (schema: OasSchema | OasRef<'schema'>): OasObject | unde
 const hasScalarStringField = (obj: OasObject, name: string): boolean => {
   const prop = obj.properties?.[name]
   if (!prop) return false
-  const resolved = prop.isRef() ? prop.resolve() : prop
+  const resolved = prop.resolve()
   return resolved.type === 'string'
 }
 

@@ -67,7 +67,7 @@ export const toClientPath = (path: string): { expression: string; hasParams: boo
 export const toPagination = (
   schema: OasSchema | OasRef<'schema'>
 ): { itemSchema: OasSchema | OasRef<'schema'> } | undefined => {
-  const object = schema.isRef() ? schema.resolve() : schema
+  const object = schema.resolve()
   if (object.type !== 'object') return undefined
 
   const data = object.properties?.['data']
