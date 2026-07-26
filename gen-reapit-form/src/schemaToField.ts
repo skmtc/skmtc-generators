@@ -186,7 +186,7 @@ export const schemaToField = (args: SchemaToFieldArgs): Stringable => {
     // consumer can enrich, or we add `<NumberArrayField>` etc. later).
     const items = schema.items
     if (items) {
-      const resolved = items.isRef() ? items.resolve() : items
+      const resolved = items.resolve()
       if (resolved.type === 'string') {
         return wrap(new ArrayInput({ context, path, label, isRequired, destinationPath, schema }))
       }
