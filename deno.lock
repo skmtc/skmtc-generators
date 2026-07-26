@@ -247,35 +247,6 @@
           "jsr:@skmtc/lang-typescript@0.12.15"
         ]
       },
-      "gen-reapit-form": {
-        "dependencies": [
-          "jsr:@skmtc/core@0.28.2",
-          "jsr:@skmtc/gen-reapit-multi-select@0.2.1",
-          "jsr:@skmtc/gen-reapit-searchable-dropdown@0.2.1",
-          "jsr:@skmtc/gen-typescript@0.2.4",
-          "jsr:@skmtc/gen-zod@0.2.4",
-          "jsr:@skmtc/lang-typescript@0.12.15"
-        ]
-      },
-      "gen-reapit-graphql-client": {
-        "dependencies": [
-          "jsr:@skmtc/core@0.28.2",
-          "jsr:@skmtc/gen-typescript@0.2.4",
-          "jsr:@skmtc/lang-typescript@0.12.15"
-        ]
-      },
-      "gen-reapit-multi-select": {
-        "dependencies": [
-          "jsr:@skmtc/core@0.28.2",
-          "jsr:@skmtc/lang-typescript@0.12.15"
-        ]
-      },
-      "gen-reapit-searchable-dropdown": {
-        "dependencies": [
-          "jsr:@skmtc/core@0.28.2",
-          "jsr:@skmtc/lang-typescript@0.12.15"
-        ]
-      },
       "gen-shadcn-form": {
         "dependencies": [
           "jsr:@skmtc/core@0.28.2",
