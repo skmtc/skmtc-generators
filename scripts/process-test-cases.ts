@@ -1,9 +1,11 @@
-import { toSchemaV3 } from '@skmtc/core'
-import { toZodValue } from './gen-zod/src/Zod.ts'
+import { StackTrail, toSchemaV3 } from '@skmtc/core'
+import { toZodValue } from '@skmtc/gen-zod'
 import type { OpenAPIV3 } from 'openapi-types'
-import { toParseContext } from './gen-zod/test/helpers/toParseContext.ts'
-import { toGenerateContext } from './gen-zod/test/helpers/toGenerateContext.ts'
-import { StackTrail } from '@skmtc/core'
+// Test helpers are deliberately not part of gen-zod's public exports, so these
+// two stay path-relative — the alternative is publishing test scaffolding as
+// package API.
+import { toParseContext } from '../gen-zod/test/helpers/toParseContext.ts'
+import { toGenerateContext } from '../gen-zod/test/helpers/toGenerateContext.ts'
 
 // Helper to convert schema and get Zod string (copied from toZodValue.test.ts)
 function schemaToZod(
@@ -36,7 +38,9 @@ interface ProcessedTestCase {
 
 async function processTestCases() {
   // Read the test cases
-  const testCasesJson = await Deno.readTextFile('./test-cases.json')
+  const testCasesJson = await Deno.readTextFile(
+    new URL('../test-cases.json', import.meta.url)
+  )
   const testCases: TestCase[] = JSON.parse(testCasesJson)
 
   const processedCases: ProcessedTestCase[] = []
@@ -86,7 +90,10 @@ async function processTestCases() {
   const markdownContent = markdownLines.join('\n')
 
   // Write the markdown file
-  await Deno.writeTextFile('./test-cases.md', markdownContent)
+  await Deno.writeTextFile(
+    new URL('../test-cases.md', import.meta.url),
+    markdownContent
+  )
 
   console.log(`✅ Generated test-cases.md with ${processedCases.length} test cases`)
   console.log(`✅ Successful: ${processedCases.filter(c => !c.output.startsWith('ERROR:')).length}`)
