@@ -1,4 +1,4 @@
-import { toTsOasOperationProjectionBase } from '@skmtc/lang-typescript'
+import { toTsOasOperationProjectionBase, sanitizeIdentifier } from '@skmtc/lang-typescript'
 import invariant from 'tiny-invariant'
 import { toResourceClassName, toResourceExportPath } from './resource.ts'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
@@ -22,7 +22,7 @@ export const SdkResourceBase = toTsOasOperationProjectionBase<EnrichmentSchema>(
     const resource = enrichments.subject?.resource
     invariant(resource, `${denoJson.name} requires a 'resource' enrichment on every supported operation`)
 
-    return toResourceClassName(resource)
+    return sanitizeIdentifier(toResourceClassName(resource))
   },
 
   toIdentifierType: () => ({ type: 'class' }),

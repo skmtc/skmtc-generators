@@ -1,5 +1,5 @@
 import { camelCase } from '@skmtc/core'
-import { toTsOasOperationProjectionBase } from '@skmtc/lang-typescript'
+import { toTsOasOperationProjectionBase, sanitizeIdentifier } from '@skmtc/lang-typescript'
 import { join } from '@std/path'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
@@ -11,7 +11,7 @@ export const MswBase = toTsOasOperationProjectionBase<EnrichmentSchema>({
     const { method, path } = operation
     const name = `${method}${camelCase(path, { upperFirst: true })}Handler`
 
-    return name
+    return sanitizeIdentifier(name)
   },
 
   toIdentifierType: () => ({ type: 'variable' }),

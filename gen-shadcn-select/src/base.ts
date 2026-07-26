@@ -1,5 +1,5 @@
 import { camelCase } from '@skmtc/core'
-import { toTsOasOperationProjectionBase } from '@skmtc/lang-typescript'
+import { toTsOasOperationProjectionBase, sanitizeIdentifier } from '@skmtc/lang-typescript'
 import { join } from '@std/path'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
@@ -15,7 +15,7 @@ export const ShadcnSelectApiBase = toTsOasOperationProjectionBase<EnrichmentSche
     // peers); we ignore it here.
     const name = `${camelCase(operation.path, { upperFirst: true })}Select`
 
-    return name
+    return sanitizeIdentifier(name)
   },
 
   toIdentifierType: () => ({ type: 'variable' }),
