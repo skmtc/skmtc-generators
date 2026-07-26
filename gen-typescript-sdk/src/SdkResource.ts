@@ -94,7 +94,12 @@ export class SdkResource extends SdkResourceBase {
   description: string | undefined
 
   #heritage: TsHeritage
-  #methods: { method: TsMethod; methodName: string }[] = []
+  /**
+   * The class value, built in the constructor and grown by {@link append}.
+   * `TsClass.methods` is a live Map, so methods are added to the settled tree
+   * during Generate rather than assembled at render.
+   */
+  #class: TsClass
   /** Co-located schema type names, in insertion order (deduped). */
   #schemaNames: string[] = []
   /** Page-alias type names, in insertion order. */
@@ -118,6 +123,8 @@ export class SdkResource extends SdkResourceBase {
       generatorKey: this.generatorKey,
       extends: { name: 'APIResource', exportPath: '@/core/resource' }
     })
+
+    this.#class = new TsClass({ heritage: this.#heritage })
 
     const fileHeader = settings.enrichments.generator?.fileHeader
     if (fileHeader) {
@@ -245,16 +252,26 @@ export class SdkResource extends SdkResourceBase {
       securityScheme
     })
 
-    this.#methods.push({
-      method: new TsMethod({
+    this.#class.addMethod(
+      new TsMethod({
         name: methodName,
         parameters: apiMethod.parameters,
         returnType: apiMethod.returnType,
         body: apiMethod.body,
         description: apiMethod.description
-      }),
-      methodName
-    })
+      })
+    )
+
+    // `TsClass` renders methods in Map insertion order, so Stainless ordering
+    // is re-established here on every append rather than at render. The sort is
+    // stable, so methods of equal priority keep the order they arrived in.
+    const ordered = [...this.#class.methods].sort(
+      ([a], [b]) => methodPriority(a) - methodPriority(b)
+    )
+    this.#class.methods.clear()
+    for (const [name, method] of ordered) {
+      this.#class.methods.set(name, method)
+    }
   }
 
   /**
@@ -311,16 +328,6 @@ export class SdkResource extends SdkResourceBase {
   }
 
   override toString(): string {
-    // Build the class value at render: heritage + the methods in Stainless
-    // order. Pure — `TsClass` registers nothing (heritage/method imports were
-    // registered during construction).
-    const tsClass = new TsClass({ heritage: this.#heritage })
-    for (const { method } of [...this.#methods].sort(
-      (a, b) => methodPriority(a.methodName) - methodPriority(b.methodName)
-    )) {
-      tsClass.addMethod(method)
-    }
-
-    return tsClass.toString()
+    return this.#class.toString()
   }
 }
