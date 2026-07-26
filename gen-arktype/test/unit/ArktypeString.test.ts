@@ -88,3 +88,30 @@ Deno.test('ArktypeString - with format (should not affect output)', () => {
 
   assertEquals(arktypeString.toString(), '"string"')
 })
+
+Deno.test('ArktypeString - a null enum member is the null keyword', () => {
+  const arktypeString = new ArktypeString({
+    context: toGenerateContext(),
+    stringSchema: new OasString({ enums: ['active', null], format: undefined }),
+    modifiers: { required: true },
+    generatorKey: toGeneratorOnlyKey({ generatorId: arktypeEntry.id }),
+    destinationPath: '/test'
+  })
+
+  // Not `'null'` — that is the four-character string, not the null type.
+  assertEquals(arktypeString.toString(), '"\'active\' | null"')
+})
+
+Deno.test('ArktypeString - quotes and backslashes in enum values are escaped', () => {
+  const arktypeString = new ArktypeString({
+    context: toGenerateContext(),
+    stringSchema: new OasString({ enums: ["it's", 'a\\b'], format: undefined }),
+    modifiers: { required: true },
+    generatorKey: toGeneratorOnlyKey({ generatorId: arktypeEntry.id }),
+    destinationPath: '/test'
+  })
+
+  // An unescaped quote would end the literal early and leave arktype a
+  // definition it cannot parse.
+  assertEquals(arktypeString.toString(), '"\'it\\\'s\' | \'a\\\\b\'"')
+})

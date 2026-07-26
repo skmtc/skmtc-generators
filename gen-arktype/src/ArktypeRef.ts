@@ -41,12 +41,24 @@ export class ArktypeRef extends TsSnippet {
     if (context.modelDepth[`${arktypeEntry.id}:${refName}`] > 0) {
       // A back-reference to a model still open on the build stack. Driving it
       // again would recurse forever, so read its settings without building.
-      context.modelDepth[`${arktypeEntry.id}:${refName}`]++
-
+      //
+      // `ZodRef` also bumps the counter here, because `ZodProjection` reads
+      // `> 1` to decide whether to annotate the export and break TypeScript's
+      // circular inference. Arktype has no such annotation — a cycle cannot be
+      // expressed in a lone `type(…)` at all (see `toString`) — so nothing
+      // would read the bump, and it is not made.
       const settings = context.toModelContentSettings({
         refName,
         projection: ArktypeProjection,
         variant: 'main'
+      })
+
+      // Not always the same file: with mutual recursion (A → B → A) the
+      // back-reference lands in B, so the name still has to be imported. The
+      // engine cannot stitch this one, because nothing was inserted.
+      this.register({
+        imports: { [settings.exportPath]: [settings.identifier.name] },
+        destinationPath
       })
 
       this.name = settings.identifier.name

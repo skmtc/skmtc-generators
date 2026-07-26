@@ -17,10 +17,12 @@
  */
 import { assertEquals } from 'jsr:@std/assert@^1.0.0'
 import { dirname, join } from 'jsr:@std/path@^1.0.0'
-import { runFixture } from './e2e.test.ts'
+import { runFixture } from './helpers/fixture.ts'
 
-/** The arktype version the generated output is verified against. */
-const ARKTYPE = 'npm:arktype@^2.2.3'
+/** The arktype version the generated output is verified against — pinned
+ *  exactly, because the gate rests on arktype's type-level parser and a minor
+ *  release could change what it accepts without any change here. */
+const ARKTYPE = 'npm:arktype@2.2.3'
 
 Deno.test({
   name: 'typecheck - generated artifacts compile against arktype',

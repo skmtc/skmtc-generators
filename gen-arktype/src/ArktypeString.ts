@@ -29,7 +29,7 @@ export class ArktypeString extends TsSnippet {
     this.enums = stringSchema.enums
 
     const content = match({ enums: stringSchema.enums })
-      .with({ enums: P.array() }, matched => matched.enums.map(value => `'${value}'`).join(' | '))
+      .with({ enums: P.array() }, matched => matched.enums.map(toEnumMember).join(' | '))
       .otherwise(() => 'string')
 
     this.stringSyntax = applyModifiers(content, modifiers)
@@ -40,3 +40,12 @@ export class ArktypeString extends TsSnippet {
     return `"${this.stringSyntax}"`
   }
 }
+
+/**
+ * Renders one enum member as arktype string syntax. A `null` member is the
+ * `null` keyword, not the four-character string `'null'`, and a value carrying
+ * a quote or a backslash has to escape it — either would otherwise end the
+ * literal early and produce a definition arktype cannot parse.
+ */
+const toEnumMember = (value: string | null): string =>
+  value === null ? 'null' : `'${value.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`
