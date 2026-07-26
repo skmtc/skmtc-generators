@@ -1,5 +1,6 @@
 import { type TypeSystemValue, type GenerateContextType, type Modifiers, type GeneratorKey, type OasObject, type RefName, type TypeSystemRecord, type TypeSystemObjectProperties, isEmpty } from '@skmtc/core'
 import { TsSnippet, handleKey } from '@skmtc/lang-typescript'
+import { ArktypeUnknown } from './ArktypeUnknown.ts'
 import { applyModifiers } from './applyModifiers.ts'
 import { toArktypeValue } from './Arktype.ts'
 
@@ -49,11 +50,14 @@ export class ArktypeObject extends TsSnippet {
     this.additionalProperties = undefined
     if (objectSchema.additionalProperties) {
       if (objectSchema.additionalProperties === true) {
-        // additionalProperties: true means Record<string, unknown>
-        // Create a proper unknown schema
-        this.additionalProperties = {
-          toString: () => 'type("unknown")'
-        } as TypeSystemValue
+        // additionalProperties: true means Record<string, unknown>.
+        // ArktypeUnknown renders the same `type("unknown")` and, unlike an
+        // inline literal, registers the `arktype` import it needs.
+        this.additionalProperties = new ArktypeUnknown({
+          context,
+          generatorKey,
+          destinationPath
+        })
       } else {
         this.additionalProperties = toArktypeValue({
           schema: objectSchema.additionalProperties,

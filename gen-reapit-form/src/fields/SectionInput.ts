@@ -24,6 +24,38 @@ export type SectionInputArgs = {
  * entire form-grid row; children are already InputWrap-wrapped by
  * `schemaToField` so they slot into the grid naturally.
  */
+type SectionHeadingArgs = {
+  context: GenerateContextType
+  label: string
+  destinationPath: string
+}
+
+/**
+ * The `<Subtitle>` heading at the top of a section.
+ *
+ * A Snippet rather than an inline `{ toString }` literal: it carries context
+ * and a generatorKey (so it is visible to attribution), is `instanceof
+ * SnippetBase`, and owns the `Subtitle` import it needs instead of relying on
+ * its parent to register it.
+ */
+class SectionHeading extends TsSnippet {
+  readonly label: string
+
+  constructor({ context, label, destinationPath }: SectionHeadingArgs) {
+    super({ context })
+    this.label = label
+
+    this.register({
+      destinationPath,
+      imports: { '@reapit/elements': ['Subtitle'] }
+    })
+  }
+
+  override toString(): string {
+    return `<Subtitle hasMargin>${this.label}</Subtitle>`
+  }
+}
+
 export class SectionInput extends TsSnippet {
   readonly label: string
   readonly children: Stringable[]
@@ -34,11 +66,6 @@ export class SectionInput extends TsSnippet {
     this.label = label
     this.children = children
 
-    this.register({
-      destinationPath,
-      imports: { '@reapit/elements': ['Subtitle'] }
-    })
-
     // Subtitle as a full-row item in the form grid. We construct the
     // wrapper here (not at render time) so its `register()` fires
     // during the Generate phase like every other Snippet's imports.
@@ -46,7 +73,7 @@ export class SectionInput extends TsSnippet {
       context,
       destinationPath,
       size: 'full',
-      child: { toString: () => `<Subtitle hasMargin>${this.label}</Subtitle>` }
+      child: new SectionHeading({ context, label, destinationPath })
     })
   }
 

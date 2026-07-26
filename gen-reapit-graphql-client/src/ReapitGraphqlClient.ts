@@ -1,5 +1,13 @@
-import { capitalize, OasObject, synthesizeArgsObject, toGeneratorOnlyKey, type GqlOperationProjectionConstructorArgs } from '@skmtc/core'
-import { defineAndRegister, createVariable } from '@skmtc/lang-typescript'
+import {
+  capitalize,
+  OasObject,
+  synthesizeArgsObject,
+  toGeneratorOnlyKey,
+  type GenerateContextType,
+  type GeneratorKey,
+  type GqlOperationProjectionConstructorArgs
+} from '@skmtc/core'
+import { defineAndRegister, createVariable, TsSnippet } from '@skmtc/lang-typescript'
 import { TsProjection } from '@skmtc/gen-typescript'
 import { ReapitGraphqlClientBase } from './base.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
@@ -7,6 +15,47 @@ import { toSelection } from './selection/toSelection.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
 const id = denoJson.name
+
+type TypedDocumentValueArgs = {
+  context: GenerateContextType
+  generatorKey: GeneratorKey
+  documentBody: string
+  resultTypeName: string
+  variablesTypeName: string | null
+}
+
+/**
+ * The `<Field>Document` constant's value.
+ *
+ * The cast-string approach: emit a plain query string typed as
+ * `TypedDocumentNode<Result, Variables>`. graphql-request reads the string at
+ * runtime; TS reads the type for inference. Avoids pulling the `graphql` parser
+ * into the runtime bundle.
+ *
+ * A Snippet rather than an inline `{ toString }` literal so it carries context,
+ * is `instanceof SnippetBase`, and stays visible to attribution through its
+ * generator-only key.
+ */
+class TypedDocumentValue extends TsSnippet {
+  readonly documentBody: string
+  readonly resultTypeName: string
+  readonly variablesTypeName: string | null
+
+  constructor(
+    { context, generatorKey, documentBody, resultTypeName, variablesTypeName }:
+      TypedDocumentValueArgs
+  ) {
+    super({ context, generatorKey })
+    this.documentBody = documentBody
+    this.resultTypeName = resultTypeName
+    this.variablesTypeName = variablesTypeName
+  }
+
+  override toString(): string {
+    const variables = this.variablesTypeName ?? 'Record<string, never>'
+    return `\`${this.documentBody}\` as unknown as TypedDocumentNode<${this.resultTypeName}, ${variables}>`
+  }
+}
 
 /**
  * GraphQL operation → React Query hook + TypedDocumentNode.
@@ -86,15 +135,13 @@ export class ReapitGraphqlClient extends ReapitGraphqlClientBase {
     defineAndRegister(context, {
       identifier: createVariable(this.documentConstName),
       destinationPath: this.settings.exportPath,
-      value: {
+      value: new TypedDocumentValue({
+        context,
         generatorKey: toGeneratorOnlyKey({ generatorId: id }),
-        // The cast-string approach: emit a plain query string typed as
-        // TypedDocumentNode<Result, Variables>. graphql-request reads
-        // the string at runtime; TS reads the type for inference.
-        // Avoids pulling the `graphql` parser into the runtime bundle.
-        toString: () =>
-          `\`${documentBody}\` as unknown as TypedDocumentNode<${this.resultTypeName}, ${this.variablesTypeName ?? 'Record<string, never>'}>`
-      }
+        documentBody,
+        resultTypeName: this.resultTypeName,
+        variablesTypeName: this.variablesTypeName
+      })
     })
 
     this.register({
