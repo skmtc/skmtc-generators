@@ -1,6 +1,6 @@
 {
   "name": "@skmtc/gen-arktype",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "exports": "./mod.ts",
   "tasks": {
     "test": "deno test --allow-env --allow-sys --allow-read",
@@ -12,8 +12,8 @@
     "publish": "deno publish --allow-slow-types --allow-dirty"
   },
   "imports": {
-    "@skmtc/core": "jsr:@skmtc/core@0.28.2",
-    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.12.15"
+    "@skmtc/core": "jsr:@skmtc/core@0.28.3",
+    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.12.17"
   },
   "lint": {
     "plugins": [

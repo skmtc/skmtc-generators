@@ -8,8 +8,8 @@
   },
   "imports": {
     "@/": "./src/",
-    "@skmtc/core": "jsr:@skmtc/core@0.28.2",
-    "@skmtc/lang-kotlin": "jsr:@skmtc/lang-kotlin@0.9.13",
+    "@skmtc/core": "jsr:@skmtc/core@0.28.3",
+    "@skmtc/lang-kotlin": "jsr:@skmtc/lang-kotlin@0.9.14",
     "@skmtc/gen-kotlin-jackson-s": "jsr:@skmtc/gen-kotlin-jackson-s@0.2.1",
     "valibot": "npm:valibot@1.1.0",
     "tiny-invariant": "npm:tiny-invariant@^1.3.3"
