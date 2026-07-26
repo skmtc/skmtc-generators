@@ -14,6 +14,10 @@ jobs:
     runs-on: ubuntu-latest
 
     strategy:
+      # One generator's failure should not cancel the others — a cancelled job
+      # reports as failed without having run, which hides which generator
+      # actually broke.
+      fail-fast: false
       matrix:
         generator:
           - gen-arktype
@@ -55,21 +59,32 @@ jobs:
           echo "exists=false" >> $GITHUB_OUTPUT
         fi
 
+    # Reporting coverage is not a correctness gate, and Coveralls returning 503
+    # ("under heavy load (queue full)") was reddening every check in the repo
+    # while every test suite passed. An upload outage must not be
+    # indistinguishable from a test failure.
     - name: Upload coverage to Coveralls
       if: steps.check-coverage.outputs.exists == 'true'
+      continue-on-error: true
       uses: coverallsapp/github-action@v2
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         path-to-lcov: ${{ matrix.generator }}/coverage.lcov
         flag-name: ${{ matrix.generator }}
         parallel: true
+        fail-on-error: false
 
   finish:
     needs: coverage
+    # Runs even when a generator's tests failed, so the parallel Coveralls build
+    # is always closed rather than left hanging.
+    if: always()
     runs-on: ubuntu-latest
     steps:
     - name: Close parallel build
+      continue-on-error: true
       uses: coverallsapp/github-action@v2
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         parallel-finished: true
+        fail-on-error: false

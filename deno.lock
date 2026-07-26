@@ -16,6 +16,7 @@
     "jsr:@std/log@~0.224.6": "0.224.14",
     "jsr:@std/path@^1.0.9": "1.1.6",
     "jsr:@std/path@^1.1.2": "1.1.6",
+    "jsr:@std/yaml@1": "1.1.2",
     "npm:@babel/helper-validator-identifier@7.22.20": "7.22.20",
     "npm:@babel/helper-validator-identifier@7.27.1": "7.27.1",
     "npm:@types/babel__helper-validator-identifier@7.15.2": "7.15.2",
@@ -97,6 +98,9 @@
       "dependencies": [
         "jsr:@std/internal@^1.0.14"
       ]
+    },
+    "@std/yaml@1.1.2": {
+      "integrity": "de612653c036749ba2044165e316f52412b0f0698afffb7ee80b5331d6d2abae"
     }
   },
   "npm": {
