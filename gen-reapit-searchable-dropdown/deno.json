@@ -8,5 +8,10 @@
   "imports": {
     "@skmtc/core": "jsr:@skmtc/core@0.28.2",
     "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.12.15"
+  },
+  "lint": {
+    "plugins": [
+      "jsr:@skmtc/lint-plugin@0.1.0"
+    ]
   }
 }

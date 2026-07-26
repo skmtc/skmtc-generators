@@ -10,5 +10,10 @@
     "@skmtc/core": "jsr:@skmtc/core@0.28.2",
     "@skmtc/lang-kotlin": "jsr:@skmtc/lang-kotlin@0.9.13"
   },
-  "private": true
+  "private": true,
+  "lint": {
+    "plugins": [
+      "jsr:@skmtc/lint-plugin@0.1.0"
+    ]
+  }
 }

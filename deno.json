@@ -67,6 +67,9 @@
     "./gen-md-docs"
   ],
   "minimumDependencyAge": "0",
+  "lint": {
+    "plugins": ["jsr:@skmtc/lint-plugin@0.1.0"]
+  },
   "exclude": [
     "gen-kotlin-sdk",
     "gen-kotlin-jackson-s",

@@ -11,5 +11,10 @@
     "@skmtc/lang-kotlin": "jsr:@skmtc/lang-kotlin@0.9.13",
     "@skmtc/gen-kotlin-kotlinx": "jsr:@skmtc/gen-kotlin-kotlinx@0.2.1"
   },
-  "private": true
+  "private": true,
+  "lint": {
+    "plugins": [
+      "jsr:@skmtc/lint-plugin@0.1.0"
+    ]
+  }
 }

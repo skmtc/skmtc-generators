@@ -14,5 +14,10 @@
     "valibot": "npm:valibot@1.1.0",
     "tiny-invariant": "npm:tiny-invariant@^1.3.3"
   },
-  "private": true
+  "private": true,
+  "lint": {
+    "plugins": [
+      "jsr:@skmtc/lint-plugin@0.1.0"
+    ]
+  }
 }

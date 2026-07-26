@@ -4,6 +4,7 @@
     "jsr:@skmtc/core@0.28.2": "0.28.2",
     "jsr:@skmtc/lang-kotlin@0.9.13": "0.9.13",
     "jsr:@skmtc/lang-typescript@0.12.15": "0.12.15",
+    "jsr:@skmtc/lint-plugin@0.1.0": "0.1.0",
     "jsr:@std/assert@1": "1.0.19",
     "jsr:@std/fmt@1": "1.0.10",
     "jsr:@std/fmt@^1.0.5": "1.0.10",
@@ -61,6 +62,9 @@
         "npm:@types/babel__helper-validator-identifier",
         "npm:tiny-invariant@1.3.3"
       ]
+    },
+    "@skmtc/lint-plugin@0.1.0": {
+      "integrity": "4129941fc5e6c552139b61fd046d5b47ae225c0a4700b2eb799f4f1b9451ed2c"
     },
     "@std/assert@1.0.19": {
       "integrity": "eaada96ee120cb980bc47e040f82814d786fe8162ecc53c91d8df60b8755991e",

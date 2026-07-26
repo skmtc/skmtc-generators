@@ -12,5 +12,10 @@
     "@std/path": "jsr:@std/path@^1.1.2",
     "ts-pattern": "npm:ts-pattern@^5.8.0",
     "valibot": "npm:valibot@1.1.0"
+  },
+  "lint": {
+    "plugins": [
+      "jsr:@skmtc/lint-plugin@0.1.0"
+    ]
   }
 }
