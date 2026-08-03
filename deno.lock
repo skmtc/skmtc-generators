@@ -2,8 +2,11 @@
   "version": "5",
   "specifiers": {
     "jsr:@skmtc/core@0.28.3": "0.28.3",
+    "jsr:@skmtc/lang-kotlin@0.9.14": "0.9.14",
     "jsr:@skmtc/lang-typescript@0.12.17": "0.12.17",
+    "jsr:@skmtc/lint-plugin@0.1.0": "0.1.0",
     "jsr:@std/assert@1": "1.0.19",
+    "jsr:@std/assert@^1.0.10": "1.0.19",
     "jsr:@std/fmt@1": "1.0.10",
     "jsr:@std/fmt@^1.0.5": "1.0.10",
     "jsr:@std/fs@^1.0.11": "1.0.24",
@@ -27,6 +30,7 @@
     "npm:tiny-invariant@1.3.3": "1.3.3",
     "npm:tiny-invariant@^1.3.3": "1.3.3",
     "npm:ts-pattern@^5.8.0": "5.9.0",
+    "npm:ts-pattern@^5.9.0": "5.9.0",
     "npm:valibot@1.1.0": "1.1.0"
   },
   "jsr": {
@@ -44,6 +48,14 @@
         "npm:valibot"
       ]
     },
+    "@skmtc/lang-kotlin@0.9.14": {
+      "integrity": "d265fac89acec059a2657402028aa8ae77d6352ead6f09cc8669471986270f4d",
+      "dependencies": [
+        "jsr:@skmtc/core",
+        "jsr:@std/path@^1.0.9",
+        "npm:tiny-invariant@1.3.3"
+      ]
+    },
     "@skmtc/lang-typescript@0.12.17": {
       "integrity": "03b9ceb5f0a4f918a1a3764ec87b9ffdd17ba79305881e20e5c8cdd13962bf37",
       "dependencies": [
@@ -53,6 +65,9 @@
         "npm:@types/babel__helper-validator-identifier",
         "npm:tiny-invariant@1.3.3"
       ]
+    },
+    "@skmtc/lint-plugin@0.1.0": {
+      "integrity": "4129941fc5e6c552139b61fd046d5b47ae225c0a4700b2eb799f4f1b9451ed2c"
     },
     "@std/assert@1.0.19": {
       "integrity": "eaada96ee120cb980bc47e040f82814d786fe8162ecc53c91d8df60b8755991e",
@@ -188,6 +203,15 @@
           "jsr:@skmtc/lang-typescript@0.12.17"
         ]
       },
+      "gen-kotlin-jackson": {
+        "dependencies": [
+          "jsr:@skmtc/core@0.28.3",
+          "jsr:@skmtc/lang-kotlin@0.9.14",
+          "jsr:@std/assert@^1.0.10",
+          "jsr:@std/path@^1.0.9",
+          "npm:ts-pattern@^5.9.0"
+        ]
+      },
       "gen-md-docs": {
         "dependencies": [
           "jsr:@skmtc/core@0.28.3",
@@ -294,29 +318,6 @@
       }
     },
     "links": {
-      "jsr:@skmtc/gen-kotlin-jackson-s@0.2.1": {
-        "dependencies": [
-          "jsr:@skmtc/core@0.28.3",
-          "jsr:@skmtc/lang-kotlin@0.9.14",
-          "npm:tiny-invariant@^1.3.3",
-          "npm:valibot@1.1.0"
-        ]
-      },
-      "jsr:@skmtc/gen-kotlin-kotlinx@0.2.1": {
-        "dependencies": [
-          "jsr:@skmtc/core@0.28.3",
-          "jsr:@skmtc/lang-kotlin@0.9.14"
-        ]
-      },
-      "jsr:@skmtc/gen-kotlin-sdk@0.1.1": {
-        "dependencies": [
-          "jsr:@skmtc/core@0.28.3",
-          "jsr:@skmtc/gen-kotlin-jackson-s@0.2.1",
-          "jsr:@skmtc/lang-kotlin@0.9.14",
-          "npm:tiny-invariant@^1.3.3",
-          "npm:valibot@1.1.0"
-        ]
-      },
       "jsr:@skmtc/gen-kotlin-spring@0.4.1": {
         "dependencies": [
           "jsr:@skmtc/core@0.28.3",
