@@ -55,15 +55,13 @@
     "./gen-typescript-sdk",
     "./gen-typescript-s",
     "./gen-md-docs",
-    "./gen-kotlin-jackson"
+    "./gen-kotlin-jackson",
+    "./gen-kotlin-spring"
   ],
   "minimumDependencyAge": "0",
   "lint": {
     "plugins": [
       "jsr:@skmtc/lint-plugin@0.1.0"
     ]
-  },
-  "exclude": [
-    "gen-kotlin-spring"
-  ]
+  }
 }

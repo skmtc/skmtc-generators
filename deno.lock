@@ -212,6 +212,15 @@
           "npm:ts-pattern@^5.9.0"
         ]
       },
+      "gen-kotlin-spring": {
+        "dependencies": [
+          "jsr:@skmtc/core@0.28.3",
+          "jsr:@skmtc/lang-kotlin@0.9.14",
+          "jsr:@std/assert@^1.0.10",
+          "jsr:@std/path@^1.0.9",
+          "npm:ts-pattern@^5.9.0"
+        ]
+      },
       "gen-md-docs": {
         "dependencies": [
           "jsr:@skmtc/core@0.28.3",
@@ -314,15 +323,6 @@
         "dependencies": [
           "jsr:@skmtc/core@0.28.3",
           "jsr:@skmtc/lang-typescript@0.12.17"
-        ]
-      }
-    },
-    "links": {
-      "jsr:@skmtc/gen-kotlin-spring@0.4.1": {
-        "dependencies": [
-          "jsr:@skmtc/core@0.28.3",
-          "jsr:@skmtc/gen-kotlin-kotlinx@0.2.1",
-          "jsr:@skmtc/lang-kotlin@0.9.14"
         ]
       }
     }
