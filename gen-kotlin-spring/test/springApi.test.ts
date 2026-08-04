@@ -93,6 +93,7 @@ Deno.test('one interface per tag — untagged → DefaultApi, multi-tag joins it
   const { artifacts, manifest } = runFixture()
 
   assertEquals(Object.keys(artifacts).sort(), [
+    'server/src/main/kotlin/com/example/models/CreateApiUsersBody.generated.kt',
     'server/src/main/kotlin/com/example/spring/ApiError.generated.kt',
     'server/src/main/kotlin/com/example/spring/DefaultApi.generated.kt',
     'server/src/main/kotlin/com/example/spring/HealthApi.generated.kt',
@@ -109,6 +110,7 @@ Deno.test('UsersApi accumulates methods in document order — params, body, retu
     artifacts['server/src/main/kotlin/com/example/spring/UsersApi.generated.kt'],
     'package com.example.spring\n' +
       '\n' +
+      'import com.example.models.CreateApiUsersBody\n' +
       'import org.springframework.http.HttpStatus\n' +
       'import org.springframework.web.bind.annotation.GetMapping\n' +
       'import org.springframework.web.bind.annotation.PathVariable\n' +
@@ -134,7 +136,15 @@ Deno.test('UsersApi accumulates methods in document order — params, body, retu
       '    @PostMapping("/users")\n' +
       '    @ResponseStatus(HttpStatus.CREATED)\n' +
       '    fun postUsers(@RequestBody body: CreateApiUsersBody) = service.postUsers(body)\n' +
-      '}\n' +
+      '}\n'
+  )
+
+  // The synthesized body class lives in its OWN models-package file
+  // (every synthesized declaration shares one placement policy), and
+  // the API file above imports it across packages.
+  assertEquals(
+    artifacts['server/src/main/kotlin/com/example/models/CreateApiUsersBody.generated.kt'],
+    'package com.example.models\n' +
       '\n' +
       'data class CreateApiUsersBody(\n' +
       '    val name: String\n' +
@@ -194,6 +204,71 @@ Deno.test('untagged operations land in DefaultApi', () => {
       '    @GetMapping("/untagged")\n' +
       '    fun getUntagged() = service.getUntagged()\n' +
       '}\n'
+  )
+})
+
+Deno.test('an inline enum query parameter names by the PARAMETER name, stably', () => {
+  // The jackson peer resolves a parameters/<index> trail position to
+  // the parameter's NAME via its document scan (PR #30) — this is the
+  // operation-generator side of that contract: the enum class is
+  // GetApiUsersIdStatus (not an index-derived name), it lands in the
+  // models package, and the signature references it across packages.
+  // The unrelated `page` parameter ahead of `status` proves the name
+  // reorder-stable.
+  const { artifacts } = toArtifacts({
+    traceId: 'gen-kotlin-spring-enum-param',
+    spanId: 'fixture',
+    startAt: Date.now(),
+    document: {
+      type: 'oas',
+      value: {
+        openapi: '3.0.0',
+        info: { title: 'enum-param', version: '0.0.0' },
+        paths: {
+          '/users/{id}': {
+            get: {
+              tags: ['users'],
+              parameters: [
+                { name: 'id', in: 'path', required: true, schema: { type: 'string' } },
+                { name: 'page', in: 'query', schema: { type: 'integer' } },
+                { name: 'status', in: 'query', schema: { type: 'string', enum: ['active', 'inactive'] } }
+              ],
+              responses: { '200': { description: 'ok' } }
+            }
+          }
+        }
+      } as never
+    },
+    settings: {
+      basePath: './server/src/main/kotlin',
+      enrichments: {
+        '@skmtc/gen-kotlin-spring': { _generator: { basePackage: 'com.example.spring' } }
+      }
+    },
+    stackTrail: new StackTrail([]),
+    silent: true,
+    toGeneratorConfigMap: () => ({
+      // @ts-expect-error - entry vs the generic config map (the known variance gap)
+      '@skmtc/gen-kotlin-spring': springEntry
+    })
+  })
+
+  assertEquals(
+    artifacts['server/src/main/kotlin/com/example/models/GetApiUsersIdStatus.generated.kt'],
+    'package com.example.models\n' +
+      '\n' +
+      'import com.fasterxml.jackson.annotation.JsonProperty\n' +
+      '\n' +
+      'enum class GetApiUsersIdStatus {\n' +
+      '    @JsonProperty("active")\n' +
+      '    ACTIVE,\n' +
+      '    @JsonProperty("inactive")\n' +
+      '    INACTIVE\n' +
+      '}\n'
+  )
+  assertStringIncludes(
+    artifacts['server/src/main/kotlin/com/example/spring/UsersApi.generated.kt'],
+    '@RequestParam("status") status: GetApiUsersIdStatus?'
   )
 })
 
