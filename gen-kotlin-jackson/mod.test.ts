@@ -25,8 +25,42 @@
  * (compiler- and Jackson-round-trip-verified there).
  */
 import { StackTrail, toArtifacts } from '@skmtc/core'
+import type { ResultsItem, ResultType } from '@skmtc/core'
 import { assertEquals, assertStringIncludes } from '@std/assert'
 import entry from './mod.ts'
+
+/**
+ * Every `ResultType` leaf in a manifest's results tree — the VALUES
+ * only. The tree's keys are subject paths and destination paths, so
+ * matching a substring against the serialized tree reports an error for
+ * any document whose own names contain one.
+ */
+const toResultTypes = (results: ResultsItem): ResultType[] => {
+  return Object.values(results).flatMap((value) => {
+    if (value === null) {
+      return []
+    }
+
+    if (typeof value === 'string') {
+      return [value]
+    }
+
+    if (Array.isArray(value)) {
+      return value.flatMap((item) => (item === null ? [] : toResultTypes(item)))
+    }
+
+    return toResultTypes(value)
+  })
+}
+
+const assertNoResultErrors = (manifest: { results: ResultsItem }): void => {
+  assertEquals(toResultTypes(manifest.results).filter((result) => result === 'error'), [])
+}
+
+/** The inverse gate: a run that MUST fail its subjects. */
+const assertHasResultError = (manifest: { results: ResultsItem }): void => {
+  assertEquals(toResultTypes(manifest.results).includes('error'), true)
+}
 
 const fixture = JSON.parse(Deno.readTextFileSync(new URL('./test-fixture.json', import.meta.url)))
 
@@ -67,7 +101,7 @@ const toDocument = (schemas: Record<string, unknown>) => {
 Deno.test('every model renders to its own file in the fixed package', () => {
   const { artifacts, manifest } = generate()
 
-  assertEquals(JSON.stringify(manifest.results).includes('error'), false)
+  assertNoResultErrors(manifest)
   assertEquals(Object.keys(artifacts).toSorted(), [
     'com/example/models/Address.generated.kt',
     'com/example/models/BankTransferPayment.generated.kt',
@@ -144,7 +178,7 @@ Deno.test('basePackage is a REQUIRED enrichment — configured packages land, mi
     silent: true
   })
 
-  assertEquals(JSON.stringify(missing.manifest.results).includes('error'), true)
+  assertHasResultError(missing.manifest)
   assertEquals(Object.keys(missing.artifacts), [])
 })
 
@@ -194,7 +228,7 @@ Deno.test('synthesized name colliding with a component class name fails that sub
   // would synthesize `OrderMetadata` beside the real component of that
   // name — two files, one package, no compile. The claim throws instead:
   // Order fails per-item, the component still renders.
-  assertEquals(JSON.stringify(manifest.results).includes('error'), true)
+  assertHasResultError(manifest)
   assertEquals(artifacts['com/example/models/Order.generated.kt'], undefined)
   assertStringIncludes(
     artifacts['com/example/models/OrderMetadata.generated.kt'],
@@ -216,7 +250,7 @@ Deno.test('two inline schemas converging to one name fail loudly instead of shar
   // Both keys camelCase to `OrderMetaData`. A probe hit on the first
   // claimant's declaration would silently give `meta_data` the WRONG
   // shape — the claim registry throws on the position mismatch instead.
-  assertEquals(JSON.stringify(manifest.results).includes('error'), true)
+  assertHasResultError(manifest)
 })
 
 Deno.test('a LATE collision drops the model but leaves earlier siblings as orphans', () => {
@@ -236,7 +270,7 @@ Deno.test('a LATE collision drops the model but leaves earlier siblings as orpha
   // Kotlin dead code; the manifest error on Order is the signal. This
   // pins the declare-then-throw ordering the collision tests above
   // don't reach (their collision lands on the first inline property).
-  assertEquals(JSON.stringify(manifest.results).includes('error'), true)
+  assertHasResultError(manifest)
 
   // Synthesized declarations live in their OWN models-package files, so
   // the orphans are whole files. The failed model's own file survives as
@@ -358,7 +392,7 @@ Deno.test('an underivable-trail union degrades to pre-synthesis behavior — nev
     }
   })
 
-  assertEquals(JSON.stringify(manifest.results).includes('error'), false)
+  assertNoResultErrors(manifest)
   assertStringIncludes(artifacts['com/example/models/Unrelated.generated.kt'], 'data class Unrelated')
   assertEquals(artifacts['com/example/models/CardX.generated.kt'].includes(' : '), false)
 })
@@ -385,7 +419,7 @@ Deno.test('the scan walks webhooks without erupting; underivable webhook trails 
     components: { schemas: sealedProbeSchemas }
   })
 
-  assertEquals(JSON.stringify(manifest.results).includes('error'), false)
+  assertNoResultErrors(manifest)
   assertEquals(artifacts['com/example/models/CardX.generated.kt'].includes(' : '), false)
 })
 
@@ -409,7 +443,7 @@ Deno.test('a union in a response HEADER is claimed and sealed — full request-s
     components: { schemas: sealedProbeSchemas }
   })
 
-  assertEquals(JSON.stringify(manifest.results).includes('error'), false)
+  assertNoResultErrors(manifest)
   assertStringIncludes(
     artifacts['com/example/models/GetApiMetaResponseHeadersXPayment.generated.kt'],
     'sealed interface GetApiMetaResponseHeadersXPayment'
@@ -446,7 +480,7 @@ Deno.test('a parameter-position union names by the parameter NAME, never the arr
     components: { schemas: sealedProbeSchemas }
   })
 
-  assertEquals(JSON.stringify(manifest.results).includes('error'), false)
+  assertNoResultErrors(manifest)
   assertEquals(
     Object.keys(artifacts).some((path) => /Parameters\d/.test(path)),
     false
@@ -488,7 +522,7 @@ Deno.test('a $ref-ed parameter degrades with the rest of the components/<section
     }
   })
 
-  assertEquals(JSON.stringify(manifest.results).includes('error'), false)
+  assertNoResultErrors(manifest)
   assertEquals(artifacts['com/example/models/GetApiXFilter.generated.kt'], undefined)
   assertEquals(artifacts['com/example/models/CardX.generated.kt'].includes(' : '), false)
 })
@@ -512,7 +546,7 @@ Deno.test('a HEADER named after a structural marker keeps its own name', () => {
     components: { schemas: sealedProbeSchemas }
   })
 
-  assertEquals(JSON.stringify(manifest.results).includes('error'), false)
+  assertNoResultErrors(manifest)
   assertStringIncludes(
     artifacts['com/example/models/GetApiMetaResponseHeadersItems.generated.kt'],
     'sealed interface GetApiMetaResponseHeadersItems'
@@ -530,7 +564,7 @@ Deno.test('a COMPONENT named after a structural marker keeps its own name in syn
     }
   }))
 
-  assertEquals(JSON.stringify(manifest.results).includes('error'), false)
+  assertNoResultErrors(manifest)
   assertStringIncludes(
     artifacts['com/example/models/ItemsNested.generated.kt'],
     'data class ItemsNested'
@@ -572,7 +606,7 @@ Deno.test('allOf-composed union members qualify — the canonical base-compositi
     }
   }))
 
-  assertEquals(JSON.stringify(manifest.results).includes('error'), false)
+  assertNoResultErrors(manifest)
 
   assertEquals(
     artifacts['com/example/models/Pet.generated.kt'],

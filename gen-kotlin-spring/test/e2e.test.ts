@@ -10,6 +10,7 @@ import { StackTrail, toArtifacts } from '@skmtc/core'
 import kotlinEntry from '@skmtc/gen-kotlin-jackson'
 import type { OpenAPIV3 } from 'openapi-types'
 import springEntry from '../src/mod.ts'
+import { assertNoResultErrors } from './results.ts'
 
 const documentObject: OpenAPIV3.Document = {
   openapi: '3.0.0',
@@ -155,7 +156,7 @@ Deno.test('e2e alone - UsersApi renders the worked example; ref DTOs arrive via 
   assertEquals(manifest.parseIssues.filter(issue => issue.level === 'error'), [])
   // A generate-phase throw never touches parseIssues — gate that
   // channel too, or a silently-errored subject renders an empty shell.
-  assertEquals(JSON.stringify(manifest.results).includes('error'), false)
+  assertNoResultErrors(manifest)
 })
 
 Deno.test('e2e beside gen-kotlin-jackson - identical UsersApi; unreferenced schemas join the output', () => {
@@ -188,7 +189,7 @@ Deno.test('e2e beside gen-kotlin-jackson - identical UsersApi; unreferenced sche
   assertEquals(manifest.parseIssues.filter(issue => issue.level === 'error'), [])
   // A generate-phase throw never touches parseIssues — gate that
   // channel too, or a silently-errored subject renders an empty shell.
-  assertEquals(JSON.stringify(manifest.results).includes('error'), false)
+  assertNoResultErrors(manifest)
 })
 
 Deno.test('e2e - the two runs render byte-identical files for the shared set', () => {

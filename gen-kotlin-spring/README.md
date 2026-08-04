@@ -8,7 +8,7 @@ seam in hand-written code.
 
 ```kotlin
 interface UsersService {
-    fun getUsersId(id: String, verbose: Boolean?): User
+    fun getUsersId(id: String, verbose: Boolean? = null): User
 
     fun postUsers(body: CreateUserBody): User
 }
@@ -35,39 +35,66 @@ class UsersServiceImpl : UsersService { ... }
 
 ## Usage
 
-There is no default entry export — `basePackage` has no safe default:
+The default export IS the entry — there are no constructor options.
+Everything configurable rides the enrichment channel (see below), so
+the generator runs CLI-only and carries no module state.
 
-```ts
-import { toKotlinSpringEntry } from 'jsr:@skmtc/gen-kotlin-spring'
-
-export default toKotlinSpringEntry({ basePackage: 'com.example.api' })
-```
-
-DTOs come from `@skmtc/gen-kotlin` (peer) — run both on the same
-document. Both generators must pin the SAME `@skmtc/lang-kotlin`.
+DTOs come from `@skmtc/gen-kotlin-jackson` (peer). You do NOT have to
+register its transform: spring emits DTO types through the peer's
+exported router either way, so a spring-only stack still produces
+them. Registering it as well adds the schemas no operation references.
+Both generators must pin the SAME `@skmtc/lang-kotlin`.
 
 ## Error channel (generated)
 
-One `ApiError.generated.kt` per `basePackage`: a `@Serializable data
-class ApiError(status, message?)` plus a `@RestControllerAdvice`
+One `ApiError.generated.kt` per `basePackage`: a plain
+`data class ApiError(status, message?)` — Jackson binds it natively,
+no serialization annotation needed — plus a `@RestControllerAdvice`
 mapping Spring's own `ResponseStatusException` to it. ServiceImpls
 throw `ResponseStatusException(HttpStatus.NOT_FOUND, "No such user")`
-— no custom exception vocabulary. Needed because the Jackson-less
-kotlinx setup breaks Spring Boot's default error rendering.
+— no custom exception vocabulary. The advice exists to keep the error
+shape stable and documented rather than whatever Spring Boot's default
+error rendering emits.
 
 ## Enrichments
 
+**Two `basePackage` values are REQUIRED**, both in the `_generator`
+scope, neither with a default — a placeholder package must never ship
+into consumer code:
+
+```jsonc
+// client.json#settings.enrichments
+{
+  "@skmtc/gen-kotlin-spring":  { "_generator": { "basePackage": "com.acme.orders.api" } },
+  // The model peer. Required even when its transform is NOT registered:
+  // spring reads it through the peer's router for every DTO type. May
+  // equal or differ from the package above.
+  "@skmtc/gen-kotlin-jackson": { "_generator": { "basePackage": "com.acme.orders.models" } }
+}
+```
+
+Omitting the peer's value does not fail the run — it fails the
+individual operations whose schemas need a named declaration, and
+those endpoints then disappear from an otherwise valid, compiling
+`<Tag>Api.generated.kt`. The symptom is
+`ValiError: Invalid type: Expected Object but received undefined`
+raised from `gen-kotlin-jackson/src/lib.ts`, recorded per subject in
+`manifest.results.generate` (NOT in `parseIssues`).
+
 Per-operation config under
-`client.json#settings.enrichments["@skmtc/gen-kotlin-spring"][path][method].main`:
+`enrichments["@skmtc/gen-kotlin-spring"][path][method].main`:
 
 - **`serviceMethodName`** — rename the derived method
   (`getCreditNotesId` → `getCreditNote`); applies to the service
   declaration AND the controller delegation in lockstep.
 
-## Consumer setup (kotlinx end-to-end)
+## Consumer setup (Jackson end-to-end)
 
-- `spring-boot-starter-web` with `spring-boot-starter-json` EXCLUDED
-  (the kotlinx converter serves JSON).
+- `spring-boot-starter-web` — keep `spring-boot-starter-json`; Jackson
+  is what binds the generated DTOs.
+- `com.fasterxml.jackson.module:jackson-module-kotlin`, so Jackson can
+  construct Kotlin data classes that have no no-arg constructor. Spring
+  Boot registers it automatically once it is on the classpath.
 - `kotlin-reflect` on the classpath; the `plugin.spring` Gradle plugin.
 - Component-scan the generated `basePackage` AND your ServiceImpls.
 
@@ -83,7 +110,7 @@ Per-operation config under
   controller signature stays an exact binding.
 - Named exclusions: header/cookie params, non-JSON content,
   multi-status unions, `ResponseEntity<T>`, security annotations,
-  base paths, WebFlux/`suspend`, Jackson flavor.
+  base paths, WebFlux/`suspend`, kotlinx-serialization flavor.
 
 Specs: `skmtc/notes/lang/25-kotlin-controller-service-architecture.md`
 (+ `28` serviceMethodName/KDoc, `29` error channel).

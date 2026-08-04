@@ -7,9 +7,11 @@
 import { assertEquals, assertStringIncludes, assertThrows } from '@std/assert'
 import * as v from 'valibot'
 import { StackTrail, toArtifacts } from '@skmtc/core'
+import type { GeneratorEnrichments } from '@skmtc/core'
 import type { OpenAPIV3 } from 'openapi-types'
 import springEntry from '../src/mod.ts'
 import { generatorConfigSchema } from '../src/enrichments.ts'
+import { assertHasResultError, assertNoResultErrors } from './results.ts'
 
 const documentObject: OpenAPIV3.Document = {
   openapi: '3.0.0',
@@ -89,9 +91,31 @@ const enumParamDocument: OpenAPIV3.Document = {
 type RunFixtureOptions = {
   document?: OpenAPIV3.Document
   springEnrichment?: Record<string, unknown>
+  /**
+   * Drop the model peer's REQUIRED `basePackage` — the misconfiguration
+   * a spring-only consumer meets first, since jackson is a transitive
+   * dependency they never installed.
+   */
+  withoutJacksonConfig?: boolean
 }
 
-const runFixture = ({ document = documentObject, springEnrichment }: RunFixtureOptions = {}) => {
+const runFixture = ({
+  document = documentObject,
+  springEnrichment,
+  withoutJacksonConfig = false
+}: RunFixtureOptions = {}) => {
+  const springConfig = springEnrichment ?? { _generator: { basePackage: 'com.example.spring' } }
+
+  // jackson's basePackage is a REQUIRED generator-scope enrichment, read
+  // by the value layer even when its transform isn't registered — the
+  // `alone` runs still emit DTO types through its router.
+  const enrichments: GeneratorEnrichments = withoutJacksonConfig
+    ? { '@skmtc/gen-kotlin-spring': springConfig }
+    : {
+        '@skmtc/gen-kotlin-spring': springConfig,
+        '@skmtc/gen-kotlin-jackson': { _generator: { basePackage: 'com.example.models' } }
+      }
+
   return toArtifacts({
     traceId: 'gen-kotlin-spring-unit',
     spanId: 'fixture',
@@ -99,16 +123,7 @@ const runFixture = ({ document = documentObject, springEnrichment }: RunFixtureO
     document: { type: 'oas', value: document },
     settings: {
       basePath: './server/src/main/kotlin',
-      enrichments: {
-        '@skmtc/gen-kotlin-spring': springEnrichment ?? {
-          _generator: { basePackage: 'com.example.spring' }
-        },
-        // jackson's basePackage is a REQUIRED generator-scope enrichment,
-        // read by the value layer even when its transform isn't
-        // registered — the `alone` runs still emit DTO types through its
-        // router.
-        '@skmtc/gen-kotlin-jackson': { _generator: { basePackage: 'com.example.models' } }
-      }
+      enrichments
     },
     stackTrail: new StackTrail([]),
     silent: true,
@@ -117,16 +132,6 @@ const runFixture = ({ document = documentObject, springEnrichment }: RunFixtureO
       '@skmtc/gen-kotlin-spring': springEntry
     })
   })
-}
-
-/**
- * A generate-phase throw never touches `parseIssues` — it lands in
- * `manifest.results.generate` as a per-subject `error`, while the
- * accumulator's already-registered container still renders a
- * valid-but-empty file. Every fixture asserts BOTH channels.
- */
-const assertNoGenerateErrors = (manifest: { results: unknown }) => {
-  assertEquals(JSON.stringify(manifest.results).includes('error'), false)
 }
 
 Deno.test('one interface per tag — untagged → DefaultApi, multi-tag joins its FIRST tag only', () => {
@@ -141,7 +146,7 @@ Deno.test('one interface per tag — untagged → DefaultApi, multi-tag joins it
   ])
 
   assertEquals(manifest.parseIssues.filter(issue => issue.level === 'error'), [])
-  assertNoGenerateErrors(manifest)
+  assertNoResultErrors(manifest)
 })
 
 Deno.test('UsersApi accumulates methods in document order — params, body, return type, stackTrail-named body sibling', () => {
@@ -258,7 +263,7 @@ Deno.test('an inline enum query parameter names by the PARAMETER name, stably', 
   // reorder-stable.
   const { artifacts, manifest } = runFixture({ document: enumParamDocument })
 
-  assertNoGenerateErrors(manifest)
+  assertNoResultErrors(manifest)
 
   assertEquals(
     artifacts['server/src/main/kotlin/com/example/models/GetApiUsersIdStatus.generated.kt'],
@@ -332,5 +337,51 @@ Deno.test('the error channel renders once: ApiError + advice, byte-pinned', () =
       '    @ExceptionHandler(ResponseStatusException::class)\n' +
       '    fun handleResponseStatus(exception: ResponseStatusException): ResponseEntity<ApiError> = ResponseEntity.status(exception.statusCode).body(ApiError(exception.statusCode.value(), exception.reason))\n' +
       '}\n'
+  )
+})
+
+Deno.test('the model peer basePackage is REQUIRED — omitting it drops subjects, not the run', () => {
+  // gen-kotlin-jackson is a transitive dependency a spring-only consumer
+  // never installs, yet its `basePackage` is read by the value layer on
+  // every schema that needs a named declaration. Omitting it is NOT a
+  // whole-run failure: it is per-subject, and only for subjects whose
+  // schemas reach the model peer's path policy. The four operations
+  // carrying primitives here succeed; only the inline-object body dies.
+  const { artifacts, manifest } = runFixture({ withoutJacksonConfig: true })
+
+  assertHasResultError(manifest)
+
+  // The parse channel stays clean — this is why parseIssues alone is not
+  // a sufficient gate.
+  assertEquals(manifest.parseIssues.filter(issue => issue.level === 'error'), [])
+
+  // The failure mode is the dangerous one: UsersApi still renders, still
+  // compiles, and has silently LOST its POST endpoint.
+  assertEquals(
+    artifacts['server/src/main/kotlin/com/example/spring/UsersApi.generated.kt'],
+    'package com.example.spring\n' +
+      '\n' +
+      'import org.springframework.web.bind.annotation.GetMapping\n' +
+      'import org.springframework.web.bind.annotation.PathVariable\n' +
+      'import org.springframework.web.bind.annotation.PostMapping\n' +
+      'import org.springframework.web.bind.annotation.RequestParam\n' +
+      'import org.springframework.web.bind.annotation.RestController\n' +
+      '\n' +
+      'interface UsersService {\n' +
+      '    fun getUsersId(id: String, verbose: Boolean? = null): String\n' +
+      '}\n' +
+      '\n' +
+      '@RestController\n' +
+      'class UsersController(\n' +
+      '    private val service: UsersService\n' +
+      ') {\n' +
+      '    @GetMapping("/users/{id}")\n' +
+      '    fun getUsersId(@PathVariable("id") id: String, @RequestParam("verbose") verbose: Boolean?): String = service.getUsersId(id, verbose)\n' +
+      '}\n'
+  )
+
+  assertEquals(
+    artifacts['server/src/main/kotlin/com/example/models/CreateApiUsersBody.generated.kt'],
+    undefined
   )
 })

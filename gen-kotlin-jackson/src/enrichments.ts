@@ -32,9 +32,9 @@ export type GeneratorConfig = v.InferOutput<typeof generatorConfigSchema>
  * FUNCTION returning the schema.
  */
 export const enrichmentSchema = v.object({
-  subject: v.optional(v.undefined()),
+  subject: v.undefined(),
   generator: generatorConfigSchema,
-  stack: v.optional(v.undefined()),
+  stack: v.undefined(),
 })
 
 export type EnrichmentSchema = v.InferOutput<typeof enrichmentSchema>
