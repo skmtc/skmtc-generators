@@ -11,9 +11,10 @@ import type {
 } from '@skmtc/core'
 import { toKotlinValue } from './Kotlin.ts'
 import { applyModifiers } from './modifiers.ts'
-import { BASE_PACKAGE, JACKSON_DATABIND_PACKAGE, toModelExportPath } from './lib.ts'
+import { JACKSON_DATABIND_PACKAGE, toModelExportPath } from './lib.ts'
 import { isSealedUnion } from './shape.ts'
 import { ensureSealedParent } from './KotlinSealedInterface.ts'
+import { toSynthesizedNameOrNull } from './toSynthesizedName.ts'
 
 type KotlinUnionArgs = {
   context: GenerateContextType
@@ -52,46 +53,28 @@ export class KotlinUnion extends KtSnippet {
     this.discriminator = discriminator?.propertyName
     this.modifiers = modifiers
 
-    if (schema !== undefined && !schema.isRef() && isSealedUnion(context, schema)) {
-      // An INLINE qualifying union: the sealed parent is declared by
-      // whoever needs it first (this render site or a member's ` : `
-      // clause — see ensureSealedParent for placement and the race);
-      // type position renders its NAME through a registered import.
-      const name = ensureSealedParent(context, {
-        generatorKey,
-        unionSchema: schema,
-        rootRef,
-      })
+    // An INLINE qualifying union: the sealed parent is declared by
+    // whoever needs it first (this render site or a member's ` : `
+    // clause — see ensureSealedParent for placement and the race);
+    // type position renders its NAME through a registered import. The
+    // derivability probe is the SAME one the membership scan used to
+    // claim (or skip) the members — an underivable position falls back
+    // to `JsonNode` here AND renders no clause there, consistently.
+    const reference = schema !== undefined && !schema.isRef() &&
+        isSealedUnion(context, schema) &&
+        toSynthesizedNameOrNull(schema.stackTrail) !== null
+      ? ensureSealedParent(context, { generatorKey, unionSchema: schema, rootRef })
+      : null
 
-      // The TypeSystem contract walk, against the SEALED file so cache
-      // hits keep member imports where they belong (same package as the
-      // members — suppressed at render).
-      this.members = members.map((member) =>
-        toKotlinValue({
-          destinationPath: toModelExportPath(name),
-          schema: member,
-          required: true,
-          context,
-          rootRef,
-        })
-      )
+    // The TypeSystem contract walk. When the union qualified,
+    // `KotlinSealedInterface` has ALREADY walked these members against
+    // the sealed file on `'declare'` — this walk is cache hits, and it
+    // targets the same file so member imports stay where they belong.
+    const memberPath = reference !== null ? toModelExportPath(reference) : destinationPath
 
-      this.register({
-        imports: { [BASE_PACKAGE]: [name] },
-        destinationPath,
-      })
-
-      this.reference = name
-
-      return
-    }
-
-    // The members are still walked so that every `$ref` inside a union
-    // gets its own model generated and cached, even though the union's
-    // own type expression cannot name them.
     this.members = members.map((member) =>
       toKotlinValue({
-        destinationPath,
+        destinationPath: memberPath,
         schema: member,
         required: true,
         context,
@@ -100,9 +83,16 @@ export class KotlinUnion extends KtSnippet {
     )
 
     this.register({
-      imports: { [JACKSON_DATABIND_PACKAGE]: ['JsonNode'] },
+      imports: reference !== null
+        // The `@/`-export-path import key — the project-file form
+        // KtImport resolves through the path policy; same-package
+        // suppression drops it where redundant.
+        ? { [toModelExportPath(reference)]: [reference] }
+        : { [JACKSON_DATABIND_PACKAGE]: ['JsonNode'] },
       destinationPath,
     })
+
+    this.reference = reference
   }
 
   override toString(): string {

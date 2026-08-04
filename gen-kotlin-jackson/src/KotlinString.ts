@@ -8,6 +8,7 @@ import type {
 import { applyModifiers } from './modifiers.ts'
 import { KotlinEnumEntries } from './KotlinEnumEntries.ts'
 import { toSynthesizedName } from './toSynthesizedName.ts'
+import { toModelExportPath } from './lib.ts'
 import { claimSynthesizedName } from './synthesizedNames.ts'
 
 type KotlinStringArgs = {
@@ -62,18 +63,27 @@ export class KotlinString extends KtSnippet {
         stackTrail: stringSchema.stackTrail,
       })
 
+      // ONE placement policy for every synthesized declaration: its own
+      // models-package file — see the inline-object site for why.
+      const exportPath = toModelExportPath(name)
+
       if (claim === 'declare') {
         defineAndRegister(context, {
           identifier: createEnumClass(name),
           value: new KotlinEnumEntries({
             context,
-            destinationPath,
+            destinationPath: exportPath,
             stringSchema,
             generatorKey,
           }),
-          destinationPath,
+          destinationPath: exportPath,
         })
       }
+
+      this.register({
+        imports: { [exportPath]: [name] },
+        destinationPath,
+      })
 
       this.reference = name
     }

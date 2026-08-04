@@ -31,12 +31,50 @@ import type { StackTrail } from '@skmtc/core'
  *              (reusing core's method-verb vocabulary: post → Create)
  */
 export const toSynthesizedName = (stackTrail: StackTrail): string => {
+  const name = toSynthesizedNameOrNull(stackTrail)
+
+  if (name === null) {
+    // A schema with no recognizable position (synthesized
+    // programmatically, or a document shape this derivation has not been
+    // designed for — `components/requestBodies/…`, `webhooks/…`) has no
+    // honest name — throw rather than invent one. The engine isolates
+    // the throw to this subject's artifact.
+    throw new Error(
+      `Cannot synthesize a declaration name: unrecognized stack trail [${stackTrail.stackTrail.join(', ')}]`
+    )
+  }
+
+  return name
+}
+
+/**
+ * The non-throwing derivability probe. Sealed-union machinery keys on
+ * this SHARED answer at every site — the membership scan (claim or
+ * skip), the union's render site (sealed name or `JsonNode`), and
+ * through them the members' supertype clauses — so an underivable
+ * position degrades to the pre-synthesis behavior consistently instead
+ * of one site declaring what another cannot name. Teaching THIS
+ * function a new root (`components/<section>`, `webhooks`) upgrades all
+ * of them in lockstep.
+ */
+export const toSynthesizedNameOrNull = (stackTrail: StackTrail): string | null => {
   const frames = stackTrail.stackTrail
 
   const componentsIndex = frames.indexOf('components')
 
   if (componentsIndex !== -1 && frames[componentsIndex + 1] === 'schemas') {
-    return toSegments(frames.slice(componentsIndex + 2)).join('')
+    // The first frame after `components/schemas` is a user-chosen
+    // COMPONENT NAME — consumed positionally (the same rule that makes
+    // `properties` consume its key), so a component named `items` or
+    // `schema` contributes its PascalCased self instead of being read
+    // as a structural marker.
+    const [componentName, ...rest] = frames.slice(componentsIndex + 2)
+
+    if (componentName === undefined) {
+      return null
+    }
+
+    return `${capitalize(camelCase(componentName))}${toSegments(rest).join('')}`
   }
 
   const pathsIndex = frames.indexOf('paths')
@@ -45,22 +83,14 @@ export const toSynthesizedName = (stackTrail: StackTrail): string => {
     return toOperationRootedName(frames.slice(pathsIndex + 1))
   }
 
-  // A schema with no recognizable position (synthesized programmatically,
-  // or a document shape this derivation has not been designed for) has no
-  // honest name — throw rather than invent one. The engine isolates the
-  // throw to this subject's artifact.
-  throw new Error(
-    `Cannot synthesize a declaration name: unrecognized stack trail [${frames.join(', ')}]`
-  )
+  return null
 }
 
-const toOperationRootedName = (frames: string[]): string => {
+const toOperationRootedName = (frames: string[]): string | null => {
   const [path, method, ...rest] = frames
 
   if (path === undefined || method === undefined || !isMethod(method)) {
-    throw new Error(
-      `Cannot synthesize a declaration name: operation trail lacks path/method [${frames.join(', ')}]`
-    )
+    return null
   }
 
   const base = capitalize(camelCase(`${toMethodVerb(method)}Api${path}`))

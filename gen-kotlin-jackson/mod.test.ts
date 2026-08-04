@@ -5,7 +5,8 @@
  * keyword `object` (backticked, unannotated), enum class with wire
  * mapping, optional/nullable single-?, shared ref (Address x2 -> one
  * definition), self-recursion (Category); inline object/enum synthesis
- * as stackTrail-named siblings (Order.metadata/Order.priority), the
+ * as stackTrail-named declarations in their own models-package files
+ * (Order.metadata/Order.priority), the
  * mixed props+additionalProperties catch-all (Settings), a
  * discriminated union as sealed interface + @JsonTypeInfo/@JsonSubTypes
  * (PaymentMethod — mapped tags AND the refName-default tag), member
@@ -68,12 +69,16 @@ Deno.test('every model renders to its own file in the fixed package', () => {
     'com/example/models/LegacyValue.generated.kt',
     'com/example/models/Order.generated.kt',
     'com/example/models/OrderItem.generated.kt',
+    'com/example/models/OrderMetadata.generated.kt',
+    'com/example/models/OrderPriority.generated.kt',
     'com/example/models/OrderRefund.generated.kt',
     'com/example/models/OrderStatus.generated.kt',
     'com/example/models/PaymentMethod.generated.kt',
     'com/example/models/Settings.generated.kt',
     'com/example/models/StoreCreditPayment.generated.kt',
-    'com/example/models/Widget.generated.kt'
+    'com/example/models/Widget.generated.kt',
+    'com/example/models/WidgetItems.generated.kt',
+    'com/example/models/WidgetProperties.generated.kt'
   ])
 })
 
@@ -88,20 +93,20 @@ Deno.test('property keys that spell structural markers still name their siblings
     artifacts['com/example/models/Widget.generated.kt'],
     `package com.example.models
 
-data class WidgetProperties(
-    val color: String
-)
-
-data class WidgetItems(
-    val label: String? = null
-)
-
 data class Widget(
     val properties: WidgetProperties,
     val items: WidgetItems? = null,
     val schema: String? = null
 )
 `
+  )
+  assertStringIncludes(
+    artifacts['com/example/models/WidgetProperties.generated.kt'],
+    'data class WidgetProperties'
+  )
+  assertStringIncludes(
+    artifacts['com/example/models/WidgetItems.generated.kt'],
+    'data class WidgetItems'
   )
 })
 
@@ -167,11 +172,24 @@ Deno.test('a LATE collision drops the model but leaves earlier siblings as orpha
   // don't reach (their collision lands on the first inline property).
   assertEquals(JSON.stringify(manifest.results).includes('error'), true)
 
-  const orderFile = artifacts['com/example/models/Order.generated.kt']
-
-  assertStringIncludes(orderFile, 'data class OrderGood')
-  assertStringIncludes(orderFile, 'data class OrderMetaData')
-  assertEquals(orderFile.includes('data class Order('), false)
+  // Synthesized declarations live in their OWN models-package files, so
+  // the orphans are whole files. The failed model's own file survives as
+  // a header-only stub: the sibling references registered their imports
+  // into it before the collision threw (same-package suppression then
+  // drops them), and per-subject isolation does not unwind the file
+  // entry. Valid Kotlin, dead weight — the manifest error is the signal.
+  assertEquals(
+    artifacts['com/example/models/Order.generated.kt'],
+    'package com.example.models\n'
+  )
+  assertStringIncludes(
+    artifacts['com/example/models/OrderGood.generated.kt'],
+    'data class OrderGood'
+  )
+  assertStringIncludes(
+    artifacts['com/example/models/OrderMetaData.generated.kt'],
+    'data class OrderMetaData'
+  )
 })
 
 Deno.test('an inline component-property union synthesizes its sealed parent beside the models', () => {
@@ -232,6 +250,125 @@ sealed interface CreateApiCheckoutBody
   assertStringIncludes(
     artifacts['com/example/models/BankTransferPayment.generated.kt'],
     ') : PaymentMethod, CreateApiCheckoutBody'
+  )
+})
+
+const sealedProbeSchemas = {
+  CardX: {
+    type: 'object',
+    required: ['kind', 'a'],
+    properties: { kind: { type: 'string' }, a: { type: 'string' } }
+  },
+  BankX: {
+    type: 'object',
+    required: ['kind', 'b'],
+    properties: { kind: { type: 'string' }, b: { type: 'string' } }
+  },
+  Unrelated: { type: 'object', properties: { x: { type: 'string' } } }
+}
+
+const sealedProbeUnion = {
+  oneOf: [{ $ref: '#/components/schemas/CardX' }, { $ref: '#/components/schemas/BankX' }],
+  discriminator: { propertyName: 'kind' }
+}
+
+Deno.test('an underivable-trail union degrades to pre-synthesis behavior — never a document-wide failure', () => {
+  // A qualifying union under components/requestBodies carries a trail
+  // toSynthesizedName cannot derive. The scan SKIPS it (the shared
+  // derivability probe), so members render without a clause and every
+  // model — including one with nothing to do with the union — still
+  // renders. Deriving eagerly inside the memoized scan would instead
+  // throw during EVERY model's construction: zero files, all subjects
+  // failed.
+  const { artifacts, manifest } = generate({
+    openapi: '3.0.0',
+    info: { title: 'requestBodies-isolation', version: '0.0.0' },
+    paths: {},
+    components: {
+      schemas: sealedProbeSchemas,
+      requestBodies: {
+        Checkout: { content: { 'application/json': { schema: sealedProbeUnion } } }
+      }
+    }
+  })
+
+  assertEquals(JSON.stringify(manifest.results).includes('error'), false)
+  assertStringIncludes(artifacts['com/example/models/Unrelated.generated.kt'], 'data class Unrelated')
+  assertEquals(artifacts['com/example/models/CardX.generated.kt'].includes(' : '), false)
+})
+
+Deno.test('the scan walks webhooks without erupting; underivable webhook trails degrade the same way', () => {
+  // core keeps webhooks SEPARATE from operations — the scan must cover
+  // them. Webhook trails are not yet derivable, so today this degrades
+  // exactly like the requestBodies case (no claims, no clauses, no
+  // sealed declaration from EITHER side — both key on the same
+  // derivability probe); teaching toSynthesizedName the webhooks root
+  // upgrades scan, render site and members in lockstep.
+  const { artifacts, manifest } = generate({
+    openapi: '3.1.0',
+    info: { title: 'webhooks', version: '0.0.0' },
+    paths: {},
+    webhooks: {
+      orderEvent: {
+        post: {
+          requestBody: { content: { 'application/json': { schema: sealedProbeUnion } } },
+          responses: { '200': { description: 'ok' } }
+        }
+      }
+    },
+    components: { schemas: sealedProbeSchemas }
+  })
+
+  assertEquals(JSON.stringify(manifest.results).includes('error'), false)
+  assertEquals(artifacts['com/example/models/CardX.generated.kt'].includes(' : '), false)
+})
+
+Deno.test('a union in a response HEADER is claimed and sealed — full request-surface coverage', () => {
+  // Headers (and the parameter `content` alternative) are walkable
+  // positions the scan must claim: paths-rooted trails ARE derivable,
+  // so the members ensure the sealed parent into existence and declare
+  // the supertype — with no operation generator registered.
+  const { artifacts, manifest } = generate({
+    openapi: '3.0.0',
+    info: { title: 'header-union', version: '0.0.0' },
+    paths: {
+      '/meta': {
+        get: {
+          responses: {
+            '200': { description: 'ok', headers: { 'X-Payment': { schema: sealedProbeUnion } } }
+          }
+        }
+      }
+    },
+    components: { schemas: sealedProbeSchemas }
+  })
+
+  assertEquals(JSON.stringify(manifest.results).includes('error'), false)
+  assertStringIncludes(
+    artifacts['com/example/models/GetApiMetaResponseHeadersXPayment.generated.kt'],
+    'sealed interface GetApiMetaResponseHeadersXPayment'
+  )
+  assertStringIncludes(
+    artifacts['com/example/models/CardX.generated.kt'],
+    ') : GetApiMetaResponseHeadersXPayment'
+  )
+})
+
+Deno.test('a COMPONENT named after a structural marker keeps its own name in synthesized siblings', () => {
+  // The first frame after components/schemas is a user-chosen component
+  // name, consumed positionally — a component named `items` must not be
+  // read as the array-items marker (`ItemsNested`, not `ItemNested`).
+  const { artifacts, manifest } = generate(toDocument({
+    items: {
+      type: 'object',
+      properties: { nested: { type: 'object', properties: { a: { type: 'string' } } } }
+    }
+  }))
+
+  assertEquals(JSON.stringify(manifest.results).includes('error'), false)
+  assertStringIncludes(
+    artifacts['com/example/models/ItemsNested.generated.kt'],
+    'data class ItemsNested'
   )
 })
 
@@ -324,21 +461,6 @@ Deno.test('Order pins the full render (wire names, keyword, optionality, synthes
     `package com.example.models
 
 import com.fasterxml.jackson.annotation.JsonProperty
-
-data class OrderMetadata(
-    val source: String,
-    @JsonProperty("campaign_id")
-    val campaignId: String? = null
-)
-
-enum class OrderPriority {
-    @JsonProperty("low")
-    LOW,
-    @JsonProperty("normal")
-    NORMAL,
-    @JsonProperty("high")
-    HIGH
-}
 
 data class Order(
     val id: String,
