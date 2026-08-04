@@ -167,6 +167,83 @@ Deno.test('a LATE collision drops the model but leaves earlier siblings as orpha
   assertEquals(orderFile.includes('data class Order('), false)
 })
 
+Deno.test('allOf-composed union members qualify — the canonical base-composition idiom', () => {
+  // The OpenAPI spec's flagship polymorphism style: shared fields on a
+  // base, members compose via allOf, parent is a discriminated oneOf.
+  // No generator code handles allOf — core resolves it at PARSE time
+  // (mergeIntersection flattens the composition, refs included), so the
+  // member peeks as a flat object-with-properties and qualifies. This
+  // pin turns that parse-time grace into a guarantee: if core's merge
+  // strategy ever changes, this is the test that says so.
+  const { artifacts, manifest } = generate(toDocument({
+    PetBase: {
+      type: 'object',
+      required: ['petType', 'name'],
+      properties: { petType: { type: 'string' }, name: { type: 'string' } }
+    },
+    Dog: {
+      allOf: [
+        { $ref: '#/components/schemas/PetBase' },
+        { type: 'object', properties: { barkVolume: { type: 'number' } } }
+      ]
+    },
+    Cat: {
+      allOf: [
+        { $ref: '#/components/schemas/PetBase' },
+        { type: 'object', required: ['indoor'], properties: { indoor: { type: 'boolean' } } }
+      ]
+    },
+    Pet: {
+      oneOf: [{ $ref: '#/components/schemas/Dog' }, { $ref: '#/components/schemas/Cat' }],
+      discriminator: {
+        propertyName: 'petType',
+        mapping: { dog: '#/components/schemas/Dog', cat: '#/components/schemas/Cat' }
+      }
+    }
+  }))
+
+  assertEquals(JSON.stringify(manifest.results).includes('error'), false)
+
+  assertEquals(
+    artifacts['com/example/models/Pet.generated.kt'],
+    `package com.example.models
+
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
+
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "petType")
+@JsonSubTypes(JsonSubTypes.Type(value = Dog::class, name = "dog"), JsonSubTypes.Type(value = Cat::class, name = "cat"))
+sealed interface Pet
+`
+  )
+
+  // The base's fields FLATTEN into each member (data classes cannot
+  // extend a base with constructor properties — the sealed interface is
+  // the polymorphism seam), the discriminator is omitted, and required
+  // propagates through the merge (indoor is non-nullable).
+  assertEquals(
+    artifacts['com/example/models/Dog.generated.kt'],
+    `package com.example.models
+
+data class Dog(
+    val name: String,
+    val barkVolume: Double? = null
+) : Pet
+`
+  )
+
+  assertStringIncludes(
+    artifacts['com/example/models/Cat.generated.kt'],
+    'val indoor: Boolean\n) : Pet'
+  )
+
+  // The base itself stays a legitimate standalone model.
+  assertStringIncludes(
+    artifacts['com/example/models/PetBase.generated.kt'],
+    'data class PetBase'
+  )
+})
+
 Deno.test('Order pins the full render (wire names, keyword, optionality, synthesized siblings)', () => {
   const { artifacts } = generate()
 
