@@ -66,13 +66,16 @@ export type SealedParent = {
  * WeakMap (a pure function of the document, so determinism holds and
  * parallel test runs stay isolated).
  *
- * The scan DEEP-WALKS every component subtree AND every operation's
- * schemas (parameters, request bodies, responses — the flattened
- * `document.value.operations`), because a qualifying union can sit
- * inline at any of those positions and its members still need their
- * supertype clause. Refs are never followed: every component is walked
- * from its own root, so following a ref would only double-visit (or
- * loop).
+ * The scan DEEP-WALKS every component subtree AND the full request
+ * surface of every operation-shaped subject — `document.value.operations`
+ * and `document.value.webhooks` (core keeps them in SEPARATE arrays),
+ * each contributing parameters (both the direct `schema` and the
+ * `content` media-type alternative), request bodies, responses, and
+ * response headers (again schema OR `content`) — because a qualifying
+ * union can sit inline at any of those positions and its members still
+ * need their supertype clause. Refs are never followed: every component
+ * is walked from its own root, so following a ref would only
+ * double-visit (or loop).
  *
  * Membership derives from the DOCUMENT, not the post-`skip`/`include`
  * set — dependency edges are filter-blind (the `insertOperation`

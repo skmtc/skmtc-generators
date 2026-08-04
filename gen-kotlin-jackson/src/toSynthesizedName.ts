@@ -74,7 +74,13 @@ export const toSynthesizedNameOrNull = (stackTrail: StackTrail): string | null =
       return null
     }
 
-    return `${capitalize(camelCase(componentName))}${toSegments(rest).join('')}`
+    const segments = toSegments(rest)
+
+    if (segments === null) {
+      return null
+    }
+
+    return `${capitalize(camelCase(componentName))}${segments.join('')}`
   }
 
   const pathsIndex = frames.indexOf('paths')
@@ -93,26 +99,40 @@ const toOperationRootedName = (frames: string[]): string | null => {
     return null
   }
 
+  const segments = toSegments(rest)
+
+  if (segments === null) {
+    return null
+  }
+
   const base = capitalize(camelCase(`${toMethodVerb(method)}Api${path}`))
 
-  return `${base}${toSegments(rest).join('')}`
+  return `${base}${segments.join('')}`
 }
 
 /**
- * Positional frames → name segments. Classification is POSITIONAL, not
- * lexical: `properties` consumes the frame that follows it as a literal
- * key segment, because that frame is a user-chosen property name — a
- * property literally called `properties`, `schema`, `content` or
- * `items` must contribute its PascalCased self, never be mistaken for a
- * structural marker. The remaining structural frames can then be
- * matched by value: a bare `schema` vanishes (operation trails),
- * `content` drops itself and its media-type frame, and container frames
- * become fixed segments (`items` → `Item`, `additionalProperties` →
- * `Value`, `requestBody` → `Body`, `responses` → `Response` with 2xx
- * status codes elided). Everything else contributes its PascalCased
- * self.
+ * Positional frames → name segments, or `null` when the position has no
+ * stable name. Classification is POSITIONAL, not lexical, under one
+ * general rule: **every frame that introduces a user-chosen key
+ * consumes the next frame literally** — `properties` (property name),
+ * `headers` (header name), `content` (media type; structural, dropped),
+ * and `components/schemas` (component name, consumed by the caller).
+ * A property or header literally called `items` or `schema` therefore
+ * contributes its PascalCased self, never a structural reading. The
+ * remaining structural frames can then be matched by value: a bare
+ * `schema` vanishes (operation trails), combinator keywords vanish, and
+ * container frames become fixed segments (`items` → `Item`,
+ * `additionalProperties` → `Value`, `requestBody` → `Body`, `responses`
+ * → `Response` with 2xx status codes elided). Everything else
+ * contributes its PascalCased self.
+ *
+ * `parameters/<index>` is UNDERIVABLE (`null`): the trail addresses the
+ * parameter by array position, and an absolute index in a public class
+ * name churns whenever a spec edit reorders parameters — exactly what
+ * anchoring on landmarks exists to prevent. Naming these needs the
+ * parameter NAME in the trail, which is a core-side question.
  */
-const toSegments = (frames: string[]): string[] => {
+const toSegments = (frames: string[]): string[] | null => {
   const segments: string[] = []
 
   for (let index = 0; index < frames.length; index++) {
@@ -127,6 +147,23 @@ const toSegments = (frames: string[]): string[] => {
 
       index++
       continue
+    }
+
+    if (frame === 'headers') {
+      segments.push('Headers')
+
+      const key = frames[index + 1]
+
+      if (key !== undefined) {
+        segments.push(capitalize(camelCase(key)))
+      }
+
+      index++
+      continue
+    }
+
+    if (frame === 'parameters' && /^\d+$/.test(frames[index + 1] ?? '')) {
+      return null
     }
 
     if (frame === 'schema') {

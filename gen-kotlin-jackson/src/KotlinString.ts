@@ -57,7 +57,10 @@ export class KotlinString extends KtSnippet {
       // Same claim as the inline-object site: collisions live at PACKAGE
       // scope and across convergent keys — a probe hit on a name from a
       // DIFFERENT position would silently substitute the wrong type, so
-      // the registry throws instead.
+      // the registry throws instead. The THROWING name derivation is
+      // also deliberate (vs the union machinery's soft degrade): an
+      // enum widened to `String` would discard its members — no honest
+      // fallback exists, so an underivable position fails the subject.
       const claim = claimSynthesizedName(context, {
         name,
         stackTrail: stringSchema.stackTrail,

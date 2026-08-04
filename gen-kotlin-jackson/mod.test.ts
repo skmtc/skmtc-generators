@@ -354,6 +354,62 @@ Deno.test('a union in a response HEADER is claimed and sealed — full request-s
   )
 })
 
+Deno.test('a parameter-position union is UNDERIVABLE — no index-addressed public names', () => {
+  // The trail addresses parameters by ARRAY INDEX; an absolute index in
+  // a public class name (`GetApiXParameters0`) would churn whenever a
+  // spec edit reorders parameters. The shared derivability probe treats
+  // `parameters/<index>` as underivable, so the union degrades to
+  // `JsonNode`, members render without a clause, and nothing is emitted
+  // under an unstable name. Naming these properly needs the parameter
+  // NAME in the trail — a core-side question.
+  const { artifacts, manifest } = generate({
+    openapi: '3.0.0',
+    info: { title: 'param-union', version: '0.0.0' },
+    paths: {
+      '/x': {
+        get: {
+          parameters: [{ name: 'filter', in: 'query', schema: sealedProbeUnion }],
+          responses: { '200': { description: 'ok' } }
+        }
+      }
+    },
+    components: { schemas: sealedProbeSchemas }
+  })
+
+  assertEquals(JSON.stringify(manifest.results).includes('error'), false)
+  assertEquals(
+    Object.keys(artifacts).some((path) => path.includes('Parameters')),
+    false
+  )
+  assertEquals(artifacts['com/example/models/CardX.generated.kt'].includes(' : '), false)
+})
+
+Deno.test('a HEADER named after a structural marker keeps its own name', () => {
+  // `headers` introduces a user-chosen key and consumes it literally —
+  // the same positional rule as `properties` — so a header named
+  // `items` names `...HeadersItems`, never the array-items marker.
+  const { artifacts, manifest } = generate({
+    openapi: '3.0.0',
+    info: { title: 'header-named-items', version: '0.0.0' },
+    paths: {
+      '/meta': {
+        get: {
+          responses: {
+            '200': { description: 'ok', headers: { items: { schema: sealedProbeUnion } } }
+          }
+        }
+      }
+    },
+    components: { schemas: sealedProbeSchemas }
+  })
+
+  assertEquals(JSON.stringify(manifest.results).includes('error'), false)
+  assertStringIncludes(
+    artifacts['com/example/models/GetApiMetaResponseHeadersItems.generated.kt'],
+    'sealed interface GetApiMetaResponseHeadersItems'
+  )
+})
+
 Deno.test('a COMPONENT named after a structural marker keeps its own name in synthesized siblings', () => {
   // The first frame after components/schemas is a user-chosen component
   // name, consumed positionally — a component named `items` must not be

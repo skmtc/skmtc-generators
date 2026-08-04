@@ -87,7 +87,7 @@ export class KotlinUnion extends KtSnippet {
         // The `@/`-export-path import key — the project-file form
         // KtImport resolves through the path policy; same-package
         // suppression drops it where redundant.
-        ? { [toModelExportPath(reference)]: [reference] }
+        ? { [memberPath]: [reference] }
         : { [JACKSON_DATABIND_PACKAGE]: ['JsonNode'] },
       destinationPath,
     })

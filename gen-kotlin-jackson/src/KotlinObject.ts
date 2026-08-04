@@ -95,6 +95,13 @@ export class KotlinObject extends KtSnippet {
       // The alternative — claiming every name a subject needs before
       // declaring any — would split the walk into two phases and break
       // registration-at-construction for no observable gain.
+      //
+      // The THROWING derivation, deliberately — unlike the union
+      // machinery's shared soft degrade (`toSynthesizedNameOrNull`):
+      // an underivable union falls back to `JsonNode`, an honest wire
+      // type, but a structured object has no honest fallback — widening
+      // it to `Map<String, Any?>` would discard the shape the schema
+      // gave us. Capitulation, not a degrade; fail the subject loudly.
       const name = toSynthesizedName(objectSchema.stackTrail)
 
       const claim = claimSynthesizedName(context, {
