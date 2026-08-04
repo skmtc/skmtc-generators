@@ -1,4 +1,4 @@
-import { KtAnnotation, KtSnippet } from '@skmtc/lang-kotlin'
+import { createSealedInterface, defineAndRegister, KtAnnotation, KtSnippet } from '@skmtc/lang-kotlin'
 import type {
   GenerateContextType,
   GeneratorKey,
@@ -8,8 +8,10 @@ import type {
   TypeSystemValue,
 } from '@skmtc/core'
 import { toKotlinValue } from './Kotlin.ts'
-import { JACKSON_ANNOTATION_PACKAGE } from './lib.ts'
+import { JACKSON_ANNOTATION_PACKAGE, toModelExportPath } from './lib.ts'
 import { toMemberTag } from './sealedMembership.ts'
+import { toSynthesizedName } from './toSynthesizedName.ts'
+import { claimSynthesizedName } from './synthesizedNames.ts'
 
 type KotlinSealedInterfaceArgs = {
   context: GenerateContextType
@@ -17,6 +19,60 @@ type KotlinSealedInterfaceArgs = {
   unionSchema: OasUnion
   generatorKey: GeneratorKey
   rootRef?: RefName
+}
+
+type EnsureSealedParentArgs = {
+  generatorKey: GeneratorKey
+  unionSchema: OasUnion
+  rootRef?: RefName
+}
+
+/**
+ * Declare an INLINE qualifying union's sealed interface exactly once and
+ * return its name. Two kinds of consumer race to need it — the union's
+ * own render site (`KotlinUnion`, type position) and each MEMBER's
+ * data-class projection (the ` : Parent` clause) — and construction
+ * order between them is arbitrary, so ownership goes to whoever arrives
+ * FIRST, arbitrated by the claim registry (a same-position re-claim is
+ * `'reuse'`; collisions throw there).
+ *
+ * PLACEMENT is the models package, never the caller's file: Kotlin
+ * requires sealed subtypes in the parent's package, and the members are
+ * component models in `BASE_PACKAGE` — so the parent joins them, and
+ * callers reference it through a registered import (same-package
+ * suppression drops it where redundant). The name derives from the union
+ * node's own stackTrail — the SAME derivation the membership scan used
+ * when it claimed the members, so the clause and the reference cannot
+ * disagree.
+ */
+export const ensureSealedParent = (
+  context: GenerateContextType,
+  { generatorKey, unionSchema, rootRef }: EnsureSealedParentArgs,
+): string => {
+  const name = toSynthesizedName(unionSchema.stackTrail)
+
+  const claim = claimSynthesizedName(context, {
+    name,
+    stackTrail: unionSchema.stackTrail,
+  })
+
+  if (claim === 'declare') {
+    const sealedPath = toModelExportPath(name)
+
+    defineAndRegister(context, {
+      identifier: createSealedInterface(name),
+      value: new KotlinSealedInterface({
+        context,
+        generatorKey,
+        destinationPath: sealedPath,
+        unionSchema,
+        rootRef,
+      }),
+      destinationPath: sealedPath,
+    })
+  }
+
+  return name
 }
 
 type KotlinSubTypeArgs = {
