@@ -1,5 +1,5 @@
 import { camelCase, decapitalize } from '@skmtc/core'
-import { toTsModelProjectionBase } from '@skmtc/lang-typescript'
+import { toTsModelProjectionBase, sanitizeIdentifier } from '@skmtc/lang-typescript'
 import { join } from "@std/path";
 import { toEnrichmentSchema, type EnrichmentSchema } from "./enrichments.ts";
 import denoJson from "../deno.json" with { type: "json" };
@@ -8,7 +8,7 @@ export const ZodBase = toTsModelProjectionBase<EnrichmentSchema>({
   id: denoJson.name,
 
   toIdentifierName({ refName }): string {
-    return decapitalize(camelCase(refName));
+    return sanitizeIdentifier(decapitalize(camelCase(refName)));
   },
 
   toIdentifierType: () => ({ type: "variable" }),

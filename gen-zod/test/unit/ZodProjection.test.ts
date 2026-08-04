@@ -176,3 +176,40 @@ Deno.test("ZodProjection - non-recursive model carries no type annotation", () =
 
   assertEquals(inserted.toIdentifier().typeName, undefined);
 });
+
+Deno.test("ZodProjection - a reserved-word schema name is renamed", () => {
+  const stackTrail = new StackTrail(["TEST"]);
+  const schemas = {
+    // `decapitalize(camelCase('Export'))` is `export`, and
+    // `export const export = …` is a syntax error.
+    Export: {
+      type: "object" as const,
+      properties: { id: { type: "string" as const } },
+      required: ["id"],
+    },
+  };
+
+  const parseContext = toParseContext({ schemas });
+  const oasDocument = parseContext.parse(stackTrail);
+  const context = toGenerateContext({ oasDocument });
+
+  const zodProjection = context.insertModel(ZodProjection, "Export" as RefName);
+
+  assertEquals(zodProjection.toIdentifier().name, "exportValue");
+  assertEquals(zodProjection.toExportPath(), "@/types/exportValue.generated.ts");
+});
+
+Deno.test("ZodProjection - a schema name that cannot start an identifier is repaired", () => {
+  const stackTrail = new StackTrail(["TEST"]);
+  const schemas = {
+    "2fa": { type: "string" as const },
+  };
+
+  const parseContext = toParseContext({ schemas });
+  const oasDocument = parseContext.parse(stackTrail);
+  const context = toGenerateContext({ oasDocument });
+
+  const zodProjection = context.insertModel(ZodProjection, "2fa" as RefName);
+
+  assertEquals(zodProjection.toIdentifier().name, "_2fa");
+});
