@@ -24,6 +24,7 @@ jobs:
         generator:
           - gen-arktype
           - gen-kotlin-jackson
+          - gen-kotlin-spring
           - gen-msw
           - gen-shadcn-form
           - gen-shadcn-select

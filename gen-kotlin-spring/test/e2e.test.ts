@@ -1,15 +1,16 @@
 /**
  * Step-3 e2e gate (note 23): the spec's worked-example fixture through
  * the real pipeline, byte-pinned — gen-kotlin-spring ALONE (DTO peers
- * arrive through KtRef insertion; the dependency edge needs no gen-kotlin
- * transform) AND BESIDE gen-kotlin on a shared document (the documented
+ * arrive through the model peer's router; the dependency edge needs no
+ * registered model transform) AND BESIDE gen-kotlin-jackson on a shared document (the documented
  * consumer composition; unreferenced schemas appear only here).
  */
-import { assertEquals } from 'jsr:@std/assert@^1.0.0'
+import { assertEquals } from '@std/assert'
 import { StackTrail, toArtifacts } from '@skmtc/core'
-import kotlinEntry from '@skmtc/gen-kotlin-kotlinx'
+import kotlinEntry from '@skmtc/gen-kotlin-jackson'
 import type { OpenAPIV3 } from 'openapi-types'
 import springEntry from '../src/mod.ts'
+import { assertNoResultErrors } from './results.ts'
 
 const documentObject: OpenAPIV3.Document = {
   openapi: '3.0.0',
@@ -79,6 +80,8 @@ const documentObject: OpenAPIV3.Document = {
 const expectedUsersApi =
   'package com.example.api\n' +
   '\n' +
+  'import com.example.models.CreateUserBody\n' +
+  'import com.example.models.User\n' +
   'import org.springframework.http.HttpStatus\n' +
   'import org.springframework.web.bind.annotation.GetMapping\n' +
   'import org.springframework.web.bind.annotation.PathVariable\n' +
@@ -118,12 +121,15 @@ const runFixture = ({ besideGenKotlin }: RunFixtureArgs) => {
     document: { type: 'oas', value: documentObject },
     settings: {
       basePath: './app/src/main/kotlin',
-      // Both generators' basePackage rides the `_generator` scope. The value
-      // layer reads gen-kotlin-kotlinx's config even when its transform isn't
-      // registered — the `alone` run still emits DTO types via `toKtValue`.
+      // Both basePackages are REQUIRED generator-scope enrichments (no
+      // defaults — a placeholder package must never ship silently).
+      // jackson's is read by the value layer even in the `alone` run,
+      // and the fixture deliberately picks a DIFFERENT package for it so
+      // DTO references cross packages and their imports are stitched by
+      // the engine.
       enrichments: {
         '@skmtc/gen-kotlin-spring': { _generator: { basePackage: 'com.example.api' } },
-        '@skmtc/gen-kotlin-kotlinx': { _generator: { basePackage: 'com.example.api' } }
+        '@skmtc/gen-kotlin-jackson': { _generator: { basePackage: 'com.example.models' } }
       }
     },
     stackTrail: new StackTrail([]),
@@ -131,7 +137,7 @@ const runFixture = ({ besideGenKotlin }: RunFixtureArgs) => {
     toGeneratorConfigMap: () =>
       // @ts-expect-error - factory entry vs the generic config map (the known variance gap)
       besideGenKotlin
-        ? { '@skmtc/gen-kotlin-spring': springEntry, '@skmtc/gen-kotlin-kotlinx': kotlinEntry }
+        ? { '@skmtc/gen-kotlin-spring': springEntry, '@skmtc/gen-kotlin-jackson': kotlinEntry }
         : { '@skmtc/gen-kotlin-spring': springEntry }
   })
 }
@@ -141,44 +147,49 @@ Deno.test('e2e alone - UsersApi renders the worked example; ref DTOs arrive via 
 
   assertEquals(Object.keys(artifacts).sort(), [
     'app/src/main/kotlin/com/example/api/ApiError.generated.kt',
-    'app/src/main/kotlin/com/example/api/CreateUserBody.generated.kt',
-    'app/src/main/kotlin/com/example/api/User.generated.kt',
-    'app/src/main/kotlin/com/example/api/UsersApi.generated.kt'
+    'app/src/main/kotlin/com/example/api/UsersApi.generated.kt',
+    'app/src/main/kotlin/com/example/models/CreateUserBody.generated.kt',
+    'app/src/main/kotlin/com/example/models/User.generated.kt'
   ])
 
   assertEquals(artifacts['app/src/main/kotlin/com/example/api/UsersApi.generated.kt'], expectedUsersApi)
   assertEquals(manifest.parseIssues.filter(issue => issue.level === 'error'), [])
+  // A generate-phase throw never touches parseIssues — gate that
+  // channel too, or a silently-errored subject renders an empty shell.
+  assertNoResultErrors(manifest)
 })
 
-Deno.test('e2e beside gen-kotlin - identical UsersApi; unreferenced schemas join the output', () => {
+Deno.test('e2e beside gen-kotlin-jackson - identical UsersApi; unreferenced schemas join the output', () => {
   const { artifacts, manifest } = runFixture({ besideGenKotlin: true })
 
   assertEquals(Object.keys(artifacts).sort(), [
     'app/src/main/kotlin/com/example/api/ApiError.generated.kt',
-    'app/src/main/kotlin/com/example/api/CreateUserBody.generated.kt',
-    'app/src/main/kotlin/com/example/api/Status.generated.kt',
-    'app/src/main/kotlin/com/example/api/User.generated.kt',
-    'app/src/main/kotlin/com/example/api/UsersApi.generated.kt'
+    'app/src/main/kotlin/com/example/api/UsersApi.generated.kt',
+    'app/src/main/kotlin/com/example/models/CreateUserBody.generated.kt',
+    'app/src/main/kotlin/com/example/models/Status.generated.kt',
+    'app/src/main/kotlin/com/example/models/User.generated.kt'
   ])
 
   assertEquals(artifacts['app/src/main/kotlin/com/example/api/UsersApi.generated.kt'], expectedUsersApi)
 
   assertEquals(
-    artifacts['app/src/main/kotlin/com/example/api/User.generated.kt'],
-    'package com.example.api\n' +
+    artifacts['app/src/main/kotlin/com/example/models/User.generated.kt'],
+    'package com.example.models\n' +
       '\n' +
-      'import kotlinx.serialization.SerialName\n' +
-      'import kotlinx.serialization.Serializable\n' +
+      'import com.fasterxml.jackson.annotation.JsonProperty\n' +
       '\n' +
-      '@Serializable\n' +
       'data class User(\n' +
-      '    @SerialName("user_id") val userId: String,\n' +
+      '    @JsonProperty("user_id")\n' +
+      '    val userId: String,\n' +
       '    val name: String,\n' +
       '    val email: String? = null\n' +
       ')\n'
   )
 
   assertEquals(manifest.parseIssues.filter(issue => issue.level === 'error'), [])
+  // A generate-phase throw never touches parseIssues — gate that
+  // channel too, or a silently-errored subject renders an empty shell.
+  assertNoResultErrors(manifest)
 })
 
 Deno.test('e2e - the two runs render byte-identical files for the shared set', () => {

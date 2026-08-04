@@ -114,7 +114,7 @@ export class KotlinObject extends KtSnippet {
       // parents). Declaring into the caller's file instead would break
       // the claim registry's `'reuse'`-across-files guarantee the
       // moment a peer generator's destination sits in another package.
-      const exportPath = toModelExportPath(name)
+      const exportPath = toModelExportPath(context, name)
 
       this.recordProperties = additionalProperties
         ? new KotlinRecord({

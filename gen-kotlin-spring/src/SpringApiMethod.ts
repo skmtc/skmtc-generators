@@ -4,11 +4,13 @@ import {
   KtAnnotation,
   KtFunctionSignature,
   KtSnippet,
+  register,
   sanitizePropertyName,
   type KtFunctionParameterArgs
 } from '@skmtc/lang-kotlin'
-import { toKtValue } from '@skmtc/gen-kotlin-kotlinx'
+import { toKotlinValue } from '@skmtc/gen-kotlin-jackson'
 import denoJson from '../deno.json' with { type: 'json' }
+import { WEB_BIND_ANNOTATION_PACKAGE } from './lib.ts'
 
 const isRecord = (value: unknown): value is Record<string, unknown> => {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -48,44 +50,58 @@ type SpringApiMethodArgs = {
   destinationPath: string
 }
 
-type MappingAnnotation = {
-  annotation: KtAnnotation
-  imports: string[]
+type ToMappingAnnotationArgs = {
+  context: GenerateContextType
+  destinationPath: string
+  method: Method
+  path: string
 }
 
 /**
- * The Spring mapping annotation for an HTTP method. The OAS path goes in
- * verbatim — `{id}` is already Spring's template syntax (v1 carries no
+ * The Spring mapping annotation for an HTTP method — a self-registering
+ * `KtAnnotation` (its own import rides `packageName`). The OAS path goes
+ * in verbatim — `{id}` is already Spring's template syntax (v1 carries no
  * servers/base-path prefix).
  */
-const toMappingAnnotation = (method: Method, path: string): MappingAnnotation => {
+const toMappingAnnotation = (
+  { context, destinationPath, method, path }: ToMappingAnnotationArgs
+): KtAnnotation => {
+  const toAnnotation = (name: string, args: string[]): KtAnnotation => {
+    return new KtAnnotation({
+      context,
+      destinationPath,
+      name,
+      packageName: WEB_BIND_ANNOTATION_PACKAGE,
+      args
+    })
+  }
+
   switch (method) {
     case 'get':
-      return { annotation: new KtAnnotation('GetMapping', [`"${path}"`]), imports: ['GetMapping'] }
+      return toAnnotation('GetMapping', [`"${path}"`])
     case 'post':
-      return { annotation: new KtAnnotation('PostMapping', [`"${path}"`]), imports: ['PostMapping'] }
+      return toAnnotation('PostMapping', [`"${path}"`])
     case 'put':
-      return { annotation: new KtAnnotation('PutMapping', [`"${path}"`]), imports: ['PutMapping'] }
+      return toAnnotation('PutMapping', [`"${path}"`])
     case 'patch':
-      return {
-        annotation: new KtAnnotation('PatchMapping', [`"${path}"`]),
-        imports: ['PatchMapping']
-      }
+      return toAnnotation('PatchMapping', [`"${path}"`])
     case 'delete':
-      return {
-        annotation: new KtAnnotation('DeleteMapping', [`"${path}"`]),
-        imports: ['DeleteMapping']
-      }
+      return toAnnotation('DeleteMapping', [`"${path}"`])
     case 'head':
     case 'options':
     case 'trace':
-      return {
-        annotation: new KtAnnotation('RequestMapping', [
-          `method = [RequestMethod.${method.toUpperCase()}]`,
-          `path = ["${path}"]`
-        ]),
-        imports: ['RequestMapping', 'RequestMethod']
-      }
+      // `RequestMethod` appears as an ARGUMENT symbol, not the
+      // annotation's own name, so its import is registered here rather
+      // than by the annotation leaf.
+      register(context, {
+        imports: { [WEB_BIND_ANNOTATION_PACKAGE]: ['RequestMethod'] },
+        destinationPath
+      })
+
+      return toAnnotation('RequestMapping', [
+        `method = [RequestMethod.${method.toUpperCase()}]`,
+        `path = ["${path}"]`
+      ])
     default: {
       const _exhaustive: never = method
       throw new Error(`Unhandled method: ${JSON.stringify(_exhaustive)}`)
@@ -128,10 +144,13 @@ export class SpringApiMethod extends KtSnippet {
     const methodName =
       toServiceMethodName(context, operation) ??
       `${operation.method}${capitalize(camelCase(operation.path))}`
-    const fallbackBase = capitalize(methodName)
 
-    const mapping = toMappingAnnotation(operation.method, operation.path)
-    const annotationImports = new Set<string>(mapping.imports)
+    const mappingAnnotation = toMappingAnnotation({
+      context,
+      destinationPath,
+      method: operation.method,
+      path: operation.path
+    })
 
     const serviceParameters: KtFunctionParameterArgs[] = []
     const controllerParameters: KtFunctionParameterArgs[] = []
@@ -149,35 +168,53 @@ export class SpringApiMethod extends KtSnippet {
       controllerParameters.push({ name, type, annotations: [annotation] })
     }
 
+    // Type snippets come from the model peer's exported router — an
+    // inline shape synthesizes its own stackTrail-named sibling, so no
+    // naming hint is threaded (the retired kotlinx `fallbackName` API).
+    //
+    // Deliberately NOT `insertNormalizedModel` (the usual door for an
+    // operation generator needing a peer model): for a head+value
+    // language its generic glue joins the identifier head to the
+    // value's TYPE-position render, which for an inline object emits
+    // `data class NameMap<String, Any?>`-shaped invalid Kotlin and
+    // reports success. The exported router IS jackson's sanctioned
+    // door for inline schemas; refs still resolve to their models
+    // through it.
     for (const parameter of operation.toParams(['path'])) {
-      annotationImports.add('PathVariable')
-
       addParameter(
         sanitizePropertyName(camelCase(parameter.name)),
-        toKtValue({
+        toKotlinValue({
           schema: parameter.toSchema(),
           destinationPath,
           required: true,
-          context,
-          fallbackName: `${fallbackBase}${capitalize(camelCase(parameter.name))}`
+          context
         }),
-        new KtAnnotation('PathVariable', [`"${parameter.name}"`])
+        new KtAnnotation({
+          context,
+          destinationPath,
+          name: 'PathVariable',
+          packageName: WEB_BIND_ANNOTATION_PACKAGE,
+          args: [`"${parameter.name}"`]
+        })
       )
     }
 
     for (const parameter of operation.toParams(['query'])) {
-      annotationImports.add('RequestParam')
-
       addParameter(
         sanitizePropertyName(camelCase(parameter.name)),
-        toKtValue({
+        toKotlinValue({
           schema: parameter.toSchema(),
           destinationPath,
           required: parameter.required ?? false,
-          context,
-          fallbackName: `${fallbackBase}${capitalize(camelCase(parameter.name))}`
+          context
         }),
-        new KtAnnotation('RequestParam', [`"${parameter.name}"`]),
+        new KtAnnotation({
+          context,
+          destinationPath,
+          name: 'RequestParam',
+          packageName: WEB_BIND_ANNOTATION_PACKAGE,
+          args: [`"${parameter.name}"`]
+        }),
         !(parameter.required ?? false)
       )
     }
@@ -188,18 +225,20 @@ export class SpringApiMethod extends KtSnippet {
     }))
 
     if (body) {
-      annotationImports.add('RequestBody')
-
       addParameter(
         'body',
-        toKtValue({
+        toKotlinValue({
           schema: body.schema,
           destinationPath,
           required: body.required ?? false,
-          context,
-          fallbackName: `${fallbackBase}Body`
+          context
         }),
-        new KtAnnotation('RequestBody'),
+        new KtAnnotation({
+          context,
+          destinationPath,
+          name: 'RequestBody',
+          packageName: WEB_BIND_ANNOTATION_PACKAGE
+        }),
         !(body.required ?? false)
       )
     }
@@ -207,34 +246,35 @@ export class SpringApiMethod extends KtSnippet {
     const responseSchema = operation.toSuccessResponse()?.resolve().toSchema()
 
     const returnType = responseSchema
-      ? toKtValue({
+      ? toKotlinValue({
           schema: responseSchema,
           destinationPath,
           required: true,
-          context,
-          fallbackName: `${fallbackBase}Response`
+          context
         })
       : undefined
 
-    const controllerAnnotations = [mapping.annotation]
+    const controllerAnnotations = [mappingAnnotation]
     const statusName = toResponseStatusName(operation.toSuccessResponseCode())
 
     if (statusName) {
-      annotationImports.add('ResponseStatus')
-      controllerAnnotations.push(new KtAnnotation('ResponseStatus', [`HttpStatus.${statusName}`]))
+      controllerAnnotations.push(
+        new KtAnnotation({
+          context,
+          destinationPath,
+          name: 'ResponseStatus',
+          packageName: WEB_BIND_ANNOTATION_PACKAGE,
+          args: [`HttpStatus.${statusName}`]
+        })
+      )
 
+      // `HttpStatus` is an argument symbol from a DIFFERENT package than
+      // the annotation's own — registered separately.
       this.register({
         imports: { 'org.springframework.http': ['HttpStatus'] },
         destinationPath
       })
     }
-
-    this.register({
-      imports: {
-        'org.springframework.web.bind.annotation': [...annotationImports].sort()
-      },
-      destinationPath
-    })
 
     const parameterNames = serviceParameters.map(parameter => parameter.name)
 

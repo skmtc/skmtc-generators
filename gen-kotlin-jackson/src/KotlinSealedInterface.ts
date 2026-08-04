@@ -57,7 +57,7 @@ export const ensureSealedParent = (
   })
 
   if (claim === 'declare') {
-    const sealedPath = toModelExportPath(name)
+    const sealedPath = toModelExportPath(context, name)
 
     defineAndRegister(context, {
       identifier: createSealedInterface(name),
