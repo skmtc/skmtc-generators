@@ -98,6 +98,16 @@ export class KotlinProjection extends KotlinJacksonBase {
         // wire — a declared property would collide with it, so members
         // omit each claiming parent's discriminator property. The
         // qualifying predicate guarantees at least one parameter survives.
+        //
+        // OPEN (stage 3): survival is checked PER union (shape.ts
+        // `isSealedUnion`) while this omits the UNION of every claim's
+        // discriminator, so a member of two unions with different
+        // discriminator properties can lose them all and render an empty
+        // `data class` — illegal Kotlin, emitted without an error.
+        // Predates inline unions; they make multi-parenting common
+        // enough to matter. The fix is either checking survival against
+        // the full claim set or keeping the property with
+        // `@JsonTypeInfo(visible = true)` — a stage-3 decision.
         omittedProperties: new Set(
           claims.map((claim) => claim.discriminatorPropertyName),
         ),

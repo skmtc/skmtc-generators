@@ -24,7 +24,7 @@ import type {
 import { toKotlinValue } from './Kotlin.ts'
 import { applyModifiers, isNullish } from './modifiers.ts'
 import { KotlinUnknown } from './KotlinScalars.ts'
-import { JACKSON_ANNOTATION_PACKAGE, JSON_PROPERTY } from './lib.ts'
+import { JACKSON_ANNOTATION_PACKAGE, JSON_PROPERTY, toModelExportPath } from './lib.ts'
 
 type KotlinObjectArgs = {
   context: GenerateContextType
@@ -38,11 +38,12 @@ type KotlinObjectArgs = {
 /**
  * An object reached as a VALUE — an inline nested object, not a top-level
  * model. Kotlin has no anonymous class literal, so an inline object WITH
- * properties is synthesized as a named sibling `data class` in the
- * destination file and referenced by name (the retired gen-kotlin-kotlinx
- * pattern; the name derives from the schema's own `stackTrail`, so every
- * construction path — including peers arriving through
- * `insertNormalizedModel`'s contract — lands on the same name). A
+ * properties is synthesized as a named `data class` in its own
+ * models-package file and referenced by name through a registered import
+ * (the retired gen-kotlin-kotlinx pattern; the name derives from the
+ * schema's own `stackTrail`, so every construction path — including
+ * peers arriving through `insertNormalizedModel`'s contract — lands on
+ * the same name). A
  * record-only object renders `Map<String, T>`; an empty object renders
  * `Map<String, Any?>` (an unconstrained schema means "any object" — the
  * map IS its type, not a fallback). A top-level object model never
@@ -79,38 +80,7 @@ export class KotlinObject extends KtSnippet {
 
     const hasProperties = properties && !isEmpty(properties)
 
-    this.recordProperties = additionalProperties
-      ? new KotlinRecord({
-        context,
-        generatorKey,
-        destinationPath,
-        schema: additionalProperties,
-        rootRef,
-        // In the MIXED form this record renders as the synthesized
-        // class's catch-all parameter, where Jackson's any-setter writes
-        // entries — so the map must be mutable. Record-only stays `Map`.
-        mutable: Boolean(hasProperties),
-      })
-      : null
-
-    this.objectProperties = hasProperties
-      ? new KotlinObjectProperties({
-        context,
-        generatorKey,
-        destinationPath,
-        properties,
-        // 'required' lists which PROPERTIES are required — it is not
-        // about the object itself. Each property's optionality renders at
-        // that property's own leaf via its modifiers.
-        required,
-        rootRef,
-        additionalPropertiesRecord: this.recordProperties ?? undefined,
-      })
-      : null
-
-    if (this.objectProperties) {
-      const name = toSynthesizedName(objectSchema.stackTrail)
-
+    if (hasProperties) {
       // The claim replaces a per-file `findDefinition` probe: collisions
       // live at PACKAGE scope (and across convergent keys), which only
       // the document-wide claim registry can see. A collision throws —
@@ -125,20 +95,83 @@ export class KotlinObject extends KtSnippet {
       // The alternative — claiming every name a subject needs before
       // declaring any — would split the walk into two phases and break
       // registration-at-construction for no observable gain.
+      //
+      // The THROWING derivation, deliberately — unlike the union
+      // machinery's shared soft degrade (`toSynthesizedNameOrNull`):
+      // an underivable union falls back to `JsonNode`, an honest wire
+      // type, but a structured object has no honest fallback — widening
+      // it to `Map<String, Any?>` would discard the shape the schema
+      // gave us. Capitulation, not a degrade; fail the subject loudly.
+      const name = toSynthesizedName(context, objectSchema.stackTrail)
+
       const claim = claimSynthesizedName(context, {
         name,
         stackTrail: objectSchema.stackTrail,
+      })
+
+      // ONE placement policy for every synthesized declaration: its own
+      // models-package file (`toModelExportPath` — same as sealed
+      // parents). Declaring into the caller's file instead would break
+      // the claim registry's `'reuse'`-across-files guarantee the
+      // moment a peer generator's destination sits in another package.
+      const exportPath = toModelExportPath(name)
+
+      this.recordProperties = additionalProperties
+        ? new KotlinRecord({
+          context,
+          generatorKey,
+          destinationPath: exportPath,
+          schema: additionalProperties,
+          rootRef,
+          // The MIXED form's record renders as the synthesized class's
+          // catch-all parameter, where Jackson's any-setter writes
+          // entries — so the map must be mutable.
+          mutable: true,
+        })
+        : null
+
+      this.objectProperties = new KotlinObjectProperties({
+        context,
+        generatorKey,
+        destinationPath: exportPath,
+        properties,
+        // 'required' lists which PROPERTIES are required — it is not
+        // about the object itself. Each property's optionality renders at
+        // that property's own leaf via its modifiers.
+        required,
+        rootRef,
+        additionalPropertiesRecord: this.recordProperties ?? undefined,
       })
 
       if (claim === 'declare') {
         defineAndRegister(context, {
           identifier: createDataClass(name),
           value: this.objectProperties,
-          destinationPath,
+          destinationPath: exportPath,
         })
       }
 
+      // The `@/`-export-path import key — the project-file form KtImport
+      // resolves through the path policy; same-package suppression drops
+      // it where the referencing file already lives in the package.
+      this.register({
+        imports: { [exportPath]: [name] },
+        destinationPath,
+      })
+
       this.reference = name
+    } else {
+      this.recordProperties = additionalProperties
+        ? new KotlinRecord({
+          context,
+          generatorKey,
+          destinationPath,
+          schema: additionalProperties,
+          rootRef,
+        })
+        : null
+
+      this.objectProperties = null
     }
   }
 

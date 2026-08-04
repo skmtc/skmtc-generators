@@ -2,31 +2,41 @@ import { toRefName } from '@skmtc/core'
 import type {
   CustomValue,
   GenerateContextType,
+  OasMediaType,
+  OasParameter,
+  OasRequestBody,
+  OasResponse,
   OasSchema,
   OasRef,
   OasUnion,
   RefName,
 } from '@skmtc/core'
 import { isSealedUnion } from './shape.ts'
-import { toSynthesizedName } from './toSynthesizedName.ts'
+import { toSynthesizedNameOrNull } from './toSynthesizedName.ts'
 
 /**
  * The identity of a claiming sealed parent. A TOP-LEVEL union is a
  * component — the claim carries its real `RefName` and the consumer
  * derives the display name through the sanctioned identity door
  * (`context.toModelContentSettings`). An INLINE union has no refName —
- * its sealed interface is synthesized under a stackTrail-derived NAME
- * (this generator's own `toSynthesizedName`, not a peer's statics), and
- * the claim carries the name AND the union node itself: a member
- * consuming the claim must be able to `ensureSealedParent` the
- * declaration into existence, because nothing guarantees any walk ever
- * reaches an operation-position union (this generator may run without
- * an operation generator beside it) — whoever needs the name first
- * declares it, arbitrated by the claim registry.
+ * the claim carries the union NODE itself: a member consuming the claim
+ * must be able to `ensureSealedParent` the declaration into existence,
+ * because nothing guarantees any walk ever reaches an
+ * operation-position union (this generator may run without an operation
+ * generator beside it) — whoever needs the name first declares it,
+ * arbitrated by the claim registry.
+ *
+ * Deliberately NO name field: `toSynthesizedName` throws on a trail it
+ * cannot derive (the loud per-subject rule), and this scan runs inside
+ * every model's construction — deriving eagerly here would turn one
+ * underivable union into a whole-document failure. Underivable unions
+ * are instead SKIPPED at claim time (`toSynthesizedNameOrNull` — the
+ * derivability answer every site shares), consumers derive the name
+ * lazily, and identity inside the scan keys on the TRAIL.
  */
 export type SealedParentIdentity =
   | { type: 'component'; refName: RefName }
-  | { type: 'synthesized'; name: string; union: OasUnion }
+  | { type: 'synthesized'; union: OasUnion }
 
 /**
  * One sealed parent's claim on a member model — everything the member's
@@ -56,13 +66,23 @@ export type SealedParent = {
  * WeakMap (a pure function of the document, so determinism holds and
  * parallel test runs stay isolated).
  *
- * The scan DEEP-WALKS every component subtree AND every operation's
- * schemas (parameters, request bodies, responses — the flattened
- * `document.value.operations`), because a qualifying union can sit
- * inline at any of those positions and its members still need their
- * supertype clause. Refs are never followed: every component is walked
- * from its own root, so following a ref would only double-visit (or
- * loop).
+ * The scan DEEP-WALKS every component subtree AND the full request
+ * surface of every operation-shaped subject — `document.value.operations`
+ * and `document.value.webhooks` (core keeps them in SEPARATE arrays),
+ * each contributing parameters (both the direct `schema` and the
+ * `content` media-type alternative), request bodies, responses, and
+ * response headers (again schema OR `content`) — because a qualifying
+ * union can sit inline at any of those positions and its members still
+ * need their supertype clause. Refs are never followed: every component
+ * is walked from its own root, so following a ref would only
+ * double-visit (or loop).
+ *
+ * NOT covered, and not coverable here: parameters declared at the PATH
+ * ITEM level rather than on the operation. Core parses those onto
+ * `OasPathItem.parameters` and never merges them into the operation, so
+ * `OasOperation.toParams()` does not see them either — they are outside
+ * every generator's reach, not just this scan's. A union there is
+ * absent from the output rather than mis-declared.
  *
  * Membership derives from the DOCUMENT, not the post-`skip`/`include`
  * set — dependency edges are filter-blind (the `insertOperation`
@@ -88,12 +108,14 @@ export const toSealedMembership = (
     const seen = new Set<OasSchema>()
 
     const visitInline = (node: OasSchema): void => {
-      if (isSealedUnion(context, node)) {
-        collectParentClaims(
-          { type: 'synthesized', name: toSynthesizedName(node.stackTrail), union: node },
-          node,
-          membership,
-        )
+      // Claim only what can be NAMED: an underivable trail (a root
+      // `toSynthesizedNameOrNull` does not know) is skipped, so its
+      // members render without a clause and the union render site falls
+      // back to `JsonNode` — the same shared derivability answer at
+      // every site, degrading consistently instead of one site
+      // declaring what another cannot name.
+      if (isSealedUnion(context, node) && toSynthesizedNameOrNull(context, node.stackTrail) !== null) {
+        collectParentClaims({ type: 'synthesized', union: node }, node, membership)
       }
     }
 
@@ -116,28 +138,14 @@ export const toSealedMembership = (
       walkSchema(schema, seen, visitInline)
     }
 
-    for (const operation of document.value.operations) {
-      for (const parameter of operation.parameters ?? []) {
-        const { schema } = parameter.resolve()
-
-        if (schema !== undefined) {
-          walkSchemaOrRef(schema, seen, visitInline)
-        }
-      }
-
-      for (const mediaType of Object.values(operation.requestBody?.resolve().content ?? {})) {
-        if (mediaType.schema !== undefined) {
-          walkSchemaOrRef(mediaType.schema, seen, visitInline)
-        }
-      }
-
-      for (const response of Object.values(operation.responses)) {
-        for (const mediaType of Object.values(response.resolve().content ?? {})) {
-          if (mediaType.schema !== undefined) {
-            walkSchemaOrRef(mediaType.schema, seen, visitInline)
-          }
-        }
-      }
+    // Operations AND webhooks — core keeps them in SEPARATE arrays, and
+    // both carry the same parameters/requestBody/responses surface. The
+    // scan must cover everything generation can walk: a position the
+    // walk reaches but the scan never claimed yields a sealed interface
+    // whose members never declare the supertype — uncompilable Kotlin,
+    // emitted silently.
+    for (const subject of [...document.value.operations, ...document.value.webhooks]) {
+      walkRequestSurface(subject, seen, visitInline)
     }
   }
 
@@ -185,6 +193,60 @@ const walkSchema = (
   }
 }
 
+type RequestSurface = {
+  parameters?: (OasParameter | OasRef<'parameter'>)[] | undefined
+  requestBody?: OasRequestBody | OasRef<'requestBody'> | undefined
+  responses: Record<string, OasResponse | OasRef<'response'>>
+}
+
+/**
+ * Every schema position one operation-shaped subject can carry — shared
+ * by operations and webhooks. Parameters and headers hold a schema
+ * directly OR under the `content` media-type alternative; request
+ * bodies and responses hold theirs under `content`.
+ */
+const walkRequestSurface = (
+  { parameters, requestBody, responses }: RequestSurface,
+  seen: Set<OasSchema>,
+  visit: (node: OasSchema) => void,
+): void => {
+  const walkMediaTypes = (content: Record<string, OasMediaType> | undefined): void => {
+    for (const mediaType of Object.values(content ?? {})) {
+      if (mediaType.schema !== undefined) {
+        walkSchemaOrRef(mediaType.schema, seen, visit)
+      }
+    }
+  }
+
+  for (const parameter of parameters ?? []) {
+    const resolved = parameter.resolve()
+
+    if (resolved.schema !== undefined) {
+      walkSchemaOrRef(resolved.schema, seen, visit)
+    }
+
+    walkMediaTypes(resolved.content)
+  }
+
+  walkMediaTypes(requestBody?.resolve().content)
+
+  for (const response of Object.values(responses)) {
+    const resolved = response.resolve()
+
+    walkMediaTypes(resolved.content)
+
+    for (const header of Object.values(resolved.headers ?? {})) {
+      const resolvedHeader = header.resolve()
+
+      if (resolvedHeader.schema !== undefined) {
+        walkSchemaOrRef(resolvedHeader.schema, seen, visit)
+      }
+
+      walkMediaTypes(resolvedHeader.content)
+    }
+  }
+}
+
 /** A property value may be a CustomValue — only OAS nodes are walkable. */
 const isWalkable = (
   value: OasSchema | OasRef<'schema'> | CustomValue,
@@ -209,7 +271,7 @@ const walkSchemaOrRef = (
 const toParentKey = (parent: SealedParentIdentity): string => {
   return parent.type === 'component'
     ? `component:${parent.refName}`
-    : `synthesized:${parent.name}`
+    : `synthesized:${parent.union.stackTrail.stackTrail.join('/')}`
 }
 
 const collectParentClaims = (

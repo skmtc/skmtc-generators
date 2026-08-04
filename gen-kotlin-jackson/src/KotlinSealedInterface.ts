@@ -49,7 +49,7 @@ export const ensureSealedParent = (
   context: GenerateContextType,
   { generatorKey, unionSchema, rootRef }: EnsureSealedParentArgs,
 ): string => {
-  const name = toSynthesizedName(unionSchema.stackTrail)
+  const name = toSynthesizedName(context, unionSchema.stackTrail)
 
   const claim = claimSynthesizedName(context, {
     name,
