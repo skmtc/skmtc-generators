@@ -9,50 +9,76 @@ import {
   createDataClass,
   defineAndRegister
 } from '@skmtc/lang-kotlin'
+import { WEB_BIND_ANNOTATION_PACKAGE } from './SpringApiMethod.ts'
 
 /**
  * The generated error channel (spec 29, Milestone G): consumers throw
  * Spring's own `ResponseStatusException` from ServiceImpls
  * (`throw ResponseStatusException(HttpStatus.NOT_FOUND, "No such user")`)
  * and this generated `@RestControllerAdvice` renders it as a small
- * `@Serializable` body — necessary because the documented kotlinx setup
- * excludes Jackson, which Spring Boot's default error rendering needs.
- * Complete output, no stubs; schema-declared error DTOs are the named
- * follow-up (this schema generation's fixtures declare none).
+ * `ApiError` body. In the Jackson stack the DTO needs no serialization
+ * annotation — Jackson binds a plain data class natively; the advice
+ * exists to keep the error shape STABLE and documented rather than
+ * whatever Spring Boot's default error rendering emits. Complete output,
+ * no stubs; schema-declared error DTOs are the named follow-up (this
+ * schema generation's fixtures declare none).
  */
 export class ApiErrorValue extends KtSnippet {
-  annotations = [new KtAnnotation('Serializable')]
   description = 'The wire shape every handled error renders to.'
+  parameterList: KtParameterList
 
-  constructor({ context, destinationPath }: { context: GenerateContextType; destinationPath: string }) {
+  constructor({ context }: { context: GenerateContextType }) {
     super({ context })
 
-    this.register({
-      imports: { 'kotlinx.serialization': ['Serializable'] },
-      destinationPath
-    })
+    this.parameterList = new KtParameterList([
+      { name: 'status', type: 'Int' },
+      { name: 'message', type: 'String', nullable: true, defaultValue: 'null' }
+    ])
   }
 
   override toString(): string {
-    return `${new KtParameterList([
-      { name: 'status', type: 'Int' },
-      { name: 'message', type: 'String', nullable: true, defaultValue: 'null' }
-    ])}`
+    return `${this.parameterList}`
   }
 }
 
 export class ApiErrorHandlerValue extends KtSnippet {
-  annotations = [new KtAnnotation('RestControllerAdvice')]
+  annotations: KtAnnotation[]
   description =
     'Maps ResponseStatusException thrown by service implementations to ApiError bodies.'
+  handler: KtFunctionSignature
 
   constructor({ context, destinationPath }: { context: GenerateContextType; destinationPath: string }) {
     super({ context })
 
+    this.annotations = [
+      new KtAnnotation({
+        context,
+        destinationPath,
+        name: 'RestControllerAdvice',
+        packageName: WEB_BIND_ANNOTATION_PACKAGE
+      })
+    ]
+
+    this.handler = new KtFunctionSignature({
+      name: 'handleResponseStatus',
+      parameters: [{ name: 'exception', type: 'ResponseStatusException' }],
+      returnType: 'ResponseEntity<ApiError>',
+      annotations: [
+        new KtAnnotation({
+          context,
+          destinationPath,
+          name: 'ExceptionHandler',
+          packageName: WEB_BIND_ANNOTATION_PACKAGE,
+          args: ['ResponseStatusException::class']
+        })
+      ],
+      body: 'ResponseEntity.status(exception.statusCode).body(ApiError(exception.statusCode.value(), exception.reason))'
+    })
+
+    // Argument/type symbols from OTHER packages than the annotations' own.
     this.register({
       imports: {
         'org.springframework.http': ['ResponseEntity'],
-        'org.springframework.web.bind.annotation': ['ExceptionHandler', 'RestControllerAdvice'],
         'org.springframework.web.server': ['ResponseStatusException']
       },
       destinationPath
@@ -60,13 +86,8 @@ export class ApiErrorHandlerValue extends KtSnippet {
   }
 
   override toString(): string {
-    return `${new KtFunctionSignature({
-      name: 'handleResponseStatus',
-      parameters: [{ name: 'exception', type: 'ResponseStatusException' }],
-      returnType: 'ResponseEntity<ApiError>',
-      annotations: [new KtAnnotation('ExceptionHandler', ['ResponseStatusException::class'])],
-      body: 'ResponseEntity.status(exception.statusCode).body(ApiError(exception.statusCode.value(), exception.reason))'
-    })}`
+    // The value owns the braced body (head+value model).
+    return ` {\n${this.handler}\n}`
   }
 }
 
@@ -83,7 +104,7 @@ export const ensureApiErrorSupport = (context: GenerateContextType, basePackage:
 
   defineAndRegister(context, {
     identifier: createDataClass('ApiError'),
-    value: new ApiErrorValue({ context, destinationPath: exportPath }),
+    value: new ApiErrorValue({ context }),
     destinationPath: exportPath
   })
 

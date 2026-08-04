@@ -4,7 +4,7 @@
  * gen-kotlin-spring running ALONE (primitive + inline shapes only; the
  * ref-typed worked example beside gen-kotlin is the step-3 e2e).
  */
-import { assertEquals, assertStringIncludes, assertThrows } from 'jsr:@std/assert@^1.0.0'
+import { assertEquals, assertStringIncludes, assertThrows } from '@std/assert'
 import * as v from 'valibot'
 import { StackTrail, toArtifacts } from '@skmtc/core'
 import type { OpenAPIV3 } from 'openapi-types'
@@ -76,11 +76,8 @@ const runFixture = () => {
     document: { type: 'oas', value: documentObject },
     settings: {
       basePath: './server/src/main/kotlin',
-      // gen-kotlin-kotlinx's basePackage is needed even when its transform
-      // isn't registered — spring's `toKtValue` reads it for DTO types.
       enrichments: {
-        '@skmtc/gen-kotlin-spring': { _generator: { basePackage: 'com.example.spring' } },
-        '@skmtc/gen-kotlin-kotlinx': { _generator: { basePackage: 'com.example.spring' } }
+        '@skmtc/gen-kotlin-spring': { _generator: { basePackage: 'com.example.spring' } }
       }
     },
     stackTrail: new StackTrail([]),
@@ -105,14 +102,13 @@ Deno.test('one interface per tag — untagged → DefaultApi, multi-tag joins it
   assertEquals(manifest.parseIssues.filter(issue => issue.level === 'error'), [])
 })
 
-Deno.test('UsersApi accumulates methods in document order — params, body, return type, synthesized body sibling', () => {
+Deno.test('UsersApi accumulates methods in document order — params, body, return type, stackTrail-named body sibling', () => {
   const { artifacts } = runFixture()
 
   assertEquals(
     artifacts['server/src/main/kotlin/com/example/spring/UsersApi.generated.kt'],
     'package com.example.spring\n' +
       '\n' +
-      'import kotlinx.serialization.Serializable\n' +
       'import org.springframework.http.HttpStatus\n' +
       'import org.springframework.web.bind.annotation.GetMapping\n' +
       'import org.springframework.web.bind.annotation.PathVariable\n' +
@@ -125,7 +121,7 @@ Deno.test('UsersApi accumulates methods in document order — params, body, retu
       'interface UsersService {\n' +
       '    fun getUsersId(id: String, verbose: Boolean? = null): String\n' +
       '\n' +
-      '    fun postUsers(body: PostUsersBody)\n' +
+      '    fun postUsers(body: CreateApiUsersBody)\n' +
       '}\n' +
       '\n' +
       '@RestController\n' +
@@ -137,11 +133,10 @@ Deno.test('UsersApi accumulates methods in document order — params, body, retu
       '\n' +
       '    @PostMapping("/users")\n' +
       '    @ResponseStatus(HttpStatus.CREATED)\n' +
-      '    fun postUsers(@RequestBody body: PostUsersBody) = service.postUsers(body)\n' +
+      '    fun postUsers(@RequestBody body: CreateApiUsersBody) = service.postUsers(body)\n' +
       '}\n' +
       '\n' +
-      '@Serializable\n' +
-      'data class PostUsersBody(\n' +
+      'data class CreateApiUsersBody(\n' +
       '    val name: String\n' +
       ')\n'
   )
@@ -228,8 +223,7 @@ Deno.test('serviceMethodName enrichment renames the seam and the delegation in l
         '@skmtc/gen-kotlin-spring': {
           _generator: { basePackage: 'com.example.spring' },
           '/users/{id}': { get: { main: { serviceMethodName: 'getUser' } } }
-        },
-        '@skmtc/gen-kotlin-kotlinx': { _generator: { basePackage: 'com.example.spring' } }
+        }
       }
     },
     stackTrail: new StackTrail([]),
@@ -254,14 +248,12 @@ Deno.test('the error channel renders once: ApiError + advice, byte-pinned', () =
     artifacts['server/src/main/kotlin/com/example/spring/ApiError.generated.kt'],
     'package com.example.spring\n' +
       '\n' +
-      'import kotlinx.serialization.Serializable\n' +
       'import org.springframework.http.ResponseEntity\n' +
       'import org.springframework.web.bind.annotation.ExceptionHandler\n' +
       'import org.springframework.web.bind.annotation.RestControllerAdvice\n' +
       'import org.springframework.web.server.ResponseStatusException\n' +
       '\n' +
       '/** The wire shape every handled error renders to. */\n' +
-      '@Serializable\n' +
       'data class ApiError(\n' +
       '    val status: Int,\n' +
       '    val message: String? = null\n' +
