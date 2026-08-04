@@ -9,6 +9,9 @@
 export const JACKSON_ANNOTATION_PACKAGE = 'com.fasterxml.jackson.annotation'
 export const JSON_PROPERTY = 'JsonProperty'
 
+/** Home of `JsonNode` — the honest wire type for non-sealed unions. */
+export const JACKSON_DATABIND_PACKAGE = 'com.fasterxml.jackson.databind'
+
 /**
  * SLOT(export-path) input: the Kotlin package every model lands in.
  *

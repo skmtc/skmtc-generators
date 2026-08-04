@@ -21,6 +21,7 @@ jobs:
       matrix:
         generator:
           - gen-arktype
+          - gen-kotlin-jackson
           - gen-msw
           - gen-shadcn-form
           - gen-shadcn-select

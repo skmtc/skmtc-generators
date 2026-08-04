@@ -5,6 +5,7 @@ import type {
   OasRef,
   OasSchema,
   OasString,
+  OasUnion,
   RefName,
 } from '@skmtc/core'
 import type { KtEntityType } from '@skmtc/lang-kotlin'
@@ -65,6 +66,50 @@ export const isEnumClassSchema = (schema: ModelSchema): schema is OasString => {
 }
 
 /**
+ * The sealed-union qualifying predicate (the retired gen-kotlin-kotlinx
+ * spec-22 rule, tightened): a union becomes a `sealed interface` iff it is
+ * discriminated, has at least two members, every member is a `$ref`, every
+ * member's target is an object-with-properties (i.e. dispatches to the
+ * data-class shape), and every member keeps at least one parameter AFTER
+ * the discriminator property is omitted — `data class X()` is illegal, so
+ * a member that is nothing but its tag disqualifies the whole union.
+ *
+ * Everything that fails stays on the honest wire fallback (`JsonNode`,
+ * see `KotlinUnion`). Note core's `OasUnion` merges `oneOf` and `anyOf`,
+ * so a discriminated `anyOf` qualifies too — accepted and documented.
+ */
+export const isSealedUnion = (
+  context: GenerateContextType,
+  schema: ModelSchema,
+): schema is OasUnion => {
+  if (!('members' in schema)) {
+    return false
+  }
+
+  const { discriminator, members } = schema
+
+  if (!discriminator || members.length < 2) {
+    return false
+  }
+
+  return members.every((member) => {
+    if (!member.isRef()) {
+      return false
+    }
+
+    const target = peekSchema(context, member.toRefName())
+
+    if (!target || target.isRef() || !isDataClassSchema(target)) {
+      return false
+    }
+
+    return Object.keys(target.properties ?? {}).some(
+      (key) => key !== discriminator.propertyName,
+    )
+  })
+}
+
+/**
  * The shape dispatch — ONE deterministic function, read by both
  * `toIdentifierType` (which decides the declaration head) and
  * `KotlinProjection` (which builds the value that follows it), so the
@@ -90,6 +135,10 @@ export const toModelShape = (
 
   if (isEnumClassSchema(schema)) {
     return 'enum-class'
+  }
+
+  if (isSealedUnion(context, schema)) {
+    return 'sealed-interface'
   }
 
   return 'typealias'

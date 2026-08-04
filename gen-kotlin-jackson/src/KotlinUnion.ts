@@ -11,6 +11,7 @@ import type {
 } from '@skmtc/core'
 import { toKotlinValue } from './Kotlin.ts'
 import { applyModifiers } from './modifiers.ts'
+import { JACKSON_DATABIND_PACKAGE } from './lib.ts'
 
 type KotlinUnionArgs = {
   context: GenerateContextType
@@ -59,14 +60,22 @@ export class KotlinUnion extends KtSnippet {
 
     this.discriminator = discriminator?.propertyName
     this.modifiers = modifiers
+
+    this.register({
+      imports: { [JACKSON_DATABIND_PACKAGE]: ['JsonNode'] },
+      destinationPath,
+    })
   }
 
   override toString(): string {
-    // SLOT(union): Kotlin has no anonymous union type. Modelling `oneOf`
-    // properly means a named `sealed interface` plus a Jackson
-    // `@JsonTypeInfo`/`@JsonSubTypes` pair — a declaration, which only a
-    // top-level model can carry. As an inline PROPERTY type the honest
-    // answer is `Any`, and Jackson binds it to a LinkedHashMap.
-    return applyModifiers('Any', this.modifiers)
+    // SLOT(union): Kotlin has no anonymous union type. A QUALIFYING
+    // top-level union never reaches this class — the shape dispatch
+    // routes it to `sealed interface` + `@JsonTypeInfo`/`@JsonSubTypes`
+    // (see shape.ts `isSealedUnion` and `KotlinSealedInterface`). What
+    // lands here is an inline union (sealed-sibling synthesis is the
+    // planned stage 2) or a non-qualifying one — undiscriminated or
+    // heterogeneous — whose honest wire type is Jackson's `JsonNode`:
+    // deliberately bound, and an API rather than an `Any` cast.
+    return applyModifiers('JsonNode', this.modifiers)
   }
 }
