@@ -103,14 +103,6 @@ const toSegments = (frames: string[]): string[] => {
       continue
     }
 
-    // The union node's own combinator keyword — structure, not position
-    // (`Order.properties.refund.oneOf` names `OrderRefund`). A PROPERTY
-    // named `oneOf` never reaches this check: `properties` consumes its
-    // key positionally above.
-    if (frame === 'oneOf' || frame === 'anyOf' || frame === 'allOf') {
-      continue
-    }
-
     if (frame === 'content') {
       // The frame after `content` is the media type (`application/json`) —
       // structural, never part of a name.

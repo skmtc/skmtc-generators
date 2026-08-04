@@ -1,5 +1,3 @@
-import { join } from '@std/path'
-
 /**
  * SLOT(library): the emitted library, in one place.
  *
@@ -13,18 +11,6 @@ export const JSON_PROPERTY = 'JsonProperty'
 
 /** Home of `JsonNode` — the honest wire type for non-sealed unions. */
 export const JACKSON_DATABIND_PACKAGE = 'com.fasterxml.jackson.databind'
-
-/**
- * The models-package file a named declaration lands in — the single
- * path policy behind `toExportPath` AND synthesized sealed parents.
- * An INLINE union's sealed interface cannot live in its referencing
- * file: Kotlin requires sealed subtypes in the PARENT'S package, and
- * the members are component models living here — so the parent joins
- * them, and the referencing file imports it by name.
- */
-export const toModelExportPath = (name: string): string => {
-  return join('@', ...BASE_PACKAGE.split('.'), `${name}.generated.kt`)
-}
 
 /**
  * SLOT(export-path) input: the Kotlin package every model lands in.

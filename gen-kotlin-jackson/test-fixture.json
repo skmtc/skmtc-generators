@@ -4,37 +4,7 @@
     "title": "Orders API (task1k: Kotlin+Jackson model fixture)",
     "version": "1.0.0"
   },
-  "paths": {
-    "/checkout": {
-      "post": {
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "oneOf": [
-                  {
-                    "$ref": "#/components/schemas/CardPayment"
-                  },
-                  {
-                    "$ref": "#/components/schemas/BankTransferPayment"
-                  }
-                ],
-                "discriminator": {
-                  "propertyName": "method"
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "ok"
-          }
-        }
-      }
-    }
-  },
+  "paths": {},
   "components": {
     "schemas": {
       "Order": {
@@ -96,22 +66,6 @@
           },
           "payment": {
             "$ref": "#/components/schemas/PaymentMethod"
-          },
-          "refund": {
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/CardPayment"
-              },
-              {
-                "$ref": "#/components/schemas/StoreCreditPayment"
-              }
-            ],
-            "discriminator": {
-              "propertyName": "method",
-              "mapping": {
-                "card": "#/components/schemas/CardPayment"
-              }
-            }
           }
         }
       },

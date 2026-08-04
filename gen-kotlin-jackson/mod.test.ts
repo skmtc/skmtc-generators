@@ -9,13 +9,8 @@
  * mixed props+additionalProperties catch-all (Settings), a
  * discriminated union as sealed interface + @JsonTypeInfo/@JsonSubTypes
  * (PaymentMethod — mapped tags AND the refName-default tag), member
- * supertype clause + discriminator-property omission, the JsonNode
- * fallback for a non-qualifying union (LegacyValue), and INLINE
- * discriminated unions (stage 2): a component-property union
- * (Order.refund → sealed OrderRefund, members multi-parented) and an
- * operation-position union (/checkout requestBody →
- * CreateApiCheckoutBody) declared through the member-side
- * ensureSealedParent even though NO operation generator runs here.
+ * supertype clause + discriminator-property omission, and the JsonNode
+ * fallback for a non-qualifying union (LegacyValue).
  *
  * Authored 2026-08-03 via the skmtc-model-v3 + skmtc-lang-kotlin-v3
  * skills (task1k, run kotlin-jackson-1); validated against the Reapit
@@ -64,11 +59,9 @@ Deno.test('every model renders to its own file in the fixed package', () => {
     'com/example/models/BankTransferPayment.generated.kt',
     'com/example/models/CardPayment.generated.kt',
     'com/example/models/Category.generated.kt',
-    'com/example/models/CreateApiCheckoutBody.generated.kt',
     'com/example/models/LegacyValue.generated.kt',
     'com/example/models/Order.generated.kt',
     'com/example/models/OrderItem.generated.kt',
-    'com/example/models/OrderRefund.generated.kt',
     'com/example/models/OrderStatus.generated.kt',
     'com/example/models/PaymentMethod.generated.kt',
     'com/example/models/Settings.generated.kt',
@@ -172,67 +165,6 @@ Deno.test('a LATE collision drops the model but leaves earlier siblings as orpha
   assertStringIncludes(orderFile, 'data class OrderGood')
   assertStringIncludes(orderFile, 'data class OrderMetaData')
   assertEquals(orderFile.includes('data class Order('), false)
-})
-
-Deno.test('an inline component-property union synthesizes its sealed parent beside the models', () => {
-  const { artifacts } = generate()
-
-  // Order.refund is an ANONYMOUS oneOf — its sealed interface is
-  // synthesized under the stackTrail-derived name (the `oneOf` combinator
-  // frame is structural and elided) into its OWN models-package file:
-  // Kotlin requires sealed subtypes in the parent's package, and the
-  // members are component models there. Mapped tag for CardPayment,
-  // refName default for the unmapped StoreCreditPayment.
-  assertEquals(
-    artifacts['com/example/models/OrderRefund.generated.kt'],
-    `package com.example.models
-
-import com.fasterxml.jackson.annotation.JsonSubTypes
-import com.fasterxml.jackson.annotation.JsonTypeInfo
-
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "method")
-@JsonSubTypes(JsonSubTypes.Type(value = CardPayment::class, name = "card"), JsonSubTypes.Type(value = StoreCreditPayment::class, name = "StoreCreditPayment"))
-sealed interface OrderRefund
-`
-  )
-
-  // Type position holds the NAME; a member claimed by several parents
-  // implements them all (parent-side tags make multi-parent legal in
-  // Jackson — no per-member tag to conflict).
-  assertStringIncludes(
-    artifacts['com/example/models/Order.generated.kt'],
-    'val refund: OrderRefund? = null'
-  )
-  assertStringIncludes(
-    artifacts['com/example/models/StoreCreditPayment.generated.kt'],
-    ') : OrderRefund, PaymentMethod'
-  )
-})
-
-Deno.test('an operation-position union is declared by its MEMBERS when nothing else walks it', () => {
-  const { artifacts } = generate()
-
-  // /checkout's requestBody union is claimed by the document scan, but
-  // NO operation generator runs in this suite — the only route to the
-  // declaration is a member's ensureSealedParent. A ` : Parent` clause
-  // over an undeclared parent must be impossible by construction.
-  assertEquals(
-    artifacts['com/example/models/CreateApiCheckoutBody.generated.kt'],
-    `package com.example.models
-
-import com.fasterxml.jackson.annotation.JsonSubTypes
-import com.fasterxml.jackson.annotation.JsonTypeInfo
-
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "method")
-@JsonSubTypes(JsonSubTypes.Type(value = CardPayment::class, name = "CardPayment"), JsonSubTypes.Type(value = BankTransferPayment::class, name = "BankTransferPayment"))
-sealed interface CreateApiCheckoutBody
-`
-  )
-
-  assertStringIncludes(
-    artifacts['com/example/models/BankTransferPayment.generated.kt'],
-    ') : PaymentMethod, CreateApiCheckoutBody'
-  )
 })
 
 Deno.test('allOf-composed union members qualify — the canonical base-composition idiom', () => {
@@ -353,8 +285,7 @@ data class Order(
     val customerNotes: String? = null,
     val metadata: OrderMetadata? = null,
     val priority: OrderPriority? = null,
-    val payment: PaymentMethod? = null,
-    val refund: OrderRefund? = null
+    val payment: PaymentMethod? = null
 )
 `
   )
@@ -397,7 +328,7 @@ data class CardPayment(
     val lastFour: String,
     @JsonProperty("expiry_month")
     val expiryMonth: Int? = null
-) : OrderRefund, PaymentMethod, CreateApiCheckoutBody
+) : PaymentMethod
 `
   )
 })

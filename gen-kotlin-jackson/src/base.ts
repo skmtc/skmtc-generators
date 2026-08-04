@@ -1,9 +1,10 @@
 import { camelCase } from '@skmtc/core'
 import type { GenerateContextType } from '@skmtc/core'
 import { toKtModelProjectionBase } from '@skmtc/lang-kotlin'
+import { join } from '@std/path'
 import denoJson from '../deno.json' with { type: 'json' }
 import { type EnrichmentSchema, toEnrichmentSchema } from './enrichments.ts'
-import { toModelExportPath } from './lib.ts'
+import { BASE_PACKAGE } from './lib.ts'
 import { toModelShape } from './shape.ts'
 
 // SLOT(naming): PascalCase from refName ONLY — deterministic, never
@@ -63,10 +64,11 @@ export const KotlinJacksonBase = toKtModelProjectionBase<EnrichmentSchema>({
 
   // SLOT(export-path): the directory segments ARE the Kotlin package —
   // `@/com/example/models/Order.generated.kt` → `package com.example.models`.
-  // Hardcoded: this generator takes no runtime configuration. Delegates
-  // to the SAME policy synthesized sealed parents use (lib.ts).
+  // Hardcoded: this generator takes no runtime configuration.
   toExportPath({ refName, enrichments, variant }): string {
-    return toModelExportPath(this.toIdentifierName({ refName, enrichments, variant }))
+    const name = this.toIdentifierName({ refName, enrichments, variant })
+
+    return join('@', ...BASE_PACKAGE.split('.'), `${name}.generated.kt`)
   },
 
   toEnrichmentSchema,
