@@ -6,9 +6,11 @@ on:
   pull_request:
     branches: [ main ]
 
-# The TS-track generators resolve @skmtc/core + @skmtc/lang-typescript from
-# public jsr.io (the non-TS lang generators are private, out of the workspace,
-# and not covered by this matrix), so no registry override is needed.
+# Every generator in the matrix resolves its @skmtc/* pins (core,
+# lang-typescript, lang-kotlin) from public jsr.io — gen-kotlin-jackson's
+# lang-kotlin@0.10.0 is published there — so no registry override is
+# needed. `private: true` in a member's deno.json gates PUBLISHING only;
+# it does not keep the package out of the workspace or this matrix.
 jobs:
   coverage:
     runs-on: ubuntu-latest
@@ -21,6 +23,7 @@ jobs:
       matrix:
         generator:
           - gen-arktype
+          - gen-kotlin-jackson
           - gen-msw
           - gen-shadcn-form
           - gen-shadcn-select

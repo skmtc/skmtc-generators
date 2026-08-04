@@ -6,11 +6,14 @@ import type {
   RefName,
 } from '@skmtc/core'
 import { createDataClass } from '@skmtc/lang-kotlin'
+import type { KtAnnotation } from '@skmtc/lang-kotlin'
 import { toKotlinValue } from './Kotlin.ts'
 import { KotlinEnumEntries } from './KotlinEnumEntries.ts'
-import { KotlinObjectProperties } from './KotlinObject.ts'
+import { KotlinObjectProperties, KotlinRecord } from './KotlinObject.ts'
+import { KotlinSealedInterface } from './KotlinSealedInterface.ts'
 import { KotlinJacksonBase } from './base.ts'
-import { isDataClassSchema, isEnumClassSchema } from './shape.ts'
+import { isDataClassSchema, isEnumClassSchema, isSealedUnion } from './shape.ts'
+import { toSealedMembership } from './sealedMembership.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
 
 type ConstructorArgs = {
@@ -23,6 +26,15 @@ type ConstructorArgs = {
 
 export class KotlinProjection extends KotlinJacksonBase {
   value: GeneratedValue
+  /**
+   * Class-level annotations, read off the definition's value via the
+   * `KtAnnotated` protocol. The Driver wraps THIS PROJECTION as the
+   * definition's value, so the sealed branch mirrors its value's
+   * annotations here by REFERENCE — one array, two names.
+   */
+  annotations: KtAnnotation[] = []
+  /** The `KtDocumented` protocol input, mirrored the same way. */
+  description: string | undefined
 
   constructor(
     { context, refName, settings, destinationPath, rootRef }: ConstructorArgs,
@@ -35,6 +47,12 @@ export class KotlinProjection extends KotlinJacksonBase {
       generatorId: KotlinJacksonBase.id,
     })
 
+    // The KtDocumented mirror covers EVERY branch — a description on an
+    // object, enum, union or typealias model all render as class-level
+    // KDoc (the Driver wraps this projection as the definition's value,
+    // so the protocol reads off it).
+    this.description = 'description' in schema ? schema.description : undefined
+
     // The declaration kinds branch on the SAME guards `toIdentifierType`
     // used to pick the head (shape.ts), so the head and the value it is
     // glued to cannot disagree. Their values render everything after the
@@ -42,6 +60,21 @@ export class KotlinProjection extends KotlinJacksonBase {
     // here rather than in the router: only a top-level model has a name to
     // declare.
     if (isDataClassSchema(schema)) {
+      // The sealed inversion: OpenAPI points parent → member; Kotlin
+      // declares member → parent. The claims come from the document-wide
+      // scan (computed before ANY construction — memoization makes build
+      // order arbitrary); the parent's display name comes through the
+      // sanctioned identity door, not a naming-policy copy.
+      const claims = toSealedMembership(context).get(refName) ?? []
+
+      const supertypes = claims.map((claim) =>
+        context.toModelContentSettings({
+          refName: claim.parentRefName,
+          projection: KotlinProjection,
+          variant: 'main',
+        }).identifier.name
+      )
+
       this.value = new KotlinObjectProperties({
         context,
         generatorKey,
@@ -49,6 +82,26 @@ export class KotlinProjection extends KotlinJacksonBase {
         properties: schema.properties ?? {},
         required: schema.required,
         rootRef,
+        supertypes,
+        // The @JsonTypeInfo class discriminator carries the tag on the
+        // wire — a declared property would collide with it, so members
+        // omit each claiming parent's discriminator property. The
+        // qualifying predicate guarantees at least one parameter survives.
+        omittedProperties: new Set(
+          claims.map((claim) => claim.discriminatorPropertyName),
+        ),
+        // A named MIXED model (properties + additionalProperties) keeps
+        // both channels: the record becomes the catch-all parameter.
+        additionalPropertiesRecord: schema.additionalProperties
+          ? new KotlinRecord({
+            context,
+            generatorKey,
+            destinationPath,
+            schema: schema.additionalProperties,
+            rootRef,
+            mutable: true,
+          })
+          : undefined,
       })
     } else if (isEnumClassSchema(schema)) {
       this.value = new KotlinEnumEntries({
@@ -57,6 +110,17 @@ export class KotlinProjection extends KotlinJacksonBase {
         stringSchema: schema,
         generatorKey,
       })
+    } else if (isSealedUnion(context, schema)) {
+      const value = new KotlinSealedInterface({
+        context,
+        generatorKey,
+        destinationPath,
+        unionSchema: schema,
+        rootRef,
+      })
+
+      this.value = value
+      this.annotations = value.annotations
     } else {
       // Everything else is a `typealias` over a plain type expression.
       this.value = toKotlinValue({

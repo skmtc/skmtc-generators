@@ -1,4 +1,4 @@
-import { KtSnippet } from '@skmtc/lang-kotlin'
+import { createEnumClass, defineAndRegister, KtSnippet } from '@skmtc/lang-kotlin'
 import type {
   GenerateContextType,
   GeneratorKey,
@@ -6,6 +6,9 @@ import type {
   OasString,
 } from '@skmtc/core'
 import { applyModifiers } from './modifiers.ts'
+import { KotlinEnumEntries } from './KotlinEnumEntries.ts'
+import { toSynthesizedName } from './toSynthesizedName.ts'
+import { claimSynthesizedName } from './synthesizedNames.ts'
 
 type KotlinStringArgs = {
   context: GenerateContextType
@@ -23,8 +26,11 @@ export class KotlinString extends KtSnippet {
   enums: string[] | (string | null)[] | undefined
   modifiers: Modifiers
 
+  /** The synthesized enum class's name, when enum members forced one. */
+  private reference: string | null = null
+
   constructor(
-    { context, stringSchema, generatorKey, modifiers }: KotlinStringArgs,
+    { context, stringSchema, generatorKey, modifiers, destinationPath }: KotlinStringArgs,
   ) {
     super({
       context,
@@ -36,17 +42,51 @@ export class KotlinString extends KtSnippet {
     this.format = stringSchema.format
     this.enums = stringSchema.enums
     this.modifiers = modifiers
+
+    // Kotlin has no anonymous enum type — an INLINE string enum is
+    // synthesized as a named sibling `enum class` and referenced by name,
+    // exactly like an inline object (the name derives from the schema's
+    // stackTrail). A `null` member is the nullable-enum idiom, a fact
+    // about the property, not an entry — KotlinEnumEntries filters it.
+    const entries = (stringSchema.enums ?? []).filter((value) => value !== null)
+
+    if (entries.length > 0) {
+      const name = toSynthesizedName(stringSchema.stackTrail)
+
+      // Same claim as the inline-object site: collisions live at PACKAGE
+      // scope and across convergent keys — a probe hit on a name from a
+      // DIFFERENT position would silently substitute the wrong type, so
+      // the registry throws instead.
+      const claim = claimSynthesizedName(context, {
+        name,
+        stackTrail: stringSchema.stackTrail,
+      })
+
+      if (claim === 'declare') {
+        defineAndRegister(context, {
+          identifier: createEnumClass(name),
+          value: new KotlinEnumEntries({
+            context,
+            destinationPath,
+            stringSchema,
+            generatorKey,
+          }),
+          destinationPath,
+        })
+      }
+
+      this.reference = name
+    }
   }
 
   override toString(): string {
-    // SLOT(string): Kotlin has no anonymous enum or literal TYPE, so an
-    // INLINE enum widens to `String`. A top-level enum is a different
-    // thing entirely — it has a name, so `KotlinProjection` gives it an
-    // `enum class` of its own (see shape.ts).
+    // SLOT(string): a plain string is `String`; an inline enum renders the
+    // synthesized enum class's name. A top-level enum model never reaches
+    // here — `KotlinProjection` declares it directly (see shape.ts).
     //
     // SLOT(string-constraints): minLength / maxLength / pattern / format
     // live on this.stringSchema; Kotlin's type system cannot express them,
     // so they are dropped rather than encoded.
-    return applyModifiers('String', this.modifiers)
+    return applyModifiers(this.reference ?? 'String', this.modifiers)
   }
 }

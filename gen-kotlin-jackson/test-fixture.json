@@ -41,6 +41,31 @@
           "customer_notes": {
             "type": "string",
             "nullable": true
+          },
+          "metadata": {
+            "type": "object",
+            "required": [
+              "source"
+            ],
+            "properties": {
+              "source": {
+                "type": "string"
+              },
+              "campaign_id": {
+                "type": "string"
+              }
+            }
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "low",
+              "normal",
+              "high"
+            ]
+          },
+          "payment": {
+            "$ref": "#/components/schemas/PaymentMethod"
           }
         }
       },
@@ -119,6 +144,134 @@
             "items": {
               "$ref": "#/components/schemas/Category"
             }
+          }
+        }
+      },
+      "PaymentMethod": {
+        "description": "How the order is paid for.",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/CardPayment"
+          },
+          {
+            "$ref": "#/components/schemas/BankTransferPayment"
+          },
+          {
+            "$ref": "#/components/schemas/StoreCreditPayment"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "method",
+          "mapping": {
+            "card": "#/components/schemas/CardPayment",
+            "bank_transfer": "#/components/schemas/BankTransferPayment"
+          }
+        }
+      },
+      "CardPayment": {
+        "type": "object",
+        "required": [
+          "method",
+          "last_four"
+        ],
+        "properties": {
+          "method": {
+            "type": "string"
+          },
+          "last_four": {
+            "type": "string"
+          },
+          "expiry_month": {
+            "type": "integer"
+          }
+        }
+      },
+      "BankTransferPayment": {
+        "type": "object",
+        "required": [
+          "method",
+          "iban"
+        ],
+        "properties": {
+          "method": {
+            "type": "string"
+          },
+          "iban": {
+            "type": "string"
+          },
+          "reference": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "StoreCreditPayment": {
+        "type": "object",
+        "required": [
+          "method",
+          "balance_used"
+        ],
+        "properties": {
+          "method": {
+            "type": "string"
+          },
+          "balance_used": {
+            "type": "number"
+          }
+        }
+      },
+      "Settings": {
+        "type": "object",
+        "required": [
+          "theme"
+        ],
+        "properties": {
+          "theme": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": {
+          "type": "string"
+        },
+        "description": "Arbitrary client settings."
+      },
+      "LegacyValue": {
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "integer"
+          }
+        ]
+      },
+      "Widget": {
+        "type": "object",
+        "required": [
+          "properties"
+        ],
+        "properties": {
+          "properties": {
+            "type": "object",
+            "required": [
+              "color"
+            ],
+            "properties": {
+              "color": {
+                "type": "string"
+              }
+            }
+          },
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string"
+              }
+            }
+          },
+          "schema": {
+            "type": "string"
           }
         }
       }
