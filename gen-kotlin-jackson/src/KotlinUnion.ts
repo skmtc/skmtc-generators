@@ -11,7 +11,10 @@ import type {
 } from '@skmtc/core'
 import { toKotlinValue } from './Kotlin.ts'
 import { applyModifiers } from './modifiers.ts'
-import { JACKSON_DATABIND_PACKAGE } from './lib.ts'
+import { JACKSON_DATABIND_PACKAGE, toModelExportPath } from './lib.ts'
+import { isSealedUnion } from './shape.ts'
+import { ensureSealedParent } from './KotlinSealedInterface.ts'
+import { toSynthesizedNameOrNull } from './toSynthesizedName.ts'
 
 type KotlinUnionArgs = {
   context: GenerateContextType
@@ -30,6 +33,8 @@ export class KotlinUnion extends KtSnippet {
   members: TypeSystemValue[]
   discriminator: string | undefined
   modifiers: Modifiers
+  /** The synthesized sealed parent's name, when the union qualified. */
+  private reference: string | null = null
 
   constructor(
     {
@@ -45,12 +50,31 @@ export class KotlinUnion extends KtSnippet {
   ) {
     super({ context, generatorKey, stackTrail: schema?.stackTrail.clone() })
 
-    // The members are still walked so that every `$ref` inside a union
-    // gets its own model generated and cached, even though the union's
-    // own type expression cannot name them.
+    this.discriminator = discriminator?.propertyName
+    this.modifiers = modifiers
+
+    // An INLINE qualifying union: the sealed parent is declared by
+    // whoever needs it first (this render site or a member's ` : `
+    // clause — see ensureSealedParent for placement and the race);
+    // type position renders its NAME through a registered import. The
+    // derivability probe is the SAME one the membership scan used to
+    // claim (or skip) the members — an underivable position falls back
+    // to `JsonNode` here AND renders no clause there, consistently.
+    const reference = schema !== undefined && !schema.isRef() &&
+        isSealedUnion(context, schema) &&
+        toSynthesizedNameOrNull(context, schema.stackTrail) !== null
+      ? ensureSealedParent(context, { generatorKey, unionSchema: schema, rootRef })
+      : null
+
+    // The TypeSystem contract walk. When the union qualified,
+    // `KotlinSealedInterface` has ALREADY walked these members against
+    // the sealed file on `'declare'` — this walk is cache hits, and it
+    // targets the same file so member imports stay where they belong.
+    const memberPath = reference !== null ? toModelExportPath(reference) : destinationPath
+
     this.members = members.map((member) =>
       toKotlinValue({
-        destinationPath,
+        destinationPath: memberPath,
         schema: member,
         required: true,
         context,
@@ -58,24 +82,27 @@ export class KotlinUnion extends KtSnippet {
       })
     )
 
-    this.discriminator = discriminator?.propertyName
-    this.modifiers = modifiers
-
     this.register({
-      imports: { [JACKSON_DATABIND_PACKAGE]: ['JsonNode'] },
+      imports: reference !== null
+        // The `@/`-export-path import key — the project-file form
+        // KtImport resolves through the path policy; same-package
+        // suppression drops it where redundant.
+        ? { [memberPath]: [reference] }
+        : { [JACKSON_DATABIND_PACKAGE]: ['JsonNode'] },
       destinationPath,
     })
+
+    this.reference = reference
   }
 
   override toString(): string {
     // SLOT(union): Kotlin has no anonymous union type. A QUALIFYING
-    // top-level union never reaches this class — the shape dispatch
-    // routes it to `sealed interface` + `@JsonTypeInfo`/`@JsonSubTypes`
-    // (see shape.ts `isSealedUnion` and `KotlinSealedInterface`). What
-    // lands here is an inline union (sealed-sibling synthesis is the
-    // planned stage 2) or a non-qualifying one — undiscriminated or
-    // heterogeneous — whose honest wire type is Jackson's `JsonNode`:
-    // deliberately bound, and an API rather than an `Any` cast.
-    return applyModifiers('JsonNode', this.modifiers)
+    // union becomes a named `sealed interface`: top-level via the shape
+    // dispatch (the projection's branch), inline via the synthesis above
+    // — either way type position holds a NAME. What remains is a
+    // non-qualifying union — undiscriminated or heterogeneous — whose
+    // honest wire type is Jackson's `JsonNode`: deliberately bound, and
+    // an API rather than an `Any` cast.
+    return applyModifiers(this.reference ?? 'JsonNode', this.modifiers)
   }
 }

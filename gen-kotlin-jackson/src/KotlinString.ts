@@ -8,6 +8,7 @@ import type {
 import { applyModifiers } from './modifiers.ts'
 import { KotlinEnumEntries } from './KotlinEnumEntries.ts'
 import { toSynthesizedName } from './toSynthesizedName.ts'
+import { toModelExportPath } from './lib.ts'
 import { claimSynthesizedName } from './synthesizedNames.ts'
 
 type KotlinStringArgs = {
@@ -51,29 +52,41 @@ export class KotlinString extends KtSnippet {
     const entries = (stringSchema.enums ?? []).filter((value) => value !== null)
 
     if (entries.length > 0) {
-      const name = toSynthesizedName(stringSchema.stackTrail)
+      const name = toSynthesizedName(context, stringSchema.stackTrail)
 
       // Same claim as the inline-object site: collisions live at PACKAGE
       // scope and across convergent keys — a probe hit on a name from a
       // DIFFERENT position would silently substitute the wrong type, so
-      // the registry throws instead.
+      // the registry throws instead. The THROWING name derivation is
+      // also deliberate (vs the union machinery's soft degrade): an
+      // enum widened to `String` would discard its members — no honest
+      // fallback exists, so an underivable position fails the subject.
       const claim = claimSynthesizedName(context, {
         name,
         stackTrail: stringSchema.stackTrail,
       })
+
+      // ONE placement policy for every synthesized declaration: its own
+      // models-package file — see the inline-object site for why.
+      const exportPath = toModelExportPath(name)
 
       if (claim === 'declare') {
         defineAndRegister(context, {
           identifier: createEnumClass(name),
           value: new KotlinEnumEntries({
             context,
-            destinationPath,
+            destinationPath: exportPath,
             stringSchema,
             generatorKey,
           }),
-          destinationPath,
+          destinationPath: exportPath,
         })
       }
+
+      this.register({
+        imports: { [exportPath]: [name] },
+        destinationPath,
+      })
 
       this.reference = name
     }
