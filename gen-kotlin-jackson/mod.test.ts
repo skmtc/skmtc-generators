@@ -24,11 +24,11 @@ import entry from './mod.ts'
 
 const fixture = JSON.parse(Deno.readTextFileSync(new URL('./test-fixture.json', import.meta.url)))
 
-const generate = () => {
+const generate = (document: unknown = fixture) => {
   return toArtifacts({
     traceId: 'gen-kotlin-jackson-test',
     spanId: 'gen-kotlin-jackson-test',
-    document: { type: 'oas', value: fixture as never },
+    document: { type: 'oas', value: document as never },
     settings: undefined,
     stackTrail: new StackTrail(['gen', 'test']),
     // Test-only cast bridging the caller-chosen EnrichmentType generic.
@@ -38,6 +38,16 @@ const generate = () => {
     startAt: Date.now(),
     silent: true
   })
+}
+
+/** A minimal document around the given component schemas. */
+const toDocument = (schemas: Record<string, unknown>) => {
+  return {
+    openapi: '3.0.0',
+    info: { title: 'collision-cases', version: '0.0.0' },
+    paths: {},
+    components: { schemas }
+  }
 }
 
 Deno.test('every model renders to its own file in the fixed package', () => {
@@ -55,8 +65,80 @@ Deno.test('every model renders to its own file in the fixed package', () => {
     'com/example/models/OrderStatus.generated.kt',
     'com/example/models/PaymentMethod.generated.kt',
     'com/example/models/Settings.generated.kt',
-    'com/example/models/StoreCreditPayment.generated.kt'
+    'com/example/models/StoreCreditPayment.generated.kt',
+    'com/example/models/Widget.generated.kt'
   ])
+})
+
+Deno.test('property keys that spell structural markers still name their siblings', () => {
+  const { artifacts } = generate()
+
+  // `properties`, `items` and `schema` here are USER KEYS, not trail
+  // structure — classification is positional (`properties` consumes the
+  // following frame as a key), so they contribute their PascalCased
+  // selves instead of vanishing or mapping to container segments.
+  assertEquals(
+    artifacts['com/example/models/Widget.generated.kt'],
+    `package com.example.models
+
+data class WidgetProperties(
+    val color: String
+)
+
+data class WidgetItems(
+    val label: String? = null
+)
+
+data class Widget(
+    val properties: WidgetProperties,
+    val items: WidgetItems? = null,
+    val schema: String? = null
+)
+`
+  )
+})
+
+Deno.test('synthesized name colliding with a component class name fails that subject loudly', () => {
+  const { artifacts, manifest } = generate(toDocument({
+    Order: {
+      type: 'object',
+      properties: {
+        metadata: { type: 'object', properties: { source: { type: 'string' } } }
+      }
+    },
+    OrderMetadata: {
+      type: 'object',
+      properties: { unrelated: { type: 'integer' } }
+    }
+  }))
+
+  // Kotlin redeclaration scope is the PACKAGE: the inline Order.metadata
+  // would synthesize `OrderMetadata` beside the real component of that
+  // name — two files, one package, no compile. The claim throws instead:
+  // Order fails per-item, the component still renders.
+  assertEquals(JSON.stringify(manifest.results).includes('error'), true)
+  assertEquals(artifacts['com/example/models/Order.generated.kt'], undefined)
+  assertStringIncludes(
+    artifacts['com/example/models/OrderMetadata.generated.kt'],
+    'data class OrderMetadata'
+  )
+})
+
+Deno.test('two inline schemas converging to one name fail loudly instead of sharing a type', () => {
+  const { manifest } = generate(toDocument({
+    Order: {
+      type: 'object',
+      properties: {
+        metaData: { type: 'object', properties: { a: { type: 'string' } } },
+        meta_data: { type: 'object', properties: { b: { type: 'integer' } } }
+      }
+    }
+  }))
+
+  // Both keys camelCase to `OrderMetaData`. A probe hit on the first
+  // claimant's declaration would silently give `meta_data` the WRONG
+  // shape — the claim registry throws on the position mismatch instead.
+  assertEquals(JSON.stringify(manifest.results).includes('error'), true)
 })
 
 Deno.test('Order pins the full render (wire names, keyword, optionality, synthesized siblings)', () => {
@@ -158,6 +240,7 @@ Deno.test('mixed properties + additionalProperties keeps both channels via the c
 import com.fasterxml.jackson.annotation.JsonAnyGetter
 import com.fasterxml.jackson.annotation.JsonAnySetter
 
+/** Arbitrary client settings. */
 data class Settings(
     val theme: String,
     @field:JsonAnySetter

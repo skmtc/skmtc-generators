@@ -4,6 +4,7 @@ import type {
   GeneratorKey,
   OasUnion,
   RefName,
+  StackTrail,
   TypeSystemValue,
 } from '@skmtc/core'
 import { toKotlinValue } from './Kotlin.ts'
@@ -18,21 +19,33 @@ type KotlinSealedInterfaceArgs = {
   rootRef?: RefName
 }
 
+type KotlinSubTypeArgs = {
+  context: GenerateContextType
+  generatorKey: GeneratorKey
+  stackTrail: StackTrail
+  member: TypeSystemValue
+  tag: string
+}
+
 /**
  * One `@JsonSubTypes` entry. Holds the walked member ref SNIPPET — never
  * its rendered string — so the member's name stays in the value chain
- * and its model construction/import stitching ride along.
+ * and its model construction/import stitching ride along. A `KtSnippet`
+ * (not a plain Stringable) so the entry's span carries the member ref's
+ * stackTrail like every other node in the tree.
  */
-class KotlinSubType {
+class KotlinSubType extends KtSnippet {
   member: TypeSystemValue
   tag: string
 
-  constructor(member: TypeSystemValue, tag: string) {
+  constructor({ context, generatorKey, stackTrail, member, tag }: KotlinSubTypeArgs) {
+    super({ context, generatorKey, stackTrail })
+
     this.member = member
     this.tag = tag
   }
 
-  toString(): string {
+  override toString(): string {
     return `JsonSubTypes.Type(value = ${this.member}::class, name = "${this.tag}")`
   }
 }
@@ -95,7 +108,13 @@ export class KotlinSealedInterface extends KtSnippet {
         rootRef,
       })
 
-      return new KotlinSubType(value, toMemberTag(member.toRefName(), mapping))
+      return new KotlinSubType({
+        context,
+        generatorKey,
+        stackTrail: member.stackTrail.clone(),
+        member: value,
+        tag: toMemberTag(member.toRefName(), mapping),
+      })
     })
 
     this.annotations = [

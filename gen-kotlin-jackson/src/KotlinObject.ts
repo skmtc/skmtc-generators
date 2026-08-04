@@ -8,6 +8,7 @@ import {
   sanitizePropertyName,
 } from '@skmtc/lang-kotlin'
 import { toSynthesizedName } from './toSynthesizedName.ts'
+import { claimSynthesizedName } from './synthesizedNames.ts'
 import type { KtParameterArgs } from '@skmtc/lang-kotlin'
 import type {
   CustomValue,
@@ -85,6 +86,10 @@ export class KotlinObject extends KtSnippet {
         destinationPath,
         schema: additionalProperties,
         rootRef,
+        // In the MIXED form this record renders as the synthesized
+        // class's catch-all parameter, where Jackson's any-setter writes
+        // entries — so the map must be mutable. Record-only stays `Map`.
+        mutable: Boolean(hasProperties),
       })
       : null
 
@@ -106,12 +111,16 @@ export class KotlinObject extends KtSnippet {
     if (this.objectProperties) {
       const name = toSynthesizedName(objectSchema.stackTrail)
 
-      const existing = context.findDefinition({
+      // The claim replaces a per-file `findDefinition` probe: collisions
+      // live at PACKAGE scope (and across convergent keys), which only
+      // the document-wide claim registry can see. A collision throws —
+      // the engine isolates it to this subject.
+      const claim = claimSynthesizedName(context, {
         name,
-        exportPath: destinationPath,
+        stackTrail: objectSchema.stackTrail,
       })
 
-      if (!existing) {
+      if (claim === 'declare') {
         defineAndRegister(context, {
           identifier: createDataClass(name),
           value: this.objectProperties,
@@ -133,7 +142,7 @@ export class KotlinObject extends KtSnippet {
     // SLOT(object-empty): an unconstrained object schema means "any
     // object" — `Map<String, Any?>` is its honest type.
     return applyModifiers(
-      reference ?? recordProperties?.toString() ?? 'Map<String, Any?>',
+      reference ?? recordProperties ?? 'Map<String, Any?>',
       this.modifiers,
     )
   }
@@ -296,7 +305,7 @@ export class KotlinObjectProperties extends KtSnippet {
 
       parameters.push({
         name: catchAllName,
-        type: new KotlinCatchAllMap(additionalPropertiesRecord),
+        type: additionalPropertiesRecord,
         defaultValue: 'mutableMapOf()',
         annotations: [
           new KtAnnotation({
@@ -331,39 +340,31 @@ export class KotlinObjectProperties extends KtSnippet {
   }
 }
 
-/**
- * The catch-all parameter's type: the record channel's value in a
- * MUTABLE map — Jackson's any-setter writes entries during
- * deserialization, so `Map` would not do.
- */
-class KotlinCatchAllMap {
-  record: KotlinRecord
-
-  constructor(record: KotlinRecord) {
-    this.record = record
-  }
-
-  toString(): string {
-    return `MutableMap<String, ${this.record.value}>`
-  }
-}
-
 type KotlinRecordArgs = {
   context: GenerateContextType
   destinationPath: string
   schema: true | OasSchema | OasRef<'schema'>
   generatorKey: GeneratorKey
   rootRef?: RefName
+  /**
+   * Render `MutableMap` instead of `Map` — set when this record is a
+   * synthesized class's catch-all parameter, which Jackson's any-setter
+   * writes into during deserialization.
+   */
+  mutable?: boolean
 }
 
 export class KotlinRecord extends KtSnippet {
   value: TypeSystemValue
+  mutable: boolean
 
   constructor(
-    { context, generatorKey, destinationPath, schema, rootRef }:
+    { context, generatorKey, destinationPath, schema, rootRef, mutable = false }:
       KotlinRecordArgs,
   ) {
     super({ context, generatorKey })
+
+    this.mutable = mutable
 
     // additionalProperties: true (or an empty schema) means untyped
     // values — route to the unknown fallback, never throw.
@@ -380,6 +381,6 @@ export class KotlinRecord extends KtSnippet {
 
   override toString(): string {
     // SLOT(record): string-keyed map of this.value.
-    return `Map<String, ${this.value}>`
+    return `${this.mutable ? 'MutableMap' : 'Map'}<String, ${this.value}>`
   }
 }

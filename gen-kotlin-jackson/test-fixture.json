@@ -232,7 +232,8 @@
         },
         "additionalProperties": {
           "type": "string"
-        }
+        },
+        "description": "Arbitrary client settings."
       },
       "LegacyValue": {
         "oneOf": [
@@ -243,6 +244,36 @@
             "type": "integer"
           }
         ]
+      },
+      "Widget": {
+        "type": "object",
+        "required": [
+          "properties"
+        ],
+        "properties": {
+          "properties": {
+            "type": "object",
+            "required": [
+              "color"
+            ],
+            "properties": {
+              "color": {
+                "type": "string"
+              }
+            }
+          },
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string"
+              }
+            }
+          },
+          "schema": {
+            "type": "string"
+          }
+        }
       }
     }
   }

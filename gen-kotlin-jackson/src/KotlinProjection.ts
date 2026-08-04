@@ -47,6 +47,12 @@ export class KotlinProjection extends KotlinJacksonBase {
       generatorId: KotlinJacksonBase.id,
     })
 
+    // The KtDocumented mirror covers EVERY branch — a description on an
+    // object, enum, union or typealias model all render as class-level
+    // KDoc (the Driver wraps this projection as the definition's value,
+    // so the protocol reads off it).
+    this.description = 'description' in schema ? schema.description : undefined
+
     // The declaration kinds branch on the SAME guards `toIdentifierType`
     // used to pick the head (shape.ts), so the head and the value it is
     // glued to cannot disagree. Their values render everything after the
@@ -93,6 +99,7 @@ export class KotlinProjection extends KotlinJacksonBase {
             destinationPath,
             schema: schema.additionalProperties,
             rootRef,
+            mutable: true,
           })
           : undefined,
       })
@@ -114,7 +121,6 @@ export class KotlinProjection extends KotlinJacksonBase {
 
       this.value = value
       this.annotations = value.annotations
-      this.description = value.description
     } else {
       // Everything else is a `typealias` over a plain type expression.
       this.value = toKotlinValue({

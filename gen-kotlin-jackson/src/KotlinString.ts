@@ -8,6 +8,7 @@ import type {
 import { applyModifiers } from './modifiers.ts'
 import { KotlinEnumEntries } from './KotlinEnumEntries.ts'
 import { toSynthesizedName } from './toSynthesizedName.ts'
+import { claimSynthesizedName } from './synthesizedNames.ts'
 
 type KotlinStringArgs = {
   context: GenerateContextType
@@ -52,12 +53,16 @@ export class KotlinString extends KtSnippet {
     if (entries.length > 0) {
       const name = toSynthesizedName(stringSchema.stackTrail)
 
-      const existing = context.findDefinition({
+      // Same claim as the inline-object site: collisions live at PACKAGE
+      // scope and across convergent keys — a probe hit on a name from a
+      // DIFFERENT position would silently substitute the wrong type, so
+      // the registry throws instead.
+      const claim = claimSynthesizedName(context, {
         name,
-        exportPath: destinationPath,
+        stackTrail: stringSchema.stackTrail,
       })
 
-      if (!existing) {
+      if (claim === 'declare') {
         defineAndRegister(context, {
           identifier: createEnumClass(name),
           value: new KotlinEnumEntries({

@@ -1,22 +1,5 @@
-import { camelCase, capitalize, toMethodVerb } from '@skmtc/core'
-import type { Method, StackTrail } from '@skmtc/core'
-
-const METHODS: readonly Method[] = [
-  'get',
-  'post',
-  'put',
-  'patch',
-  'delete',
-  'head',
-  'options',
-  'trace'
-]
-
-const isMethodFrame = (frame: string): frame is Method => {
-  const methodFrames: readonly string[] = METHODS
-
-  return methodFrames.includes(frame)
-}
+import { camelCase, capitalize, isMethod, toMethodVerb } from '@skmtc/core'
+import type { StackTrail } from '@skmtc/core'
 
 /**
  * Derive the name for a synthesized declaration from the schema's own
@@ -28,8 +11,12 @@ const isMethodFrame = (frame: string): frame is Method => {
  * through the router) means EVERY construction path derives the same
  * name — including peers that reach the value through core's
  * `SchemaToValueFn` contract, which carries no naming hint. Distinct
- * positions have distinct trails, so names are deterministic and
- * collision-free by construction.
+ * positions have distinct TRAILS, but the NAMES derived from them are
+ * not collision-free: distinct keys converge under `camelCase`, and the
+ * derived name shares one Kotlin package with every component-derived
+ * class name. Collisions are therefore policed at the declaration site
+ * by `claimSynthesizedName` (synthesizedNames.ts) — this function only
+ * answers "what is this position called".
  *
  * Anchoring: the head of a trail carries tracing frames
  * (`trace-<ts>`, `span-<ts>`, `parse`) whose timestamps vary per run —
@@ -70,7 +57,7 @@ export const toSynthesizedName = (stackTrail: StackTrail): string => {
 const toOperationRootedName = (frames: string[]): string => {
   const [path, method, ...rest] = frames
 
-  if (path === undefined || method === undefined || !isMethodFrame(method)) {
+  if (path === undefined || method === undefined || !isMethod(method)) {
     throw new Error(
       `Cannot synthesize a declaration name: operation trail lacks path/method [${frames.join(', ')}]`
     )
@@ -82,12 +69,18 @@ const toOperationRootedName = (frames: string[]): string => {
 }
 
 /**
- * Positional frames → name segments. Structural frames vanish
- * (`properties`, `content` and its media-type frame, `schema`), container
- * frames become fixed segments (`items` → `Item`, `additionalProperties`
- * → `Value`, `requestBody` → `Body`, `responses` → `Response` with 2xx
- * status codes elided), and everything else contributes its
- * PascalCased self.
+ * Positional frames → name segments. Classification is POSITIONAL, not
+ * lexical: `properties` consumes the frame that follows it as a literal
+ * key segment, because that frame is a user-chosen property name — a
+ * property literally called `properties`, `schema`, `content` or
+ * `items` must contribute its PascalCased self, never be mistaken for a
+ * structural marker. The remaining structural frames can then be
+ * matched by value: a bare `schema` vanishes (operation trails),
+ * `content` drops itself and its media-type frame, and container frames
+ * become fixed segments (`items` → `Item`, `additionalProperties` →
+ * `Value`, `requestBody` → `Body`, `responses` → `Response` with 2xx
+ * status codes elided). Everything else contributes its PascalCased
+ * self.
  */
 const toSegments = (frames: string[]): string[] => {
   const segments: string[] = []
@@ -95,7 +88,18 @@ const toSegments = (frames: string[]): string[] => {
   for (let index = 0; index < frames.length; index++) {
     const frame = frames[index]
 
-    if (frame === 'properties' || frame === 'schema') {
+    if (frame === 'properties') {
+      const key = frames[index + 1]
+
+      if (key !== undefined) {
+        segments.push(capitalize(camelCase(key)))
+      }
+
+      index++
+      continue
+    }
+
+    if (frame === 'schema') {
       continue
     }
 
