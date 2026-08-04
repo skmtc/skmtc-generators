@@ -395,6 +395,38 @@ Deno.test('a parameter-position union names by the parameter NAME, never the arr
   )
 })
 
+Deno.test('a $ref-ed parameter degrades with the rest of the components/<section> family', () => {
+  // The ref itself is core's business — `OasOperation.toParams()`
+  // resolves it and no generator ever sees an `OasRef<'parameter'>`.
+  // What decides the outcome is where the resolved SCHEMA was parsed:
+  // under `components/parameters/…`, a root this derivation does not
+  // know, so the position is underivable and the union degrades exactly
+  // like one under `components/requestBodies` — no claim, no clause, no
+  // declaration from either side, no error. The parameter-NAME lookup
+  // cannot reach it, and that is one root to teach rather than a
+  // parameter-specific gap.
+  const { artifacts, manifest } = generate({
+    openapi: '3.0.0',
+    info: { title: 'ref-param-union', version: '0.0.0' },
+    paths: {
+      '/x': {
+        get: {
+          parameters: [{ $ref: '#/components/parameters/Filter' }],
+          responses: { '200': { description: 'ok' } }
+        }
+      }
+    },
+    components: {
+      parameters: { Filter: { name: 'filter', in: 'query', schema: sealedProbeUnion } },
+      schemas: sealedProbeSchemas
+    }
+  })
+
+  assertEquals(JSON.stringify(manifest.results).includes('error'), false)
+  assertEquals(artifacts['com/example/models/GetApiXFilter.generated.kt'], undefined)
+  assertEquals(artifacts['com/example/models/CardX.generated.kt'].includes(' : '), false)
+})
+
 Deno.test('a HEADER named after a structural marker keeps its own name', () => {
   // `headers` introduces a user-chosen key and consumes it literally —
   // the same positional rule as `properties` — so a header named

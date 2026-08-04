@@ -29,6 +29,12 @@ import type { GenerateContextType, StackTrail } from '@skmtc/core'
  * - operation: [..., paths, /orders, post, requestBody, content,
  *              application/json, schema] → `CreateApiOrdersBody`
  *              (reusing core's method-verb vocabulary: post → Create)
+ *
+ * The operation root has one position the frames alone cannot name — a
+ * parameter, addressed there by array INDEX — resolved back to the
+ * parameter's name by `toParameterName` below:
+ * - parameter: [..., paths, /x, get, parameters, 0, schema]
+ *              → `GetApiXFilter`
  */
 export const toSynthesizedName = (
   context: GenerateContextType,
@@ -161,6 +167,14 @@ type ToParameterNameArgs = {
  * `$ref` entry resolves to its named definition. Unknown positions
  * (malformed index, webhook-rooted trails — a root this derivation does
  * not yet know) return `null` and stay underivable.
+ *
+ * Reachable for an INLINE parameter only, and that is not a limitation
+ * of this lookup: a `$ref`ed parameter's SCHEMA was parsed under
+ * `components/parameters/<name>/…`, so its trail never reaches the
+ * operation-rooted branch that consults this map. Such a schema stays
+ * underivable with every other `components/<section>` position
+ * (`requestBodies`, `responses`, `headers`) — one family, one root to
+ * teach, not a parameter-specific gap.
  */
 const parameterNamesCache = new WeakMap<object, Map<string, string>>()
 
@@ -246,8 +260,12 @@ const toSegments = (frames: string[]): string[] | null => {
       continue
     }
 
-    // Backstop: an index-addressed parameter pair the operation-rooted
-    // branch did not resolve stays underivable.
+    // Backstop, unreachable today: the operation-rooted branch resolves
+    // every `parameters/<index>` pair before delegating here, and in a
+    // component-rooted trail `properties` consumes a user key named
+    // `parameters` positionally. Kept so that a future root reaching
+    // this loop with an index-addressed pair degrades rather than
+    // putting an array position into a public class name.
     if (frame === 'parameters' && /^\d+$/.test(frames[index + 1] ?? '')) {
       return null
     }

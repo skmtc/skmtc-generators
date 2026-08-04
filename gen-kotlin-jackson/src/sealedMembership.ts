@@ -77,6 +77,13 @@ export type SealedParent = {
  * is walked from its own root, so following a ref would only
  * double-visit (or loop).
  *
+ * NOT covered, and not coverable here: parameters declared at the PATH
+ * ITEM level rather than on the operation. Core parses those onto
+ * `OasPathItem.parameters` and never merges them into the operation, so
+ * `OasOperation.toParams()` does not see them either — they are outside
+ * every generator's reach, not just this scan's. A union there is
+ * absent from the output rather than mis-declared.
+ *
  * Membership derives from the DOCUMENT, not the post-`skip`/`include`
  * set — dependency edges are filter-blind (the `insertOperation`
  * precedent). Skipping a qualifying parent while generating its members
