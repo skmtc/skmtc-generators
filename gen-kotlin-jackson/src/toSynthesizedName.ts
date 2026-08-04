@@ -129,8 +129,21 @@ const toOperationRootedName = (frames: string[]): string | null => {
  * `parameters/<index>` is UNDERIVABLE (`null`): the trail addresses the
  * parameter by array position, and an absolute index in a public class
  * name churns whenever a spec edit reorders parameters — exactly what
- * anchoring on landmarks exists to prevent. Naming these needs the
- * parameter NAME in the trail, which is a core-side question.
+ * anchoring on landmarks exists to prevent.
+ *
+ * THE INTERIM DECISION (PR #30 review): through the shared probe a
+ * parameter-position union degrades softly (`JsonNode`, no clause), but
+ * an inline OBJECT or ENUM in a parameter — which has no honest
+ * fallback — fails its subject loudly. Chosen over the index-derived
+ * name deliberately: a loud per-subject failure names its cause; a
+ * silently churning public identity does not. The durable fix is the
+ * parameter NAME in the trail, but the naive core change collides with
+ * the trail's OTHER contract — `StackTrail.toJsonPointer()` must
+ * resolve into the source document, and `parameters` is an ARRAY there
+ * (core's attribution gate pins `#/paths/.../parameters/0`). Lifting
+ * this needs either a dual-identity trail frame in core or a
+ * document-scan name lookup here — a design decision, tracked on the
+ * PR.
  */
 const toSegments = (frames: string[]): string[] | null => {
   const segments: string[] = []
