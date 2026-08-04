@@ -46,13 +46,23 @@ const toClaims = (context: GenerateContextType): Map<string, string> => {
  * - name collides with a component-derived class name → **throw** (two
  *   files in one package cannot both declare it; the engine isolates the
  *   throw to this subject, and the remedy — rename one side or promote
- *   the inline schema to a component — belongs to the schema author);
+ *   the inline schema to a component — belongs to the schema author).
+ *   `toComponentClassNames` is deliberately FILTER-BLIND: it blocks the
+ *   name of every component in the DOCUMENT, including ones a
+ *   `skip`/`include` filter keeps out of this run's output. Filters
+ *   change run to run; a name that is only free until someone widens a
+ *   filter is not free — the same reasoning that makes the
+ *   sealed-membership scan filter-blind;
  * - name already claimed by a DIFFERENT schema position → **throw**
  *   (same reasoning: refusing to emit is honest, emitting the wrong
  *   type is not);
  * - name claimed by the SAME position → `'reuse'` (a legitimate
- *   re-walk; the declaration already exists — package-wide, so this
- *   holds even when the re-walk targets a different file);
+ *   re-walk; the declaration already exists). A `'reuse'` resolves even
+ *   when the re-walk targets a DIFFERENT file only because
+ *   `toExportPath` hardcodes `BASE_PACKAGE` — one package, no import
+ *   needed. These two are a matched pair: making the export path
+ *   enrichment-driven or per-model without teaching `'reuse'` to
+ *   register a cross-package import turns it into a dangling reference;
  * - otherwise → `'declare'`.
  */
 export const claimSynthesizedName = (

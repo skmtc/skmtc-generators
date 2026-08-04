@@ -141,6 +141,32 @@ Deno.test('two inline schemas converging to one name fail loudly instead of shar
   assertEquals(JSON.stringify(manifest.results).includes('error'), true)
 })
 
+Deno.test('a LATE collision drops the model but leaves earlier siblings as orphans', () => {
+  const { artifacts, manifest } = generate(toDocument({
+    Order: {
+      type: 'object',
+      properties: {
+        good: { type: 'object', properties: { a: { type: 'string' } } },
+        metaData: { type: 'object', properties: { b: { type: 'string' } } },
+        meta_data: { type: 'object', properties: { c: { type: 'integer' } } }
+      }
+    }
+  }))
+
+  // Siblings declared before the collision are NOT unwound — per-subject
+  // isolation never rolls back side effects. The orphans are valid
+  // Kotlin dead code; the manifest error on Order is the signal. This
+  // pins the declare-then-throw ordering the collision tests above
+  // don't reach (their collision lands on the first inline property).
+  assertEquals(JSON.stringify(manifest.results).includes('error'), true)
+
+  const orderFile = artifacts['com/example/models/Order.generated.kt']
+
+  assertStringIncludes(orderFile, 'data class OrderGood')
+  assertStringIncludes(orderFile, 'data class OrderMetaData')
+  assertEquals(orderFile.includes('data class Order('), false)
+})
+
 Deno.test('Order pins the full render (wire names, keyword, optionality, synthesized siblings)', () => {
   const { artifacts } = generate()
 

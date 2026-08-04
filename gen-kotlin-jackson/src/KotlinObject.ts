@@ -115,6 +115,16 @@ export class KotlinObject extends KtSnippet {
       // live at PACKAGE scope (and across convergent keys), which only
       // the document-wide claim registry can see. A collision throws —
       // the engine isolates it to this subject.
+      //
+      // Siblings this subject declared BEFORE a later property collided
+      // stay in the file map — per-subject isolation never unwinds side
+      // effects, here or anywhere in the engine. Accepted deliberately:
+      // the orphans are valid Kotlin (dead code at worst), the subject's
+      // manifest error is the real signal, and an orphan remains the
+      // declaration a later same-position claim legitimately `'reuse'`s.
+      // The alternative — claiming every name a subject needs before
+      // declaring any — would split the walk into two phases and break
+      // registration-at-construction for no observable gain.
       const claim = claimSynthesizedName(context, {
         name,
         stackTrail: objectSchema.stackTrail,

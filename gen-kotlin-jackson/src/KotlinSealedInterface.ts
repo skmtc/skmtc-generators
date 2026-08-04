@@ -72,16 +72,12 @@ class KotlinSubType extends KtSnippet {
 export class KotlinSealedInterface extends KtSnippet {
   annotations: KtAnnotation[]
   subTypes: KotlinSubType[]
-  /** The `KtDocumented` protocol input — rendered as class-level KDoc. */
-  description: string | undefined
 
   constructor(
     { context, generatorKey, destinationPath, unionSchema, rootRef }:
       KotlinSealedInterfaceArgs,
   ) {
     super({ context, generatorKey, stackTrail: unionSchema.stackTrail.clone() })
-
-    this.description = unionSchema.description
 
     const { discriminator, members } = unionSchema
 
