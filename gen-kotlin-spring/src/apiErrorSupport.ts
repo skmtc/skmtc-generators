@@ -9,7 +9,7 @@ import {
   createDataClass,
   defineAndRegister
 } from '@skmtc/lang-kotlin'
-import { WEB_BIND_ANNOTATION_PACKAGE } from './SpringApiMethod.ts'
+import { WEB_BIND_ANNOTATION_PACKAGE } from './lib.ts'
 
 /**
  * The generated error channel (spec 29, Milestone G): consumers throw

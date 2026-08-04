@@ -68,16 +68,46 @@ const documentObject: OpenAPIV3.Document = {
   }
 }
 
-const runFixture = () => {
+const enumParamDocument: OpenAPIV3.Document = {
+  openapi: '3.0.0',
+  info: { title: 'enum-param', version: '0.0.0' },
+  paths: {
+    '/users/{id}': {
+      get: {
+        tags: ['users'],
+        parameters: [
+          { name: 'id', in: 'path', required: true, schema: { type: 'string' } },
+          { name: 'page', in: 'query', schema: { type: 'integer' } },
+          { name: 'status', in: 'query', schema: { type: 'string', enum: ['active', 'inactive'] } }
+        ],
+        responses: { '200': { description: 'ok' } }
+      }
+    }
+  }
+}
+
+type RunFixtureOptions = {
+  document?: OpenAPIV3.Document
+  springEnrichment?: Record<string, unknown>
+}
+
+const runFixture = ({ document = documentObject, springEnrichment }: RunFixtureOptions = {}) => {
   return toArtifacts({
     traceId: 'gen-kotlin-spring-unit',
     spanId: 'fixture',
     startAt: Date.now(),
-    document: { type: 'oas', value: documentObject },
+    document: { type: 'oas', value: document },
     settings: {
       basePath: './server/src/main/kotlin',
       enrichments: {
-        '@skmtc/gen-kotlin-spring': { _generator: { basePackage: 'com.example.spring' } }
+        '@skmtc/gen-kotlin-spring': springEnrichment ?? {
+          _generator: { basePackage: 'com.example.spring' }
+        },
+        // jackson's basePackage is a REQUIRED generator-scope enrichment,
+        // read by the value layer even when its transform isn't
+        // registered — the `alone` runs still emit DTO types through its
+        // router.
+        '@skmtc/gen-kotlin-jackson': { _generator: { basePackage: 'com.example.models' } }
       }
     },
     stackTrail: new StackTrail([]),
@@ -87,6 +117,16 @@ const runFixture = () => {
       '@skmtc/gen-kotlin-spring': springEntry
     })
   })
+}
+
+/**
+ * A generate-phase throw never touches `parseIssues` — it lands in
+ * `manifest.results.generate` as a per-subject `error`, while the
+ * accumulator's already-registered container still renders a
+ * valid-but-empty file. Every fixture asserts BOTH channels.
+ */
+const assertNoGenerateErrors = (manifest: { results: unknown }) => {
+  assertEquals(JSON.stringify(manifest.results).includes('error'), false)
 }
 
 Deno.test('one interface per tag — untagged → DefaultApi, multi-tag joins its FIRST tag only', () => {
@@ -101,6 +141,7 @@ Deno.test('one interface per tag — untagged → DefaultApi, multi-tag joins it
   ])
 
   assertEquals(manifest.parseIssues.filter(issue => issue.level === 'error'), [])
+  assertNoGenerateErrors(manifest)
 })
 
 Deno.test('UsersApi accumulates methods in document order — params, body, return type, stackTrail-named body sibling', () => {
@@ -215,43 +256,9 @@ Deno.test('an inline enum query parameter names by the PARAMETER name, stably', 
   // models package, and the signature references it across packages.
   // The unrelated `page` parameter ahead of `status` proves the name
   // reorder-stable.
-  const { artifacts } = toArtifacts({
-    traceId: 'gen-kotlin-spring-enum-param',
-    spanId: 'fixture',
-    startAt: Date.now(),
-    document: {
-      type: 'oas',
-      value: {
-        openapi: '3.0.0',
-        info: { title: 'enum-param', version: '0.0.0' },
-        paths: {
-          '/users/{id}': {
-            get: {
-              tags: ['users'],
-              parameters: [
-                { name: 'id', in: 'path', required: true, schema: { type: 'string' } },
-                { name: 'page', in: 'query', schema: { type: 'integer' } },
-                { name: 'status', in: 'query', schema: { type: 'string', enum: ['active', 'inactive'] } }
-              ],
-              responses: { '200': { description: 'ok' } }
-            }
-          }
-        }
-      } as never
-    },
-    settings: {
-      basePath: './server/src/main/kotlin',
-      enrichments: {
-        '@skmtc/gen-kotlin-spring': { _generator: { basePackage: 'com.example.spring' } }
-      }
-    },
-    stackTrail: new StackTrail([]),
-    silent: true,
-    toGeneratorConfigMap: () => ({
-      // @ts-expect-error - entry vs the generic config map (the known variance gap)
-      '@skmtc/gen-kotlin-spring': springEntry
-    })
-  })
+  const { artifacts, manifest } = runFixture({ document: enumParamDocument })
+
+  assertNoGenerateErrors(manifest)
 
   assertEquals(
     artifacts['server/src/main/kotlin/com/example/models/GetApiUsersIdStatus.generated.kt'],
@@ -287,26 +294,11 @@ Deno.test('basePackage segments are validated by the config schema', () => {
 })
 
 Deno.test('serviceMethodName enrichment renames the seam and the delegation in lockstep', () => {
-  const { artifacts } = toArtifacts({
-    traceId: 'gen-kotlin-spring-rename',
-    spanId: 'fixture',
-    startAt: Date.now(),
-    document: { type: 'oas', value: documentObject },
-    settings: {
-      basePath: './server/src/main/kotlin',
-      enrichments: {
-        '@skmtc/gen-kotlin-spring': {
-          _generator: { basePackage: 'com.example.spring' },
-          '/users/{id}': { get: { main: { serviceMethodName: 'getUser' } } }
-        }
-      }
-    },
-    stackTrail: new StackTrail([]),
-    silent: true,
-    toGeneratorConfigMap: () => ({
-      // @ts-expect-error - entry vs the generic config map (the known variance gap)
-      '@skmtc/gen-kotlin-spring': springEntry
-    })
+  const { artifacts } = runFixture({
+    springEnrichment: {
+      _generator: { basePackage: 'com.example.spring' },
+      '/users/{id}': { get: { main: { serviceMethodName: 'getUser' } } }
+    }
   })
 
   const usersApi = artifacts['server/src/main/kotlin/com/example/spring/UsersApi.generated.kt']

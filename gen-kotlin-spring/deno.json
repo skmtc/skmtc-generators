@@ -7,13 +7,13 @@
     "test:coverage": "deno test --allow-env --allow-sys --allow-read --coverage=coverage",
     "coverage:report": "deno coverage coverage --lcov --output=coverage.lcov",
     "coverage:html": "deno coverage coverage --html",
-    "coverage:check": "deno coverage coverage --detailed",
-    "publish": "deno publish --allow-slow-types --allow-dirty"
+    "coverage:check": "deno coverage coverage --detailed"
   },
   "imports": {
     "@skmtc/core": "jsr:@skmtc/core@0.28.3",
     "@skmtc/lang-kotlin": "jsr:@skmtc/lang-kotlin@0.10.0",
-    "@std/assert": "jsr:@std/assert@^1.0.10"
+    "@std/assert": "jsr:@std/assert@^1.0.10",
+    "@skmtc/gen-kotlin-jackson": "../gen-kotlin-jackson/mod.ts"
   },
   "private": true,
   "lint": {

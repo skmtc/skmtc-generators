@@ -120,12 +120,15 @@ const runFixture = ({ besideGenKotlin }: RunFixtureArgs) => {
     document: { type: 'oas', value: documentObject },
     settings: {
       basePath: './app/src/main/kotlin',
-      // Spring's basePackage rides the `_generator` scope; the model peer
-      // (gen-kotlin-jackson) takes no config — its export path is fixed at
-      // com.example.models, so DTO references cross packages and their
-      // imports are stitched by the engine.
+      // Both basePackages are REQUIRED generator-scope enrichments (no
+      // defaults — a placeholder package must never ship silently).
+      // jackson's is read by the value layer even in the `alone` run,
+      // and the fixture deliberately picks a DIFFERENT package for it so
+      // DTO references cross packages and their imports are stitched by
+      // the engine.
       enrichments: {
-        '@skmtc/gen-kotlin-spring': { _generator: { basePackage: 'com.example.api' } }
+        '@skmtc/gen-kotlin-spring': { _generator: { basePackage: 'com.example.api' } },
+        '@skmtc/gen-kotlin-jackson': { _generator: { basePackage: 'com.example.models' } }
       }
     },
     stackTrail: new StackTrail([]),
@@ -150,6 +153,9 @@ Deno.test('e2e alone - UsersApi renders the worked example; ref DTOs arrive via 
 
   assertEquals(artifacts['app/src/main/kotlin/com/example/api/UsersApi.generated.kt'], expectedUsersApi)
   assertEquals(manifest.parseIssues.filter(issue => issue.level === 'error'), [])
+  // A generate-phase throw never touches parseIssues — gate that
+  // channel too, or a silently-errored subject renders an empty shell.
+  assertEquals(JSON.stringify(manifest.results).includes('error'), false)
 })
 
 Deno.test('e2e beside gen-kotlin-jackson - identical UsersApi; unreferenced schemas join the output', () => {
@@ -180,6 +186,9 @@ Deno.test('e2e beside gen-kotlin-jackson - identical UsersApi; unreferenced sche
   )
 
   assertEquals(manifest.parseIssues.filter(issue => issue.level === 'error'), [])
+  // A generate-phase throw never touches parseIssues — gate that
+  // channel too, or a silently-errored subject renders an empty shell.
+  assertEquals(JSON.stringify(manifest.results).includes('error'), false)
 })
 
 Deno.test('e2e - the two runs render byte-identical files for the shared set', () => {

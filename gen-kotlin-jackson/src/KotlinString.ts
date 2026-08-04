@@ -68,7 +68,7 @@ export class KotlinString extends KtSnippet {
 
       // ONE placement policy for every synthesized declaration: its own
       // models-package file — see the inline-object site for why.
-      const exportPath = toModelExportPath(name)
+      const exportPath = toModelExportPath(context, name)
 
       if (claim === 'declare') {
         defineAndRegister(context, {

@@ -1,7 +1,7 @@
 import type { GenerateContextType } from '@skmtc/core'
 import { KtAnnotation, KtParameterList, KtSnippet } from '@skmtc/lang-kotlin'
 import type { KtFunctionSignature } from '@skmtc/lang-kotlin'
-import { WEB_BIND_ANNOTATION_PACKAGE } from './SpringApiMethod.ts'
+import { WEB_BIND_ANNOTATION_PACKAGE } from './lib.ts'
 
 type SpringServiceInterfaceArgs = {
   context: GenerateContextType

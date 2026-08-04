@@ -163,7 +163,13 @@ export class KotlinProjection extends KotlinJacksonBase {
   }
 
   // These two statics make the projection consumable by PEER generators
-  // via insertNormalizedModel — keep them.
+  // via insertNormalizedModel — keep them. CAVEAT: that door is only
+  // sound for `$ref` schemas. For an INLINE object, core's generic glue
+  // joins the identifier head to the value's type-position render —
+  // invalid Kotlin reported as success (the head+value gap; see the
+  // parked core PR #105). Peers pass inline schemas through the
+  // exported `toKotlinValue` router instead, which synthesizes named
+  // declarations.
   static schemaToValueFn = (...args: Parameters<typeof toKotlinValue>) => {
     return toKotlinValue(...args)
   }

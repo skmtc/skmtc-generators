@@ -87,3 +87,14 @@ Per-operation config under
 
 Specs: `skmtc/notes/lang/25-kotlin-controller-service-architecture.md`
 (+ `28` serviceMethodName/KDoc, `29` error channel).
+
+## Dependencies
+
+The model peer is `@skmtc/gen-kotlin-jackson`, declared in this
+package's `deno.json` as a **relative path** (`../gen-kotlin-jackson/mod.ts`)
+rather than the exact `jsr:` pin every published peer pair uses
+(gen-tanstack-query-fetch-zod → gen-zod, gen-express → gen-valibot):
+gen-kotlin-jackson is not yet published, so no pin exists. The release
+cascade discovers peer edges from `jsr:` pins in member `imports` — when
+jackson publishes, this mapping MUST become an exact pin or the
+spring → jackson edge stays invisible to the cascade.

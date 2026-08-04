@@ -10,9 +10,7 @@ import {
 } from '@skmtc/lang-kotlin'
 import { toKotlinValue } from '@skmtc/gen-kotlin-jackson'
 import denoJson from '../deno.json' with { type: 'json' }
-
-/** Home of Spring's request-mapping and binding annotations. */
-export const WEB_BIND_ANNOTATION_PACKAGE = 'org.springframework.web.bind.annotation'
+import { WEB_BIND_ANNOTATION_PACKAGE } from './lib.ts'
 
 const isRecord = (value: unknown): value is Record<string, unknown> => {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -173,6 +171,15 @@ export class SpringApiMethod extends KtSnippet {
     // Type snippets come from the model peer's exported router — an
     // inline shape synthesizes its own stackTrail-named sibling, so no
     // naming hint is threaded (the retired kotlinx `fallbackName` API).
+    //
+    // Deliberately NOT `insertNormalizedModel` (the usual door for an
+    // operation generator needing a peer model): for a head+value
+    // language its generic glue joins the identifier head to the
+    // value's TYPE-position render, which for an inline object emits
+    // `data class NameMap<String, Any?>`-shaped invalid Kotlin and
+    // reports success. The exported router IS jackson's sanctioned
+    // door for inline schemas; refs still resolve to their models
+    // through it.
     for (const parameter of operation.toParams(['path'])) {
       addParameter(
         sanitizePropertyName(camelCase(parameter.name)),

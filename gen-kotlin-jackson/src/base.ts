@@ -3,7 +3,7 @@ import type { GenerateContextType } from '@skmtc/core'
 import { toKtModelProjectionBase } from '@skmtc/lang-kotlin'
 import denoJson from '../deno.json' with { type: 'json' }
 import { type EnrichmentSchema, toEnrichmentSchema } from './enrichments.ts'
-import { toModelExportPath } from './lib.ts'
+import { toModelExportPathInPackage } from './lib.ts'
 import { toModelShape } from './shape.ts'
 
 // SLOT(naming): PascalCase from refName ONLY — deterministic, never
@@ -61,12 +61,15 @@ export const KotlinJacksonBase = toKtModelProjectionBase<EnrichmentSchema>({
     type: toModelShape(context, refName),
   }),
 
-  // SLOT(export-path): the directory segments ARE the Kotlin package —
-  // `@/com/example/models/Order.generated.kt` → `package com.example.models`.
-  // Hardcoded: this generator takes no runtime configuration. Delegates
-  // to the SAME policy synthesized sealed parents use (lib.ts).
+  // SLOT(export-path): the directory segments ARE the Kotlin package,
+  // which comes from the REQUIRED generator-scope basePackage enrichment.
+  // Same formula as every synthesized declaration (lib.ts) — the two
+  // must never drift.
   toExportPath({ refName, enrichments, variant }): string {
-    return toModelExportPath(this.toIdentifierName({ refName, enrichments, variant }))
+    return toModelExportPathInPackage(
+      enrichments.generator.basePackage,
+      this.toIdentifierName({ refName, enrichments, variant }),
+    )
   },
 
   toEnrichmentSchema,

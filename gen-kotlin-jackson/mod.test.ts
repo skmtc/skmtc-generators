@@ -35,7 +35,15 @@ const generate = (document: unknown = fixture) => {
     traceId: 'gen-kotlin-jackson-test',
     spanId: 'gen-kotlin-jackson-test',
     document: { type: 'oas', value: document as never },
-    settings: undefined,
+    // basePackage is a REQUIRED generator-scope enrichment (no default —
+    // a placeholder package must never ship silently); the fixtures pin
+    // com.example.models explicitly.
+    settings: {
+      basePath: '.',
+      enrichments: {
+        [entry.id]: { _generator: { basePackage: 'com.example.models' } }
+      }
+    },
     stackTrail: new StackTrail(['gen', 'test']),
     // Test-only cast bridging the caller-chosen EnrichmentType generic.
     toGeneratorConfigMap: (() => ({
@@ -80,6 +88,64 @@ Deno.test('every model renders to its own file in the fixed package', () => {
     'com/example/models/WidgetItems.generated.kt',
     'com/example/models/WidgetProperties.generated.kt'
   ])
+})
+
+Deno.test('basePackage is a REQUIRED enrichment — configured packages land, missing config fails loudly', () => {
+  const doc = toDocument({
+    Order: {
+      type: 'object',
+      required: ['id'],
+      properties: {
+        id: { type: 'string' },
+        metadata: { type: 'object', properties: { a: { type: 'string' } } }
+      }
+    }
+  })
+
+  // A real consumer package flows through the ONE path policy —
+  // component models AND synthesized declarations alike.
+  const configured = toArtifacts({
+    traceId: 'gen-kotlin-jackson-test',
+    spanId: 'base-package',
+    document: { type: 'oas', value: doc as never },
+    settings: {
+      basePath: '.',
+      enrichments: { [entry.id]: { _generator: { basePackage: 'com.acme.orders' } } }
+    },
+    stackTrail: new StackTrail(['gen', 'test']),
+    toGeneratorConfigMap: (() => ({
+      [entry.id]: entry
+    })) as Parameters<typeof toArtifacts>[0]['toGeneratorConfigMap'],
+    startAt: Date.now(),
+    silent: true
+  })
+
+  assertEquals(Object.keys(configured.artifacts).toSorted(), [
+    'com/acme/orders/Order.generated.kt',
+    'com/acme/orders/OrderMetadata.generated.kt'
+  ])
+  assertStringIncludes(
+    configured.artifacts['com/acme/orders/Order.generated.kt'],
+    'package com.acme.orders'
+  )
+
+  // No default: a placeholder package must never ship silently into
+  // consumer code, so an unconfigured run fails its subjects loudly.
+  const missing = toArtifacts({
+    traceId: 'gen-kotlin-jackson-test',
+    spanId: 'base-package-missing',
+    document: { type: 'oas', value: doc as never },
+    settings: undefined,
+    stackTrail: new StackTrail(['gen', 'test']),
+    toGeneratorConfigMap: (() => ({
+      [entry.id]: entry
+    })) as Parameters<typeof toArtifacts>[0]['toGeneratorConfigMap'],
+    startAt: Date.now(),
+    silent: true
+  })
+
+  assertEquals(JSON.stringify(missing.manifest.results).includes('error'), true)
+  assertEquals(Object.keys(missing.artifacts), [])
 })
 
 Deno.test('property keys that spell structural markers still name their siblings', () => {

@@ -70,7 +70,7 @@ export class KotlinUnion extends KtSnippet {
     // `KotlinSealedInterface` has ALREADY walked these members against
     // the sealed file on `'declare'` — this walk is cache hits, and it
     // targets the same file so member imports stay where they belong.
-    const memberPath = reference !== null ? toModelExportPath(reference) : destinationPath
+    const memberPath = reference !== null ? toModelExportPath(context, reference) : destinationPath
 
     this.members = members.map((member) =>
       toKotlinValue({
