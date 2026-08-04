@@ -62,7 +62,7 @@ export class KotlinUnion extends KtSnippet {
     // to `JsonNode` here AND renders no clause there, consistently.
     const reference = schema !== undefined && !schema.isRef() &&
         isSealedUnion(context, schema) &&
-        toSynthesizedNameOrNull(schema.stackTrail) !== null
+        toSynthesizedNameOrNull(context, schema.stackTrail) !== null
       ? ensureSealedParent(context, { generatorKey, unionSchema: schema, rootRef })
       : null
 

@@ -107,7 +107,7 @@ export const toSealedMembership = (
       // back to `JsonNode` — the same shared derivability answer at
       // every site, degrading consistently instead of one site
       // declaring what another cannot name.
-      if (isSealedUnion(context, node) && toSynthesizedNameOrNull(node.stackTrail) !== null) {
+      if (isSealedUnion(context, node) && toSynthesizedNameOrNull(context, node.stackTrail) !== null) {
         collectParentClaims({ type: 'synthesized', union: node }, node, membership)
       }
     }

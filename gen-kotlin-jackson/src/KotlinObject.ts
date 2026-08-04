@@ -102,7 +102,7 @@ export class KotlinObject extends KtSnippet {
       // type, but a structured object has no honest fallback — widening
       // it to `Map<String, Any?>` would discard the shape the schema
       // gave us. Capitulation, not a degrade; fail the subject loudly.
-      const name = toSynthesizedName(objectSchema.stackTrail)
+      const name = toSynthesizedName(context, objectSchema.stackTrail)
 
       const claim = claimSynthesizedName(context, {
         name,

@@ -354,21 +354,25 @@ Deno.test('a union in a response HEADER is claimed and sealed — full request-s
   )
 })
 
-Deno.test('a parameter-position union is UNDERIVABLE — no index-addressed public names', () => {
-  // The trail addresses parameters by ARRAY INDEX; an absolute index in
-  // a public class name (`GetApiXParameters0`) would churn whenever a
-  // spec edit reorders parameters. The shared derivability probe treats
-  // `parameters/<index>` as underivable, so the union degrades to
-  // `JsonNode`, members render without a clause, and nothing is emitted
-  // under an unstable name. Naming these properly needs the parameter
-  // NAME in the trail — a core-side question.
+Deno.test('a parameter-position union names by the parameter NAME, never the array index', () => {
+  // The trail addresses parameters by ARRAY INDEX (its JSON-Pointer
+  // contract — `parameters` is an array in the source document), but an
+  // absolute index in a public class name would churn whenever a spec
+  // edit reorders parameters. The document-scan lookup resolves the
+  // index back to the parameter's NAME — the unrelated `page` parameter
+  // ahead of `filter` is here precisely so the derived name proves
+  // itself reorder-stable. The trail stays the only positional input;
+  // no naming hint is threaded.
   const { artifacts, manifest } = generate({
     openapi: '3.0.0',
     info: { title: 'param-union', version: '0.0.0' },
     paths: {
       '/x': {
         get: {
-          parameters: [{ name: 'filter', in: 'query', schema: sealedProbeUnion }],
+          parameters: [
+            { name: 'page', in: 'query', schema: { type: 'integer' } },
+            { name: 'filter', in: 'query', schema: sealedProbeUnion }
+          ],
           responses: { '200': { description: 'ok' } }
         }
       }
@@ -378,10 +382,17 @@ Deno.test('a parameter-position union is UNDERIVABLE — no index-addressed publ
 
   assertEquals(JSON.stringify(manifest.results).includes('error'), false)
   assertEquals(
-    Object.keys(artifacts).some((path) => path.includes('Parameters')),
+    Object.keys(artifacts).some((path) => /Parameters\d/.test(path)),
     false
   )
-  assertEquals(artifacts['com/example/models/CardX.generated.kt'].includes(' : '), false)
+  assertStringIncludes(
+    artifacts['com/example/models/GetApiXFilter.generated.kt'],
+    'sealed interface GetApiXFilter'
+  )
+  assertStringIncludes(
+    artifacts['com/example/models/CardX.generated.kt'],
+    ') : GetApiXFilter'
+  )
 })
 
 Deno.test('a HEADER named after a structural marker keeps its own name', () => {

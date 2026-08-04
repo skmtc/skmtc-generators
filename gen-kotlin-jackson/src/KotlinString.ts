@@ -52,7 +52,7 @@ export class KotlinString extends KtSnippet {
     const entries = (stringSchema.enums ?? []).filter((value) => value !== null)
 
     if (entries.length > 0) {
-      const name = toSynthesizedName(stringSchema.stackTrail)
+      const name = toSynthesizedName(context, stringSchema.stackTrail)
 
       // Same claim as the inline-object site: collisions live at PACKAGE
       // scope and across convergent keys — a probe hit on a name from a

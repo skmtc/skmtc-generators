@@ -1,5 +1,5 @@
 import { camelCase, capitalize, isMethod, toMethodVerb } from '@skmtc/core'
-import type { StackTrail } from '@skmtc/core'
+import type { GenerateContextType, StackTrail } from '@skmtc/core'
 
 /**
  * Derive the name for a synthesized declaration from the schema's own
@@ -30,8 +30,11 @@ import type { StackTrail } from '@skmtc/core'
  *              application/json, schema] → `CreateApiOrdersBody`
  *              (reusing core's method-verb vocabulary: post → Create)
  */
-export const toSynthesizedName = (stackTrail: StackTrail): string => {
-  const name = toSynthesizedNameOrNull(stackTrail)
+export const toSynthesizedName = (
+  context: GenerateContextType,
+  stackTrail: StackTrail,
+): string => {
+  const name = toSynthesizedNameOrNull(context, stackTrail)
 
   if (name === null) {
     // A schema with no recognizable position (synthesized
@@ -57,7 +60,10 @@ export const toSynthesizedName = (stackTrail: StackTrail): string => {
  * function a new root (`components/<section>`, `webhooks`) upgrades all
  * of them in lockstep.
  */
-export const toSynthesizedNameOrNull = (stackTrail: StackTrail): string | null => {
+export const toSynthesizedNameOrNull = (
+  context: GenerateContextType,
+  stackTrail: StackTrail,
+): string | null => {
   const frames = stackTrail.stackTrail
 
   const componentsIndex = frames.indexOf('components')
@@ -86,17 +92,49 @@ export const toSynthesizedNameOrNull = (stackTrail: StackTrail): string | null =
   const pathsIndex = frames.indexOf('paths')
 
   if (pathsIndex !== -1) {
-    return toOperationRootedName(frames.slice(pathsIndex + 1))
+    return toOperationRootedName(context, frames.slice(pathsIndex + 1))
   }
 
   return null
 }
 
-const toOperationRootedName = (frames: string[]): string | null => {
+const toOperationRootedName = (
+  context: GenerateContextType,
+  frames: string[],
+): string | null => {
   const [path, method, ...rest] = frames
 
   if (path === undefined || method === undefined || !isMethod(method)) {
     return null
+  }
+
+  const base = capitalize(camelCase(`${toMethodVerb(method)}Api${path}`))
+
+  // A parameter position: the trail addresses the parameter by ARRAY
+  // INDEX (the trail's other job is being a JSON Pointer into the
+  // source document, where `parameters` IS an array), but an absolute
+  // index in a public class name would churn on any reorder. The
+  // document-scan lookup resolves the index back to the parameter's
+  // NAME — the trail stays the only positional input, and the operation
+  // is addressable from its own frames (path + method are landmarks).
+  if (rest[0] === 'parameters' && /^\d+$/.test(rest[1] ?? '')) {
+    const parameterName = toParameterName(context, {
+      path,
+      method,
+      index: rest[1] ?? '',
+    })
+
+    if (parameterName === null) {
+      return null
+    }
+
+    const segments = toSegments(rest.slice(2))
+
+    if (segments === null) {
+      return null
+    }
+
+    return `${base}${capitalize(camelCase(parameterName))}${segments.join('')}`
   }
 
   const segments = toSegments(rest)
@@ -105,9 +143,55 @@ const toOperationRootedName = (frames: string[]): string | null => {
     return null
   }
 
-  const base = capitalize(camelCase(`${toMethodVerb(method)}Api${path}`))
-
   return `${base}${segments.join('')}`
+}
+
+type ToParameterNameArgs = {
+  path: string
+  method: string
+  index: string
+}
+
+/**
+ * Resolve a `parameters/<index>` trail position to the parameter's NAME
+ * — a pure function of the document, WeakMap-memoized (the
+ * `toSealedMembership` scan shape). Core parses each operation's
+ * `parameters` straight off the operation object, so
+ * `operation.parameters[index]` matches the trail index exactly; a
+ * `$ref` entry resolves to its named definition. Unknown positions
+ * (malformed index, webhook-rooted trails — a root this derivation does
+ * not yet know) return `null` and stay underivable.
+ */
+const parameterNamesCache = new WeakMap<object, Map<string, string>>()
+
+const toParameterName = (
+  context: GenerateContextType,
+  { path, method, index }: ToParameterNameArgs,
+): string | null => {
+  const { document } = context
+
+  const cached = parameterNamesCache.get(document.value)
+
+  if (cached) {
+    return cached.get(`${path}\u0000${method}\u0000${index}`) ?? null
+  }
+
+  const names = new Map<string, string>()
+
+  if (document.type === 'oas') {
+    for (const operation of document.value.operations) {
+      for (const [position, parameter] of (operation.parameters ?? []).entries()) {
+        names.set(
+          `${operation.path}\u0000${operation.method}\u0000${position}`,
+          parameter.resolve().name,
+        )
+      }
+    }
+  }
+
+  parameterNamesCache.set(document.value, names)
+
+  return names.get(`${path}\u0000${method}\u0000${index}`) ?? null
 }
 
 /**
@@ -126,24 +210,11 @@ const toOperationRootedName = (frames: string[]): string | null => {
  * → `Response` with 2xx status codes elided). Everything else
  * contributes its PascalCased self.
  *
- * `parameters/<index>` is UNDERIVABLE (`null`): the trail addresses the
- * parameter by array position, and an absolute index in a public class
- * name churns whenever a spec edit reorders parameters — exactly what
- * anchoring on landmarks exists to prevent.
- *
- * THE INTERIM DECISION (PR #30 review): through the shared probe a
- * parameter-position union degrades softly (`JsonNode`, no clause), but
- * an inline OBJECT or ENUM in a parameter — which has no honest
- * fallback — fails its subject loudly. Chosen over the index-derived
- * name deliberately: a loud per-subject failure names its cause; a
- * silently churning public identity does not. The durable fix is the
- * parameter NAME in the trail, but the naive core change collides with
- * the trail's OTHER contract — `StackTrail.toJsonPointer()` must
- * resolve into the source document, and `parameters` is an ARRAY there
- * (core's attribution gate pins `#/paths/.../parameters/0`). Lifting
- * this needs either a dual-identity trail frame in core or a
- * document-scan name lookup here — a design decision, tracked on the
- * PR.
+ * A `parameters/<index>` frame pair reaching THIS function (rather than
+ * the operation-rooted branch, which resolves the index to the
+ * parameter's NAME via the document scan) is a position the resolution
+ * did not recognize — UNDERIVABLE (`null`), never an absolute index in
+ * a public class name.
  */
 const toSegments = (frames: string[]): string[] | null => {
   const segments: string[] = []
@@ -175,6 +246,8 @@ const toSegments = (frames: string[]): string[] | null => {
       continue
     }
 
+    // Backstop: an index-addressed parameter pair the operation-rooted
+    // branch did not resolve stays underivable.
     if (frame === 'parameters' && /^\d+$/.test(frames[index + 1] ?? '')) {
       return null
     }
