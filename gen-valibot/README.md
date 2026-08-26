@@ -54,7 +54,8 @@ skmtc generate <project name> <path or url to openapi schema>
 
 ## Usage Examples
 
-### Basic Types
+<details>
+<summary><h3>Basic Types</h3></summary>
 
 <table>
 <tr>
@@ -99,7 +100,10 @@ export const user = v.object({
 </tr>
 </table>
 
-### Enums and Literals
+</details>
+
+<details>
+<summary><h3>Enums and Literals</h3></summary>
 
 <table>
 <tr>
@@ -134,7 +138,10 @@ export const role = v.literal("admin")
 </tr>
 </table>
 
-### Arrays and Nested Objects
+</details>
+
+<details>
+<summary><h3>Arrays and Nested Objects</h3></summary>
 
 <table>
 <tr>
@@ -184,7 +191,10 @@ export const team = v.object({
 </tr>
 </table>
 
-### Nullable and Optional Fields
+</details>
+
+<details>
+<summary><h3>Nullable and Optional Fields</h3></summary>
 
 <table>
 <tr>
@@ -224,7 +234,10 @@ export const profile = v.object({
 </tr>
 </table>
 
-### Union Types
+</details>
+
+<details>
+<summary><h3>Union Types</h3></summary>
 
 <table>
 <tr>
@@ -279,7 +292,10 @@ export const pet = v.union([
 </tr>
 </table>
 
-### String Formats
+</details>
+
+<details>
+<summary><h3>String Formats</h3></summary>
 
 <table>
 <tr>
@@ -317,7 +333,10 @@ export const event = v.object({
 </tr>
 </table>
 
-### Additional Properties
+</details>
+
+<details>
+<summary><h3>Additional Properties</h3></summary>
 
 <table>
 <tr>
@@ -383,6 +402,8 @@ export const config = v.intersect([
 </td>
 </tr>
 </table>
+
+</details>
 
 ## Testing
 
