@@ -58,7 +58,8 @@ skmtc generate <project name> <path or url to openapi schema>
 
 ## Usage Examples
 
-### Basic Primitive Types
+<details>
+<summary><h3>Basic Primitive Types</h3></summary>
 
 <table>
 <tr>
@@ -105,7 +106,10 @@ export const user = z.object({
 </tr>
 </table>
 
-### Optional Properties
+</details>
+
+<details>
+<summary><h3>Optional Properties</h3></summary>
 
 Properties not in the `required` array become optional:
 
@@ -146,7 +150,10 @@ export const profile = z.object({
 </tr>
 </table>
 
-### Enums and Literals
+</details>
+
+<details>
+<summary><h3>Enums and Literals</h3></summary>
 
 Single enum values become literals, multiple values become z.enum:
 
@@ -183,7 +190,10 @@ export const role = z.literal("admin");
 </tr>
 </table>
 
-### Arrays
+</details>
+
+<details>
+<summary><h3>Arrays</h3></summary>
 
 <table>
 <tr>
@@ -221,7 +231,10 @@ export const matrix = z.array(z.array(z.number()));
 </tr>
 </table>
 
-### Nested Objects
+</details>
+
+<details>
+<summary><h3>Nested Objects</h3></summary>
 
 <table>
 <tr>
@@ -268,7 +281,10 @@ export const company = z.object({
 </tr>
 </table>
 
-### Nullable Types
+</details>
+
+<details>
+<summary><h3>Nullable Types</h3></summary>
 
 <table>
 <tr>
@@ -308,7 +324,10 @@ export const article = z.object({
 </tr>
 </table>
 
-### Union Types
+</details>
+
+<details>
+<summary><h3>Union Types</h3></summary>
 
 <table>
 <tr>
@@ -371,7 +390,10 @@ export const pet = z.discriminatedUnion("type", [
 </tr>
 </table>
 
-### Record Types (Additional Properties)
+</details>
+
+<details>
+<summary><h3>Record Types (Additional Properties)</h3></summary>
 
 <table>
 <tr>
@@ -413,7 +435,10 @@ export const config = z.object({ id: z.string() }).and(
 </tr>
 </table>
 
-### References and Recursive Types
+</details>
+
+<details>
+<summary><h3>References and Recursive Types</h3></summary>
 
 <table>
 <tr>
@@ -450,7 +475,10 @@ export const category = z.object({
 </tr>
 </table>
 
-### Type Name Transformations
+</details>
+
+<details>
+<summary><h3>Type Name Transformations</h3></summary>
 
 Schema names are automatically converted to PascalCase:
 
@@ -482,6 +510,8 @@ export const myType = z.boolean();
 </td>
 </tr>
 </table>
+
+</details>
 
 ## Testing
 

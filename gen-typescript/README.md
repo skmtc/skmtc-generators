@@ -54,7 +54,8 @@ skmtc generate <project name> <path or url to openapi schema>
 
 ## Usage Examples
 
-### Basic Primitive Types
+<details>
+<summary><h3>Basic Primitive Types</h3></summary>
 
 <table>
 <tr>
@@ -99,7 +100,10 @@ export type User = {
 </tr>
 </table>
 
-### Optional Properties
+</details>
+
+<details>
+<summary><h3>Optional Properties</h3></summary>
 
 Properties not in the `required` array become optional:
 
@@ -140,7 +144,10 @@ export type Profile = {
 </tr>
 </table>
 
-### String Enums and Literal Unions
+</details>
+
+<details>
+<summary><h3>String Enums and Literal Unions</h3></summary>
 
 Single enum values become literals, multiple values become unions:
 
@@ -177,7 +184,10 @@ export type Role = 'admin'
 </tr>
 </table>
 
-### Arrays
+</details>
+
+<details>
+<summary><h3>Arrays</h3></summary>
 
 <table>
 <tr>
@@ -215,7 +225,10 @@ export type Matrix = Array<Array<number>>
 </tr>
 </table>
 
-### Nested Objects
+</details>
+
+<details>
+<summary><h3>Nested Objects</h3></summary>
 
 <table>
 <tr>
@@ -262,7 +275,10 @@ export type Company = {
 </tr>
 </table>
 
-### Nullable Types
+</details>
+
+<details>
+<summary><h3>Nullable Types</h3></summary>
 
 <table>
 <tr>
@@ -302,7 +318,10 @@ export type Article = {
 </tr>
 </table>
 
-### Union Types
+</details>
+
+<details>
+<summary><h3>Union Types</h3></summary>
 
 <table>
 <tr>
@@ -362,7 +381,10 @@ export type Pet = {
 </tr>
 </table>
 
-### Record Types (Additional Properties)
+</details>
+
+<details>
+<summary><h3>Record Types (Additional Properties)</h3></summary>
 
 <table>
 <tr>
@@ -402,7 +424,10 @@ export type Config = {id: string} | Record<string, number>
 </tr>
 </table>
 
-### References and Recursive Types
+</details>
+
+<details>
+<summary><h3>References and Recursive Types</h3></summary>
 
 <table>
 <tr>
@@ -439,7 +464,10 @@ export type Category = {
 </tr>
 </table>
 
-### Type Name Transformations
+</details>
+
+<details>
+<summary><h3>Type Name Transformations</h3></summary>
 
 Schema names are automatically converted to PascalCase:
 
@@ -472,7 +500,10 @@ export type MyType = boolean
 </tr>
 </table>
 
-### Empty Objects
+</details>
+
+<details>
+<summary><h3>Empty Objects</h3></summary>
 
 <table>
 <tr>
@@ -500,6 +531,8 @@ export type EmptyObject = Record<string, unknown>
 </td>
 </tr>
 </table>
+
+</details>
 
 ## Testing
 
