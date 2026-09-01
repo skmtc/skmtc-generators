@@ -1,6 +1,6 @@
 import { toGeneratorEnrichment, toOasOperationEntry } from '@skmtc/core'
 import { ensureApiErrorSupport } from './apiErrorSupport.ts'
-import { ensureTagApi } from './springTagApi.ts'
+import { ensureTagApi } from './ensureTagApi.ts'
 import { generatorConfigSchema, toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 

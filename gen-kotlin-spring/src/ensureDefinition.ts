@@ -2,14 +2,18 @@ import { defineAndRegister } from '@skmtc/lang-kotlin'
 import type { KtIdentifier } from '@skmtc/lang-kotlin'
 import type { GeneratedValue, GenerateContextType } from '@skmtc/core'
 
+/** The accumulating value's class — the cache holds `unknown` values. */
+type ValueClass<Value extends GeneratedValue> = new (...args: never[]) => Value
+
+/** Called only on a miss, so the constructor never runs for a reused value. */
+type ToValue<Value extends GeneratedValue> = () => Value
+
 type EnsureDefinitionArgs<Value extends GeneratedValue> = {
   context: GenerateContextType
   identifier: KtIdentifier
   destinationPath: string
-  /** The accumulating value's class — the cache holds `unknown` values. */
-  valueClass: new (...args: never[]) => Value
-  /** Called only on a miss, so the constructor never runs for a reused one. */
-  toValue: () => Value
+  valueClass: ValueClass<Value>
+  toValue: ToValue<Value>
 }
 
 /**
