@@ -11,8 +11,8 @@ type SpringServiceImplementationClassArgs = {
 
 /**
  * The accumulated body of one `@Service class Default<Tag>Service` — a
- * starting point for the hand-written half, generated so that the 171
- * signatures of a large document do not have to be typed out by hand.
+ * starting point for the hand-written half, generated so that a large
+ * document's signatures do not have to be typed out by hand.
  *
  * Every method answers `501 NOT_IMPLEMENTED` through the generated
  * `ApiErrorHandler`, so the application starts and every endpoint
