@@ -419,3 +419,42 @@ Deno.test('Accept, Content-Type and Authorization headers are ignored, per the P
   assertEquals(api.includes('Accept'), false)
   assertEquals(api.includes('contentType'), false)
 })
+
+Deno.test('the server URL path becomes a class-level mapping, stated once per controller', () => {
+  const withServer: OpenAPIV3.Document = {
+    openapi: '3.0.0',
+    info: { title: 'based', version: '1.0.0' },
+    servers: [{ url: 'https://api.example.com/v2' }],
+    paths: {
+      '/things': {
+        get: { tags: ['things'], responses: { '204': { description: 'ok' } } }
+      }
+    }
+  }
+
+  const { artifacts } = runFixture({ document: withServer })
+  const api = artifacts['server/src/main/kotlin/com/example/spring/ThingsApi.generated.kt']
+
+  assertStringIncludes(api, '@RestController\n@RequestMapping("/v2")')
+  // The method mapping stays exactly the path the document declares.
+  assertStringIncludes(api, '@GetMapping("/things")')
+})
+
+Deno.test('a server with no path adds no mapping', () => {
+  const withoutPath: OpenAPIV3.Document = {
+    openapi: '3.0.0',
+    info: { title: 'unbased', version: '1.0.0' },
+    servers: [{ url: 'https://api.example.com/' }],
+    paths: {
+      '/things': {
+        get: { tags: ['things'], responses: { '204': { description: 'ok' } } }
+      }
+    }
+  }
+
+  const { artifacts } = runFixture({ document: withoutPath })
+  const api = artifacts['server/src/main/kotlin/com/example/spring/ThingsApi.generated.kt']
+
+  assertEquals(api.includes('@RequestMapping'), false)
+  assertStringIncludes(api, '@GetMapping("/things")')
+})

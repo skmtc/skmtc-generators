@@ -137,9 +137,13 @@ Per-operation config under
 - Optional query/body parameters default to `null` on the SERVICE
   seam only (named-args ergonomics for callers and tests); the
   controller signature stays an exact binding.
+- The server URL's path becomes a class-level `@RequestMapping` on each
+  controller, so method mappings stay exactly the paths the document
+  declares. First server, server-variable defaults, path-item overrides
+  ignored. Set `server.servlet.context-path` as well and the two stack.
 - Named exclusions: cookie params, non-JSON content,
   multi-status unions, `ResponseEntity<T>`, security annotations,
-  base paths, WebFlux/`suspend`, kotlinx-serialization flavor.
+  WebFlux/`suspend`, kotlinx-serialization flavor.
 
 Specs: `skmtc/notes/lang/25-kotlin-controller-service-architecture.md`
 (+ `28` serviceMethodName/KDoc, `29` error channel).

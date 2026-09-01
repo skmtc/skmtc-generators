@@ -7,6 +7,8 @@ type SpringControllerClassArgs = {
   context: GenerateContextType
   serviceName: string
   destinationPath: string
+  /** The server URL's path, prefixed onto every route; empty for none. */
+  basePath: string
 }
 
 /**
@@ -22,7 +24,7 @@ export class SpringControllerClass extends KtSnippet {
   constructorParameters: KtParameterList
   methods: KtFunctionSignature[] = []
 
-  constructor({ context, serviceName, destinationPath }: SpringControllerClassArgs) {
+  constructor({ context, serviceName, destinationPath, basePath }: SpringControllerClassArgs) {
     super({ context })
 
     this.annotations = [
@@ -33,6 +35,21 @@ export class SpringControllerClass extends KtSnippet {
         packageName: WEB_BIND_ANNOTATION_PACKAGE
       })
     ]
+
+    // Spring joins a class-level mapping to each method's, so the base path
+    // is stated once per controller and every method's mapping stays exactly
+    // the path the document declares.
+    if (basePath) {
+      this.annotations.push(
+        new KtAnnotation({
+          context,
+          destinationPath,
+          name: 'RequestMapping',
+          packageName: WEB_BIND_ANNOTATION_PACKAGE,
+          args: [`"${basePath}"`]
+        })
+      )
+    }
     this.constructorParameters = new KtParameterList([
       { name: 'service', type: serviceName, visibility: 'private' }
     ])

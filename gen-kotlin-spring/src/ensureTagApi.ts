@@ -14,6 +14,7 @@ import { SpringServiceImplementationClass } from './SpringServiceImplementation.
 import { SpringTagApi } from './SpringTagApi.ts'
 import { assertImplementationNameFree } from './serviceNames.ts'
 import { ensureDefinition } from './ensureDefinition.ts'
+import { toBasePath } from './basePath.ts'
 import type { GeneratorConfig } from './enrichments.ts'
 
 type EnsureTagApiArgs = {
@@ -51,7 +52,13 @@ export const ensureTagApi = ({ context, operation, config }: EnsureTagApiArgs): 
     identifier: createClass(toControllerName(tag)),
     destinationPath: exportPath,
     valueClass: SpringControllerClass,
-    toValue: () => new SpringControllerClass({ context, serviceName, destinationPath: exportPath })
+    toValue: () =>
+      new SpringControllerClass({
+        context,
+        serviceName,
+        destinationPath: exportPath,
+        basePath: toBasePath(context)
+      })
   })
 
   if (!emitServiceImplementations) {
