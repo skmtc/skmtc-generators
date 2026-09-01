@@ -30,8 +30,27 @@ The consumer writes one class per tag — pure logic, no web concerns:
 
 ```kotlin
 @Service
-class UsersServiceImpl : UsersService { ... }
+class DefaultUsersService : UsersService { ... }
 ```
+
+For a large document that is a lot of signatures to type out, so the
+`emitServiceImplementations` enrichment generates each one as a
+scaffold whose every method throws 501 — the app starts and every
+endpoint answers before any logic exists:
+
+```kotlin
+@Service
+class DefaultUsersService : UsersService {
+    override fun getUsersId(id: String, verbose: Boolean?): User =
+        throw ResponseStatusException(HttpStatus.NOT_IMPLEMENTED, "getUsersId is not implemented")
+}
+```
+
+`skmtc eject` the file before writing logic into it: that renames it,
+records it in `settings.ejected`, and stops generators writing it. A
+later schema change then reaches the ejected class as a COMPILE error
+from the regenerated interface, which is the point — a new operation
+must not disappear silently.
 
 ## Usage
 
@@ -50,7 +69,7 @@ Both generators must pin the SAME `@skmtc/lang-kotlin`.
 One `ApiError.generated.kt` per `basePackage`: a plain
 `data class ApiError(status, message?)` — Jackson binds it natively,
 no serialization annotation needed — plus a `@RestControllerAdvice`
-mapping Spring's own `ResponseStatusException` to it. ServiceImpls
+mapping Spring's own `ResponseStatusException` to it. Service classes
 throw `ResponseStatusException(HttpStatus.NOT_FOUND, "No such user")`
 — no custom exception vocabulary. The advice exists to keep the error
 shape stable and documented rather than whatever Spring Boot's default
@@ -81,6 +100,14 @@ those endpoints then disappear from an otherwise valid, compiling
 raised from `gen-kotlin-jackson/src/lib.ts`, recorded per subject in
 `manifest.results.generate` (NOT in `parseIssues`).
 
+Optional generator-scope config:
+
+- **`emitServiceImplementations`** (boolean, off when absent) — write a
+  `Default<Tag>Service.generated.kt` scaffold beside each `<Tag>Api`, in
+  the same package. Leave it off for a project whose implementations
+  already exist: a second `@Service` bean per interface fails Spring's
+  injection at startup.
+
 Per-operation config under
 `enrichments["@skmtc/gen-kotlin-spring"][path][method].main`:
 
@@ -96,11 +123,12 @@ Per-operation config under
   construct Kotlin data classes that have no no-arg constructor. Spring
   Boot registers it automatically once it is on the classpath.
 - `kotlin-reflect` on the classpath; the `plugin.spring` Gradle plugin.
-- Component-scan the generated `basePackage` AND your ServiceImpls.
+- Component-scan the generated `basePackage` AND your service classes.
 
 ## v1 policy
 
-- One file per tag (`UsersApi.generated.kt`); untagged → `Default…`;
+- One file per tag (`UsersApi.generated.kt`), plus an optional
+  `DefaultUsersService.generated.kt` scaffold; untagged → `Default…`;
   multi-tag → first tag. Method names from method+path.
 - Path/query/body binding with explicit wire names; lowest-2xx JSON
   return type; `@ResponseStatus` for 201/202/204. Operation

@@ -19,6 +19,16 @@ export const toServiceName = (tag: string): string => {
   return `${toTagBase(tag)}Service`
 }
 
+/**
+ * The generated implementation's class name: `users` → `DefaultUsersService`.
+ * The `Default` prefix is Spring's own convention for the standard
+ * implementation of an interface, and unlike an `Impl` suffix it still reads
+ * correctly once the consumer has replaced the bodies with real logic.
+ */
+export const toServiceImplementationName = (tag: string): string => {
+  return `Default${toTagBase(tag)}Service`
+}
+
 /** The controller class name: `users` → `UsersController`. */
 export const toControllerName = (tag: string): string => {
   return `${toTagBase(tag)}Controller`
@@ -32,4 +42,13 @@ export const toControllerName = (tag: string): string => {
  */
 export const toApiExportPath = (tag: string, basePackage: string): string => {
   return join('@', ...basePackage.split('.'), `${toTagBase(tag)}Api.generated.kt`)
+}
+
+/**
+ * The implementation scaffold's export path — the same package as the tag
+ * file, so the class needs no import of the interface it implements, and its
+ * own file so `skmtc eject` can hand it over one tag at a time.
+ */
+export const toServiceImplementationExportPath = (tag: string, basePackage: string): string => {
+  return join('@', ...basePackage.split('.'), `${toServiceImplementationName(tag)}.generated.kt`)
 }

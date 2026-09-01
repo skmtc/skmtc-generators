@@ -18,6 +18,8 @@ export const springOperationSchema = v.optional(
  * The `generator`-scope config (`client.json#enrichments[id]._generator`):
  * `basePackage` (REQUIRED, validated) is where the `<Tag>Api` + `ApiError`
  * files land. May equal or differ from gen-kotlin's basePackage.
+ * `emitServiceImplementations` (optional, off when absent) adds the
+ * `Default<Tag>Service` scaffolds.
  */
 export const generatorConfigSchema = v.object({
   basePackage: v.pipe(
@@ -26,7 +28,21 @@ export const generatorConfigSchema = v.object({
       isKotlinPackage,
       'gen-kotlin-spring: basePackage must be a dot-separated Kotlin package name'
     )
-  )
+  ),
+  /**
+   * Emit a `Default<Tag>Service` scaffold beside each `<Tag>Api` — every
+   * method throwing 501 — so a large document's implementations do not
+   * have to be typed out by hand. OFF by default: the file is a starting
+   * point for hand-written code, and turning it on for a project that
+   * already has implementations would add a second bean per interface.
+   * Eject a scaffold before writing logic into it.
+   *
+   * Absent reads as off — `v.optional` WITHOUT a valibot default, so the
+   * schema's input and output types stay identical (a default makes the
+   * key optional on the way in and required on the way out, which the
+   * entry's `GenericSchema<EnrichmentType>` slot rejects).
+   */
+  emitServiceImplementations: v.optional(v.boolean())
 })
 
 export type GeneratorConfig = v.InferOutput<typeof generatorConfigSchema>
