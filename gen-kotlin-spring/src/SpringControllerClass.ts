@@ -7,6 +7,8 @@ type SpringControllerClassArgs = {
   context: GenerateContextType
   serviceName: string
   destinationPath: string
+  /** The configured `routePrefix`, prefixed onto every route; empty for none. */
+  routePrefix: string
 }
 
 /**
@@ -22,7 +24,7 @@ export class SpringControllerClass extends KtSnippet {
   constructorParameters: KtParameterList
   methods: KtFunctionSignature[] = []
 
-  constructor({ context, serviceName, destinationPath }: SpringControllerClassArgs) {
+  constructor({ context, serviceName, destinationPath, routePrefix }: SpringControllerClassArgs) {
     super({ context })
 
     this.annotations = [
@@ -33,6 +35,21 @@ export class SpringControllerClass extends KtSnippet {
         packageName: WEB_BIND_ANNOTATION_PACKAGE
       })
     ]
+
+    // Spring joins a class-level mapping to each method's, so the prefix
+    // is stated once per controller and every method's mapping stays exactly
+    // the path the document declares.
+    if (routePrefix) {
+      this.annotations.push(
+        new KtAnnotation({
+          context,
+          destinationPath,
+          name: 'RequestMapping',
+          packageName: WEB_BIND_ANNOTATION_PACKAGE,
+          args: [`"${routePrefix}"`]
+        })
+      )
+    }
     this.constructorParameters = new KtParameterList([
       { name: 'service', type: serviceName, visibility: 'private' }
     ])

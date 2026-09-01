@@ -419,3 +419,41 @@ Deno.test('Accept, Content-Type and Authorization headers are ignored, per the P
   assertEquals(api.includes('Accept'), false)
   assertEquals(api.includes('contentType'), false)
 })
+
+Deno.test('routePrefix becomes a class-level mapping, stated once per controller', () => {
+  const { artifacts } = runFixture({
+    springEnrichment: { _generator: { basePackage: 'com.example.spring', routePrefix: '/v2' } }
+  })
+  const api = artifacts['server/src/main/kotlin/com/example/spring/UsersApi.generated.kt']
+
+  assertStringIncludes(api, '@RestController\n@RequestMapping("/v2")')
+  // Method mappings stay exactly the paths the document declares.
+  assertStringIncludes(api, '@GetMapping("/users/{id}")')
+})
+
+Deno.test('no routePrefix, no mapping — the common document needs no prefix', () => {
+  const { artifacts } = runFixture()
+  const api = artifacts['server/src/main/kotlin/com/example/spring/UsersApi.generated.kt']
+
+  assertEquals(api.includes('@RequestMapping'), false)
+  assertStringIncludes(api, '@GetMapping("/users/{id}")')
+})
+
+Deno.test('a routePrefix that is not a path prefix fails the config schema', () => {
+  const parse = (routePrefix: string) =>
+    v.parse(generatorConfigSchema, { basePackage: 'com.example.spring', routePrefix })
+
+  assertEquals(parse('/api').routePrefix, '/api')
+  assertEquals(parse('/api/v2').routePrefix, '/api/v2')
+  // A trailing slash would double the separator; a bare segment is not a path.
+  assertThrows(() => parse('/api/'))
+  assertThrows(() => parse('api'))
+  assertThrows(() => parse('/'))
+  assertThrows(() => parse('//api'))
+  // The value lands inside a Kotlin string literal, so anything that could
+  // close it early or open a second `@RequestMapping` argument is refused.
+  assertThrows(() => parse('/api"'))
+  assertThrows(() => parse('/api\\'))
+  assertThrows(() => parse('/api" , path = "/elsewhere'))
+  assertThrows(() => parse('/a b'))
+})

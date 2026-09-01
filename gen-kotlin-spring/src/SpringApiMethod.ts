@@ -226,8 +226,8 @@ type ToMappingAnnotationArgs = {
 /**
  * The Spring mapping annotation for an HTTP method — a self-registering
  * `KtAnnotation` (its own import rides `packageName`). The OAS path goes
- * in verbatim — `{id}` is already Spring's template syntax (v1 carries no
- * servers/base-path prefix).
+ * in verbatim — `{id}` is already Spring's template syntax, and any
+ * `routePrefix` rides the class-level `@RequestMapping` instead.
  */
 const toMappingAnnotation = (
   { context, destinationPath, method, path }: ToMappingAnnotationArgs
