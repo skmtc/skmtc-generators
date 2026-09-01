@@ -420,41 +420,31 @@ Deno.test('Accept, Content-Type and Authorization headers are ignored, per the P
   assertEquals(api.includes('contentType'), false)
 })
 
-Deno.test('the server URL path becomes a class-level mapping, stated once per controller', () => {
-  const withServer: OpenAPIV3.Document = {
-    openapi: '3.0.0',
-    info: { title: 'based', version: '1.0.0' },
-    servers: [{ url: 'https://api.example.com/v2' }],
-    paths: {
-      '/things': {
-        get: { tags: ['things'], responses: { '204': { description: 'ok' } } }
-      }
-    }
-  }
-
-  const { artifacts } = runFixture({ document: withServer })
-  const api = artifacts['server/src/main/kotlin/com/example/spring/ThingsApi.generated.kt']
+Deno.test('basePath becomes a class-level mapping, stated once per controller', () => {
+  const { artifacts } = runFixture({
+    springEnrichment: { _generator: { basePackage: 'com.example.spring', basePath: '/v2' } }
+  })
+  const api = artifacts['server/src/main/kotlin/com/example/spring/UsersApi.generated.kt']
 
   assertStringIncludes(api, '@RestController\n@RequestMapping("/v2")')
-  // The method mapping stays exactly the path the document declares.
-  assertStringIncludes(api, '@GetMapping("/things")')
+  // Method mappings stay exactly the paths the document declares.
+  assertStringIncludes(api, '@GetMapping("/users/{id}")')
 })
 
-Deno.test('a server with no path adds no mapping', () => {
-  const withoutPath: OpenAPIV3.Document = {
-    openapi: '3.0.0',
-    info: { title: 'unbased', version: '1.0.0' },
-    servers: [{ url: 'https://api.example.com/' }],
-    paths: {
-      '/things': {
-        get: { tags: ['things'], responses: { '204': { description: 'ok' } } }
-      }
-    }
-  }
-
-  const { artifacts } = runFixture({ document: withoutPath })
-  const api = artifacts['server/src/main/kotlin/com/example/spring/ThingsApi.generated.kt']
+Deno.test('no basePath, no mapping — the common document needs no prefix', () => {
+  const { artifacts } = runFixture()
+  const api = artifacts['server/src/main/kotlin/com/example/spring/UsersApi.generated.kt']
 
   assertEquals(api.includes('@RequestMapping'), false)
-  assertStringIncludes(api, '@GetMapping("/things")')
+  assertStringIncludes(api, '@GetMapping("/users/{id}")')
+})
+
+Deno.test('a basePath that is not a path prefix fails the config schema', () => {
+  const parse = (basePath: string) =>
+    v.parse(generatorConfigSchema, { basePackage: 'com.example.spring', basePath })
+
+  assertEquals(parse('/api').basePath, '/api')
+  // A trailing slash would double the separator; a bare segment is not a path.
+  assertThrows(() => parse('/api/'))
+  assertThrows(() => parse('api'))
 })

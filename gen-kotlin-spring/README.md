@@ -102,6 +102,13 @@ raised from `gen-kotlin-jackson/src/lib.ts`, recorded per subject in
 
 Optional generator-scope config:
 
+- **`basePath`** — the path every route hangs under, e.g. `"/api"` for a
+  service whose operations answer at `/api/customers`. Rendered as a
+  class-level `@RequestMapping`. It is stated rather than read from the
+  document's `servers`: that URL says where the API is hosted today, a
+  deployment fact that needn't be where this service will run. Absent means
+  no prefix.
+
 - **`emitServiceImplementations`** (boolean, off when absent) — write a
   `Default<Tag>Service.generated.kt` scaffold beside each `<Tag>Api`, in
   the same package. Leave it off for a project whose implementations
@@ -137,10 +144,9 @@ Per-operation config under
 - Optional query/body parameters default to `null` on the SERVICE
   seam only (named-args ergonomics for callers and tests); the
   controller signature stays an exact binding.
-- The server URL's path becomes a class-level `@RequestMapping` on each
-  controller, so method mappings stay exactly the paths the document
-  declares. First server, server-variable defaults, path-item overrides
-  ignored. Set `server.servlet.context-path` as well and the two stack.
+- `basePath` becomes a class-level `@RequestMapping` on each controller, so
+  method mappings stay exactly the paths the document declares. Set
+  `server.servlet.context-path` as well and the two stack.
 - Named exclusions: cookie params, non-JSON content,
   multi-status unions, `ResponseEntity<T>`, security annotations,
   WebFlux/`suspend`, kotlinx-serialization flavor.

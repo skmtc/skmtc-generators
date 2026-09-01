@@ -14,7 +14,6 @@ import { SpringServiceImplementationClass } from './SpringServiceImplementation.
 import { SpringTagApi } from './SpringTagApi.ts'
 import { assertImplementationNameFree } from './serviceNames.ts'
 import { ensureDefinition } from './ensureDefinition.ts'
-import { toBasePath } from './basePath.ts'
 import type { GeneratorConfig } from './enrichments.ts'
 
 type EnsureTagApiArgs = {
@@ -33,7 +32,7 @@ type EnsureTagApiArgs = {
  * collision throwing later would leave an import-only shell behind.
  */
 export const ensureTagApi = ({ context, operation, config }: EnsureTagApiArgs): SpringTagApi => {
-  const { basePackage, emitServiceImplementations } = config
+  const { basePackage, basePath, emitServiceImplementations } = config
 
   const tag = toApiTag(operation.tags)
   const serviceName = toServiceName(tag)
@@ -57,7 +56,7 @@ export const ensureTagApi = ({ context, operation, config }: EnsureTagApiArgs): 
         context,
         serviceName,
         destinationPath: exportPath,
-        basePath: toBasePath(context)
+        basePath: basePath ?? ''
       })
   })
 
