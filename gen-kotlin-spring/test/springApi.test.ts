@@ -385,3 +385,37 @@ Deno.test('the model peer basePackage is REQUIRED — omitting it drops subjects
     undefined
   )
 })
+
+Deno.test('Accept, Content-Type and Authorization headers are ignored, per the Parameter Object', () => {
+  const document: OpenAPIV3.Document = {
+    openapi: '3.0.0',
+    info: { title: 'ignored-headers', version: '1.0.0' },
+    paths: {
+      '/things': {
+        get: {
+          tags: ['things'],
+          parameters: [
+            { name: 'Authorization', in: 'header', required: true, schema: { type: 'string' } },
+            { name: 'accept', in: 'header', schema: { type: 'string' } },
+            { name: 'Content-Type', in: 'header', schema: { type: 'string' } },
+            { name: 'X-Request-Id', in: 'header', required: true, schema: { type: 'string' } }
+          ],
+          responses: { '204': { description: 'ok' } }
+        }
+      }
+    }
+  }
+
+  const { artifacts } = runFixture({ document })
+  const api = artifacts['server/src/main/kotlin/com/example/spring/ThingsApi.generated.kt']
+
+  // The one header the document may bind, with its wire name preserved.
+  assertStringIncludes(api, 'fun getThings(xRequestId: String)')
+  assertStringIncludes(api, '@RequestHeader("X-Request-Id") xRequestId: String')
+
+  // Governed by securitySchemes and by the operation's content instead —
+  // matched case-insensitively, as HTTP header names are.
+  assertEquals(api.includes('authorization'), false)
+  assertEquals(api.includes('Accept'), false)
+  assertEquals(api.includes('contentType'), false)
+})

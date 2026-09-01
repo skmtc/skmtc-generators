@@ -130,13 +130,14 @@ Per-operation config under
 - One file per tag (`UsersApi.generated.kt`), plus an optional
   `DefaultUsersService.generated.kt` scaffold; untagged → `Default…`;
   multi-tag → first tag. Method names from method+path.
-- Path/query/body binding with explicit wire names; lowest-2xx JSON
-  return type; `@ResponseStatus` for 201/202/204. Operation
+- Path/query/header/body binding with explicit wire names; lowest-2xx JSON
+  return type; the `Accept`, `Content-Type` and `Authorization` headers are
+  skipped, which the Parameter Object requires; `@ResponseStatus` for 201/202/204. Operation
   `summary`/`description` renders as KDoc on the seam method.
 - Optional query/body parameters default to `null` on the SERVICE
   seam only (named-args ergonomics for callers and tests); the
   controller signature stays an exact binding.
-- Named exclusions: header/cookie params, non-JSON content,
+- Named exclusions: cookie params, non-JSON content,
   multi-status unions, `ResponseEntity<T>`, security annotations,
   base paths, WebFlux/`suspend`, kotlinx-serialization flavor.
 

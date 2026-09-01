@@ -1,4 +1,4 @@
-import { capitalize, camelCase } from '@skmtc/core'
+import { capitalize, camelCase, decapitalize } from '@skmtc/core'
 import type { GenerateContextType, Method, OasOperation, Stringable } from '@skmtc/core'
 import {
   KtAnnotation,
@@ -10,6 +10,27 @@ import {
 import { toKotlinValue } from '@skmtc/gen-kotlin-jackson'
 import denoJson from '../deno.json' with { type: 'json' }
 import { HTTP_PACKAGE, WEB_BIND_ANNOTATION_PACKAGE, WEB_SERVER_PACKAGE } from './lib.ts'
+
+/**
+ * A wire parameter name as a Kotlin one: `Api-Version` → `apiVersion`.
+ *
+ * `camelCase` joins the segments but leaves the first one's case alone, which
+ * only shows on names that start capitalised — headers, mostly, since paths
+ * and query strings are lowercase by convention.
+ */
+const toParameterName = (name: string): string => {
+  return sanitizePropertyName(decapitalize(camelCase(name)))
+}
+
+/**
+ * Header parameters the OpenAPI Parameter Object says SHALL be ignored:
+ * `Accept` and `Content-Type` are governed by the operation's content, and
+ * `Authorization` by `securitySchemes`. Documents declare them anyway — a
+ * header named there is still not bound.
+ *
+ * Compared case-insensitively, since HTTP header names are.
+ */
+const IGNORED_HEADERS = new Set(['accept', 'content-type', 'authorization'])
 
 const isRecord = (value: unknown): value is Record<string, unknown> => {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -73,8 +94,8 @@ type ToOperationParametersArgs = {
 }
 
 /**
- * Path params, then query params, then the request body — the order the
- * generated signatures carry.
+ * Path params, then query params, then header params, then the request body —
+ * the order the generated signatures carry.
  *
  * Called ONCE PER DESTINATION FILE. A type snippet registers its imports
  * against the path it was built for, so the implementation file cannot
@@ -106,7 +127,7 @@ const toOperationParameters = (
 
   for (const parameter of operation.toParams(['path'])) {
     parameters.push({
-      name: sanitizePropertyName(camelCase(parameter.name)),
+      name: toParameterName(parameter.name),
       type: toKotlinValue({
         schema: parameter.toSchema(),
         destinationPath,
@@ -122,7 +143,7 @@ const toOperationParameters = (
     const required = parameter.required ?? false
 
     parameters.push({
-      name: sanitizePropertyName(camelCase(parameter.name)),
+      name: toParameterName(parameter.name),
       type: toKotlinValue({
         schema: parameter.toSchema(),
         destinationPath,
@@ -131,6 +152,26 @@ const toOperationParameters = (
       }),
       optional: !required,
       binding: toBinding('RequestParam', [`"${parameter.name}"`])
+    })
+  }
+
+  for (const parameter of operation.toParams(['header'])) {
+    if (IGNORED_HEADERS.has(parameter.name.toLowerCase())) {
+      continue
+    }
+
+    const required = parameter.required ?? false
+
+    parameters.push({
+      name: toParameterName(parameter.name),
+      type: toKotlinValue({
+        schema: parameter.toSchema(),
+        destinationPath,
+        required,
+        context
+      }),
+      optional: !required,
+      binding: toBinding('RequestHeader', [`"${parameter.name}"`])
     })
   }
 
