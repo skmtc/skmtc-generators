@@ -32,7 +32,7 @@ type EnsureTagApiArgs = {
  * collision throwing later would leave an import-only shell behind.
  */
 export const ensureTagApi = ({ context, operation, config }: EnsureTagApiArgs): SpringTagApi => {
-  const { basePackage, basePath, emitServiceImplementations } = config
+  const { basePackage, routePrefix, emitServiceImplementations } = config
 
   const tag = toApiTag(operation.tags)
   const serviceName = toServiceName(tag)
@@ -56,7 +56,7 @@ export const ensureTagApi = ({ context, operation, config }: EnsureTagApiArgs): 
         context,
         serviceName,
         destinationPath: exportPath,
-        basePath: basePath ?? ''
+        routePrefix: routePrefix ?? ''
       })
   })
 

@@ -6,6 +6,18 @@ const isKotlinPackage = (value: string): boolean =>
   value.split('.').every(segment => isKtIdentifierName(segment) && !ktHardKeywords.has(segment))
 
 /**
+ * One or more `/`-led segments of unreserved URL characters — `/api`,
+ * `/api/v2`. No trailing slash (it would double the separator against the
+ * method mapping), and no empty segment.
+ *
+ * The value is interpolated into a Kotlin string literal, so the character
+ * set is the validation: a `\"` would close the literal early and a
+ * `" , path = "` would land a second named argument on `@RequestMapping`,
+ * quietly mapping the controller somewhere else.
+ */
+const isRoutePrefix = (value: string): boolean => /^(?:\/[\w\-.~%]+)+$/.test(value)
+
+/**
  * The subject-scoped leaf — the per-operation method rename (spec 28):
  * `enrichments[id][path][method].main.serviceMethodName` renames BOTH the
  * service-seam signature and the controller delegation in lockstep.
@@ -19,8 +31,8 @@ export const springOperationSchema = v.optional(
  * `basePackage` (REQUIRED, validated) is where the `<Tag>Api` + `ApiError`
  * files land. May equal or differ from gen-kotlin's basePackage.
  * `emitServiceImplementations` (optional, off when absent) adds the
- * `Default<Tag>Service` scaffolds. `basePath` (optional) prefixes every
- * route.
+ * `Default<Tag>Service` scaffolds. `routePrefix` (optional) prefixes
+ * every route.
  */
 export const generatorConfigSchema = v.object({
   basePackage: v.pipe(
@@ -35,6 +47,10 @@ export const generatorConfigSchema = v.object({
    * `@RequestMapping` on each controller — `/api` for a service whose
    * operations answer at `/api/customers`.
    *
+   * Named `routePrefix`, not `basePath`: `client.json` already spends
+   * `settings.basePath` on the filesystem root the generated files land
+   * under, and the two would sit in one file meaning different things.
+   *
    * Stated rather than read from the document's `servers`: that URL says
    * where the API is hosted today, which is a deployment fact and needn't
    * be where this service will run. Asking also avoids guessing between
@@ -44,12 +60,12 @@ export const generatorConfigSchema = v.object({
    * Absent means no prefix, which is right for the common document whose
    * server URL carries no path.
    */
-  basePath: v.optional(
+  routePrefix: v.optional(
     v.pipe(
       v.string(),
       v.check(
-        value => value.startsWith('/') && !value.endsWith('/'),
-        'gen-kotlin-spring: basePath must start with `/` and must not end with one'
+        isRoutePrefix,
+        'gen-kotlin-spring: routePrefix must be `/`-led path segments, e.g. `/api` — no trailing slash'
       )
     )
   ),

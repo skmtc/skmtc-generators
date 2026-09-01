@@ -420,9 +420,9 @@ Deno.test('Accept, Content-Type and Authorization headers are ignored, per the P
   assertEquals(api.includes('contentType'), false)
 })
 
-Deno.test('basePath becomes a class-level mapping, stated once per controller', () => {
+Deno.test('routePrefix becomes a class-level mapping, stated once per controller', () => {
   const { artifacts } = runFixture({
-    springEnrichment: { _generator: { basePackage: 'com.example.spring', basePath: '/v2' } }
+    springEnrichment: { _generator: { basePackage: 'com.example.spring', routePrefix: '/v2' } }
   })
   const api = artifacts['server/src/main/kotlin/com/example/spring/UsersApi.generated.kt']
 
@@ -431,7 +431,7 @@ Deno.test('basePath becomes a class-level mapping, stated once per controller', 
   assertStringIncludes(api, '@GetMapping("/users/{id}")')
 })
 
-Deno.test('no basePath, no mapping — the common document needs no prefix', () => {
+Deno.test('no routePrefix, no mapping — the common document needs no prefix', () => {
   const { artifacts } = runFixture()
   const api = artifacts['server/src/main/kotlin/com/example/spring/UsersApi.generated.kt']
 
@@ -439,12 +439,21 @@ Deno.test('no basePath, no mapping — the common document needs no prefix', () 
   assertStringIncludes(api, '@GetMapping("/users/{id}")')
 })
 
-Deno.test('a basePath that is not a path prefix fails the config schema', () => {
-  const parse = (basePath: string) =>
-    v.parse(generatorConfigSchema, { basePackage: 'com.example.spring', basePath })
+Deno.test('a routePrefix that is not a path prefix fails the config schema', () => {
+  const parse = (routePrefix: string) =>
+    v.parse(generatorConfigSchema, { basePackage: 'com.example.spring', routePrefix })
 
-  assertEquals(parse('/api').basePath, '/api')
+  assertEquals(parse('/api').routePrefix, '/api')
+  assertEquals(parse('/api/v2').routePrefix, '/api/v2')
   // A trailing slash would double the separator; a bare segment is not a path.
   assertThrows(() => parse('/api/'))
   assertThrows(() => parse('api'))
+  assertThrows(() => parse('/'))
+  assertThrows(() => parse('//api'))
+  // The value lands inside a Kotlin string literal, so anything that could
+  // close it early or open a second `@RequestMapping` argument is refused.
+  assertThrows(() => parse('/api"'))
+  assertThrows(() => parse('/api\\'))
+  assertThrows(() => parse('/api" , path = "/elsewhere'))
+  assertThrows(() => parse('/a b'))
 })
