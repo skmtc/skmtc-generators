@@ -37,11 +37,15 @@ export const JAVA_TIME_PACKAGE = 'java.time'
  * Other formats (`uuid`, `uri`, `time`, `duration`, `byte`) have obvious
  * Kotlin types too and are deliberately not mapped yet — each one changes
  * a type consumers may already depend on.
+ *
+ * A `Map`, not a record: `format` is open-ended and author-controlled, so
+ * an index into a record would resolve `Object.prototype` members —
+ * `format: 'constructor'` yielding a function that renders as a type.
  */
-export const STRING_FORMAT_TYPES: Record<string, string> = {
-  date: 'LocalDate',
-  'date-time': 'OffsetDateTime'
-}
+export const STRING_FORMAT_TYPES: ReadonlyMap<string, string> = new Map([
+  ['date', 'LocalDate'],
+  ['date-time', 'OffsetDateTime']
+])
 
 /**
  * The models-package file a named declaration lands in — the single

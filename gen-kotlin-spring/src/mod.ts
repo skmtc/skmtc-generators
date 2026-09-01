@@ -12,6 +12,7 @@ import { SpringControllerClass, SpringServiceInterface } from './SpringApiInterf
 import { ensureApiErrorSupport } from './apiErrorSupport.ts'
 import { SpringApiMethod } from './SpringApiMethod.ts'
 import { SpringServiceImplementationClass } from './SpringServiceImplementation.ts'
+import { assertImplementationNameFree } from './serviceNames.ts'
 import { generatorConfigSchema, toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
@@ -75,7 +76,18 @@ export default toOasOperationEntry<EnrichmentSchema>({
             destinationPath: exportPath
           }).value
 
-    const implementationPath = emitServiceImplementations
+    // Named and checked BEFORE the method builder runs: it registers imports
+    // against the implementation path, and a registration alone is enough to
+    // emit the file — so a later throw would leave an import-only shell behind.
+    const implementationName = emitServiceImplementations
+      ? toServiceImplementationName(tag)
+      : undefined
+
+    if (implementationName) {
+      assertImplementationNameFree({ context, implementationName, tag })
+    }
+
+    const implementationPath = implementationName
       ? toServiceImplementationExportPath(tag, basePackage)
       : undefined
 
@@ -89,9 +101,7 @@ export default toOasOperationEntry<EnrichmentSchema>({
     service.add(method.serviceSignature)
     controller.add(method.controllerSignature)
 
-    if (implementationPath !== undefined && method.implementationSignature) {
-      const implementationName = toServiceImplementationName(tag)
-
+    if (implementationPath !== undefined && implementationName && method.implementationSignature) {
       const existingImplementation = context.findDefinition({
         name: implementationName,
         exportPath: implementationPath

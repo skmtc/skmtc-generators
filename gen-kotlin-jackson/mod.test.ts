@@ -867,3 +867,29 @@ Deno.test('an enum with a format is still an enum — the format describes the m
   assertEquals(slot.includes('java.time'), false)
   assertStringIncludes(artifacts['com/example/models/SlotDay.generated.kt'], 'enum class SlotDay')
 })
+
+Deno.test('a format naming an Object.prototype member is not a type', () => {
+  const { artifacts, manifest } = generate(
+    toDocument({
+      Holder: {
+        type: 'object',
+        properties: {
+          weird: { type: 'string', format: 'constructor' },
+          alsoWeird: { type: 'string', format: 'toString' }
+        },
+        required: ['weird', 'alsoWeird']
+      }
+    })
+  )
+
+  assertNoResultErrors(manifest)
+  assertEquals(
+    artifacts['com/example/models/Holder.generated.kt'],
+    'package com.example.models\n' +
+      '\n' +
+      'data class Holder(\n' +
+      '    val weird: String,\n' +
+      '    val alsoWeird: String\n' +
+      ')\n'
+  )
+})

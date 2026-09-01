@@ -98,7 +98,7 @@ export class KotlinString extends KtSnippet {
     // Enums win: a format on an enum-valued string describes the members,
     // not the property's type.
     this.formatType = stringSchema.format
-      ? STRING_FORMAT_TYPES[stringSchema.format]
+      ? STRING_FORMAT_TYPES.get(stringSchema.format)
       : undefined
 
     if (this.formatType) {
