@@ -19,6 +19,31 @@ export const JSON_PROPERTY = 'JsonProperty'
 export const JACKSON_DATABIND_PACKAGE = 'com.fasterxml.jackson.databind'
 
 /**
+ * Home of the date types. Unlike `kotlin.*`, `java.time` is not imported
+ * into every file by the compiler, so a date-typed property registers it.
+ */
+export const JAVA_TIME_PACKAGE = 'java.time'
+
+/**
+ * The `format` values of `type: string` that have a Kotlin type.
+ *
+ * `date-time` is RFC 3339, which always carries an offset, so
+ * `OffsetDateTime` keeps what the wire held — `Instant` would normalize it
+ * to UTC and discard it. Jackson binds both through
+ * `jackson-datatype-jsr310`, which `spring-boot-starter-web` already brings
+ * in via `spring-boot-starter-json`; a consumer using this generator
+ * WITHOUT Spring Boot has to add it themselves.
+ *
+ * Other formats (`uuid`, `uri`, `time`, `duration`, `byte`) have obvious
+ * Kotlin types too and are deliberately not mapped yet — each one changes
+ * a type consumers may already depend on.
+ */
+export const STRING_FORMAT_TYPES: Record<string, string> = {
+  date: 'LocalDate',
+  'date-time': 'OffsetDateTime'
+}
+
+/**
  * The models-package file a named declaration lands in — the single
  * path policy behind `toExportPath` AND every synthesized declaration.
  * An INLINE union's sealed interface cannot live in its referencing

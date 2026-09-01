@@ -789,3 +789,81 @@ Deno.test('self-recursion renders a nullable list of self', () => {
     'val children: List<Category>? = null'
   )
 })
+
+Deno.test('date formats render java.time types, imported', () => {
+  const { artifacts, manifest } = generate(
+    toDocument({
+      Event: {
+        type: 'object',
+        properties: {
+          on: { type: 'string', format: 'date' },
+          at: { type: 'string', format: 'date-time' },
+          endedAt: { type: 'string', format: 'date-time' },
+          note: { type: 'string' }
+        },
+        required: ['on', 'at']
+      }
+    })
+  )
+
+  assertNoResultErrors(manifest)
+  assertEquals(
+    artifacts['com/example/models/Event.generated.kt'],
+    'package com.example.models\n' +
+      '\n' +
+      'import java.time.LocalDate\n' +
+      'import java.time.OffsetDateTime\n' +
+      '\n' +
+      'data class Event(\n' +
+      '    val on: LocalDate,\n' +
+      '    val at: OffsetDateTime,\n' +
+      '    val endedAt: OffsetDateTime? = null,\n' +
+      '    val note: String? = null\n' +
+      ')\n'
+  )
+})
+
+Deno.test('an unmapped format stays String and imports nothing', () => {
+  const { artifacts } = generate(
+    toDocument({
+      Person: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', format: 'uuid' },
+          email: { type: 'string', format: 'email' }
+        },
+        required: ['id', 'email']
+      }
+    })
+  )
+
+  assertEquals(
+    artifacts['com/example/models/Person.generated.kt'],
+    'package com.example.models\n' +
+      '\n' +
+      'data class Person(\n' +
+      '    val id: String,\n' +
+      '    val email: String\n' +
+      ')\n'
+  )
+})
+
+Deno.test('an enum with a format is still an enum — the format describes the members', () => {
+  const { artifacts } = generate(
+    toDocument({
+      Slot: {
+        type: 'object',
+        properties: {
+          day: { type: 'string', format: 'date', enum: ['2026-01-01', '2026-01-02'] }
+        },
+        required: ['day']
+      }
+    })
+  )
+
+  const slot = artifacts['com/example/models/Slot.generated.kt']
+
+  assertStringIncludes(slot, 'val day: SlotDay')
+  assertEquals(slot.includes('java.time'), false)
+  assertStringIncludes(artifacts['com/example/models/SlotDay.generated.kt'], 'enum class SlotDay')
+})
