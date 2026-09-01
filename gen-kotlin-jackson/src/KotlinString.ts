@@ -8,7 +8,7 @@ import type {
 import { applyModifiers } from './modifiers.ts'
 import { KotlinEnumEntries } from './KotlinEnumEntries.ts'
 import { toSynthesizedName } from './toSynthesizedName.ts'
-import { toModelExportPath } from './lib.ts'
+import { JAVA_TIME_PACKAGE, STRING_FORMAT_TYPES, toModelExportPath } from './lib.ts'
 import { claimSynthesizedName } from './synthesizedNames.ts'
 
 type KotlinStringArgs = {
@@ -29,6 +29,8 @@ export class KotlinString extends KtSnippet {
 
   /** The synthesized enum class's name, when enum members forced one. */
   private reference: string | null = null
+  /** The `java.time` type this format maps to, when one does. */
+  private formatType: string | undefined
 
   constructor(
     { context, stringSchema, generatorKey, modifiers, destinationPath }: KotlinStringArgs,
@@ -89,6 +91,21 @@ export class KotlinString extends KtSnippet {
       })
 
       this.reference = name
+
+      return
+    }
+
+    // Enums win: a format on an enum-valued string describes the members,
+    // not the property's type.
+    this.formatType = stringSchema.format
+      ? STRING_FORMAT_TYPES[stringSchema.format]
+      : undefined
+
+    if (this.formatType) {
+      this.register({
+        imports: { [JAVA_TIME_PACKAGE]: [this.formatType] },
+        destinationPath
+      })
     }
   }
 
@@ -97,9 +114,11 @@ export class KotlinString extends KtSnippet {
     // synthesized enum class's name. A top-level enum model never reaches
     // here — `KotlinProjection` declares it directly (see shape.ts).
     //
-    // SLOT(string-constraints): minLength / maxLength / pattern / format
-    // live on this.stringSchema; Kotlin's type system cannot express them,
-    // so they are dropped rather than encoded.
-    return applyModifiers(this.reference ?? 'String', this.modifiers)
+    // A mapped `format` renders its java.time type (STRING_FORMAT_TYPES).
+    //
+    // SLOT(string-constraints): minLength / maxLength / pattern live on
+    // this.stringSchema; Kotlin's type system cannot express them, so they
+    // are dropped rather than encoded.
+    return applyModifiers(this.reference ?? this.formatType ?? 'String', this.modifiers)
   }
 }
