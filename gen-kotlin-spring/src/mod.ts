@@ -1,9 +1,17 @@
 import { toGeneratorEnrichment, toOasOperationEntry } from '@skmtc/core'
 import { createClass, createInterface, defineAndRegister } from '@skmtc/lang-kotlin'
-import { toApiExportPath, toApiTag, toControllerName, toServiceName } from './apiFile.ts'
+import {
+  toApiExportPath,
+  toApiTag,
+  toControllerName,
+  toServiceImplementationExportPath,
+  toServiceImplementationName,
+  toServiceName
+} from './apiFile.ts'
 import { SpringControllerClass, SpringServiceInterface } from './SpringApiInterface.ts'
 import { ensureApiErrorSupport } from './apiErrorSupport.ts'
 import { SpringApiMethod } from './SpringApiMethod.ts'
+import { SpringServiceImplementationClass } from './SpringServiceImplementation.ts'
 import { generatorConfigSchema, toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
@@ -13,11 +21,16 @@ import denoJson from '../deno.json' with { type: 'json' }
  * Spring imports) and `@RestController class <Tag>Controller` (all web
  * plumbing, complete expression-bodied delegation into the injected
  * service). The consumer implements the service as a Spring bean
- * (`@Service class UsersServiceImpl : UsersService`) — pure business logic,
+ * (`@Service class DefaultUsersService : UsersService`) — pure business logic,
  * no web layer; Spring DI verifies the seam at startup.
  *
  * Untagged operations land in `DefaultApi`; a multi-tag operation joins its
  * FIRST tag only. Non-200 success codes render `@ResponseStatus`.
+ *
+ * With the `emitServiceImplementations` enrichment on, a
+ * `Default<Tag>Service.generated.kt` scaffold is written beside each tag
+ * file — every method throwing 501 — as a starting point for the
+ * hand-written half. Eject it before writing logic into it.
  *
  * Config (`basePackage`) is read from the `generator` enrichment scope
  * (`client.json#enrichments[id]._generator`), not constructor options — so
@@ -27,7 +40,11 @@ export default toOasOperationEntry<EnrichmentSchema>({
   id: denoJson.name,
   toEnrichmentSchema,
   transform({ context, operation }) {
-    const { basePackage } = toGeneratorEnrichment(context, denoJson.name, generatorConfigSchema)
+    const { basePackage, emitServiceImplementations } = toGeneratorEnrichment(
+      context,
+      denoJson.name,
+      generatorConfigSchema
+    )
 
     ensureApiErrorSupport(context, basePackage)
 
@@ -58,9 +75,42 @@ export default toOasOperationEntry<EnrichmentSchema>({
             destinationPath: exportPath
           }).value
 
-    const method = new SpringApiMethod({ context, operation, destinationPath: exportPath })
+    const implementationPath = emitServiceImplementations
+      ? toServiceImplementationExportPath(tag, basePackage)
+      : undefined
+
+    const method = new SpringApiMethod({
+      context,
+      operation,
+      destinationPath: exportPath,
+      implementationPath
+    })
 
     service.add(method.serviceSignature)
     controller.add(method.controllerSignature)
+
+    if (implementationPath !== undefined && method.implementationSignature) {
+      const implementationName = toServiceImplementationName(tag)
+
+      const existingImplementation = context.findDefinition({
+        name: implementationName,
+        exportPath: implementationPath
+      })
+
+      const implementation =
+        existingImplementation?.value instanceof SpringServiceImplementationClass
+          ? existingImplementation.value
+          : defineAndRegister(context, {
+              identifier: createClass(implementationName),
+              value: new SpringServiceImplementationClass({
+                context,
+                serviceName,
+                destinationPath: implementationPath
+              }),
+              destinationPath: implementationPath
+            }).value
+
+      implementation.add(method.implementationSignature)
+    }
   }
 })

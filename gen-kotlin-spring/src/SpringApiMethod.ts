@@ -1,16 +1,15 @@
 import { capitalize, camelCase } from '@skmtc/core'
-import type { GenerateContextType, Method, OasOperation } from '@skmtc/core'
+import type { GenerateContextType, Method, OasOperation, Stringable } from '@skmtc/core'
 import {
   KtAnnotation,
   KtFunctionSignature,
   KtSnippet,
   register,
-  sanitizePropertyName,
-  type KtFunctionParameterArgs
+  sanitizePropertyName
 } from '@skmtc/lang-kotlin'
 import { toKotlinValue } from '@skmtc/gen-kotlin-jackson'
 import denoJson from '../deno.json' with { type: 'json' }
-import { WEB_BIND_ANNOTATION_PACKAGE } from './lib.ts'
+import { HTTP_PACKAGE, WEB_BIND_ANNOTATION_PACKAGE, WEB_SERVER_PACKAGE } from './lib.ts'
 
 const isRecord = (value: unknown): value is Record<string, unknown> => {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -48,6 +47,132 @@ type SpringApiMethodArgs = {
   context: GenerateContextType
   operation: OasOperation
   destinationPath: string
+  /**
+   * The `Default<Tag>Service` file, when the consumer asked for scaffolds.
+   * A SECOND destination needs a SECOND walk of the same schemas (§
+   * {@link toOperationParameters}), so it is threaded rather than
+   * derived here.
+   */
+  implementationPath?: string
+}
+
+/** One operation input, resolved against ONE destination file. */
+type OperationParameter = {
+  name: string
+  type: Stringable
+  optional: boolean
+  /** The binding annotation — absent when the caller asked for none. */
+  binding: KtAnnotation | undefined
+}
+
+type ToOperationParametersArgs = {
+  context: GenerateContextType
+  operation: OasOperation
+  destinationPath: string
+  withBindings: boolean
+}
+
+/**
+ * Path params, then query params, then the request body — the order the
+ * generated signatures carry.
+ *
+ * Called ONCE PER DESTINATION FILE. A type snippet registers its imports
+ * against the path it was built for, so the implementation file cannot
+ * reuse the API file's snippets: it would render type names whose
+ * imports live in the other file. The second walk is cheap — the model
+ * peer's cache returns the same definitions — and it is what stitches
+ * the DTO imports into the implementation.
+ *
+ * `withBindings: false` skips the `@PathVariable`/`@RequestParam`/
+ * `@RequestBody` annotations, which would otherwise register Spring web
+ * imports into a file that has no use for them.
+ */
+const toOperationParameters = (
+  { context, operation, destinationPath, withBindings }: ToOperationParametersArgs
+): OperationParameter[] => {
+  const toBinding = (name: string, args?: string[]): KtAnnotation | undefined => {
+    return withBindings
+      ? new KtAnnotation({
+          context,
+          destinationPath,
+          name,
+          packageName: WEB_BIND_ANNOTATION_PACKAGE,
+          args
+        })
+      : undefined
+  }
+
+  const parameters: OperationParameter[] = []
+
+  for (const parameter of operation.toParams(['path'])) {
+    parameters.push({
+      name: sanitizePropertyName(camelCase(parameter.name)),
+      type: toKotlinValue({
+        schema: parameter.toSchema(),
+        destinationPath,
+        required: true,
+        context
+      }),
+      optional: false,
+      binding: toBinding('PathVariable', [`"${parameter.name}"`])
+    })
+  }
+
+  for (const parameter of operation.toParams(['query'])) {
+    const required = parameter.required ?? false
+
+    parameters.push({
+      name: sanitizePropertyName(camelCase(parameter.name)),
+      type: toKotlinValue({
+        schema: parameter.toSchema(),
+        destinationPath,
+        required,
+        context
+      }),
+      optional: !required,
+      binding: toBinding('RequestParam', [`"${parameter.name}"`])
+    })
+  }
+
+  const body = operation.toRequestBody(({ schema, requestBody }) => ({
+    schema,
+    required: requestBody.required
+  }))
+
+  if (body) {
+    const required = body.required ?? false
+
+    parameters.push({
+      name: 'body',
+      type: toKotlinValue({
+        schema: body.schema,
+        destinationPath,
+        required,
+        context
+      }),
+      optional: !required,
+      binding: toBinding('RequestBody')
+    })
+  }
+
+  return parameters
+}
+
+type ToReturnTypeArgs = {
+  context: GenerateContextType
+  operation: OasOperation
+  destinationPath: string
+}
+
+/** The lowest-2xx JSON body, or nothing (Kotlin's implicit `Unit`). */
+const toReturnType = (
+  { context, operation, destinationPath }: ToReturnTypeArgs
+): Stringable | undefined => {
+  const responseSchema = operation.toSuccessResponse()?.resolve().toSchema()
+
+  return responseSchema
+    ? toKotlinValue({ schema: responseSchema, destinationPath, required: true, context })
+    : undefined
 }
 
 type ToMappingAnnotationArgs = {
@@ -137,8 +262,10 @@ const toResponseStatusName = (code: string | undefined): string | undefined => {
 export class SpringApiMethod extends KtSnippet {
   serviceSignature: KtFunctionSignature
   controllerSignature: KtFunctionSignature
+  /** Present only when the consumer asked for implementation scaffolds. */
+  implementationSignature: KtFunctionSignature | undefined
 
-  constructor({ context, operation, destinationPath }: SpringApiMethodArgs) {
+  constructor({ context, operation, destinationPath, implementationPath }: SpringApiMethodArgs) {
     super({ context })
 
     const methodName =
@@ -152,22 +279,6 @@ export class SpringApiMethod extends KtSnippet {
       path: operation.path
     })
 
-    const serviceParameters: KtFunctionParameterArgs[] = []
-    const controllerParameters: KtFunctionParameterArgs[] = []
-
-    const addParameter = (
-      name: string,
-      type: KtFunctionParameterArgs['type'],
-      annotation: KtAnnotation,
-      optional = false
-    ) => {
-      // Optional params default to null on the SEAM only (named-args
-      // ergonomics for human callers/tests); the controller signature
-      // stays an exact binding and always passes every argument.
-      serviceParameters.push({ name, type, defaultValue: optional ? 'null' : undefined })
-      controllerParameters.push({ name, type, annotations: [annotation] })
-    }
-
     // Type snippets come from the model peer's exported router — an
     // inline shape synthesizes its own stackTrail-named sibling, so no
     // naming hint is threaded (the retired kotlinx `fallbackName` API).
@@ -180,79 +291,14 @@ export class SpringApiMethod extends KtSnippet {
     // reports success. The exported router IS jackson's sanctioned
     // door for inline schemas; refs still resolve to their models
     // through it.
-    for (const parameter of operation.toParams(['path'])) {
-      addParameter(
-        sanitizePropertyName(camelCase(parameter.name)),
-        toKotlinValue({
-          schema: parameter.toSchema(),
-          destinationPath,
-          required: true,
-          context
-        }),
-        new KtAnnotation({
-          context,
-          destinationPath,
-          name: 'PathVariable',
-          packageName: WEB_BIND_ANNOTATION_PACKAGE,
-          args: [`"${parameter.name}"`]
-        })
-      )
-    }
+    const parameters = toOperationParameters({
+      context,
+      operation,
+      destinationPath,
+      withBindings: true
+    })
 
-    for (const parameter of operation.toParams(['query'])) {
-      addParameter(
-        sanitizePropertyName(camelCase(parameter.name)),
-        toKotlinValue({
-          schema: parameter.toSchema(),
-          destinationPath,
-          required: parameter.required ?? false,
-          context
-        }),
-        new KtAnnotation({
-          context,
-          destinationPath,
-          name: 'RequestParam',
-          packageName: WEB_BIND_ANNOTATION_PACKAGE,
-          args: [`"${parameter.name}"`]
-        }),
-        !(parameter.required ?? false)
-      )
-    }
-
-    const body = operation.toRequestBody(({ schema, requestBody }) => ({
-      schema,
-      required: requestBody.required
-    }))
-
-    if (body) {
-      addParameter(
-        'body',
-        toKotlinValue({
-          schema: body.schema,
-          destinationPath,
-          required: body.required ?? false,
-          context
-        }),
-        new KtAnnotation({
-          context,
-          destinationPath,
-          name: 'RequestBody',
-          packageName: WEB_BIND_ANNOTATION_PACKAGE
-        }),
-        !(body.required ?? false)
-      )
-    }
-
-    const responseSchema = operation.toSuccessResponse()?.resolve().toSchema()
-
-    const returnType = responseSchema
-      ? toKotlinValue({
-          schema: responseSchema,
-          destinationPath,
-          required: true,
-          context
-        })
-      : undefined
+    const returnType = toReturnType({ context, operation, destinationPath })
 
     const controllerAnnotations = [mappingAnnotation]
     const statusName = toResponseStatusName(operation.toSuccessResponseCode())
@@ -270,31 +316,66 @@ export class SpringApiMethod extends KtSnippet {
 
       // `HttpStatus` is an argument symbol from a DIFFERENT package than
       // the annotation's own — registered separately.
-      this.register({
-        imports: { 'org.springframework.http': ['HttpStatus'] },
-        destinationPath
-      })
+      this.register({ imports: { [HTTP_PACKAGE]: ['HttpStatus'] }, destinationPath })
     }
 
-    const parameterNames = serviceParameters.map(parameter => parameter.name)
+    const parameterNames = parameters.map(parameter => parameter.name)
 
     const summary = operation.summary ?? operation.description
     const description = summary?.replaceAll('*/', '* /')
 
     this.serviceSignature = new KtFunctionSignature({
       name: methodName,
-      parameters: serviceParameters,
+      // Optional params default to null on the SERVICE declaration only
+      // (named-args ergonomics for human callers/tests); the controller
+      // signature stays an exact binding and always passes every argument.
+      parameters: parameters.map(({ name, type, optional }) => ({
+        name,
+        type,
+        defaultValue: optional ? 'null' : undefined
+      })),
       returnType,
       description
     })
 
     this.controllerSignature = new KtFunctionSignature({
       name: methodName,
-      parameters: controllerParameters,
+      parameters: parameters.map(({ name, type, binding }) => ({
+        name,
+        type,
+        annotations: binding ? [binding] : undefined
+      })),
       returnType,
       annotations: controllerAnnotations,
       body: `service.${methodName}(${parameterNames.join(', ')})`
     })
+
+    if (implementationPath !== undefined) {
+      this.implementationSignature = new KtFunctionSignature({
+        name: methodName,
+        modifiers: ['override'],
+        // An override may NOT repeat the interface's default values, so
+        // the scaffold takes the parameters bare.
+        parameters: toOperationParameters({
+          context,
+          operation,
+          destinationPath: implementationPath,
+          withBindings: false
+        }).map(({ name, type }) => ({ name, type })),
+        returnType: toReturnType({ context, operation, destinationPath: implementationPath }),
+        body:
+          'throw ResponseStatusException(HttpStatus.NOT_IMPLEMENTED, ' +
+          `"${methodName} is not implemented")`
+      })
+
+      this.register({
+        imports: {
+          [HTTP_PACKAGE]: ['HttpStatus'],
+          [WEB_SERVER_PACKAGE]: ['ResponseStatusException']
+        },
+        destinationPath: implementationPath
+      })
+    }
   }
 
   override toString(): string {

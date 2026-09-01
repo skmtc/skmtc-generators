@@ -13,7 +13,7 @@ import { WEB_BIND_ANNOTATION_PACKAGE } from './lib.ts'
 
 /**
  * The generated error channel (spec 29, Milestone G): consumers throw
- * Spring's own `ResponseStatusException` from ServiceImpls
+ * Spring's own `ResponseStatusException` from their service classes
  * (`throw ResponseStatusException(HttpStatus.NOT_FOUND, "No such user")`)
  * and this generated `@RestControllerAdvice` renders it as a small
  * `ApiError` body. In the Jackson stack the DTO needs no serialization
