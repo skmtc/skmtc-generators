@@ -18,7 +18,6 @@
     "@skmtc/gen-tanstack-query-fetch-zod": "./gen-tanstack-query-fetch-zod/mod.ts",
     "@skmtc/gen-tanstack-query-supabase-zod": "./gen-tanstack-query-supabase-zod/mod.ts",
     "@skmtc/gen-typescript": "./gen-typescript/mod.ts",
-    "@skmtc/gen-typescript-s": "./gen-typescript-s/mod.ts",
     "@skmtc/gen-valibot": "./gen-valibot/mod.ts",
     "@skmtc/gen-zod": "./gen-zod/mod.ts",
     "@skmtc/gen-arktype": "./gen-arktype/mod.ts",
@@ -52,8 +51,6 @@
     "./gen-supabase-hono",
     "./gen-express",
     "./gen-daisyui-form",
-    "./gen-typescript-sdk",
-    "./gen-typescript-s",
     "./gen-md-docs",
     "./gen-kotlin-jackson",
     "./gen-kotlin-spring"
