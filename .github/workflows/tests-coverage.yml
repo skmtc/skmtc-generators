@@ -86,6 +86,49 @@ jobs:
         parallel: true
         fail-on-error: false
 
+  # Windows is a supported host and its path separator is the one thing
+  # the Ubuntu matrix can never exercise (skmtc/skmtc#147: OS-native joins
+  # in toExportPath leaking `\` into generated import text). Same matrix,
+  # tests only: coverage reporting stays with the Ubuntu job.
+  tests-windows:
+    runs-on: windows-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        generator:
+          - gen-arktype
+          - gen-kotlin-jackson
+          - gen-kotlin-spring
+          - gen-msw
+          - gen-shadcn-form
+          - gen-shadcn-select
+          - gen-shadcn-table
+          - gen-supabase-hono
+          - gen-tanstack-query-fetch-zod
+          - gen-tanstack-query-supabase-zod
+          - gen-typescript
+          - gen-valibot
+          - gen-zod
+
+    steps:
+    # The runner's git defaults to core.autocrlf=true, which would rewrite
+    # every checked-out file to CRLF and skew snapshot comparisons.
+    - name: Keep LF line endings on checkout
+      run: git config --global core.autocrlf false
+
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Deno
+      uses: denoland/setup-deno@v2
+      with:
+        deno-version: v2.x
+
+    - name: Run tests for ${{ matrix.generator }}
+      working-directory: ${{ matrix.generator }}
+      run: deno task test
+
   finish:
     needs: coverage
     # Runs even when a generator's tests failed, so the parallel Coveralls build
