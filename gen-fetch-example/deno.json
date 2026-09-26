@@ -1,0 +1,15 @@
+{
+  "name": "@skmtc/gen-fetch-example",
+  "version": "0.1.0",
+  "license": "MIT",
+  "exports": "./mod.ts",
+  "imports": {
+    "@skmtc/core": "jsr:@skmtc/core@0.28.7",
+    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.12.21",
+    "@std/path": "jsr:@std/path@^1",
+    "valibot": "npm:valibot@1.1.0"
+  },
+  "tasks": {
+    "publish": "deno publish --allow-dirty"
+  }
+}
