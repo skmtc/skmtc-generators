@@ -53,7 +53,8 @@
     "./gen-daisyui-form",
     "./gen-md-docs",
     "./gen-kotlin-jackson",
-    "./gen-kotlin-spring"
+    "./gen-kotlin-spring",
+    "./gen-fetch-example"
   ],
   "minimumDependencyAge": "0",
   "lint": {
