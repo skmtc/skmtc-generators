@@ -50,6 +50,9 @@ jobs:
       uses: denoland/setup-deno@v2
       with:
         deno-version: v2.x
+        # Caches DENO_DIR keyed on deno.lock, so each job skips re-downloading
+        # the jsr/npm graph.
+        cache: true
 
     - name: Run tests with coverage for ${{ matrix.generator }}
       working-directory: ${{ matrix.generator }}
@@ -124,11 +127,8 @@ jobs:
           - test-support
 
     steps:
-    # The runner's git defaults to core.autocrlf=true, which would rewrite
-    # every checked-out file to CRLF and skew snapshot comparisons.
-    - name: Keep LF line endings on checkout
-      run: git config --global core.autocrlf false
-
+    # Line endings stay LF on checkout because of the root .gitattributes, so
+    # snapshot and golden comparisons see the committed bytes.
     - name: Checkout repository
       uses: actions/checkout@v4
 
@@ -136,10 +136,20 @@ jobs:
       uses: denoland/setup-deno@v2
       with:
         deno-version: v2.x
+        # Caches DENO_DIR keyed on deno.lock, so each job skips re-downloading
+        # the jsr/npm graph.
+        cache: true
 
     - name: Run tests for ${{ matrix.generator }}
       working-directory: ${{ matrix.generator }}
       run: deno task test
+
+    # The one test that resolves every generated `@/` import through a real
+    # module resolver, so a `\` separator in any import fails here.
+    - name: Typecheck generated output for ${{ matrix.generator }}
+      if: matrix.generator == 'gen-arktype'
+      working-directory: ${{ matrix.generator }}
+      run: deno task test:typecheck
 
   finish:
     needs: coverage

@@ -9,6 +9,7 @@
  * fail the moment one pin moves without the others.
  */
 import { assert, assertEquals } from '@std/assert'
+import { parse } from '@std/yaml'
 
 type DenoJson = {
   name?: string
@@ -112,42 +113,68 @@ Deno.test('workspace - no generator source imports an OS-aware path module', () 
   assertEquals(offenders, [])
 })
 
-/**
- * The `generator` matrix of `job` in the test workflow, in listed order.
- * Line-based: reads the `- name` items under the job's `generator:` key.
- */
-const toMatrix = (workflow: string, job: string): string[] => {
-  const lines = workflow.split(/\r?\n/)
-  const jobStart = lines.indexOf(`  ${job}:`)
-  assert(jobStart !== -1, `the workflow must define a ${job} job`)
+type Mapping = Record<string, unknown>
 
-  const keyStart = lines.findIndex((line, index) => index > jobStart && line.trim() === 'generator:')
-  assert(keyStart !== -1, `the ${job} job must have a generator matrix`)
+const isMapping = (value: unknown): value is Mapping =>
+  typeof value === 'object' && value !== null && !Array.isArray(value)
 
-  const items: string[] = []
+/** `value` narrowed to a mapping, or a failure naming where it was expected. */
+const toMapping = (value: unknown, where: string): Mapping => {
+  assert(isMapping(value), `${where} must be a mapping`)
+  return value
+}
 
-  for (const line of lines.slice(keyStart + 1)) {
-    const trimmed = line.trim()
+const workflow = toMapping(
+  parse(Deno.readTextFileSync(new URL('.github/workflows/tests-coverage.yml', rootUrl))),
+  'tests-coverage.yml'
+)
 
-    if (trimmed.startsWith('#')) continue
+const toJob = (name: string): Mapping => toMapping(toMapping(workflow.jobs, 'jobs')[name], `jobs.${name}`)
 
-    const item = trimmed.match(/^- (\S+)$/)?.[1]
-    if (!item) break
+/** The job's matrix, which must hold `generator` and nothing else: an
+ *  `include` or `exclude` would change what runs without touching the list. */
+const toMatrix = (name: string): string[] => {
+  const matrix = toMapping(toMapping(toJob(name).strategy, `${name}.strategy`).matrix, `${name}.strategy.matrix`)
 
-    items.push(item)
-  }
+  assertEquals(Object.keys(matrix), ['generator'], `${name}.strategy.matrix must hold only generator`)
 
-  return items
+  const { generator } = matrix
+  assert(
+    Array.isArray(generator) && generator.every(item => typeof item === 'string'),
+    `${name}.strategy.matrix.generator must be a list of names`
+  )
+
+  return generator
+}
+
+/** Conditions that would let a matrix entry skip or ignore its tests. */
+const toSkips = (name: string): string[] => {
+  const job = toJob(name)
+
+  const steps = job.steps
+  assert(Array.isArray(steps), `${name}.steps must be a list`)
+
+  const testSteps = steps
+    .map((step, index) => toMapping(step, `${name}.steps[${index}]`))
+    .filter(({ run }) => typeof run === 'string' && /^deno task test(:coverage)?$/.test(run.trim()))
+
+  assertEquals(testSteps.length, 1, `${name} must have one step that runs the test task`)
+
+  return [job, ...testSteps].flatMap(entry =>
+    ['if', 'continue-on-error'].filter(key => key in entry).map(key => `${name}: ${key}: ${entry[key]}`)
+  )
 }
 
 Deno.test('workspace - the Linux and Windows test matrices both list every member', () => {
   // #50: members added to the coverage matrix got no Windows run, so their
   // forward-slash export paths were never checked where `\` is the separator.
-  const workflow = Deno.readTextFileSync(new URL('.github/workflows/tests-coverage.yml', rootUrl))
-
-  const coverage = toMatrix(workflow, 'coverage')
-  const windows = toMatrix(workflow, 'tests-windows')
+  const coverage = toMatrix('coverage')
+  const windows = toMatrix('tests-windows')
 
   assertEquals(windows, coverage)
   assertEquals([...coverage].sort(), members.map(({ dir }) => dir).sort())
+})
+
+Deno.test('workspace - every matrix entry runs its tests unconditionally', () => {
+  assertEquals([...toSkips('coverage'), ...toSkips('tests-windows')], [])
 })

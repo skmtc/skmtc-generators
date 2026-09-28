@@ -1,0 +1,3 @@
+# Keep text files LF in every checkout, whatever core.autocrlf says, so
+# snapshot and golden comparisons match the committed bytes on Windows too.
+* text=auto eol=lf
