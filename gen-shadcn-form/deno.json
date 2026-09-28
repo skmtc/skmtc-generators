@@ -1,21 +1,21 @@
 {
   "name": "@skmtc/gen-shadcn-form",
-  "version": "0.3.3",
+  "version": "0.3.5",
   "imports": {
-    "@skmtc/gen-shadcn-select": "jsr:@skmtc/gen-shadcn-select@0.3.3",
-    "@skmtc/gen-tanstack-query-supabase-zod": "jsr:@skmtc/gen-tanstack-query-supabase-zod@0.2.5",
-    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.2.5",
-    "@skmtc/gen-zod": "jsr:@skmtc/gen-zod@0.2.5",
-    "@skmtc/core": "jsr:@skmtc/core@0.28.3",
-    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.12.17"
+    "@skmtc/gen-shadcn-select": "jsr:@skmtc/gen-shadcn-select@0.3.5",
+    "@skmtc/gen-tanstack-query-supabase-zod": "jsr:@skmtc/gen-tanstack-query-supabase-zod@0.2.7",
+    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.2.7",
+    "@skmtc/gen-zod": "jsr:@skmtc/gen-zod@0.2.7",
+    "@skmtc/core": "jsr:@skmtc/core@0.29.0",
+    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.12.22"
   },
   "exports": "./mod.ts",
   "tasks": {
-    "test": "deno test --allow-env --allow-sys --allow-read || true",
-    "test:coverage": "deno test --allow-env --allow-sys --allow-read --coverage=coverage || true",
-    "coverage:report": "deno coverage coverage --lcov --output=coverage.lcov 2>/dev/null || echo 'No coverage data'",
-    "coverage:html": "deno coverage coverage --html || true",
-    "coverage:check": "deno coverage coverage --detailed || true",
+    "test": "deno test --allow-env --allow-sys --allow-read",
+    "test:coverage": "deno test --allow-env --allow-sys --allow-read --coverage=coverage",
+    "coverage:report": "deno coverage coverage --lcov --output=coverage.lcov",
+    "coverage:html": "deno coverage coverage --html",
+    "coverage:check": "deno coverage coverage --detailed",
     "publish": "deno publish --allow-slow-types --allow-dirty"
   },
   "lint": {

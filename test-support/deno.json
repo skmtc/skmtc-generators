@@ -1,0 +1,16 @@
+{
+  "name": "@skmtc/test-support",
+  "version": "0.0.0",
+  "private": true,
+  "exports": "./mod.ts",
+  "tasks": {
+    "test": "deno test --allow-read",
+    "test:coverage": "deno test --allow-read",
+    "coverage:report": "echo \"test-support holds test code only: no coverage to report\""
+  },
+  "lint": {
+    "plugins": [
+      "jsr:@skmtc/lint-plugin@0.1.0"
+    ]
+  }
+}
