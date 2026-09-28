@@ -51,8 +51,11 @@ jobs:
       with:
         deno-version: v2.x
         # Caches DENO_DIR keyed on deno.lock, so each job skips re-downloading
-        # the jsr/npm graph.
+        # the jsr/npm graph. setup-deno's key names the job but not the matrix
+        # entry, so without the generator in the hash all entries race for one
+        # key and the first to finish saves only its own dependencies.
         cache: true
+        cache-hash: ${{ hashFiles('**/deno.lock') }}-${{ matrix.generator }}
 
     - name: Run tests with coverage for ${{ matrix.generator }}
       working-directory: ${{ matrix.generator }}
@@ -137,8 +140,11 @@ jobs:
       with:
         deno-version: v2.x
         # Caches DENO_DIR keyed on deno.lock, so each job skips re-downloading
-        # the jsr/npm graph.
+        # the jsr/npm graph. setup-deno's key names the job but not the matrix
+        # entry, so without the generator in the hash all entries race for one
+        # key and the first to finish saves only its own dependencies.
         cache: true
+        cache-hash: ${{ hashFiles('**/deno.lock') }}-${{ matrix.generator }}
 
     - name: Run tests for ${{ matrix.generator }}
       working-directory: ${{ matrix.generator }}
