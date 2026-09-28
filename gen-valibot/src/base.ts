@@ -12,6 +12,8 @@ export const ValibotBase = toTsModelProjectionBase<EnrichmentSchema>({
 
   toIdentifierType: () => ({ type: 'variable' }),
 
+  // Calls ValibotBase by name: `this` is the bound config, never a projection override.
+  // Keep the `: string` return type, or the self-reference is circular (TS7022).
   toExportPath({ refName, enrichments, variant }): string {
     const name = ValibotBase.toIdentifierName({ refName, enrichments, variant })
 

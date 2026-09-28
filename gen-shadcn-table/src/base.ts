@@ -17,6 +17,8 @@ export const ShadcnTableBase = toTsOasOperationProjectionBase<EnrichmentSchema>(
 
   toIdentifierType: () => ({ type: 'variable' }),
 
+  // Calls ShadcnTableBase by name: `this` is the bound config, never a projection override.
+  // Keep the `: string` return type, or the self-reference is circular (TS7022).
   toExportPath({ operation, enrichments, variant }): string {
     const name = ShadcnTableBase.toIdentifierName({ operation, enrichments, variant })
 
