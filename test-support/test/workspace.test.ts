@@ -196,3 +196,26 @@ Deno.test('workspace - the Linux and Windows test matrices both list every membe
 Deno.test('workspace - every matrix entry runs its tests unconditionally', () => {
   assertEquals([...toSkips('coverage'), ...toSkips('tests-windows')], [])
 })
+
+/** Each trigger's `paths-ignore`, as `{ event: patterns }`, for the events
+ *  in `events`. A missing trigger or filter shows as `null`. */
+const toPathsIgnore = (file: string, events: string[]): Record<string, unknown> => {
+  const on = toMapping(
+    toMapping(parse(Deno.readTextFileSync(new URL(`.github/workflows/${file}`, rootUrl))), file).on,
+    `${file}: on`
+  )
+
+  return Object.fromEntries(
+    events.map(event => [event, isMapping(on[event]) ? on[event]['paths-ignore'] ?? null : null])
+  )
+}
+
+Deno.test('workspace - retro-only changes start no test or publish run', () => {
+  // #61: every delivery ends with a push that adds only retros/<file>.md.
+  // Ignoring anything wider would let a code change skip its tests.
+  assertEquals(toPathsIgnore('tests-coverage.yml', ['push', 'pull_request']), {
+    push: ['retros/**'],
+    pull_request: ['retros/**']
+  })
+  assertEquals(toPathsIgnore('publish.yml', ['push']), { push: ['retros/**'] })
+})

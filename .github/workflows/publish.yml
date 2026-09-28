@@ -23,6 +23,8 @@ name: Publish
 on:
   push:
     branches: [main]
+    # A retro-only merge changes no package, so there is nothing to publish (#61).
+    paths-ignore: ["retros/**"]
   workflow_dispatch:
 
 concurrency:

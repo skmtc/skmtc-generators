@@ -1,10 +1,18 @@
 name: Test Coverage
 
+# A change to retros/ only adds a retrospective note: it tests nothing, so it
+# starts no run (#61). The pull_request filter is safe only while no check
+# from this workflow is required for merging into main. A skipped workflow
+# leaves a required check pending, so a retro-only pull request could never
+# merge. If #54 makes a check required, remove the filter from pull_request,
+# or add a job that reports success for retro-only changes.
 on:
   push:
     branches: [ main ]
+    paths-ignore: [ "retros/**" ]
   pull_request:
     branches: [ main ]
+    paths-ignore: [ "retros/**" ]
 
 # Every generator in the matrix resolves its @skmtc/* pins (core,
 # lang-typescript, lang-kotlin) from public jsr.io — the Kotlin generators'
