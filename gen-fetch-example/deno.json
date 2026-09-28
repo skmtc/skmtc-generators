@@ -1,15 +1,19 @@
 {
   "name": "@skmtc/gen-fetch-example",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "MIT",
   "exports": "./mod.ts",
   "imports": {
-    "@skmtc/core": "jsr:@skmtc/core@0.28.7",
-    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.12.21",
-    "@std/path": "jsr:@std/path@^1",
+    "@skmtc/core": "jsr:@skmtc/core@0.29.0",
+    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.12.22",
     "valibot": "npm:valibot@1.1.0"
   },
   "tasks": {
+    "test": "deno test --allow-env --allow-sys --allow-read",
+    "test:coverage": "deno test --allow-env --allow-sys --allow-read --coverage=coverage",
+    "coverage:report": "deno coverage coverage --lcov --output=coverage.lcov",
+    "coverage:html": "deno coverage coverage --html",
+    "coverage:check": "deno coverage coverage --detailed",
     "publish": "deno publish --allow-dirty"
   }
 }

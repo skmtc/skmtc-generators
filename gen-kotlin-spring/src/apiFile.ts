@@ -1,5 +1,4 @@
 import { capitalize, camelCase } from '@skmtc/core'
-import { join } from '@std/path'
 
 /**
  * The tag an operation groups under: the FIRST tag, or `'Default'`
@@ -41,7 +40,7 @@ export const toControllerName = (tag: string): string => {
  * deduplicated). Segments after `@/` ARE the package directories.
  */
 export const toApiExportPath = (tag: string, basePackage: string): string => {
-  return join('@', ...basePackage.split('.'), `${toTagBase(tag)}Api.generated.kt`)
+  return `@/${basePackage.split('.').join('/')}/${toTagBase(tag)}Api.generated.kt`
 }
 
 /**
@@ -50,5 +49,5 @@ export const toApiExportPath = (tag: string, basePackage: string): string => {
  * own file so `skmtc eject` can hand it over one tag at a time.
  */
 export const toServiceImplementationExportPath = (tag: string, basePackage: string): string => {
-  return join('@', ...basePackage.split('.'), `${toServiceImplementationName(tag)}.generated.kt`)
+  return `@/${basePackage.split('.').join('/')}/${toServiceImplementationName(tag)}.generated.kt`
 }

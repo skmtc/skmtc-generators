@@ -1,4 +1,3 @@
-import { join } from '@std/path'
 import { toGeneratorEnrichment } from '@skmtc/core'
 import type { GenerateContextType } from '@skmtc/core'
 import denoJson from '../deno.json' with { type: 'json' }
@@ -70,7 +69,7 @@ export const STRING_FORMAT_TYPES: ReadonlyMap<string, string> = new Map([
  * same package or the cache key and the synthesized placement drift.
  */
 export const toModelExportPathInPackage = (basePackage: string, name: string): string => {
-  return join('@', ...basePackage.split('.'), `${name}.generated.kt`)
+  return `@/${basePackage.split('.').join('/')}/${name}.generated.kt`
 }
 
 export const toModelExportPath = (context: GenerateContextType, name: string): string => {

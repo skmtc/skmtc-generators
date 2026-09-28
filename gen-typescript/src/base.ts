@@ -1,6 +1,5 @@
 import { capitalize, decapitalize, camelCase } from '@skmtc/core'
 import { toTsModelProjectionBase } from '@skmtc/lang-typescript'
-import { join } from '@std/path'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 
 export const TypescriptBase = toTsModelProjectionBase<EnrichmentSchema>({
@@ -15,7 +14,7 @@ export const TypescriptBase = toTsModelProjectionBase<EnrichmentSchema>({
   toExportPath({ refName, enrichments, variant }): string {
     const name = this.toIdentifierName({ refName, enrichments, variant })
 
-    return join('@', 'types', `${decapitalize(name)}.generated.ts`)
+    return `@/types/${decapitalize(name)}.generated.ts`
   },
 
   toEnrichmentSchema

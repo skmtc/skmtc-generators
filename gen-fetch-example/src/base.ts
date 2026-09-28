@@ -1,6 +1,5 @@
 import { decapitalize, toEndpointName } from '@skmtc/core'
 import { toTsOasOperationProjectionBase } from '@skmtc/lang-typescript'
-import { join } from '@std/path'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
@@ -16,7 +15,7 @@ export const FetchBase = toTsOasOperationProjectionBase<EnrichmentSchema>({
   toExportPath({ operation, enrichments, variant }): string {
     const name = this.toIdentifierName({ operation, enrichments, variant })
 
-    return join('@', 'fetch', `${name}.generated.ts`)
+    return `@/fetch/${name}.generated.ts`
   },
 
   toEnrichmentSchema

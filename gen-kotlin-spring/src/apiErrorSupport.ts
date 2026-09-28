@@ -1,4 +1,3 @@
-import { join } from '@std/path'
 import type { GenerateContextType } from '@skmtc/core'
 import { createClass, createDataClass, defineAndRegister } from '@skmtc/lang-kotlin'
 import { ApiErrorValue } from './ApiErrorValue.ts'
@@ -9,7 +8,7 @@ import { ApiErrorHandlerValue } from './ApiErrorHandlerValue.ts'
  * `findDefinition` dedup) into `<basePackage>/ApiError.generated.kt`.
  */
 export const ensureApiErrorSupport = (context: GenerateContextType, basePackage: string): void => {
-  const exportPath = join('@', ...basePackage.split('.'), 'ApiError.generated.kt')
+  const exportPath = `@/${basePackage.split('.').join('/')}/ApiError.generated.kt`
 
   if (context.findDefinition({ name: 'ApiError', exportPath })) {
     return
