@@ -23,7 +23,6 @@ jobs:
       matrix:
         generator:
           - gen-arktype
-          - gen-daisyui-form
           - gen-express
           - gen-fetch-example
           - gen-kotlin-jackson
@@ -105,8 +104,11 @@ jobs:
       matrix:
         generator:
           - gen-arktype
+          - gen-express
+          - gen-fetch-example
           - gen-kotlin-jackson
           - gen-kotlin-spring
+          - gen-md-docs
           - gen-msw
           - gen-shadcn-form
           - gen-shadcn-select
@@ -117,6 +119,9 @@ jobs:
           - gen-typescript
           - gen-valibot
           - gen-zod
+          # The workspace guard's source walk builds file URLs and relative
+          # paths, so it needs the Windows separator check too (#50).
+          - test-support
 
     steps:
     # The runner's git defaults to core.autocrlf=true, which would rewrite

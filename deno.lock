@@ -248,14 +248,6 @@
           "jsr:@skmtc/lang-typescript@0.12.22"
         ]
       },
-      "gen-daisyui-form": {
-        "dependencies": [
-          "jsr:@skmtc/core@0.29.0",
-          "jsr:@skmtc/gen-typescript@0.2.7",
-          "jsr:@skmtc/gen-zod@0.2.7",
-          "jsr:@skmtc/lang-typescript@0.12.22"
-        ]
-      },
       "gen-express": {
         "dependencies": [
           "jsr:@skmtc/core@0.29.0",

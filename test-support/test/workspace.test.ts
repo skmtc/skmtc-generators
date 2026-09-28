@@ -111,3 +111,43 @@ Deno.test('workspace - no generator source imports an OS-aware path module', () 
 
   assertEquals(offenders, [])
 })
+
+/**
+ * The `generator` matrix of `job` in the test workflow, in listed order.
+ * Line-based: reads the `- name` items under the job's `generator:` key.
+ */
+const toMatrix = (workflow: string, job: string): string[] => {
+  const lines = workflow.split(/\r?\n/)
+  const jobStart = lines.indexOf(`  ${job}:`)
+  assert(jobStart !== -1, `the workflow must define a ${job} job`)
+
+  const keyStart = lines.findIndex((line, index) => index > jobStart && line.trim() === 'generator:')
+  assert(keyStart !== -1, `the ${job} job must have a generator matrix`)
+
+  const items: string[] = []
+
+  for (const line of lines.slice(keyStart + 1)) {
+    const trimmed = line.trim()
+
+    if (trimmed.startsWith('#')) continue
+
+    const item = trimmed.match(/^- (\S+)$/)?.[1]
+    if (!item) break
+
+    items.push(item)
+  }
+
+  return items
+}
+
+Deno.test('workspace - the Linux and Windows test matrices both list every member', () => {
+  // #50: members added to the coverage matrix got no Windows run, so their
+  // forward-slash export paths were never checked where `\` is the separator.
+  const workflow = Deno.readTextFileSync(new URL('.github/workflows/tests-coverage.yml', rootUrl))
+
+  const coverage = toMatrix(workflow, 'coverage')
+  const windows = toMatrix(workflow, 'tests-windows')
+
+  assertEquals(windows, coverage)
+  assertEquals([...coverage].sort(), members.map(({ dir }) => dir).sort())
+})

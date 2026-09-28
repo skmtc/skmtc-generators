@@ -17,7 +17,6 @@
 | ![](assets/shadcnui.svg) | Shadcn Form | [@skmtc/gen-shadcn-form](https://github.com/skmtc/skmtc-generators/tree/main/gen-shadcn-form) | 🚀 Now |
 | ![](assets/shadcnui.svg) | Shadcn Select | [@skmtc/gen-shadcn-select](https://github.com/skmtc/skmtc-generators/tree/main/gen-shadcn-select) | 🚀 Now |
 | ![](assets/shadcnui.svg) | Shadcn Table | [@skmtc/gen-shadcn-table](https://github.com/skmtc/skmtc-generators/tree/main/gen-shadcn-table) | 🚀 Now |
-| | DaisyUI Form | [@skmtc/gen-daisyui-form](https://github.com/skmtc/skmtc-generators/tree/main/gen-daisyui-form) | 🚀 Now |
 
 
 ## License
