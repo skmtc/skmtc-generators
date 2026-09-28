@@ -1,6 +1,5 @@
 import { camelCase } from '@skmtc/core'
 import { toTsOasOperationProjectionBase } from '@skmtc/lang-typescript'
-import { join } from '@std/path'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
@@ -23,6 +22,6 @@ export const ShadcnSelectApiBase = toTsOasOperationProjectionBase<EnrichmentSche
   toExportPath({ operation, enrichments, variant }): string {
     const name = this.toIdentifierName({ operation, enrichments, variant })
 
-    return join('@', 'inputs', `${name}.generated.tsx`)
+    return `@/inputs/${name}.generated.tsx`
   }
 })

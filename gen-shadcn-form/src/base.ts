@@ -1,6 +1,5 @@
 import { camelCase, capitalize, toMethodVerb, withVariant } from '@skmtc/core'
 import { toTsOasOperationProjectionBase } from '@skmtc/lang-typescript'
-import { join } from '@std/path'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
@@ -26,6 +25,6 @@ export const ShadcnFormBase = toTsOasOperationProjectionBase<EnrichmentSchema>({
   toExportPath({ operation, enrichments, variant }): string {
     const name = this.toIdentifierName({ operation, enrichments, variant })
 
-    return join('@', 'forms', `${name}.generated.tsx`)
+    return `@/forms/${name}.generated.tsx`
   }
 })

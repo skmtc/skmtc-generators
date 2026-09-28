@@ -1,5 +1,5 @@
 import { capitalize, camelCase } from '@skmtc/core'
-import { join } from '@std/path'
+import { toExportPathInPackage } from '@skmtc/gen-kotlin-jackson'
 
 /**
  * The tag an operation groups under: the FIRST tag, or `'Default'`
@@ -41,7 +41,7 @@ export const toControllerName = (tag: string): string => {
  * deduplicated). Segments after `@/` ARE the package directories.
  */
 export const toApiExportPath = (tag: string, basePackage: string): string => {
-  return join('@', ...basePackage.split('.'), `${toTagBase(tag)}Api.generated.kt`)
+  return toExportPathInPackage(basePackage, `${toTagBase(tag)}Api`)
 }
 
 /**
@@ -50,5 +50,5 @@ export const toApiExportPath = (tag: string, basePackage: string): string => {
  * own file so `skmtc eject` can hand it over one tag at a time.
  */
 export const toServiceImplementationExportPath = (tag: string, basePackage: string): string => {
-  return join('@', ...basePackage.split('.'), `${toServiceImplementationName(tag)}.generated.kt`)
+  return toExportPathInPackage(basePackage, toServiceImplementationName(tag))
 }

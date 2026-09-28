@@ -17,7 +17,11 @@ const toRefContext = () => {
       required: ['name']
     },
     Product: { type: 'string' as const },
-    Category: { type: 'string' as const }
+    Category: { type: 'string' as const },
+    Node: {
+      type: 'object' as const,
+      properties: { child: { $ref: '#/components/schemas/Node' } }
+    }
   }
 
   const parseContext = toParseContext({ schemas })
@@ -76,5 +80,23 @@ Deno.test('ArktypeRef - drives the referenced model into its own file', () => {
   assertEquals(
     Boolean(context.findDefinition({ name: 'user', exportPath: '@/types/user.generated.ts' })),
     true
+  )
+})
+
+Deno.test('ArktypeRef - a back-reference to a model still being built renders a thunk', () => {
+  const context = toRefContext()
+
+  new ArktypeRef({
+    context,
+    refName: 'Node' as RefName,
+    modifiers: { required: true },
+    destinationPath: '/test'
+  })
+
+  // Driving `Node` again from inside its own build would recurse forever, so
+  // the inner ref reads the model's settings instead and defers to a thunk.
+  assertEquals(
+    context.findDefinition({ name: 'node', exportPath: '@/types/node.generated.ts' })?.toString(),
+    'export const node = type({ "child?": () => node });\n'
   )
 })

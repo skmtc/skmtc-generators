@@ -1,6 +1,5 @@
 import { camelCase } from '@skmtc/core'
 import { toTsOasOperationProjectionBase } from '@skmtc/lang-typescript'
-import { join } from '@std/path'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
@@ -17,7 +16,7 @@ export const MswBase = toTsOasOperationProjectionBase<EnrichmentSchema>({
   toIdentifierType: () => ({ type: 'variable' }),
 
   toExportPath(): string {
-    return join('@', 'mocks', `handlers.generated.ts`)
+    return '@/mocks/handlers.generated.ts'
   },
 
   toEnrichmentSchema

@@ -32,7 +32,7 @@ export class RequestBody extends TsSnippet {
     // Register valibot import
     this.register({
       imports: {
-        valibot: ['*', 'v']
+        valibot: [{ '*': 'v' }]
       },
       destinationPath
     })
