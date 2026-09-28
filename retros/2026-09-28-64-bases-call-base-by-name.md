@@ -86,7 +86,7 @@ The workflow goal added a constraint the ticket didn't state: "bump and republis
 - **Narrowing a review claim before acting on it.** The reviewer said the circular reference compiles because of "the type argument or the return type". Testing each separately showed only the return type matters. So the comment says exactly what to keep.
 - **Checking jsr.io state before each Publish re-run.** Confirming nothing had published before attempt 2, and finding the partial upload after it, made every re-run safe.
 - **Byte-identical output as the behavior proof.** The ticket said "behaviour doesn't change". Generating from one schema with installed 0.2.7 and cloned 0.2.8 and running `diff -r` proves that directly for the released artifact, beyond what the repo's tests show.
-- **Retro-only PRs skip CI (#62).** This PR shouldn't start the test matrix or Publish.
+- **Retro-only merges skip CI on `main` (#62).** Merging this retro shouldn't start the test matrix or Publish on `main`. The pull request itself still runs the full matrix, because `pull_request` is deliberately unfiltered so required checks aren't left pending.
 
 ## 5. Where the effort went
 
