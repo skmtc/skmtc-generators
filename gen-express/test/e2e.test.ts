@@ -1,90 +1,33 @@
 /**
- * A full Parse → Generate → Render run over a fixture schema. Artifact keys and
- * import text are where a host-specific path separator would show, so they are
- * pinned here: on Windows, an OS-aware `join` turned `@/types/x.ts` into
- * `@\types\x.ts`, and tests that never looked at a key or an import passed.
+ * A full Parse → Generate → Render run over a shared fixture. Artifact keys and
+ * import text are where a host-specific path separator shows (an OS-aware
+ * `join` spelled `@/types/x.ts` as `@\types\x.ts` on Windows), so they are
+ * pinned here and run on both the Linux and the Windows runner.
  */
-import { assertEquals, assertStringIncludes } from '@std/assert'
-import { StackTrail, toArtifacts } from '@skmtc/core'
-import type { OpenAPIV3 } from 'openapi-types'
+import { assertEquals } from '@std/assert'
+import { operationDocument, runE2eFixture } from '@skmtc/test-support'
 import { expressEntry } from '../src/mod.ts'
 
-const documentObject: OpenAPIV3.Document = {
-  openapi: '3.0.0',
-  info: { title: 'Fixture API', version: '1.0.0' },
-  paths: {
-    '/users': {
-      get: {
-        responses: {
-          '200': {
-            description: 'Every user',
-            content: {
-              'application/json': {
-                schema: { type: 'array', items: { $ref: '#/components/schemas/User' } }
-              }
-            }
-          }
-        }
-      },
-      post: {
-        requestBody: {
-          required: true,
-          content: { 'application/json': { schema: { $ref: '#/components/schemas/NewUser' } } }
-        },
-        responses: {
-          '201': {
-            description: 'The created user',
-            content: { 'application/json': { schema: { $ref: '#/components/schemas/User' } } }
-          }
-        }
-      }
-    }
-  },
-  components: {
-    schemas: {
-      User: {
-        type: 'object',
-        properties: { id: { type: 'string' }, name: { type: 'string' } },
-        required: ['id', 'name']
-      },
-      NewUser: {
-        type: 'object',
-        properties: { name: { type: 'string' } },
-        required: ['name']
-      }
-    }
-  }
-}
-
-const runFixture = () =>
-  toArtifacts({
-    traceId: 'gen-express-e2e',
-    spanId: 'fixture',
-    startAt: Date.now(),
-    document: { type: 'oas', value: documentObject },
-    settings: { basePath: './src' },
-    stackTrail: new StackTrail([]),
-    silent: true,
-    toGeneratorConfigMap: () => ({
-      // @ts-expect-error - factory-emitted transform is monomorphic over Acc
-      '@skmtc/gen-express': expressEntry
-    })
-  })
+const { artifacts } = runE2eFixture({
+  id: '@skmtc/gen-express',
+  entry: expressEntry,
+  document: operationDocument
+})
 
 Deno.test('e2e - artifact keys are forward-slash paths under basePath', () => {
-  const { artifacts } = runFixture()
-
   assertEquals(Object.keys(artifacts).sort(), [
     'src/types/newUser.generated.ts',
     'src/users/routes.generated.ts'
   ])
 })
 
-Deno.test('e2e - generated imports name workspace paths with forward slashes', () => {
-  const { artifacts } = runFixture()
+Deno.test('e2e - the routes file imports parse and name workspace paths with forward slashes', () => {
+  const header = artifacts['src/users/routes.generated.ts'].split('\n\n')[0]
 
-  assertStringIncludes(
-    artifacts['src/users/routes.generated.ts'],
-    `import {newUser} from '@/types/newUser.generated.ts'\n`
-  )
+  assertEquals(header.split('\n'), [
+    "import {Router, Request, Response, NextFunction} from 'express'",
+    "import {getUsersService, postUsersService} from '@/users/services.ts'",
+    "import {newUser} from '@/types/newUser.generated.ts'",
+    "import * as v from 'valibot'"
+  ])
 })

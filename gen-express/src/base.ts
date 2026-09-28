@@ -12,7 +12,7 @@ export const ExpressAppBase = toTsOasOperationProjectionBase<EnrichmentSchema>({
 
   toIdentifierType: () => ({ type: 'variable' }),
 
-  toExportPath({ operation, enrichments }): string {
+  toExportPath({ operation }): string {
     const firstSegment = toFirstSegment(operation)
 
     return `@/${firstSegment}/routes.generated.ts`

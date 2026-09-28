@@ -39,6 +39,9 @@ jobs:
           - gen-typescript
           - gen-valibot
           - gen-zod
+          # Workspace invariants: one @skmtc/core pin across every member and one
+          # core in deno.lock (#48), and no OS-aware path joins in generator source.
+          - test-support
 
     steps:
     - name: Checkout repository

@@ -69,6 +69,15 @@ export const STRING_FORMAT_TYPES: ReadonlyMap<string, string> = new Map([
  * same package or the cache key and the synthesized placement drift.
  */
 export const toModelExportPathInPackage = (basePackage: string, name: string): string => {
+  return toExportPathInPackage(basePackage, name)
+}
+
+/**
+ * `@/<package directories>/<name>.generated.kt` — the one formula for every
+ * Kotlin file's export path, shared with gen-kotlin-spring so its API and
+ * error files land in the same directories the models do.
+ */
+export const toExportPathInPackage = (basePackage: string, name: string): string => {
   return `@/${basePackage.split('.').join('/')}/${name}.generated.kt`
 }
 

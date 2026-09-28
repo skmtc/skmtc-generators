@@ -55,7 +55,8 @@
     "./gen-md-docs",
     "./gen-kotlin-jackson",
     "./gen-kotlin-spring",
-    "./gen-fetch-example"
+    "./gen-fetch-example",
+    "./test-support"
   ],
   "minimumDependencyAge": "0",
   "lint": {
