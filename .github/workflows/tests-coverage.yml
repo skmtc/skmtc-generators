@@ -1,8 +1,20 @@
 name: Test Coverage
 
+# A push to main that changes only retros/ changes no code that its pull
+# request didn't already test, so it starts no run (#61). The cost: that
+# commit gets no Coveralls build, so a pull request based on it shows
+# "FIRST BUILD ON main" and no coverage change. Coverage is not a merge gate
+# (see the upload step), so the comparison is the only thing lost.
+#
+# pull_request is deliberately unfiltered. A skipped workflow leaves a
+# required check pending, so once #54 makes a check from this workflow
+# required, a filtered retro-only pull request could never merge. Unfiltered,
+# every pull request also reports checks, so `gh pr checks --watch` never
+# finds none. test-support/test/workspace.test.ts pins both choices.
 on:
   push:
     branches: [ main ]
+    paths-ignore: [ "retros/**" ]
   pull_request:
     branches: [ main ]
 
