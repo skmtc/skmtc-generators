@@ -8,11 +8,13 @@
 # hand, link it to this repo in its jsr.io settings, and from then on the
 # cascade keeps it current.
 #
-# Runs on every merge to main: any already-published package whose deno.json
-# version isn't yet on jsr.io ships; merges with no version bumps are a
-# no-op ("nothing to publish"). Bump versions and merge — that IS the
-# release. workflow_dispatch remains for manual re-runs after a partial
-# failure (already-published versions are skipped on re-run).
+# Runs on every merge to main that changes anything outside retros/: any
+# already-published package whose deno.json version isn't yet on jsr.io
+# ships; merges with no version bumps are a no-op ("nothing to publish").
+# Bump versions and merge — that IS the release. A retro-only merge starts
+# no run (#61), so it no longer retries a release that failed on the merge
+# before it. After a failed or partial release, re-run it by hand with
+# workflow_dispatch (already-published versions are skipped on re-run).
 #
 # OIDC requires the `id-token: write` permission below AND each published
 # @skmtc/gen-* package on jsr.io to be linked to THIS GitHub repository in

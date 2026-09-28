@@ -142,10 +142,13 @@ const toMapping = (value: unknown, where: string): Mapping => {
   return value
 }
 
-const workflow = toMapping(
-  parse(Deno.readTextFileSync(new URL('.github/workflows/tests-coverage.yml', rootUrl))),
-  'tests-coverage.yml'
-)
+const workflowsUrl = new URL('.github/workflows/', rootUrl)
+
+/** The parsed workflow `.github/workflows/<file>`. */
+const readWorkflow = (file: string): Mapping =>
+  toMapping(parse(Deno.readTextFileSync(new URL(file, workflowsUrl))), file)
+
+const workflow = readWorkflow('tests-coverage.yml')
 
 const toJob = (name: string): Mapping => toMapping(toMapping(workflow.jobs, 'jobs')[name], `jobs.${name}`)
 
@@ -197,25 +200,49 @@ Deno.test('workspace - every matrix entry runs its tests unconditionally', () =>
   assertEquals([...toSkips('coverage'), ...toSkips('tests-windows')], [])
 })
 
-/** Each trigger's `paths-ignore`, as `{ event: patterns }`, for the events
- *  in `events`. A missing trigger or filter shows as `null`. */
-const toPathsIgnore = (file: string, events: string[]): Record<string, unknown> => {
-  const on = toMapping(
-    toMapping(parse(Deno.readTextFileSync(new URL(`.github/workflows/${file}`, rootUrl))), file).on,
-    `${file}: on`
-  )
+/** Every path filter in every workflow, as `{ file: { event: { filter: patterns } } }`.
+ *  Workflows and events without one are left out. */
+const toPathFilters = (): Record<string, Record<string, Mapping>> => {
+  const files = [...Deno.readDirSync(workflowsUrl)]
+    .filter(entry => entry.isFile && /\.ya?ml$/.test(entry.name))
+    .map(entry => entry.name)
+    .sort()
 
   return Object.fromEntries(
-    events.map(event => [event, isMapping(on[event]) ? on[event]['paths-ignore'] ?? null : null])
+    files
+      .map(file => {
+        const { on } = readWorkflow(file)
+        const events = isMapping(on) ? Object.entries(on) : []
+
+        const filtered = events
+          .filter((entry): entry is [string, Mapping] => isMapping(entry[1]))
+          .map(([event, trigger]) => [
+            event,
+            Object.fromEntries(['paths', 'paths-ignore'].filter(key => key in trigger).map(key => [key, trigger[key]]))
+          ] as const)
+          .filter(([, filters]) => Object.keys(filters).length > 0)
+
+        return [file, Object.fromEntries(filtered)] as const
+      })
+      .filter(([, events]) => Object.keys(events).length > 0)
   )
 }
 
-Deno.test('workspace - retro-only changes start no test or publish run', () => {
+Deno.test('workspace - only a retro-only push to main skips the test and publish runs', () => {
   // #61: every delivery ends with a push that adds only retros/<file>.md.
-  // Ignoring anything wider would let a code change skip its tests.
-  assertEquals(toPathsIgnore('tests-coverage.yml', ['push', 'pull_request']), {
-    push: ['retros/**'],
-    pull_request: ['retros/**']
+  // Any wider filter, or one on another trigger or workflow, would let a code
+  // change skip its tests.
+  const retrosOnly = { 'paths-ignore': ['retros/**'] }
+
+  assertEquals(toPathFilters(), {
+    'publish.yml': { push: retrosOnly },
+    'tests-coverage.yml': { push: retrosOnly }
   })
-  assertEquals(toPathsIgnore('publish.yml', ['push']), { push: ['retros/**'] })
+})
+
+Deno.test('workspace - every pull request runs the test workflow', () => {
+  // A skipped workflow leaves a required check pending, so once #54 makes a
+  // test check required, a pull request that starts no run can never merge.
+  // toPathFilters above keeps pull_request unfiltered; this keeps it present.
+  assert(isMapping(workflow.on) && 'pull_request' in workflow.on, 'tests-coverage.yml must run on pull_request')
 })
