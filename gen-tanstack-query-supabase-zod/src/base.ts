@@ -12,10 +12,10 @@ export const TanstackQueryBase = toTsOasOperationProjectionBase<EnrichmentSchema
 
   toIdentifierType: () => ({ type: 'variable' }),
 
-  // Calls TanstackQueryBase by name: `this` is the bound config, never a projection override.
-  // Keep the `: string` return type, or the self-reference is circular (TS7022).
+  // `this` is this base's config, so the file follows the base's own name. A projection
+  // that overrides toIdentifierName keeps this file unless it overrides toExportPath too.
   toExportPath({ operation, enrichments, variant }): string {
-    const name = TanstackQueryBase.toIdentifierName({ operation, enrichments, variant })
+    const name = this.toIdentifierName({ operation, enrichments, variant })
 
     return `@/services/${name}.generated.ts`
   },
