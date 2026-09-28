@@ -1,11 +1,11 @@
 {
   "name": "@skmtc/gen-shadcn-table",
-  "version": "0.3.5",
+  "version": "0.3.6",
   "exports": "./mod.ts",
   "imports": {
-    "@skmtc/gen-tanstack-query-supabase-zod": "jsr:@skmtc/gen-tanstack-query-supabase-zod@0.2.7",
-    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.2.7",
-    "@skmtc/gen-zod": "jsr:@skmtc/gen-zod@0.2.7",
+    "@skmtc/gen-tanstack-query-supabase-zod": "jsr:@skmtc/gen-tanstack-query-supabase-zod@0.2.8",
+    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.2.8",
+    "@skmtc/gen-zod": "jsr:@skmtc/gen-zod@0.2.8",
     "@skmtc/core": "jsr:@skmtc/core@0.29.0",
     "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.12.22"
   },

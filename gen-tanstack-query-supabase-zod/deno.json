@@ -1,10 +1,10 @@
 {
   "name": "@skmtc/gen-tanstack-query-supabase-zod",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "exports": "./mod.ts",
   "imports": {
-    "@skmtc/gen-zod": "jsr:@skmtc/gen-zod@0.2.7",
-    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.2.7",
+    "@skmtc/gen-zod": "jsr:@skmtc/gen-zod@0.2.8",
+    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.2.8",
     "@skmtc/core": "jsr:@skmtc/core@0.29.0",
     "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.12.22"
   },

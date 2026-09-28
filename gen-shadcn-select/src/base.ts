@@ -19,8 +19,10 @@ export const ShadcnSelectApiBase = toTsOasOperationProjectionBase<EnrichmentSche
 
   toIdentifierType: () => ({ type: 'variable' }),
 
+  // Calls ShadcnSelectApiBase by name: `this` is the bound config, never a projection override.
+  // Keep the `: string` return type, or the self-reference is circular (TS7022).
   toExportPath({ operation, enrichments, variant }): string {
-    const name = this.toIdentifierName({ operation, enrichments, variant })
+    const name = ShadcnSelectApiBase.toIdentifierName({ operation, enrichments, variant })
 
     return `@/inputs/${name}.generated.tsx`
   }

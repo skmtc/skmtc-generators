@@ -11,8 +11,10 @@ export const TypescriptBase = toTsModelProjectionBase<EnrichmentSchema>({
 
   toIdentifierType: () => ({ type: 'type' }),
 
+  // Calls TypescriptBase by name: `this` is the bound config, never a projection override.
+  // Keep the `: string` return type, or the self-reference is circular (TS7022).
   toExportPath({ refName, enrichments, variant }): string {
-    const name = this.toIdentifierName({ refName, enrichments, variant })
+    const name = TypescriptBase.toIdentifierName({ refName, enrichments, variant })
 
     return `@/types/${decapitalize(name)}.generated.ts`
   },

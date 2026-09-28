@@ -22,8 +22,10 @@ export const ShadcnFormBase = toTsOasOperationProjectionBase<EnrichmentSchema>({
 
   toIdentifierType: () => ({ type: 'variable' }),
 
+  // Calls ShadcnFormBase by name: `this` is the bound config, never a projection override.
+  // Keep the `: string` return type, or the self-reference is circular (TS7022).
   toExportPath({ operation, enrichments, variant }): string {
-    const name = this.toIdentifierName({ operation, enrichments, variant })
+    const name = ShadcnFormBase.toIdentifierName({ operation, enrichments, variant })
 
     return `@/forms/${name}.generated.tsx`
   }
