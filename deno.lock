@@ -233,6 +233,7 @@
       "jsr:@std/fmt@1",
       "jsr:@std/log@~0.224.6",
       "jsr:@std/path@^1.1.2",
+      "jsr:@std/yaml@1",
       "npm:@types/lodash-es@4.17.12",
       "npm:graphql@^16.9.0",
       "npm:lodash-es@4.17.21",
@@ -245,14 +246,6 @@
       "gen-arktype": {
         "dependencies": [
           "jsr:@skmtc/core@0.29.0",
-          "jsr:@skmtc/lang-typescript@0.12.22"
-        ]
-      },
-      "gen-daisyui-form": {
-        "dependencies": [
-          "jsr:@skmtc/core@0.29.0",
-          "jsr:@skmtc/gen-typescript@0.2.7",
-          "jsr:@skmtc/gen-zod@0.2.7",
           "jsr:@skmtc/lang-typescript@0.12.22"
         ]
       },

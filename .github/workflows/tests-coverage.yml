@@ -23,7 +23,6 @@ jobs:
       matrix:
         generator:
           - gen-arktype
-          - gen-daisyui-form
           - gen-express
           - gen-fetch-example
           - gen-kotlin-jackson
@@ -51,6 +50,12 @@ jobs:
       uses: denoland/setup-deno@v2
       with:
         deno-version: v2.x
+        # Caches DENO_DIR keyed on deno.lock, so each job skips re-downloading
+        # the jsr/npm graph. setup-deno's key names the job but not the matrix
+        # entry, so without the generator in the hash all entries race for one
+        # key and the first to finish saves only its own dependencies.
+        cache: true
+        cache-hash: ${{ hashFiles('**/deno.lock') }}-${{ matrix.generator }}
 
     - name: Run tests with coverage for ${{ matrix.generator }}
       working-directory: ${{ matrix.generator }}
@@ -92,6 +97,65 @@ jobs:
         flag-name: ${{ matrix.generator }}
         parallel: true
         fail-on-error: false
+
+  # Windows is a supported host and its path separator is the one thing
+  # the Ubuntu matrix can never exercise (skmtc/skmtc#147: OS-native joins
+  # in toExportPath leaking `\` into generated import text). Same matrix,
+  # tests only: coverage reporting stays with the Ubuntu job.
+  tests-windows:
+    runs-on: windows-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        generator:
+          - gen-arktype
+          - gen-express
+          - gen-fetch-example
+          - gen-kotlin-jackson
+          - gen-kotlin-spring
+          - gen-md-docs
+          - gen-msw
+          - gen-shadcn-form
+          - gen-shadcn-select
+          - gen-shadcn-table
+          - gen-supabase-hono
+          - gen-tanstack-query-fetch-zod
+          - gen-tanstack-query-supabase-zod
+          - gen-typescript
+          - gen-valibot
+          - gen-zod
+          # The workspace guard's source walk builds file URLs and relative
+          # paths, so it needs the Windows separator check too (#50).
+          - test-support
+
+    steps:
+    # Line endings stay LF on checkout because of the root .gitattributes, so
+    # snapshot and golden comparisons see the committed bytes.
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Deno
+      uses: denoland/setup-deno@v2
+      with:
+        deno-version: v2.x
+        # Caches DENO_DIR keyed on deno.lock, so each job skips re-downloading
+        # the jsr/npm graph. setup-deno's key names the job but not the matrix
+        # entry, so without the generator in the hash all entries race for one
+        # key and the first to finish saves only its own dependencies.
+        cache: true
+        cache-hash: ${{ hashFiles('**/deno.lock') }}-${{ matrix.generator }}
+
+    - name: Run tests for ${{ matrix.generator }}
+      working-directory: ${{ matrix.generator }}
+      run: deno task test
+
+    # The one test that resolves every generated `@/` import through a real
+    # module resolver, so a `\` separator in any import fails here.
+    - name: Typecheck generated output for ${{ matrix.generator }}
+      if: matrix.generator == 'gen-arktype'
+      working-directory: ${{ matrix.generator }}
+      run: deno task test:typecheck
 
   finish:
     needs: coverage
