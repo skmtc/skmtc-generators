@@ -13,7 +13,7 @@ export const TanstackQueryBase = toTsOasOperationProjectionBase<EnrichmentSchema
   toIdentifierType: () => ({ type: 'variable' }),
 
   toExportPath({ operation, enrichments, variant }): string {
-    const name = this.toIdentifierName({ operation, enrichments, variant })
+    const name = TanstackQueryBase.toIdentifierName({ operation, enrichments, variant })
 
     return `@/services/${name}.generated.ts`
   },

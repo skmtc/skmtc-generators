@@ -13,7 +13,7 @@ export const ArktypeBase = toTsModelProjectionBase<EnrichmentSchema>({
   toIdentifierType: () => ({ type: 'variable' }),
 
   toExportPath({ refName, enrichments, variant }): string {
-    const name = this.toIdentifierName({ refName, enrichments, variant })
+    const name = ArktypeBase.toIdentifierName({ refName, enrichments, variant })
 
     return `@/types/${decapitalize(name)}.generated.ts`
   },

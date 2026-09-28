@@ -68,7 +68,7 @@ export const KotlinJacksonBase = toKtModelProjectionBase<EnrichmentSchema>({
   toExportPath({ refName, enrichments, variant }): string {
     return toModelExportPathInPackage(
       enrichments.generator.basePackage,
-      this.toIdentifierName({ refName, enrichments, variant }),
+      KotlinJacksonBase.toIdentifierName({ refName, enrichments, variant }),
     )
   },
 

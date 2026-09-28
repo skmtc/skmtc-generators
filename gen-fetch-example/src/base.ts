@@ -13,7 +13,7 @@ export const FetchBase = toTsOasOperationProjectionBase<EnrichmentSchema>({
   toIdentifierType: () => ({ type: 'variable' }),
 
   toExportPath({ operation, enrichments, variant }): string {
-    const name = this.toIdentifierName({ operation, enrichments, variant })
+    const name = FetchBase.toIdentifierName({ operation, enrichments, variant })
 
     return `@/fetch/${name}.generated.ts`
   },

@@ -18,7 +18,7 @@ export const ShadcnTableBase = toTsOasOperationProjectionBase<EnrichmentSchema>(
   toIdentifierType: () => ({ type: 'variable' }),
 
   toExportPath({ operation, enrichments, variant }): string {
-    const name = this.toIdentifierName({ operation, enrichments, variant })
+    const name = ShadcnTableBase.toIdentifierName({ operation, enrichments, variant })
 
     return `@/tables/${name}.generated.tsx`
   }

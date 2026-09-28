@@ -20,7 +20,7 @@ export const ShadcnSelectApiBase = toTsOasOperationProjectionBase<EnrichmentSche
   toIdentifierType: () => ({ type: 'variable' }),
 
   toExportPath({ operation, enrichments, variant }): string {
-    const name = this.toIdentifierName({ operation, enrichments, variant })
+    const name = ShadcnSelectApiBase.toIdentifierName({ operation, enrichments, variant })
 
     return `@/inputs/${name}.generated.tsx`
   }

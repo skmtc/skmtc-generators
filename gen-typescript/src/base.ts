@@ -12,7 +12,7 @@ export const TypescriptBase = toTsModelProjectionBase<EnrichmentSchema>({
   toIdentifierType: () => ({ type: 'type' }),
 
   toExportPath({ refName, enrichments, variant }): string {
-    const name = this.toIdentifierName({ refName, enrichments, variant })
+    const name = TypescriptBase.toIdentifierName({ refName, enrichments, variant })
 
     return `@/types/${decapitalize(name)}.generated.ts`
   },
