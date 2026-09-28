@@ -2,9 +2,6 @@
   "version": "5",
   "specifiers": {
     "jsr:@skmtc/core@0.29.0": "0.29.0",
-    "jsr:@skmtc/gen-typescript@0.2.7": "0.2.7",
-    "jsr:@skmtc/gen-valibot@0.2.7": "0.2.7",
-    "jsr:@skmtc/gen-zod@0.2.7": "0.2.7",
     "jsr:@skmtc/lang-kotlin@0.11.3": "0.11.3",
     "jsr:@skmtc/lang-typescript@0.12.22": "0.12.22",
     "jsr:@skmtc/lint-plugin@0.1.0": "0.1.0",
@@ -51,29 +48,6 @@
         "npm:oxc-parser",
         "npm:tiny-invariant@1.3.3",
         "npm:valibot"
-      ]
-    },
-    "@skmtc/gen-typescript@0.2.7": {
-      "integrity": "b0f8ee145a77fc3f143c8091874c6c49b2902458ce68b87e286773256f4a7a55",
-      "dependencies": [
-        "jsr:@skmtc/core",
-        "jsr:@skmtc/lang-typescript",
-        "npm:ts-pattern@^5.8.0"
-      ]
-    },
-    "@skmtc/gen-valibot@0.2.7": {
-      "integrity": "372034a645c5c86c27193c6a6d0eac510ef23897ba017d1bad17b575b5c22ce3",
-      "dependencies": [
-        "jsr:@skmtc/core",
-        "jsr:@skmtc/lang-typescript",
-        "npm:ts-pattern@^5.8.0"
-      ]
-    },
-    "@skmtc/gen-zod@0.2.7": {
-      "integrity": "f61cef4b5ec9177505265c800e2e838bb37a046221418cbe5b89888840b344c6",
-      "dependencies": [
-        "jsr:@skmtc/core",
-        "jsr:@skmtc/lang-typescript"
       ]
     },
     "@skmtc/lang-kotlin@0.11.3": {
@@ -278,8 +252,8 @@
       "gen-express": {
         "dependencies": [
           "jsr:@skmtc/core@0.29.0",
-          "jsr:@skmtc/gen-typescript@0.2.7",
-          "jsr:@skmtc/gen-valibot@0.2.7",
+          "jsr:@skmtc/gen-typescript@0.2.8",
+          "jsr:@skmtc/gen-valibot@0.2.8",
           "jsr:@skmtc/lang-typescript@0.12.22"
         ]
       },
@@ -315,7 +289,7 @@
       "gen-msw": {
         "dependencies": [
           "jsr:@skmtc/core@0.29.0",
-          "jsr:@skmtc/gen-typescript@0.2.7",
+          "jsr:@skmtc/gen-typescript@0.2.8",
           "jsr:@skmtc/lang-typescript@0.12.22"
         ]
       },
@@ -350,8 +324,8 @@
       "gen-supabase-hono": {
         "dependencies": [
           "jsr:@skmtc/core@0.29.0",
-          "jsr:@skmtc/gen-typescript@0.2.7",
-          "jsr:@skmtc/gen-zod@0.2.7",
+          "jsr:@skmtc/gen-typescript@0.2.8",
+          "jsr:@skmtc/gen-zod@0.2.8",
           "jsr:@skmtc/lang-typescript@0.12.22"
         ]
       },
