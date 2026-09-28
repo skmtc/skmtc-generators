@@ -61,6 +61,14 @@ jobs:
       working-directory: ${{ matrix.generator }}
       run: deno task test:coverage
 
+    # gen-fetch-example is the generator the docs tell readers to clone, and a
+    # clone keeps its `skmtc/*` lint rules (#56). It lints clean, so a rule
+    # violation in its source fails here instead of reaching every clone.
+    - name: Lint ${{ matrix.generator }} with the skmtc rules
+      if: matrix.generator == 'gen-fetch-example'
+      working-directory: ${{ matrix.generator }}
+      run: deno lint
+
     # gen-arktype compiles its own generated output against real arktype, whose
     # definition parser is type-level — so `deno check` over the emitted files
     # is what proves they are valid. Opt-in because it needs write/run/net.

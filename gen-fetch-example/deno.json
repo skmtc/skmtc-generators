@@ -1,6 +1,6 @@
 {
   "name": "@skmtc/gen-fetch-example",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "license": "MIT",
   "exports": "./mod.ts",
   "imports": {
@@ -15,5 +15,10 @@
     "coverage:html": "deno coverage coverage --html",
     "coverage:check": "deno coverage coverage --detailed",
     "publish": "deno publish --allow-dirty"
+  },
+  "lint": {
+    "plugins": [
+      "jsr:@skmtc/lint-plugin@0.1.0"
+    ]
   }
 }

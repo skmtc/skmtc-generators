@@ -16,6 +16,7 @@ type DenoJson = {
   version?: string
   imports?: Record<string, string>
   workspace?: string[]
+  lint?: { plugins?: string[] }
 }
 
 const rootUrl = new URL('../../', import.meta.url)
@@ -61,6 +62,23 @@ for (const name of ['@skmtc/lang-typescript', '@skmtc/lang-kotlin']) {
     assertEquals(versions.size, 1, `${name} pins disagree: ${JSON.stringify(toMemberPins(name))}`)
   })
 }
+
+Deno.test('workspace - every member declares the root lint plugins', () => {
+  // #56: gen-fetch-example had no `lint` block, so its clones got no
+  // `skmtc/*` rules. A member that spells the plugin differently from the
+  // root makes `deno lint` fail with "Linter plugin skmtc has already been
+  // registered", so the specifiers must match exactly.
+  const rootPlugins = root.lint?.plugins ?? []
+  assert(rootPlugins.length > 0, 'the root deno.json must declare lint plugins')
+
+  assertEquals(
+    members
+      .filter(({ config }) => JSON.stringify(config.lint?.plugins) !== JSON.stringify(rootPlugins))
+      .map(({ dir, config }) => `${dir}: ${JSON.stringify(config.lint?.plugins ?? null)}`),
+    [],
+    `every member's lint.plugins must be ${JSON.stringify(rootPlugins)}`
+  )
+})
 
 Deno.test('workspace - a pin on another workspace generator names its current version', () => {
   // A pin that misses the member's version resolves from jsr.io instead, and
