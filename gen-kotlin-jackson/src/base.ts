@@ -65,12 +65,12 @@ export const KotlinJacksonBase = toKtModelProjectionBase<EnrichmentSchema>({
   // which comes from the REQUIRED generator-scope basePackage enrichment.
   // Same formula as every synthesized declaration (lib.ts) — the two
   // must never drift.
-  // Calls KotlinJacksonBase by name: `this` is the bound config, never a projection override.
-  // Keep the `: string` return type, or the self-reference is circular (TS7022).
+  // `this` is this base's config, so the file follows the base's own name. A projection
+  // that overrides toIdentifierName keeps this file unless it overrides toExportPath too.
   toExportPath({ refName, enrichments, variant }): string {
     return toModelExportPathInPackage(
       enrichments.generator.basePackage,
-      KotlinJacksonBase.toIdentifierName({ refName, enrichments, variant }),
+      this.toIdentifierName({ refName, enrichments, variant }),
     )
   },
 
