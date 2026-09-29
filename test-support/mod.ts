@@ -86,16 +86,18 @@ type RunE2eFixtureArgs = {
   id: string
   entry: GeneratorEntry
   document: OpenAPIV3.Document
+  /** The generator's enrichments, as `client.json` would key them under its id. */
+  enrichments?: Record<string, unknown>
 }
 
 /** Run one generator over `document` with `basePath: './src'`. */
-export const runE2eFixture = ({ id, entry, document }: RunE2eFixtureArgs): ReturnType<typeof toArtifacts> =>
+export const runE2eFixture = ({ id, entry, document, enrichments }: RunE2eFixtureArgs): ReturnType<typeof toArtifacts> =>
   toArtifacts({
     traceId: `${id}-e2e`,
     spanId: 'fixture',
     startAt: Date.now(),
     document: { type: 'oas', value: document },
-    settings: { basePath: './src' },
+    settings: { basePath: './src', ...(enrichments ? { enrichments: { [id]: enrichments } } : {}) },
     stackTrail: new StackTrail([]),
     silent: true,
     // @ts-expect-error - the map is generic over the enrichment type; one entry is not
