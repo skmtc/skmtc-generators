@@ -263,6 +263,7 @@
           "jsr:@skmtc/gen-typescript@0.2.10",
           "jsr:@skmtc/gen-zod@0.2.10",
           "jsr:@skmtc/lang-typescript@0.12.22",
+          "npm:@babel/helper-validator-identifier@7.27.1",
           "npm:ts-pattern@^5.8.0",
           "npm:valibot@1.1.0"
         ]
