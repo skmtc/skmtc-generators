@@ -1,5 +1,29 @@
-import { emptyEnrichmentSchema, type EmptyEnrichments } from '@skmtc/core'
+import * as v from 'valibot'
+import type { Enrichments } from '@skmtc/core'
 
-export const toEnrichmentSchema = () => emptyEnrichmentSchema
+type GeneratorSettings =
+  | {
+      /**
+       * One file for every schema, in place of one file per schema. A stack
+       * that renders one operation per run sets it so the operation's schemas
+       * land in the same file as the code that uses them.
+       */
+      exportPath?: string
+    }
+  | undefined
 
-export type EnrichmentSchema = EmptyEnrichments
+const generatorSettings: v.GenericSchema<GeneratorSettings> = v.optional(
+  v.object({
+    exportPath: v.optional(v.string())
+  })
+)
+
+export type EnrichmentSchema = Enrichments<undefined, GeneratorSettings, undefined>
+
+const enrichmentSchema: v.GenericSchema<EnrichmentSchema> = v.object({
+  subject: v.undefined(),
+  generator: generatorSettings,
+  stack: v.undefined()
+})
+
+export const toEnrichmentSchema = (): v.GenericSchema<EnrichmentSchema> => enrichmentSchema

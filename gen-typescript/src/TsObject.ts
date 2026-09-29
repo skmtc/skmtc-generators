@@ -151,7 +151,10 @@ class TsRecord extends SnippetBase {
       )
   }
 
+  // An index signature rather than `Record<string, X>`: a recursive type alias
+  // may reference itself through an object literal type, but not through a
+  // generic alias like `Record` (TS2456).
   override toString(): string {
-    return `Record<string, ${this.value}>`
+    return `{[key: string]: ${this.value}}`
   }
 }

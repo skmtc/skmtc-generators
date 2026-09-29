@@ -358,7 +358,7 @@ Deno.test('types.md line 223 - Record type', () => {
       type: 'number'
     }
   }
-  assertEquals(jsonSchemaToTs(jsonSchema), 'Record<string, number>')
+  assertEquals(jsonSchemaToTs(jsonSchema), '{[key: string]: number}')
 })
 
 // ============================================================================

@@ -36,6 +36,7 @@ jobs:
         generator:
           - gen-arktype
           - gen-express
+          - gen-fetch
           - gen-fetch-example
           - gen-kotlin-jackson
           - gen-kotlin-spring
@@ -83,9 +84,10 @@ jobs:
 
     # gen-arktype compiles its own generated output against real arktype, whose
     # definition parser is type-level — so `deno check` over the emitted files
-    # is what proves they are valid. Opt-in because it needs write/run/net.
+    # is what proves they are valid. gen-fetch compiles its output against zod
+    # and calls it with a stub fetch. Opt-in because it needs write/run/net.
     - name: Typecheck generated output for ${{ matrix.generator }}
-      if: matrix.generator == 'gen-arktype'
+      if: matrix.generator == 'gen-arktype' || matrix.generator == 'gen-fetch'
       working-directory: ${{ matrix.generator }}
       run: deno task test:typecheck
 
@@ -131,6 +133,7 @@ jobs:
         generator:
           - gen-arktype
           - gen-express
+          - gen-fetch
           - gen-fetch-example
           - gen-kotlin-jackson
           - gen-kotlin-spring
@@ -173,7 +176,7 @@ jobs:
     # The one test that resolves every generated `@/` import through a real
     # module resolver, so a `\` separator in any import fails here.
     - name: Typecheck generated output for ${{ matrix.generator }}
-      if: matrix.generator == 'gen-arktype'
+      if: matrix.generator == 'gen-arktype' || matrix.generator == 'gen-fetch'
       working-directory: ${{ matrix.generator }}
       run: deno task test:typecheck
 
