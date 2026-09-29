@@ -1,6 +1,6 @@
-import { camelCase, capitalize } from '@skmtc/core'
-import type { GenerateContextType, OasOperation, OasSecurityScheme } from '@skmtc/core'
+import type { GenerateContextType, OasOperation } from '@skmtc/core'
 import { match } from 'ts-pattern'
+import { toFreeName } from './toFreeName.ts'
 
 /** One credential the generated function accepts through its options. */
 export type AuthField =
@@ -37,46 +37,33 @@ export const toAuth = ({ operation, context }: ToAuthArgs): Auth => {
     return { fields: [], alternatives: [] }
   }
 
-  const schemes = document?.components?.securitySchemes ?? {}
   const taken = new Set<string>()
 
   // Two schemes of the same kind in one requirement need distinct option names.
-  const claim = (base: string, schemeName: string): string => {
-    const option = taken.has(base) ? `${base}${capitalize(camelCase(schemeName))}` : base
+  const claim = (base: string): string => {
+    const option = toFreeName(base, taken)
     taken.add(option)
     return option
   }
 
-  const fields = Object.keys(first.requirement).flatMap((schemeName): AuthField[] => {
-    const scheme: OasSecurityScheme | undefined = schemes[schemeName]?.resolve()
-
-    if (!scheme) {
-      return []
-    }
-
-    return match(scheme)
+  const fields = first.toSecurityScheme().flatMap((scheme): AuthField[] =>
+    match(scheme)
       .with({ type: 'apiKey' }, ({ location, name }): AuthField[] => [
-        { type: 'apiKey', option: claim('apiKey', schemeName), location, name }
+        { type: 'apiKey', option: claim('apiKey'), location, name }
       ])
       .with({ type: 'http' }, ({ scheme: httpScheme }): AuthField[] =>
         match(httpScheme.toLowerCase())
-          .with('bearer', (): AuthField[] => [{ type: 'bearer', option: claim('token', schemeName) }])
+          .with('bearer', (): AuthField[] => [{ type: 'bearer', option: claim('token') }])
           .with('basic', (): AuthField[] => [
-            {
-              type: 'basic',
-              usernameOption: claim('username', schemeName),
-              passwordOption: claim('password', schemeName)
-            }
+            { type: 'basic', usernameOption: claim('username'), passwordOption: claim('password') }
           ])
-          .otherwise((): AuthField[] => [
-            { type: 'httpScheme', option: claim('token', schemeName), scheme: httpScheme }
-          ])
+          .otherwise((): AuthField[] => [{ type: 'httpScheme', option: claim('token'), scheme: httpScheme }])
       )
       .with({ type: 'oauth2' }, { type: 'openIdConnect' }, (): AuthField[] => [
-        { type: 'bearer', option: claim('token', schemeName) }
+        { type: 'bearer', option: claim('token') }
       ])
       .exhaustive()
-  })
+  )
 
   return {
     fields,

@@ -78,3 +78,23 @@ Deno.test('e2e - a document with no absolute server makes baseUrl required', () 
   assertStringIncludes(content, '  baseUrl: string\n')
   assertStringIncludes(content, 'options: GetApiPriceOptions) =>')
 })
+
+Deno.test('e2e - two API keys in one requirement get distinct option names', () => {
+  const twoKeys = {
+    ...document,
+    security: [{ apiKey: [], partnerKey: [] }],
+    components: {
+      ...document.components,
+      securitySchemes: {
+        ...document.components?.securitySchemes,
+        partnerKey: { type: 'apiKey', in: 'query', name: 'partner' }
+      }
+    }
+  } satisfies typeof document
+
+  const { artifacts } = runStack({ document: twoKeys, exportPath: '@/operation.ts' })
+  const content = artifacts['src/operation.generated.ts']
+
+  assertStringIncludes(content, `if (options.apiKey !== undefined) headers.set("X-API-Key", options.apiKey)`)
+  assertStringIncludes(content, `if (options.apiKey2 !== undefined) query.set("partner", options.apiKey2)`)
+})

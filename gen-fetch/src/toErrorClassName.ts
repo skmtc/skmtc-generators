@@ -1,14 +1,15 @@
 import type { GenerateContextType } from '@skmtc/core'
 import { TsProjection } from '@skmtc/gen-typescript'
-import { ZodProjection } from '@skmtc/gen-zod'
+import { toFreeName } from './toFreeName.ts'
 
 const cache = new WeakMap<GenerateContextType, string>()
 
 /**
- * `ApiError`, unless a model in the document already takes that name, in which
- * case the first free `ApiError<n>`. Models and operations can share one file,
- * and an API's own `ApiError` schema is common. Computed once per run from
- * every component schema, so every operation agrees on the name.
+ * `ApiError`, unless a gen-typescript type in the document takes that name (a
+ * class declares a type too, so the two clash in a shared file). Then the first
+ * free `ApiError<n>`. Computed once per run, so every operation agrees on it.
+ *
+ * gen-zod names are not checked: they start lowercase, so never clash.
  */
 export const toErrorClassName = (context: GenerateContextType): string => {
   const cached = cache.get(context)
@@ -20,16 +21,11 @@ export const toErrorClassName = (context: GenerateContextType): string => {
   const document = context.document.type === 'oas' ? context.document.value : undefined
   const refNames = document?.components?.toSchemasRefNames() ?? []
 
-  const taken = new Set(
-    refNames.flatMap(refName => [
-      context.toModelContentSettings({ refName, projection: TsProjection }).identifier.name,
-      context.toModelContentSettings({ refName, projection: ZodProjection }).identifier.name
-    ])
+  const typeNames = new Set(
+    refNames.map(refName => context.toModelContentSettings({ refName, projection: TsProjection }).identifier.name)
   )
 
-  const name = ['ApiError', ...Array.from({ length: taken.size }, (_, index) => `ApiError${index + 2}`)].find(
-    candidate => !taken.has(candidate)
-  ) ?? 'ApiError'
+  const name = toFreeName('ApiError', typeNames)
 
   cache.set(context, name)
 
