@@ -6,7 +6,7 @@ import type {
 } from '@skmtc/core'
 import { createVariable, toTsIdentifier } from '@skmtc/lang-typescript'
 import { toEffectValue, toEffectValueImpl } from './Effect.ts'
-import { EffectBase } from './base.ts'
+import { BARREL_PATH, EffectBase } from './base.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
 import type { EffectSchemaOptions } from './options.ts'
 
@@ -52,15 +52,9 @@ export class EffectProjection extends EffectBase {
     // here rather than in the entry so a schema reached only through a
     // peer (a component an endpoint references, a normalized response, a
     // coerced twin) is in the barrel too — a project scoped with `include`
-    // may never run the entry for it. The engine hands back the export path
-    // as `@/` plus forward slashes, so its folder ends at the last `/`.
-    const folder = settings.exportPath.slice(
-      0,
-      settings.exportPath.lastIndexOf('/'),
-    )
-
+    // may never run the entry for it.
     this.registerInto(
-      `${folder}/index.generated.ts`,
+      BARREL_PATH,
       {
         reExports: {
           [settings.exportPath]: [toTsIdentifier(settings.identifier)],

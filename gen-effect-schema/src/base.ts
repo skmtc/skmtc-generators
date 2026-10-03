@@ -8,6 +8,17 @@ import {
   type EffectSchemaOptions,
 } from './options.ts'
 
+/**
+ * The folder every schema and its barrel are written to, in a folder of its
+ * own: gen-typescript writes `@/types/user.generated.ts`, and the schema
+ * `User` decapitalizes to the same file name. A clone that writes elsewhere
+ * changes this one constant.
+ */
+export const SCHEMA_ROOT = '@/schema-effect'
+
+/** The barrel every schema re-exports itself into. */
+export const BARREL_PATH = `${SCHEMA_ROOT}/index.generated.ts`
+
 export const EffectBase = toTsModelProjectionBase<
   EnrichmentSchema,
   EffectSchemaOptions
@@ -31,11 +42,9 @@ export const EffectBase = toTsModelProjectionBase<
 
   toIdentifierType: () => ({ type: 'variable' }),
 
-  // One file per model, in a folder of its own: gen-typescript writes
-  // `@/types/user.generated.ts`, and the schema `User` decapitalizes to the
-  // same file name. `this` is this base's config, so the file follows the
-  // base's own name. A projection that overrides toIdentifierName keeps
-  // this file unless it overrides toExportPath too.
+  // One file per model under SCHEMA_ROOT. `this` is this base's config, so
+  // the file follows the base's own name. A projection that overrides
+  // toIdentifierName keeps this file unless it overrides toExportPath too.
   toExportPath({ refName, enrichments, variant, options }): string {
     const name = this.toIdentifierName({
       refName,
@@ -44,7 +53,7 @@ export const EffectBase = toTsModelProjectionBase<
       options,
     })
 
-    return `@/schema-effect/${decapitalize(name)}.generated.ts`
+    return `${SCHEMA_ROOT}/${decapitalize(name)}.generated.ts`
   },
 
   toEnrichmentSchema,

@@ -5,7 +5,7 @@ import type {
 } from '@skmtc/core'
 import { EffectProjection } from '@skmtc/gen-effect-schema'
 import { List, type ListParams, toTsIdentifier } from '@skmtc/lang-typescript'
-import { EffectHttpBase } from './base.ts'
+import { BARREL_PATH, EffectHttpBase } from './base.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
 import { EffectRequest } from './EffectRequest.ts'
 import { ResponseRead } from './ResponseRead.ts'
@@ -75,12 +75,8 @@ export class EffectEndpoint extends EffectHttpBase {
           identifier !== null && identifier.name.startsWith(name),
       )
 
-    // The engine hands back the export path as `@/` plus forward slashes,
-    // so its folder ends at the last `/`.
-    const folder = destinationPath.slice(0, destinationPath.lastIndexOf('/'))
-
     this.registerInto(
-      `${folder}/index.generated.ts`,
+      BARREL_PATH,
       {
         reExports: {
           [destinationPath]: [settings.identifier, ...coLocated].map(
