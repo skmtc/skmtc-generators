@@ -1,19 +1,24 @@
 # @skmtc/gen-effect-schema
 
-OpenAPI to [Effect](https://effect.website) 4 `Schema` generator for [Skmtc](https://skm.tc).
+OpenAPI to [Effect](https://effect.website) 4 `Schema` generator for
+[Skmtc](https://skm.tc).
 
-Writes one schema per component to `@/schema-effect/<name>.generated.ts`,
-plus a barrel at `@/schema-effect/index.generated.ts`. Each schema carries
-the PascalCase name of the type it decodes to (`export const User = Schema.Struct(…)`).
+Writes one schema per component to `@/schema-effect/<name>.generated.ts`, plus a
+barrel at `@/schema-effect/index.generated.ts`. Each schema carries the
+PascalCase name of the type it decodes to
+(`export const User = Schema.Struct(…)`).
 
 ## What it renders
 
-- **Primitives**: string, number (`Schema.Finite`), integer (`Schema.Int`), boolean
+- **Primitives**: string, number (`Schema.Finite`), integer (`Schema.Int`),
+  boolean
 - **Checks**: string length and pattern; numeric bounds
-- **Composites**: object (`Schema.Struct`), array, `additionalProperties` (`Schema.Record`), union
+- **Composites**: object (`Schema.Struct`), array, `additionalProperties`
+  (`Schema.Record`), union
 - **Enums**: `Schema.Literals`
 - **Modifiers**: optional, nullable
-- **References**: `$ref` lands as an import of the target schema, never an inline copy
+- **References**: `$ref` lands as an import of the target schema, never an
+  inline copy
 - **Recursion**: a recursive reference is wrapped in `Schema.suspend`, typed
   with the model's type from `@skmtc/gen-typescript` (written to `@/types/`)
 
@@ -34,5 +39,5 @@ At `client.json#settings.enrichments["@skmtc/gen-effect-schema"]._generator`:
 
 ## Customizing
 
-Output paths are fixed in `src/base.ts`. To write elsewhere, clone the
-generator (`skmtc clone`) and edit `toExportPath`.
+Output paths are fixed in `src/base.ts`. To write elsewhere, clone the generator
+(`skmtc clone`) and edit `toExportPath`.

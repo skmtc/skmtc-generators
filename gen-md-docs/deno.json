@@ -14,7 +14,7 @@
   },
   "imports": {
     "@skmtc/core": "jsr:@skmtc/core@0.29.0",
-    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.12.22",
+    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.12.24",
     "openapi-types": "npm:openapi-types@^12.1.3"
   },
   "lint": {

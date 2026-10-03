@@ -5,7 +5,6 @@ import type {
 } from '@skmtc/core'
 import { EffectProjection } from '@skmtc/gen-effect-schema'
 import { List, type ListParams, toTsIdentifier } from '@skmtc/lang-typescript'
-import { dirname, join } from '@std/path/posix'
 import { EffectHttpBase } from './base.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
 import { EffectRequest } from './EffectRequest.ts'
@@ -76,8 +75,12 @@ export class EffectEndpoint extends EffectHttpBase {
           identifier !== null && identifier.name.startsWith(name),
       )
 
+    // The engine hands back the export path as `@/` plus forward slashes,
+    // so its folder ends at the last `/`.
+    const folder = destinationPath.slice(0, destinationPath.lastIndexOf('/'))
+
     this.registerInto(
-      join(dirname(destinationPath), 'index.generated.ts'),
+      `${folder}/index.generated.ts`,
       {
         reExports: {
           [destinationPath]: [settings.identifier, ...coLocated].map(

@@ -3,8 +3,6 @@
   "specifiers": {
     "jsr:@skmtc/core@0.29": "0.29.0",
     "jsr:@skmtc/core@0.29.0": "0.29.0",
-    "jsr:@skmtc/lang-kotlin@0.11.3": "0.11.3",
-    "jsr:@skmtc/lang-typescript@0.12.22": "0.12.22",
     "jsr:@skmtc/lang-typescript@0.12.24": "0.12.24",
     "jsr:@skmtc/lint-plugin@0.1.0": "0.1.0",
     "jsr:@std/assert@1": "1.0.19",
@@ -15,11 +13,8 @@
     "jsr:@std/internal@^1.0.12": "1.0.14",
     "jsr:@std/internal@^1.0.14": "1.0.14",
     "jsr:@std/io@~0.225.2": "0.225.3",
-    "jsr:@std/log@0.224": "0.224.14",
     "jsr:@std/log@~0.224.6": "0.224.14",
-    "jsr:@std/path@1": "1.1.6",
     "jsr:@std/path@^1.0.9": "1.1.6",
-    "jsr:@std/path@^1.1.2": "1.1.6",
     "jsr:@std/yaml@1": "1.1.2",
     "npm:@babel/helper-validator-identifier@7.22.20": "7.22.20",
     "npm:@babel/helper-validator-identifier@7.27.1": "7.27.1",
@@ -29,7 +24,6 @@
     "npm:graphql@^16.9.0": "16.14.2",
     "npm:lodash-es@4.17.21": "4.17.21",
     "npm:openapi-types@^12.1.3": "12.1.3",
-    "npm:oxc-parser@0.41.0": "0.41.0",
     "npm:tiny-invariant@1.3.3": "1.3.3",
     "npm:tiny-invariant@^1.3.3": "1.3.3",
     "npm:ts-pattern@^5.8.0": "5.9.0",
@@ -41,32 +35,14 @@
       "integrity": "a5da8f84a289f83e2b08cae83ecf75ff75469f25aae9914e38ab45064691fe31",
       "dependencies": [
         "jsr:@std/fmt@1",
-        "jsr:@std/log@~0.224.6",
-        "jsr:@std/path@^1.0.9",
+        "jsr:@std/log",
+        "jsr:@std/path",
         "npm:@types/lodash-es",
         "npm:graphql",
         "npm:lodash-es",
         "npm:openapi-types",
-        "npm:oxc-parser",
         "npm:tiny-invariant@1.3.3",
         "npm:valibot"
-      ]
-    },
-    "@skmtc/lang-kotlin@0.11.3": {
-      "integrity": "93cef6beb03b2ee30e33f4ac0adb402515dd03c68bcce7802b95146b32c5f814",
-      "dependencies": [
-        "jsr:@skmtc/core@0.29.0",
-        "jsr:@std/path@^1.0.9",
-        "npm:tiny-invariant@1.3.3"
-      ]
-    },
-    "@skmtc/lang-typescript@0.12.22": {
-      "integrity": "17d8943eafce63c8e0c042445e633dce843c922a15b637524ceb46693380d637",
-      "dependencies": [
-        "jsr:@skmtc/core@0.29.0",
-        "npm:@babel/helper-validator-identifier@7.27.1",
-        "npm:@types/babel__helper-validator-identifier",
-        "npm:tiny-invariant@1.3.3"
       ]
     },
     "@skmtc/lang-typescript@0.12.24": {
@@ -133,49 +109,6 @@
     "@babel/helper-validator-identifier@7.27.1": {
       "integrity": "sha512-D2hP9eA+Sqx1kBZgzxZh0y1trbuU+JoDkiEwqhQ36nodYqJwyEIhPSdMNd7lOm/4io72luTPWH20Yda0xOuUow=="
     },
-    "@oxc-parser/binding-darwin-arm64@0.41.0": {
-      "integrity": "sha512-IyPIRfOtiaQVWI7oxbojTLtJufMe/bTj1rR+GNqCZgHYe4xj3oS6P9DeJy+Nu3p/xauYNAphSRj/9X9UOI1/Rg==",
-      "os": ["darwin"],
-      "cpu": ["arm64"]
-    },
-    "@oxc-parser/binding-darwin-x64@0.41.0": {
-      "integrity": "sha512-d6cZE+wayDqPISkWvr8eaSVXQd1XVHduF2W3mXo9ybCBdDJd9Wb5ZUjoCdYUR05B/L0GrA9MUsdWZx19/GKkGA==",
-      "os": ["darwin"],
-      "cpu": ["x64"]
-    },
-    "@oxc-parser/binding-linux-arm64-gnu@0.41.0": {
-      "integrity": "sha512-8p7ugPSkmFOOk+j7TAxUU51Ob0S9aWQNXojOhxrRmsurGIe7z6k3YGwtijd5k8l3bSmBaRixEF/DhfOGr+mZ5g==",
-      "os": ["linux"],
-      "cpu": ["arm64"]
-    },
-    "@oxc-parser/binding-linux-arm64-musl@0.41.0": {
-      "integrity": "sha512-bWlm8wwcPJuh1XdLpZyk/Pm3WYXQSFCiLqvQcptsFFDMgchl29KTX9725CtTC6iJe+NRh7VwjcFKHEpnumBt2g==",
-      "os": ["linux"],
-      "cpu": ["arm64"]
-    },
-    "@oxc-parser/binding-linux-x64-gnu@0.41.0": {
-      "integrity": "sha512-3ePofVDYRTyNrC2Isve7xTIAZxV/ix/ZnVPowoLMLg4nDtKmzIhpVsVugL2uUBU9GieDrmQHpfCJTBBBekF9aA==",
-      "os": ["linux"],
-      "cpu": ["x64"]
-    },
-    "@oxc-parser/binding-linux-x64-musl@0.41.0": {
-      "integrity": "sha512-ZMoI+6n7QIf0f0IR5Uu7UoXcf4FE0P47rF5D2j8s+PYlDc+86zqis2DJurtsqc19D3enDm48K/q9apt6u5m9Kg==",
-      "os": ["linux"],
-      "cpu": ["x64"]
-    },
-    "@oxc-parser/binding-win32-arm64-msvc@0.41.0": {
-      "integrity": "sha512-CzJAyE4OfkjOkbPeqHJL1zQv9KljJiW+xgurlue40NqR++PtJQLQLsgrZ/XUJRFDuA0vgH6sXmelArNu/erfUA==",
-      "os": ["win32"],
-      "cpu": ["arm64"]
-    },
-    "@oxc-parser/binding-win32-x64-msvc@0.41.0": {
-      "integrity": "sha512-xlOsirc40y+aMOuJi0Jv4M3/vcUlolOae6Ihuxy4BTX58lmwioXsOv0b0UO0XMrPIckwM63KHwal1Q+FLxbn9g==",
-      "os": ["win32"],
-      "cpu": ["x64"]
-    },
-    "@oxc-project/types@0.41.0": {
-      "integrity": "sha512-4O+T4CE+/XYf00LjhSR0GZLO7znu9R73+LwlppJMKnvzA4/gUxxwPcDpMCA1JONvXGoHm9q9Wnshw0XUZ/ICYQ=="
-    },
     "@types/babel__helper-validator-identifier@7.15.2": {
       "integrity": "sha512-l3dkwCt890NFhMwPKXbxsWXC0Por0/+KaFIiQP1j38/vWSH2P3Tn6m+IuJHkx2SBI3VLFqincFe9JtBk2NFHOw=="
     },
@@ -211,22 +144,6 @@
     "openapi-types@12.1.3": {
       "integrity": "sha512-N4YtSYJqghVu4iek2ZUvcN/0aqH1kRDuNqzcycDxhOUpg7GdvLa2F3DgS6yBNhInhv2r/6I0Flkn7CqL8+nIcw=="
     },
-    "oxc-parser@0.41.0": {
-      "integrity": "sha512-RCOWZ9qunYVRWi/2XNJjId57uMH36EJzHGwATT+MwKETx2v/TJDqZUikr1DDcZD3OYYDTR8mZkrWAUBbUOZrFQ==",
-      "dependencies": [
-        "@oxc-project/types"
-      ],
-      "optionalDependencies": [
-        "@oxc-parser/binding-darwin-arm64",
-        "@oxc-parser/binding-darwin-x64",
-        "@oxc-parser/binding-linux-arm64-gnu",
-        "@oxc-parser/binding-linux-arm64-musl",
-        "@oxc-parser/binding-linux-x64-gnu",
-        "@oxc-parser/binding-linux-x64-musl",
-        "@oxc-parser/binding-win32-arm64-msvc",
-        "@oxc-parser/binding-win32-x64-msvc"
-      ]
-    },
     "tiny-invariant@1.3.3": {
       "integrity": "sha512-+FbBPE1o9QAYvviau/qC5SE3caw21q3xkvWKBtja5vgqOWIHHJ3ioaq1VPfn/Szqctz2bU/oYeKd9/z5BL+PVg=="
     },
@@ -257,7 +174,7 @@
       "gen-arktype": {
         "dependencies": [
           "jsr:@skmtc/core@0.29.0",
-          "jsr:@skmtc/lang-typescript@0.12.22"
+          "jsr:@skmtc/lang-typescript@0.12.24"
         ]
       },
       "gen-effect-http": {
@@ -265,8 +182,7 @@
           "jsr:@skmtc/core@0.29.0",
           "jsr:@skmtc/gen-effect-schema@0.1.0",
           "jsr:@skmtc/lang-typescript@0.12.24",
-          "jsr:@std/assert@^1.0.10",
-          "jsr:@std/path@^1.1.2"
+          "jsr:@std/assert@^1.0.10"
         ]
       },
       "gen-effect-schema": {
@@ -275,7 +191,6 @@
           "jsr:@skmtc/gen-typescript@0.2.9",
           "jsr:@skmtc/lang-typescript@0.12.24",
           "jsr:@std/assert@^1.0.10",
-          "jsr:@std/path@^1.1.2",
           "npm:ts-pattern@^5.9.0",
           "npm:valibot@1.1.0"
         ]
@@ -285,13 +200,13 @@
           "jsr:@skmtc/core@0.29.0",
           "jsr:@skmtc/gen-typescript@0.2.9",
           "jsr:@skmtc/gen-valibot@0.2.9",
-          "jsr:@skmtc/lang-typescript@0.12.22"
+          "jsr:@skmtc/lang-typescript@0.12.24"
         ]
       },
       "gen-fetch-example": {
         "dependencies": [
           "jsr:@skmtc/core@0.29.0",
-          "jsr:@skmtc/lang-typescript@0.12.22",
+          "jsr:@skmtc/lang-typescript@0.12.24",
           "npm:valibot@1.1.0"
         ]
       },
@@ -313,7 +228,7 @@
       "gen-md-docs": {
         "dependencies": [
           "jsr:@skmtc/core@0.29.0",
-          "jsr:@skmtc/lang-typescript@0.12.22",
+          "jsr:@skmtc/lang-typescript@0.12.24",
           "npm:openapi-types@^12.1.3"
         ]
       },
@@ -321,7 +236,7 @@
         "dependencies": [
           "jsr:@skmtc/core@0.29.0",
           "jsr:@skmtc/gen-typescript@0.2.9",
-          "jsr:@skmtc/lang-typescript@0.12.22"
+          "jsr:@skmtc/lang-typescript@0.12.24"
         ]
       },
       "gen-shadcn-form": {
@@ -331,7 +246,7 @@
           "jsr:@skmtc/gen-tanstack-query-supabase-zod@0.2.9",
           "jsr:@skmtc/gen-typescript@0.2.9",
           "jsr:@skmtc/gen-zod@0.2.9",
-          "jsr:@skmtc/lang-typescript@0.12.22"
+          "jsr:@skmtc/lang-typescript@0.12.24"
         ]
       },
       "gen-shadcn-select": {
@@ -340,7 +255,7 @@
           "jsr:@skmtc/gen-tanstack-query-supabase-zod@0.2.9",
           "jsr:@skmtc/gen-typescript@0.2.9",
           "jsr:@skmtc/gen-zod@0.2.9",
-          "jsr:@skmtc/lang-typescript@0.12.22"
+          "jsr:@skmtc/lang-typescript@0.12.24"
         ]
       },
       "gen-shadcn-table": {
@@ -349,7 +264,7 @@
           "jsr:@skmtc/gen-tanstack-query-supabase-zod@0.2.9",
           "jsr:@skmtc/gen-typescript@0.2.9",
           "jsr:@skmtc/gen-zod@0.2.9",
-          "jsr:@skmtc/lang-typescript@0.12.22"
+          "jsr:@skmtc/lang-typescript@0.12.24"
         ]
       },
       "gen-supabase-hono": {
@@ -357,7 +272,7 @@
           "jsr:@skmtc/core@0.29.0",
           "jsr:@skmtc/gen-typescript@0.2.9",
           "jsr:@skmtc/gen-zod@0.2.9",
-          "jsr:@skmtc/lang-typescript@0.12.22"
+          "jsr:@skmtc/lang-typescript@0.12.24"
         ]
       },
       "gen-tanstack-query-fetch-zod": {
@@ -365,7 +280,7 @@
           "jsr:@skmtc/core@0.29.0",
           "jsr:@skmtc/gen-typescript@0.2.9",
           "jsr:@skmtc/gen-zod@0.2.9",
-          "jsr:@skmtc/lang-typescript@0.12.22"
+          "jsr:@skmtc/lang-typescript@0.12.24"
         ]
       },
       "gen-tanstack-query-supabase-zod": {
@@ -373,25 +288,25 @@
           "jsr:@skmtc/core@0.29.0",
           "jsr:@skmtc/gen-typescript@0.2.9",
           "jsr:@skmtc/gen-zod@0.2.9",
-          "jsr:@skmtc/lang-typescript@0.12.22"
+          "jsr:@skmtc/lang-typescript@0.12.24"
         ]
       },
       "gen-typescript": {
         "dependencies": [
           "jsr:@skmtc/core@0.29.0",
-          "jsr:@skmtc/lang-typescript@0.12.22"
+          "jsr:@skmtc/lang-typescript@0.12.24"
         ]
       },
       "gen-valibot": {
         "dependencies": [
           "jsr:@skmtc/core@0.29.0",
-          "jsr:@skmtc/lang-typescript@0.12.22"
+          "jsr:@skmtc/lang-typescript@0.12.24"
         ]
       },
       "gen-zod": {
         "dependencies": [
           "jsr:@skmtc/core@0.29.0",
-          "jsr:@skmtc/lang-typescript@0.12.22"
+          "jsr:@skmtc/lang-typescript@0.12.24"
         ]
       }
     }

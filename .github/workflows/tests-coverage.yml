@@ -35,6 +35,8 @@ jobs:
       matrix:
         generator:
           - gen-arktype
+          - gen-effect-http
+          - gen-effect-schema
           - gen-express
           - gen-fetch-example
           - gen-kotlin-jackson
@@ -130,6 +132,8 @@ jobs:
       matrix:
         generator:
           - gen-arktype
+          - gen-effect-http
+          - gen-effect-schema
           - gen-express
           - gen-fetch-example
           - gen-kotlin-jackson

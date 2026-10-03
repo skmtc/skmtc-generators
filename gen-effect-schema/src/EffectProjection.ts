@@ -5,7 +5,6 @@ import type {
   TypeSystemValue,
 } from '@skmtc/core'
 import { createVariable, toTsIdentifier } from '@skmtc/lang-typescript'
-import { dirname, join } from '@std/path/posix'
 import { toEffectValue, toEffectValueImpl } from './Effect.ts'
 import { EffectBase } from './base.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
@@ -53,9 +52,15 @@ export class EffectProjection extends EffectBase {
     // here rather than in the entry so a schema reached only through a
     // peer (a component an endpoint references, a normalized response, a
     // coerced twin) is in the barrel too — a project scoped with `include`
-    // may never run the entry for it.
+    // may never run the entry for it. The engine hands back the export path
+    // as `@/` plus forward slashes, so its folder ends at the last `/`.
+    const folder = settings.exportPath.slice(
+      0,
+      settings.exportPath.lastIndexOf('/'),
+    )
+
     this.registerInto(
-      join(dirname(settings.exportPath), 'index.generated.ts'),
+      `${folder}/index.generated.ts`,
       {
         reExports: {
           [settings.exportPath]: [toTsIdentifier(settings.identifier)],
