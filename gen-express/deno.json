@@ -6,7 +6,7 @@
     "@skmtc/gen-valibot": "jsr:@skmtc/gen-valibot@0.2.9",
     "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.2.9",
     "@skmtc/core": "jsr:@skmtc/core@0.29.0",
-    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.12.22"
+    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.12.24"
   },
   "tasks": {
     "test": "deno test --allow-env --allow-sys --allow-read",
