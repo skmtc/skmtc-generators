@@ -52,6 +52,8 @@ The repository uses Deno workspaces with the following generators:
 - `gen-tanstack-query-fetch-zod` - TanStack Query hooks with fetch and Zod
 - `gen-tanstack-query-supabase-zod` - TanStack Query hooks with Supabase and Zod
 - `gen-supabase-hono` - Supabase with Hono server routes
+- `gen-effect-schema` - Effect 4 `Schema` per component
+- `gen-effect-http` - Effect 4 HTTP client function per operation (inserts gen-effect-schema)
 
 ### Generator Pattern
 

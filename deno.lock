@@ -1,9 +1,11 @@
 {
   "version": "5",
   "specifiers": {
+    "jsr:@skmtc/core@0.29": "0.29.0",
     "jsr:@skmtc/core@0.29.0": "0.29.0",
     "jsr:@skmtc/lang-kotlin@0.11.3": "0.11.3",
     "jsr:@skmtc/lang-typescript@0.12.22": "0.12.22",
+    "jsr:@skmtc/lang-typescript@0.12.24": "0.12.24",
     "jsr:@skmtc/lint-plugin@0.1.0": "0.1.0",
     "jsr:@std/assert@1": "1.0.19",
     "jsr:@std/assert@^1.0.10": "1.0.19",
@@ -53,7 +55,7 @@
     "@skmtc/lang-kotlin@0.11.3": {
       "integrity": "93cef6beb03b2ee30e33f4ac0adb402515dd03c68bcce7802b95146b32c5f814",
       "dependencies": [
-        "jsr:@skmtc/core",
+        "jsr:@skmtc/core@0.29.0",
         "jsr:@std/path@^1.0.9",
         "npm:tiny-invariant@1.3.3"
       ]
@@ -61,7 +63,16 @@
     "@skmtc/lang-typescript@0.12.22": {
       "integrity": "17d8943eafce63c8e0c042445e633dce843c922a15b637524ceb46693380d637",
       "dependencies": [
-        "jsr:@skmtc/core",
+        "jsr:@skmtc/core@0.29.0",
+        "npm:@babel/helper-validator-identifier@7.27.1",
+        "npm:@types/babel__helper-validator-identifier",
+        "npm:tiny-invariant@1.3.3"
+      ]
+    },
+    "@skmtc/lang-typescript@0.12.24": {
+      "integrity": "064a73d02f8882527d93d9e534a66b92ac3f575799f80150dfb46ac35afd013b",
+      "dependencies": [
+        "jsr:@skmtc/core@0.29",
         "npm:@babel/helper-validator-identifier@7.27.1",
         "npm:@types/babel__helper-validator-identifier",
         "npm:tiny-invariant@1.3.3"
@@ -247,6 +258,26 @@
         "dependencies": [
           "jsr:@skmtc/core@0.29.0",
           "jsr:@skmtc/lang-typescript@0.12.22"
+        ]
+      },
+      "gen-effect-http": {
+        "dependencies": [
+          "jsr:@skmtc/core@0.29.0",
+          "jsr:@skmtc/gen-effect-schema@0.1.0",
+          "jsr:@skmtc/lang-typescript@0.12.24",
+          "jsr:@std/assert@^1.0.10",
+          "jsr:@std/path@^1.1.2"
+        ]
+      },
+      "gen-effect-schema": {
+        "dependencies": [
+          "jsr:@skmtc/core@0.29.0",
+          "jsr:@skmtc/gen-typescript@0.2.9",
+          "jsr:@skmtc/lang-typescript@0.12.24",
+          "jsr:@std/assert@^1.0.10",
+          "jsr:@std/path@^1.1.2",
+          "npm:ts-pattern@^5.9.0",
+          "npm:valibot@1.1.0"
         ]
       },
       "gen-express": {
