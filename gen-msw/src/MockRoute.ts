@@ -15,9 +15,9 @@ export class MockRoute extends MswBase {
 
     const response = operation.toSuccessResponse()?.resolve().content?.['application/json']
 
-    const example = Object.values(response?.examples ?? {})[0]?.resolve().value
+    const example = Object.values(response?.examples ?? {})[0]?.resolve()
 
-    this.responseData = example ?? collateExamples({ objectSchema: response?.schema, depth: 0 })
+    this.responseData = example?.dataValue ?? example?.value ?? collateExamples({ objectSchema: response?.schema, depth: 0 })
 
     this.requestBodyType =
       operation.toRequestBody(({ schema }) => {

@@ -10,6 +10,11 @@ export const MswEntry = toOasOperationEntry<EnrichmentSchema>({
 
   toEnrichmentSchema,
 
+  // MSW has no handler for the 3.2 `query` method.
+  isSupported({ operation }) {
+    return ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'].includes(operation.method)
+  },
+
   transform: ({ context, operation }) => {
     const insertedRoute = context.insertOperation({ projection: MockRoute, operation: operation })
 

@@ -5,7 +5,7 @@
  * pinned here and run on both the Linux and the Windows runner.
  */
 import { assertEquals } from '@std/assert'
-import { operationDocument, runE2eFixture } from '@skmtc/test-support'
+import { operationDocument, queryDocument, runE2eFixture } from '@skmtc/test-support'
 import { expressEntry } from '../src/mod.ts'
 
 const { artifacts } = runE2eFixture({
@@ -30,4 +30,16 @@ Deno.test('e2e - the routes file imports parse and name workspace paths with for
     "import {newUser} from '@/types/newUser.generated.ts'",
     "import * as v from 'valibot'"
   ])
+})
+
+Deno.test('e2e - a 3.2 query operation gives no artifact and no error', () => {
+  const { artifacts, manifest } = runE2eFixture({
+    id: '@skmtc/gen-express',
+    entry: expressEntry,
+    document: queryDocument
+  })
+
+  assertEquals(Object.keys(artifacts), [])
+  assertEquals(manifest.parseIssues.filter(issue => issue.level === 'error'), [])
+  assertEquals(JSON.stringify(manifest.results).includes('"error"'), false)
 })

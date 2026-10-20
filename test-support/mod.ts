@@ -5,6 +5,7 @@
  * Private and never published — the release script skips `private: true`
  * members — so it holds test code only.
  */
+import { assert } from '@std/assert'
 import { StackTrail, toArtifacts } from '@skmtc/core'
 import type { OpenAPIV3 } from 'openapi-types'
 
@@ -80,6 +81,80 @@ export const operationDocument: OpenAPIV3.Document = {
     }
   }
 }
+
+const isDocumentObject = (value: unknown): value is OpenAPIV3.Document =>
+  typeof value === 'object' && value !== null && 'openapi' in value && 'info' in value
+
+/**
+ * Narrow a 3.2 document to `OpenAPIV3.Document`. The `openapi-types` path
+ * item has no `query` key and its example has no `dataValue`.
+ */
+const toDocumentObject = (value: unknown, name: string): OpenAPIV3.Document => {
+  assert(isDocumentObject(value), `${name} is not an OpenAPI document`)
+  return value
+}
+
+/** A 3.2 document with one `query` operation and nothing else. */
+export const queryDocument: OpenAPIV3.Document = toDocumentObject(
+  {
+    openapi: '3.2.0',
+    info: { title: 'Fixture API', version: '1.0.0' },
+    paths: {
+      '/users/search': {
+        query: {
+          tags: ['users'],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: { type: 'object', properties: { name: { type: 'string' } } }
+              }
+            }
+          },
+          responses: {
+            '200': {
+              description: 'The matching users',
+              content: {
+                'application/json': {
+                  schema: { type: 'array', items: { type: 'string' } }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  'queryDocument'
+)
+
+/** A 3.2 document whose one response example carries a `dataValue`. */
+export const dataValueDocument: OpenAPIV3.Document = toDocumentObject(
+  {
+    openapi: '3.2.0',
+    info: { title: 'Fixture API', version: '1.0.0' },
+    paths: {
+      '/users': {
+        get: {
+          responses: {
+            '200': {
+              description: 'Every user',
+              content: {
+                'application/json': {
+                  schema: { type: 'array', items: { type: 'string' } },
+                  examples: {
+                    first: { dataValue: ['Ada Lovelace'] }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  'dataValueDocument'
+)
 
 type RunE2eFixtureArgs = {
   /** The generator's package name, which keys it in the config map. */

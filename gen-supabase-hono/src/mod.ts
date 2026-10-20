@@ -7,6 +7,10 @@ import denoJson from '../deno.json' with { type: 'json' }
 export const supabaseHonoEntry = toOasOperationEntry<EnrichmentSchema>({
   id: denoJson.name,
   toEnrichmentSchema,
+  // Hono has no `app.query` route method for the 3.2 `query` method.
+  isSupported({ operation }) {
+    return ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'].includes(operation.method)
+  },
   transform: ({ context, operation, variant }) => {
     const enrichments = SupabaseHono.toEnrichments({ operation, context, variant })
     const app =

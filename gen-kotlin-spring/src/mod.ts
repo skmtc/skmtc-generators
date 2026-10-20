@@ -28,6 +28,10 @@ import denoJson from '../deno.json' with { type: 'json' }
 export default toOasOperationEntry<EnrichmentSchema>({
   id: denoJson.name,
   toEnrichmentSchema,
+  // Spring has no mapping for the 3.2 `query` method.
+  isSupported({ operation }) {
+    return operation.method !== 'query'
+  },
   transform({ context, operation }) {
     const config = toGeneratorEnrichment(context, denoJson.name, generatorConfigSchema)
 

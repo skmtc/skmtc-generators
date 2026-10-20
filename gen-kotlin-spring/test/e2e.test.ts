@@ -8,6 +8,7 @@
 import { assertEquals } from '@std/assert'
 import { StackTrail, toArtifacts } from '@skmtc/core'
 import kotlinEntry from '@skmtc/gen-kotlin-jackson'
+import { queryDocument, runE2eFixture } from '@skmtc/test-support'
 import type { OpenAPIV3 } from 'openapi-types'
 import springEntry from '../src/mod.ts'
 import { assertNoResultErrors } from './results.ts'
@@ -199,4 +200,16 @@ Deno.test('e2e - the two runs render byte-identical files for the shared set', (
   for (const path of Object.keys(alone.artifacts)) {
     assertEquals(beside.artifacts[path], alone.artifacts[path], `mismatch at ${path}`)
   }
+})
+
+Deno.test('e2e - a 3.2 query operation gives no artifact and no error', () => {
+  const { artifacts, manifest } = runE2eFixture({
+    id: '@skmtc/gen-kotlin-spring',
+    entry: springEntry,
+    document: queryDocument
+  })
+
+  assertEquals(Object.keys(artifacts), [])
+  assertEquals(manifest.parseIssues.filter(issue => issue.level === 'error'), [])
+  assertNoResultErrors(manifest)
 })

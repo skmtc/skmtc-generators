@@ -268,6 +268,8 @@ const toMappingAnnotation = (
         `method = [RequestMethod.${method.toUpperCase()}]`,
         `path = ["${path}"]`
       ])
+    case 'query':
+      throw new Error(`Unreachable: the entry's isSupported rejects 'query' (${path})`)
     default: {
       const _exhaustive: never = method
       throw new Error(`Unhandled method: ${JSON.stringify(_exhaustive)}`)
