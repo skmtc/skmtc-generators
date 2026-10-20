@@ -231,7 +231,8 @@ Deno.test('a scaffold name colliding with another tag\'s interface fails that su
 
 Deno.test('a tag with only query operations claims no service name', () => {
   // `default users` has only a `query` operation, which `isSupported`
-  // rejects, so no `DefaultUsersService` interface exists to collide with.
+  // rejects, so no `DefaultUsersService` interface exists to collide with,
+  // and the `users` tag's `DefaultUsersService` scaffold is written.
   const queryOnlyTagDocument = toDocumentObject(
     {
       openapi: '3.2.0',

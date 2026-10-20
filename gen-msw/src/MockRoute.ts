@@ -9,14 +9,18 @@ import { isEmpty } from '@skmtc/core'
 import { toTsValue, TsNever } from '@skmtc/gen-typescript'
 import type { EnrichmentSchema } from './enrichments.ts'
 
-/** The data a JSON example holds: `dataValue`, then `value`, then the parsed `serializedValue`. */
-const toExampleData = (example: OasExample | undefined): unknown => {
+/**
+ * The data a JSON example holds: `dataValue`, then `value`, then the parsed
+ * `serializedValue`. Wrapped so that an explicit `null` example is kept
+ * rather than read as "no example".
+ */
+const toExampleData = (example: OasExample | undefined): { data: unknown } | undefined => {
   if (example?.dataValue !== undefined) {
-    return example.dataValue
+    return { data: example.dataValue }
   }
 
   if (example?.value !== undefined) {
-    return example.value
+    return { data: example.value }
   }
 
   if (example?.serializedValue === undefined) {
@@ -24,7 +28,7 @@ const toExampleData = (example: OasExample | undefined): unknown => {
   }
 
   try {
-    return JSON.parse(example.serializedValue)
+    return { data: JSON.parse(example.serializedValue) }
   } catch {
     return undefined
   }
@@ -43,7 +47,7 @@ export class MockRoute extends MswBase {
 
     const example = toExampleData(Object.values(response?.examples ?? {})[0]?.resolve())
 
-    this.responseData = example ?? collateExamples({ objectSchema: response?.schema, depth: 0 })
+    this.responseData = example ? example.data : collateExamples({ objectSchema: response?.schema, depth: 0 })
 
     this.requestBodyType =
       operation.toRequestBody(({ schema }) => {

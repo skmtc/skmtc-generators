@@ -9,6 +9,7 @@ import {
   assertNoResultErrors,
   dataValueDocument,
   headTraceDocument,
+  nullExampleDocument,
   operationDocument,
   queryDocument,
   runE2eFixture,
@@ -81,4 +82,14 @@ Deno.test('e2e - the handler returns the parsed example serializedValue', () => 
   })
 
   assertStringIncludes(artifacts['src/mocks/handlers.generated.ts'], '"Grace Hopper"')
+})
+
+Deno.test('e2e - the handler returns an explicit null example', () => {
+  const { artifacts } = runE2eFixture({
+    id: '@skmtc/gen-msw',
+    entry: MswEntry,
+    document: nullExampleDocument
+  })
+
+  assertStringIncludes(artifacts['src/mocks/handlers.generated.ts'], 'HttpResponse.json(null)')
 })

@@ -197,6 +197,34 @@ export const serializedValueDocument: OpenAPIV3.Document = toDocumentObject(
   'serializedValueDocument'
 )
 
+/** A 3.2 document whose one response example is an explicit `null`. */
+export const nullExampleDocument: OpenAPIV3.Document = toDocumentObject(
+  {
+    openapi: '3.2.0',
+    info: { title: 'Fixture API', version: '1.0.0' },
+    paths: {
+      '/current-user': {
+        get: {
+          responses: {
+            '200': {
+              description: 'The signed-in user, or null',
+              content: {
+                'application/json': {
+                  schema: { type: 'string' },
+                  examples: {
+                    signedOut: { dataValue: null }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  'nullExampleDocument'
+)
+
 type RunE2eFixtureArgs = {
   /** The generator's package name, which keys it in the config map. */
   id: string
