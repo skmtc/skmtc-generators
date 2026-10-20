@@ -5,7 +5,13 @@
  * pinned here and run on both the Linux and the Windows runner.
  */
 import { assertEquals, assertStringIncludes } from '@std/assert'
-import { operationDocument, runE2eFixture } from '@skmtc/test-support'
+import {
+  assertNoResultErrors,
+  headTraceDocument,
+  operationDocument,
+  queryDocument,
+  runE2eFixture
+} from '@skmtc/test-support'
 import { supabaseHonoEntry } from '../src/mod.ts'
 
 const { artifacts } = runE2eFixture({
@@ -26,4 +32,27 @@ Deno.test('e2e - generated imports name workspace paths with forward slashes', (
     artifacts['src/users/api.generated.ts'],
     `import {newUser} from '@/types/newUser.generated.ts'\n`
   )
+})
+
+Deno.test('e2e - a 3.2 query operation gives no artifact and no error', () => {
+  const { artifacts, manifest } = runE2eFixture({
+    id: '@skmtc/gen-supabase-hono',
+    entry: supabaseHonoEntry,
+    document: queryDocument
+  })
+
+  assertEquals(Object.keys(artifacts), [])
+  assertEquals(manifest.parseIssues.filter(issue => issue.level === 'error'), [])
+  assertNoResultErrors(manifest)
+})
+
+Deno.test('e2e - head and trace operations give no artifact, since Hono has no app.head or app.trace', () => {
+  const { artifacts, manifest } = runE2eFixture({
+    id: '@skmtc/gen-supabase-hono',
+    entry: supabaseHonoEntry,
+    document: headTraceDocument
+  })
+
+  assertEquals(Object.keys(artifacts), [])
+  assertNoResultErrors(manifest)
 })

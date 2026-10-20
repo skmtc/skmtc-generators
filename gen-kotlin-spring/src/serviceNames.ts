@@ -1,5 +1,6 @@
 import type { GenerateContextType } from '@skmtc/core'
 import { toApiTag, toServiceName } from './apiFile.ts'
+import { isSpringMethod } from './lib.ts'
 
 /**
  * Every `<Tag>Service` name the document produces, memoized per document.
@@ -24,7 +25,10 @@ const toServiceNames = (context: GenerateContextType): Set<string> => {
 
   if (document.type === 'oas') {
     for (const operation of document.value.operations) {
-      names.add(toServiceName(toApiTag(operation.tags)))
+      // An operation the entry's `isSupported` rejects gives its tag no interface.
+      if (isSpringMethod(operation.method)) {
+        names.add(toServiceName(toApiTag(operation.tags)))
+      }
     }
   }
 

@@ -1,3 +1,14 @@
+import type { Method } from '@skmtc/core'
+
+/** The methods Spring's `RequestMethod` has a value for. */
+export type SpringMethod = Exclude<Method, 'query'>
+
+const springMethods: readonly SpringMethod[] = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace']
+
+export const isSpringMethod = (method: Method): method is SpringMethod => {
+  return springMethods.some(springMethod => springMethod === method)
+}
+
 /**
  * SLOT(library): the emitted framework, in one place.
  *

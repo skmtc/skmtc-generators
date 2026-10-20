@@ -1,12 +1,18 @@
 import invariant from 'tiny-invariant'
 import { SupabaseHono } from './SupabaseHono.ts'
-import { toOasOperationEntry } from '@skmtc/core'
+import { toOasOperationEntry, type Method } from '@skmtc/core'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
+
+/** The methods Hono has an `app.<method>` route method for. */
+const honoMethods: readonly Method[] = ['get', 'put', 'post', 'delete', 'options', 'patch']
 
 export const supabaseHonoEntry = toOasOperationEntry<EnrichmentSchema>({
   id: denoJson.name,
   toEnrichmentSchema,
+  isSupported({ operation }) {
+    return honoMethods.includes(operation.method)
+  },
   transform: ({ context, operation, variant }) => {
     const enrichments = SupabaseHono.toEnrichments({ operation, context, variant })
     const app =
