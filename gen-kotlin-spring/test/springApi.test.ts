@@ -11,7 +11,7 @@ import type { GeneratorEnrichments } from '@skmtc/core'
 import type { OpenAPIV3 } from 'openapi-types'
 import springEntry from '../src/mod.ts'
 import { generatorConfigSchema } from '../src/enrichments.ts'
-import { assertHasResultError, assertNoResultErrors } from './results.ts'
+import { assertHasResultError, assertNoResultErrors } from '@skmtc/test-support'
 
 const documentObject: OpenAPIV3.Document = {
   openapi: '3.0.0',

@@ -8,10 +8,9 @@
 import { assertEquals } from '@std/assert'
 import { StackTrail, toArtifacts } from '@skmtc/core'
 import kotlinEntry from '@skmtc/gen-kotlin-jackson'
-import { queryDocument, runE2eFixture } from '@skmtc/test-support'
+import { assertNoResultErrors, queryDocument, runE2eFixture } from '@skmtc/test-support'
 import type { OpenAPIV3 } from 'openapi-types'
 import springEntry from '../src/mod.ts'
-import { assertNoResultErrors } from './results.ts'
 
 const documentObject: OpenAPIV3.Document = {
   openapi: '3.0.0',

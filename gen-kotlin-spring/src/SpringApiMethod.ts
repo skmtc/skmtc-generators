@@ -1,5 +1,5 @@
 import { capitalize, camelCase, decapitalize } from '@skmtc/core'
-import type { GenerateContextType, Method, OasOperation, Stringable } from '@skmtc/core'
+import type { GenerateContextType, OasOperation, Stringable } from '@skmtc/core'
 import {
   KtAnnotation,
   KtFunctionSignature,
@@ -9,7 +9,13 @@ import {
 } from '@skmtc/lang-kotlin'
 import { toKotlinValue } from '@skmtc/gen-kotlin-jackson'
 import denoJson from '../deno.json' with { type: 'json' }
-import { HTTP_PACKAGE, WEB_BIND_ANNOTATION_PACKAGE, WEB_SERVER_PACKAGE } from './lib.ts'
+import {
+  HTTP_PACKAGE,
+  isSpringMethod,
+  type SpringMethod,
+  WEB_BIND_ANNOTATION_PACKAGE,
+  WEB_SERVER_PACKAGE
+} from './lib.ts'
 
 /**
  * A wire parameter name as a Kotlin one: `Api-Version` → `apiVersion`.
@@ -219,7 +225,7 @@ const toReturnType = (
 type ToMappingAnnotationArgs = {
   context: GenerateContextType
   destinationPath: string
-  method: Method
+  method: SpringMethod
   path: string
 }
 
@@ -268,8 +274,6 @@ const toMappingAnnotation = (
         `method = [RequestMethod.${method.toUpperCase()}]`,
         `path = ["${path}"]`
       ])
-    case 'query':
-      throw new Error(`Unreachable: the entry's isSupported rejects 'query' (${path})`)
     default: {
       const _exhaustive: never = method
       throw new Error(`Unhandled method: ${JSON.stringify(_exhaustive)}`)
@@ -311,6 +315,12 @@ export class SpringApiMethod extends KtSnippet {
   constructor({ context, operation, destinationPath, implementationPath }: SpringApiMethodArgs) {
     super({ context })
 
+    const { method } = operation
+
+    if (!isSpringMethod(method)) {
+      throw new Error(`gen-kotlin-spring: Spring has no request mapping for '${method}' (${operation.path})`)
+    }
+
     const methodName =
       toServiceMethodName(context, operation) ??
       `${operation.method}${capitalize(camelCase(operation.path))}`
@@ -318,7 +328,7 @@ export class SpringApiMethod extends KtSnippet {
     const mappingAnnotation = toMappingAnnotation({
       context,
       destinationPath,
-      method: operation.method,
+      method,
       path: operation.path
     })
 

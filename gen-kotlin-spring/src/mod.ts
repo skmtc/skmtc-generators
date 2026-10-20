@@ -1,6 +1,7 @@
 import { toGeneratorEnrichment, toOasOperationEntry } from '@skmtc/core'
 import { ensureApiErrorSupport } from './apiErrorSupport.ts'
 import { ensureTagApi } from './ensureTagApi.ts'
+import { isSpringMethod } from './lib.ts'
 import { generatorConfigSchema, toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
@@ -28,9 +29,8 @@ import denoJson from '../deno.json' with { type: 'json' }
 export default toOasOperationEntry<EnrichmentSchema>({
   id: denoJson.name,
   toEnrichmentSchema,
-  // Spring has no mapping for the 3.2 `query` method.
   isSupported({ operation }) {
-    return operation.method !== 'query'
+    return isSpringMethod(operation.method)
   },
   transform({ context, operation }) {
     const config = toGeneratorEnrichment(context, denoJson.name, generatorConfigSchema)

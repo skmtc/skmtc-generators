@@ -1,8 +1,34 @@
-import { type OasOperationProjectionConstructorArgs, type TypeSystemValue, collateExamples } from '@skmtc/core'
+import {
+  type OasExample,
+  type OasOperationProjectionConstructorArgs,
+  type TypeSystemValue,
+  collateExamples
+} from '@skmtc/core'
 import { MswBase } from './base.ts'
 import { isEmpty } from '@skmtc/core'
 import { toTsValue, TsNever } from '@skmtc/gen-typescript'
 import type { EnrichmentSchema } from './enrichments.ts'
+
+/** The data a JSON example holds: `dataValue`, then `value`, then the parsed `serializedValue`. */
+const toExampleData = (example: OasExample | undefined): unknown => {
+  if (example?.dataValue !== undefined) {
+    return example.dataValue
+  }
+
+  if (example?.value !== undefined) {
+    return example.value
+  }
+
+  if (example?.serializedValue === undefined) {
+    return undefined
+  }
+
+  try {
+    return JSON.parse(example.serializedValue)
+  } catch {
+    return undefined
+  }
+}
 
 export class MockRoute extends MswBase {
   responseData: unknown
@@ -15,9 +41,9 @@ export class MockRoute extends MswBase {
 
     const response = operation.toSuccessResponse()?.resolve().content?.['application/json']
 
-    const example = Object.values(response?.examples ?? {})[0]?.resolve()
+    const example = toExampleData(Object.values(response?.examples ?? {})[0]?.resolve())
 
-    this.responseData = example?.dataValue ?? example?.value ?? collateExamples({ objectSchema: response?.schema, depth: 0 })
+    this.responseData = example ?? collateExamples({ objectSchema: response?.schema, depth: 0 })
 
     this.requestBodyType =
       operation.toRequestBody(({ schema }) => {

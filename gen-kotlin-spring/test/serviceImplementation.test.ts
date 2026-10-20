@@ -11,7 +11,7 @@ import { StackTrail, toArtifacts } from '@skmtc/core'
 import kotlinEntry from '@skmtc/gen-kotlin-jackson'
 import type { OpenAPIV3 } from 'openapi-types'
 import springEntry from '../src/mod.ts'
-import { assertHasResultError, assertNoResultErrors } from './results.ts'
+import { assertHasResultError, assertNoResultErrors, toDocumentObject } from '@skmtc/test-support'
 
 const documentObject: OpenAPIV3.Document = {
   openapi: '3.0.0',
@@ -226,5 +226,51 @@ Deno.test('a scaffold name colliding with another tag\'s interface fails that su
       'server/src/main/kotlin/com/example/api/DefaultUsersService.generated.kt'
     ),
     false
+  )
+})
+
+Deno.test('a tag with only query operations claims no service name', () => {
+  // `default users` has only a `query` operation, which `isSupported`
+  // rejects, so no `DefaultUsersService` interface exists to collide with.
+  const queryOnlyTagDocument = toDocumentObject(
+    {
+      openapi: '3.2.0',
+      info: { title: 'query-only tag', version: '1.0.0' },
+      paths: {
+        '/users': { get: { tags: ['users'], responses: { '204': { description: 'ok' } } } },
+        '/default-users': {
+          query: { tags: ['default users'], responses: { '204': { description: 'ok' } } }
+        }
+      }
+    },
+    'queryOnlyTagDocument'
+  )
+
+  const { artifacts, manifest } = toArtifacts({
+    traceId: 'gen-kotlin-spring-implementations',
+    spanId: 'query-only-tag',
+    startAt: Date.now(),
+    document: { type: 'oas', value: queryOnlyTagDocument },
+    settings: {
+      basePath: './server/src/main/kotlin',
+      enrichments: {
+        '@skmtc/gen-kotlin-spring': {
+          _generator: { basePackage: 'com.example.api', emitServiceImplementations: true }
+        },
+        '@skmtc/gen-kotlin-jackson': { _generator: { basePackage: 'com.example.models' } }
+      }
+    },
+    stackTrail: new StackTrail([]),
+    silent: true,
+    // @ts-expect-error - entry vs the generic config map (the known variance gap)
+    toGeneratorConfigMap: () => ({ '@skmtc/gen-kotlin-spring': springEntry })
+  })
+
+  assertNoResultErrors(manifest)
+  assertEquals(
+    Object.keys(artifacts).includes(
+      'server/src/main/kotlin/com/example/api/DefaultUsersService.generated.kt'
+    ),
+    true
   )
 })

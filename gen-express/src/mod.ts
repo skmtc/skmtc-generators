@@ -1,15 +1,17 @@
 import invariant from 'tiny-invariant'
 import { ExpressApp } from './ExpressApp.ts'
-import { toOasOperationEntry } from '@skmtc/core'
+import { toOasOperationEntry, type Method } from '@skmtc/core'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
+
+/** The methods Express has an `app.<method>` route method for. */
+const expressMethods: readonly Method[] = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace']
 
 export const expressEntry = toOasOperationEntry<EnrichmentSchema>({
   id: denoJson.name,
   toEnrichmentSchema,
-  // Express has no `app.query` route method for the 3.2 `query` method.
   isSupported({ operation }) {
-    return ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'].includes(operation.method)
+    return expressMethods.includes(operation.method)
   },
   transform: ({ context, operation, variant }) => {
     const enrichments = ExpressApp.toEnrichments({ operation, context, variant })
