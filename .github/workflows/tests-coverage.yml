@@ -75,11 +75,10 @@ jobs:
       working-directory: ${{ matrix.generator }}
       run: deno task test:coverage
 
-    # gen-fetch-example is the generator the docs tell readers to clone, and a
-    # clone keeps its `skmtc/*` lint rules (#56). It lints clean, so a rule
-    # violation in its source fails here instead of reaching every clone.
+    # Every member lints clean with the `skmtc/*` rules, so a rule violation in
+    # any generator fails here. A clone keeps those rules (#56), so this also
+    # stops a violation in a generator from reaching every copy of it.
     - name: Lint ${{ matrix.generator }} with the skmtc rules
-      if: matrix.generator == 'gen-fetch-example'
       working-directory: ${{ matrix.generator }}
       run: deno lint
 

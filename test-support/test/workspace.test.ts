@@ -200,6 +200,24 @@ Deno.test('workspace - every matrix entry runs its tests unconditionally', () =>
   assertEquals([...toSkips('coverage'), ...toSkips('tests-windows')], [])
 })
 
+Deno.test('workspace - every matrix entry lints with the skmtc rules unconditionally', () => {
+  // The lint step once ran for gen-fetch-example only, so a `skmtc/*` rule
+  // violation in any other generator never failed CI.
+  const steps = toJob('coverage').steps
+  assert(Array.isArray(steps), 'coverage.steps must be a list')
+
+  const lintSteps = steps
+    .map((step, index) => toMapping(step, `coverage.steps[${index}]`))
+    .filter(({ run }) => typeof run === 'string' && run.trim() === 'deno lint')
+
+  assertEquals(lintSteps.length, 1, 'coverage must have one step that runs deno lint')
+  assertEquals(
+    ['if', 'continue-on-error'].filter(key => key in lintSteps[0]),
+    [],
+    'the lint step must run for every generator'
+  )
+})
+
 /** Every path filter in every workflow, as `{ file: { event: { filter: patterns } } }`.
  *  Workflows and events without one are left out. */
 const toPathFilters = (): Record<string, Record<string, Mapping>> => {
