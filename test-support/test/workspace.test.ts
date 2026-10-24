@@ -16,7 +16,7 @@ type DenoJson = {
   version?: string
   imports?: Record<string, string>
   workspace?: string[]
-  lint?: { plugins?: string[] }
+  lint?: { plugins?: string[]; rules?: { exclude?: string[] } }
 }
 
 const rootUrl = new URL('../../', import.meta.url)
@@ -168,23 +168,31 @@ const toMatrix = (name: string): string[] => {
   return generator
 }
 
-/** Conditions that would let a matrix entry skip or ignore its tests. */
-const toSkips = (name: string): string[] => {
+/** Conditions that would let a matrix entry skip or ignore the one step whose
+ *  `run` matches `command`, or run it in a directory other than its own. */
+const toSkips = (name: string, command: RegExp): string[] => {
   const job = toJob(name)
 
   const steps = job.steps
   assert(Array.isArray(steps), `${name}.steps must be a list`)
 
-  const testSteps = steps
+  const matched = steps
     .map((step, index) => toMapping(step, `${name}.steps[${index}]`))
-    .filter(({ run }) => typeof run === 'string' && /^deno task test(:coverage)?$/.test(run.trim()))
+    .filter(({ run }) => typeof run === 'string' && command.test(run.trim()))
 
-  assertEquals(testSteps.length, 1, `${name} must have one step that runs the test task`)
+  assertEquals(matched.length, 1, `${name} must have one step that runs ${command}`)
 
-  return [job, ...testSteps].flatMap(entry =>
+  const [step] = matched
+  const directory = step['working-directory'] === '${{ matrix.generator }}'
+    ? []
+    : [`${name}: working-directory: ${step['working-directory']}`]
+
+  return [job, step].flatMap(entry =>
     ['if', 'continue-on-error'].filter(key => key in entry).map(key => `${name}: ${key}: ${entry[key]}`)
-  )
+  ).concat(directory)
 }
+
+const testCommand = /^deno task test(:coverage)?$/
 
 Deno.test('workspace - the Linux and Windows test matrices both list every member', () => {
   // #50: members added to the coverage matrix got no Windows run, so their
@@ -197,25 +205,19 @@ Deno.test('workspace - the Linux and Windows test matrices both list every membe
 })
 
 Deno.test('workspace - every matrix entry runs its tests unconditionally', () => {
-  assertEquals([...toSkips('coverage'), ...toSkips('tests-windows')], [])
+  assertEquals([...toSkips('coverage', testCommand), ...toSkips('tests-windows', testCommand)], [])
 })
 
-Deno.test('workspace - every matrix entry lints with the skmtc rules unconditionally', () => {
+Deno.test('workspace - every matrix entry lints its own member unconditionally', () => {
   // The lint step once ran for gen-fetch-example only, so a `skmtc/*` rule
   // violation in any other generator never failed CI.
-  const steps = toJob('coverage').steps
-  assert(Array.isArray(steps), 'coverage.steps must be a list')
+  assertEquals(toSkips('coverage', /^deno lint$/), [])
+})
 
-  const lintSteps = steps
-    .map((step, index) => toMapping(step, `coverage.steps[${index}]`))
-    .filter(({ run }) => typeof run === 'string' && run.trim() === 'deno lint')
-
-  assertEquals(lintSteps.length, 1, 'coverage must have one step that runs deno lint')
-  assertEquals(
-    ['if', 'continue-on-error'].filter(key => key in lintSteps[0]),
-    [],
-    'the lint step must run for every generator'
-  )
+Deno.test('workspace - no lint rule is excluded at the root', () => {
+  // A clone copies one member's deno.json, not the root's. An exclude at the
+  // root passes CI while every clone of that member fails `deno lint`.
+  assertEquals(root.lint?.rules, undefined)
 })
 
 /** Every path filter in every workflow, as `{ file: { event: { filter: patterns } } }`.

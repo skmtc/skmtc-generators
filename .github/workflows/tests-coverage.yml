@@ -76,8 +76,9 @@ jobs:
       run: deno task test:coverage
 
     # Every member lints clean with the `skmtc/*` rules, so a rule violation in
-    # any generator fails here. A clone keeps those rules (#56), so this also
-    # stops a violation in a generator from reaching every copy of it.
+    # any generator fails here. A clone copies its member's deno.json, rule
+    # excludes included (#56), so the member lints the same way in a copy.
+    # Excludes live in each member, never the root (workspace.test.ts).
     - name: Lint ${{ matrix.generator }} with the skmtc rules
       working-directory: ${{ matrix.generator }}
       run: deno lint
