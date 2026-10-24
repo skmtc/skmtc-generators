@@ -91,6 +91,22 @@ export class Maybe<T extends Stringable, U extends Stringable = T, V extends Str
   }
 
   /**
+   * fp-ts `O.fromPredicate`: builds the value when `value` is present and
+   * `predicate` holds. `build` receives the value with `undefined` and `null`
+   * removed, which `Maybe.when` cannot do.
+   */
+  static fromPredicate<T extends Stringable, U extends Stringable, V extends Stringable = Nothing>(
+    value: T | undefined | null,
+    predicate: (present: T) => boolean,
+    build: (present: T) => U,
+    otherwise?: () => V
+  ): Maybe<T, U, V> {
+    return value !== undefined && value !== null && predicate(value)
+      ? new Maybe(value, build, otherwise)
+      : new Maybe<T, U, V>(undefined, undefined, otherwise)
+  }
+
+  /**
    * fp-ts `NEA.fromArray`: builds the value when `items` has at least one
    * item. `build` receives the list typed as non-empty.
    */

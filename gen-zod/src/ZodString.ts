@@ -52,11 +52,15 @@ export class ZodString extends TsSnippet {
     // generator has never rendered `.max(0)` either.
     this.constraints = new Loop(
       [
-        new Maybe(minLength, value =>
-          Maybe.when(value > 0, () => new ZodConstraint({ context, name: 'min', value }))
+        Maybe.fromPredicate(
+          minLength,
+          value => value > 0,
+          value => new ZodConstraint({ context, name: 'min', value })
         ),
-        new Maybe(maxLength, value =>
-          Maybe.when(value > 0, () => new ZodConstraint({ context, name: 'max', value }))
+        Maybe.fromPredicate(
+          maxLength,
+          value => value > 0,
+          value => new ZodConstraint({ context, name: 'max', value })
         )
       ],
       { separator: '' }
