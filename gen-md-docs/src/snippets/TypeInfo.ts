@@ -49,7 +49,7 @@ export class TypeInfo extends SnippetBase {
           r =>
             new Loop(
               [
-                Maybe.nonEmptyText('format' in r ? r.format : undefined, format => format),
+                Maybe.nonEmptyText('format' in r ? r.format : undefined),
                 Maybe.when('nullable' in r && r.nullable === true, () => 'nullable')
               ],
               { separator: ' ' }

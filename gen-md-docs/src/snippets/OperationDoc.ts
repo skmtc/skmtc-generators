@@ -45,8 +45,8 @@ export class OperationDoc extends SnippetBase {
         new Frontmatter({ context, operation, servers }),
         new Maybe(
           new Loop([
-            Maybe.nonEmptyText(operation.summary?.trim(), text => text),
-            Maybe.nonEmptyText(operation.description?.trim(), text => text)
+            Maybe.nonEmptyText(operation.summary?.trim()),
+            Maybe.nonEmptyText(operation.description?.trim())
           ]),
           () =>
             new Summary({ context, summary: operation.summary, description: operation.description })
@@ -84,10 +84,7 @@ export class OperationDoc extends SnippetBase {
           parameters => new Parameters({ context, title: 'Cookies', parameters, definitions })
         ),
         new Maybe(
-          new Loop([
-            requestContent.schema,
-            Maybe.nonEmptyText(requestBody?.description?.trim(), text => text)
-          ]),
+          new Loop([requestContent.schema, Maybe.nonEmptyText(requestBody?.description?.trim())]),
           () =>
             new Section({
               context,
