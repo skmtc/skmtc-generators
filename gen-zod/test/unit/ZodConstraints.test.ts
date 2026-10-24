@@ -1,5 +1,6 @@
 import { assertEquals } from "@std/assert";
 import { ZodConstraint } from "../../src/ZodConstraints.ts";
+import { Maybe } from "../../src/Maybe.ts";
 import { toGenerateContext } from "../helpers/toGenerateContext.ts";
 
 Deno.test("ZodConstraint - with valid value", () => {
@@ -12,14 +13,20 @@ Deno.test("ZodConstraint - with valid value", () => {
   assertEquals(constraint.toString(), ".min(5)");
 });
 
-Deno.test("ZodConstraint - with undefined value", () => {
-  const constraint = new ZodConstraint({
-    context: toGenerateContext(),
-    name: "min",
-    value: undefined,
+// An absent keyword never builds a ZodConstraint: the Maybe around it renders
+// nothing and its build function does not run.
+Deno.test("ZodConstraint - an absent value builds no constraint", () => {
+  const context = toGenerateContext();
+  const absent: number | undefined = [5, undefined][1];
+  let built = 0;
+
+  const constraint = new Maybe(absent, (value) => {
+    built++;
+    return new ZodConstraint({ context, name: "min", value });
   });
 
   assertEquals(constraint.toString(), "");
+  assertEquals(built, 0);
 });
 
 Deno.test("ZodConstraint - with zero value", () => {

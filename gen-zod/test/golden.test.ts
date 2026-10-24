@@ -90,7 +90,11 @@ const document: OpenAPIV3.Document = {
         properties: { a: { type: 'string' } }
       },
       UnionOneOf: {
-        oneOf: [{ type: 'string' }, { type: 'integer' }, { $ref: '#/components/schemas/StringEnum' }]
+        oneOf: [
+          { type: 'string' },
+          { type: 'integer' },
+          { $ref: '#/components/schemas/StringEnum' }
+        ]
       },
       UnionAnyOf: { anyOf: [{ type: 'boolean' }, { type: 'number', minimum: 0 }] },
       UnionNullable: {

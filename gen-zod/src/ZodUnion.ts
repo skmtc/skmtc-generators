@@ -1,25 +1,37 @@
-import { TsSnippet } from "@skmtc/lang-typescript";
-import type { GenerateContextType, GeneratorKey, Modifiers, OasDiscriminator, OasRef, OasSchema, RefName, TypeSystemValue } from '@skmtc/core'
-import { toZodValue } from "./Zod.ts";
-import { applyModifiers } from "./applyModifiers.ts";
+import { TsSnippet } from '@skmtc/lang-typescript'
+import type {
+  GenerateContextType,
+  GeneratorKey,
+  Modifiers,
+  OasDiscriminator,
+  OasRef,
+  OasSchema,
+  RefName,
+  TypeSystemValue
+} from '@skmtc/core'
+import { toZodValue } from './Zod.ts'
+import { Loop, Wrap } from './Maybe.ts'
+import { ZodModifiers } from './ZodModifiers.ts'
 
 type ZodUnionArgs = {
-  context: GenerateContextType;
-  destinationPath: string;
-  members: (OasSchema | OasRef<"schema">)[];
+  context: GenerateContextType
+  destinationPath: string
+  members: (OasSchema | OasRef<'schema'>)[]
   /** The originating union schema node — for fine-grained attribution. */
-  schema?: OasSchema | OasRef<"schema">;
-  discriminator?: OasDiscriminator;
-  modifiers: Modifiers;
-  generatorKey: GeneratorKey;
-  rootRef?: RefName;
-};
+  schema?: OasSchema | OasRef<'schema'>
+  discriminator?: OasDiscriminator
+  modifiers: Modifiers
+  generatorKey: GeneratorKey
+  rootRef?: RefName
+}
 
 export class ZodUnion extends TsSnippet {
-  type = "union" as const;
-  members: TypeSystemValue[];
-  discriminator: string | undefined;
-  modifiers: Modifiers;
+  type = 'union' as const
+  members: TypeSystemValue[]
+  discriminator: string | undefined
+  modifiers: Modifiers
+  content: Wrap
+  modifierCalls: ZodModifiers
 
   constructor({
     context,
@@ -29,33 +41,34 @@ export class ZodUnion extends TsSnippet {
     discriminator,
     modifiers,
     rootRef,
-    schema,
+    schema
   }: ZodUnionArgs) {
-    super({ context, generatorKey, stackTrail: schema?.stackTrail.clone() });
+    super({ context, generatorKey, stackTrail: schema?.stackTrail.clone() })
 
-    this.members = members.map((member) => {
+    this.members = members.map(member => {
       return toZodValue({
         destinationPath,
         schema: member,
         required: true,
         context,
-        rootRef,
-      });
-    });
+        rootRef
+      })
+    })
 
-    this.discriminator = discriminator?.propertyName;
-    this.modifiers = modifiers;
+    this.discriminator = discriminator?.propertyName
+    this.modifiers = modifiers
+    this.modifierCalls = new ZodModifiers(modifiers)
 
-    this.register({ imports: { zod: ["z"] }, destinationPath });
+    const memberList = new Loop(this.members)
+
+    this.content = this.discriminator
+      ? new Wrap(['z.discriminatedUnion("', this.discriminator, '", [', memberList, '])'])
+      : new Wrap(['z.union([', memberList, '])'])
+
+    this.register({ imports: { zod: ['z'] }, destinationPath })
   }
 
   override toString(): string {
-    const members = this.members.map((member) => `${member}`).join(", ");
-
-    const content = this.discriminator
-      ? `z.discriminatedUnion("${this.discriminator}", [${members}])`
-      : `z.union([${members}])`;
-
-    return applyModifiers(content, this.modifiers);
+    return `${this.content}${this.modifierCalls}`
   }
 }
