@@ -8,8 +8,8 @@ import type {
   RefName,
   TypeSystemValue
 } from '@skmtc/core'
-import { toZodValue } from './Zod.ts'
-import { ZodModifiers } from './ZodModifiers.ts'
+import { toZodValue } from '@/src/Zod.ts'
+import { ZodModifiers } from '@/src/ZodModifiers.ts'
 
 type ZodArrayArgs = {
   context: GenerateContextType

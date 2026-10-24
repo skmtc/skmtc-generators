@@ -1,8 +1,8 @@
 import { assertEquals } from '@std/assert'
 import { OasNumber, OasObject, OasString } from '@skmtc/core'
-import { Section } from '../../src/snippets/Section.ts'
-import { toGenerateContext } from '../helpers/toGenerateContext.ts'
-import { Loop, Maybe } from '../../src/Maybe.ts'
+import { Section } from '@/src/snippets/Section.ts'
+import { toGenerateContext } from '@/test/helpers/toGenerateContext.ts'
+import { Loop, Maybe } from '@/src/Maybe.ts'
 
 Deno.test('Section - renders heading, schema and a collated example', () => {
   const snippet = new Section({

@@ -1,7 +1,7 @@
 import { assertEquals } from '@std/assert'
-import { Enums } from '../../src/snippets/Enums.ts'
-import { Maybe } from '../../src/Maybe.ts'
-import { toGenerateContext } from '../helpers/toGenerateContext.ts'
+import { Enums } from '@/src/snippets/Enums.ts'
+import { Maybe } from '@/src/Maybe.ts'
+import { toGenerateContext } from '@/test/helpers/toGenerateContext.ts'
 
 Deno.test('Enums - renders string values as inline code', () => {
   const snippet = new Enums({

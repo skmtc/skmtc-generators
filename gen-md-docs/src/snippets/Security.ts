@@ -5,7 +5,7 @@ import {
   type OasSecurityScheme,
   type OasRef
 } from '@skmtc/core'
-import { Loop, Maybe, Wrap } from '../Maybe.ts'
+import { Loop, Maybe, Wrap } from '@/src/Maybe.ts'
 
 type SecuritySchemes = Record<string, OasSecurityScheme | OasRef<'securityScheme'>> | undefined
 

@@ -5,10 +5,10 @@ import {
   type OasSchema,
   type OasRef
 } from '@skmtc/core'
-import { Enums } from './Enums.ts'
-import { toConstraints } from './Constraints.ts'
-import { safeResolve } from '../safeResolve.ts'
-import { Loop, Maybe, Wrap } from '../Maybe.ts'
+import { Enums } from '@/src/snippets/Enums.ts'
+import { toConstraints } from '@/src/snippets/Constraints.ts'
+import { safeResolve } from '@/src/safeResolve.ts'
+import { Loop, Maybe, Wrap } from '@/src/Maybe.ts'
 
 type TypeInfoArgs = {
   context: GenerateContextType
@@ -82,24 +82,7 @@ export class TypeInfo extends SnippetBase {
       )
     )
 
-    const constraints = new Maybe(
-      resolved,
-      r =>
-        new Loop(
-          [
-            toConstraints(r),
-            // `default` is typed `unknown`, which is not `Stringable`, so it is
-            // stringified here; `false`, `0` and `''` are real defaults and render.
-            new Maybe(
-              'default' in r && r.default !== undefined && r.default !== null
-                ? String(r.default)
-                : undefined,
-              value => new Wrap(['default: `', value, '`'])
-            )
-          ],
-          { separator: ', ' }
-        )
-    )
+    const constraints = new Maybe(resolved, toConstraints)
 
     this.parts = new Loop(
       [

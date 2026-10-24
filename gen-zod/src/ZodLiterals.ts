@@ -1,4 +1,4 @@
-import { Loop, Wrap } from './Maybe.ts'
+import { Loop, Wrap } from '@/src/Maybe.ts'
 
 type ZodNumericLiteralsArgs = {
   enums: number[] | (number | null)[]

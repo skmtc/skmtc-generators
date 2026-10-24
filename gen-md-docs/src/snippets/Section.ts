@@ -1,10 +1,10 @@
 import { SnippetBase, type GenerateContextType, type OasSchema, type OasRef } from '@skmtc/core'
-import { Schema, type Definitions } from './Schema.ts'
-import { Description } from './Description.ts'
-import { Example } from './Example.ts'
-import { toExample } from '../toExample.ts'
-import { MediaTypes } from '../toContent.ts'
-import { Loop, Maybe, Wrap } from '../Maybe.ts'
+import { Schema, type Definitions } from '@/src/snippets/Schema.ts'
+import { Description } from '@/src/snippets/Description.ts'
+import { Example } from '@/src/snippets/Example.ts'
+import { toExample } from '@/src/toExample.ts'
+import { MediaTypes } from '@/src/toContent.ts'
+import { Loop, Maybe, Wrap } from '@/src/Maybe.ts'
 
 type SectionArgs = {
   context: GenerateContextType

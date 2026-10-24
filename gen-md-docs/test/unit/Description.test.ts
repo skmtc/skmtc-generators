@@ -1,7 +1,7 @@
 import { assertEquals } from '@std/assert'
-import { Description } from '../../src/snippets/Description.ts'
-import { Maybe } from '../../src/Maybe.ts'
-import { toGenerateContext } from '../helpers/toGenerateContext.ts'
+import { Description } from '@/src/snippets/Description.ts'
+import { Maybe } from '@/src/Maybe.ts'
+import { toGenerateContext } from '@/test/helpers/toGenerateContext.ts'
 
 Deno.test('Description - renders the description verbatim', () => {
   const snippet = new Description({

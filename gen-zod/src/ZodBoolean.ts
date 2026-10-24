@@ -1,6 +1,6 @@
 import type { GenerateContextType, GeneratorKey, Modifiers, OasBoolean } from '@skmtc/core'
 import { TsSnippet } from '@skmtc/lang-typescript'
-import { ZodModifiers } from './ZodModifiers.ts'
+import { ZodModifiers } from '@/src/ZodModifiers.ts'
 
 type ZodBooleanArgs = {
   context: GenerateContextType

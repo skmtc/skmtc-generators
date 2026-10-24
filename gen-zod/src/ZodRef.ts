@@ -1,10 +1,10 @@
 import { ModelDriver, toModelGeneratorKey } from '@skmtc/core'
 import { TsSnippet } from '@skmtc/lang-typescript'
 import type { GenerateContextType, Modifiers, OasRef, OasSchema, RefName } from '@skmtc/core'
-import { Wrap } from './Maybe.ts'
-import { ZodModifiers } from './ZodModifiers.ts'
-import { ZodProjection } from './ZodProjection.ts'
-import { zodEntry } from './mod.ts'
+import { Wrap } from '@/src/Maybe.ts'
+import { ZodModifiers } from '@/src/ZodModifiers.ts'
+import { ZodProjection } from '@/src/ZodProjection.ts'
+import { zodEntry } from '@/src/mod.ts'
 type ConstructorProps = {
   context: GenerateContextType
   destinationPath: string

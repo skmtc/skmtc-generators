@@ -9,9 +9,9 @@ import type {
   RefName,
   TypeSystemValue
 } from '@skmtc/core'
-import { toZodValue } from './Zod.ts'
-import { Loop, Maybe, Wrap } from './Maybe.ts'
-import { ZodModifiers } from './ZodModifiers.ts'
+import { toZodValue } from '@/src/Zod.ts'
+import { Loop, Maybe, Wrap } from '@/src/Maybe.ts'
+import { ZodModifiers } from '@/src/ZodModifiers.ts'
 
 type ZodUnionArgs = {
   context: GenerateContextType

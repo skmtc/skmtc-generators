@@ -5,7 +5,7 @@ import {
   type OasRef,
   type OasMediaType
 } from '@skmtc/core'
-import { Loop, Maybe, Wrap } from './Maybe.ts'
+import { Loop, Maybe, Wrap } from '@/src/Maybe.ts'
 
 type Content = {
   mediaTypes: string[]

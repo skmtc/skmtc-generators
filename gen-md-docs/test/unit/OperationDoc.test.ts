@@ -1,7 +1,7 @@
 import { assert, assertEquals } from '@std/assert'
-import { OperationDoc } from '../../src/snippets/OperationDoc.ts'
-import { toGenerateContext } from '../helpers/toGenerateContext.ts'
-import { toParsedDocument } from '../helpers/toParsedDocument.ts'
+import { OperationDoc } from '@/src/snippets/OperationDoc.ts'
+import { toGenerateContext } from '@/test/helpers/toGenerateContext.ts'
+import { toParsedDocument } from '@/test/helpers/toParsedDocument.ts'
 
 Deno.test('OperationDoc - composes the full operation document', () => {
   const parsed = toParsedDocument({

@@ -4,9 +4,9 @@ import {
   type OasSecurityScheme,
   type OasRef
 } from '@skmtc/core'
-import { ExternalDocs, type ExternalDocsData } from './ExternalDocs.ts'
-import { safeResolve } from '../safeResolve.ts'
-import { Loop, Maybe, Wrap } from '../Maybe.ts'
+import { ExternalDocs, type ExternalDocsData } from '@/src/snippets/ExternalDocs.ts'
+import { safeResolve } from '@/src/safeResolve.ts'
+import { Loop, Maybe, Wrap } from '@/src/Maybe.ts'
 
 export type IndexEntry = {
   /** Every tag on the operation (for the JSON catalog). */

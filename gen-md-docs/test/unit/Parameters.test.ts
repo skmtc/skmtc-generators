@@ -1,8 +1,8 @@
 import { assertEquals } from '@std/assert'
 import { OasInteger, OasObject, OasParameter, OasString } from '@skmtc/core'
-import { Parameters } from '../../src/snippets/Parameters.ts'
-import { toGenerateContext } from '../helpers/toGenerateContext.ts'
-import { Maybe } from '../../src/Maybe.ts'
+import { Parameters } from '@/src/snippets/Parameters.ts'
+import { toGenerateContext } from '@/test/helpers/toGenerateContext.ts'
+import { Maybe } from '@/src/Maybe.ts'
 
 Deno.test('Parameters - renders a heading and a parameter with its description', () => {
   const snippet = new Parameters({

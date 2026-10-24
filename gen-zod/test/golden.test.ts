@@ -7,7 +7,7 @@
 import { assertEquals } from '@std/assert'
 import { runE2eFixture } from '@skmtc/test-support'
 import type { OpenAPIV3 } from 'openapi-types'
-import { zodEntry } from '../src/mod.ts'
+import { zodEntry } from '@/src/mod.ts'
 
 const document: OpenAPIV3.Document = {
   openapi: '3.0.0',

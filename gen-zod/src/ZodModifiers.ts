@@ -1,5 +1,5 @@
 import type { Modifiers } from '@skmtc/core'
-import { Loop, Maybe } from './Maybe.ts'
+import { Loop, Maybe } from '@/src/Maybe.ts'
 
 /**
  * The modifier calls appended to a Zod expression: `.nullable()` when the

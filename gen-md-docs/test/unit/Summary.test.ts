@@ -1,6 +1,6 @@
 import { assertEquals } from '@std/assert'
-import { Summary } from '../../src/snippets/Summary.ts'
-import { toGenerateContext } from '../helpers/toGenerateContext.ts'
+import { Summary } from '@/src/snippets/Summary.ts'
+import { toGenerateContext } from '@/test/helpers/toGenerateContext.ts'
 
 Deno.test('Summary - renders the summary as a heading above the description', () => {
   const snippet = new Summary({

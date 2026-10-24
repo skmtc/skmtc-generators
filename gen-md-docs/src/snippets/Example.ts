@@ -1,6 +1,6 @@
 import { SnippetBase, type GenerateContextType } from '@skmtc/core'
-import { Maybe, Wrap } from '../Maybe.ts'
-import type { CollatedExample } from '../toExample.ts'
+import { Maybe, Wrap } from '@/src/Maybe.ts'
+import type { CollatedExample } from '@/src/toExample.ts'
 
 type ExampleArgs = {
   context: GenerateContextType

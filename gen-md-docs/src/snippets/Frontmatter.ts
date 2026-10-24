@@ -1,5 +1,5 @@
 import { SnippetBase, type GenerateContextType, type OasOperation } from '@skmtc/core'
-import { Loop, Maybe, Wrap } from '../Maybe.ts'
+import { Loop, Maybe, Wrap } from '@/src/Maybe.ts'
 
 type FrontmatterArgs = {
   context: GenerateContextType

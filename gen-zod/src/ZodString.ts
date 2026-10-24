@@ -6,9 +6,9 @@ import type {
   OasString,
   Stringable
 } from '@skmtc/core'
-import { Loop, Maybe, Wrap } from './Maybe.ts'
-import { ZodConstraint } from './ZodConstraints.ts'
-import { ZodModifiers } from './ZodModifiers.ts'
+import { Loop, Maybe, Wrap } from '@/src/Maybe.ts'
+import { ZodConstraint } from '@/src/ZodConstraints.ts'
+import { ZodModifiers } from '@/src/ZodModifiers.ts'
 
 type ZodStringArgs = {
   context: GenerateContextType

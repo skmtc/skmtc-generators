@@ -7,11 +7,11 @@ import {
   type OasObject,
   type RefName
 } from '@skmtc/core'
-import { Name } from './Name.ts'
-import { TypeInfo } from './TypeInfo.ts'
-import { ExternalDocs } from './ExternalDocs.ts'
-import { safeResolve } from '../safeResolve.ts'
-import { Loop, Maybe, Wrap } from '../Maybe.ts'
+import { Name } from '@/src/snippets/Name.ts'
+import { TypeInfo } from '@/src/snippets/TypeInfo.ts'
+import { ExternalDocs } from '@/src/snippets/ExternalDocs.ts'
+import { safeResolve } from '@/src/safeResolve.ts'
+import { Loop, Maybe, Wrap } from '@/src/Maybe.ts'
 
 type SchemaArgs = {
   context: GenerateContextType

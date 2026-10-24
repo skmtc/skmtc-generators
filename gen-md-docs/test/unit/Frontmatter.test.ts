@@ -1,7 +1,7 @@
 import { assert, assertEquals } from '@std/assert'
-import { Frontmatter } from '../../src/snippets/Frontmatter.ts'
-import { toGenerateContext } from '../helpers/toGenerateContext.ts'
-import { toParsedDocument } from '../helpers/toParsedDocument.ts'
+import { Frontmatter } from '@/src/snippets/Frontmatter.ts'
+import { toGenerateContext } from '@/test/helpers/toGenerateContext.ts'
+import { toParsedDocument } from '@/test/helpers/toParsedDocument.ts'
 
 Deno.test('Frontmatter - emits queryable metadata for a full operation', () => {
   const parsed = toParsedDocument({

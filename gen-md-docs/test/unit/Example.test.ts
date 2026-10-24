@@ -1,6 +1,6 @@
 import { assertEquals } from '@std/assert'
-import { Example } from '../../src/snippets/Example.ts'
-import { toGenerateContext } from '../helpers/toGenerateContext.ts'
+import { Example } from '@/src/snippets/Example.ts'
+import { toGenerateContext } from '@/test/helpers/toGenerateContext.ts'
 
 Deno.test('Example - renders an object as a fenced json block', () => {
   const snippet = new Example({

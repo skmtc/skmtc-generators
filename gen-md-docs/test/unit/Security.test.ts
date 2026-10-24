@@ -1,9 +1,9 @@
 import { assert, assertEquals } from '@std/assert'
-import { Security } from '../../src/snippets/Security.ts'
-import { Maybe } from '../../src/Maybe.ts'
+import { Security } from '@/src/snippets/Security.ts'
+import { Maybe } from '@/src/Maybe.ts'
 import type { OasSecurityRequirement } from '@skmtc/core'
-import { toGenerateContext } from '../helpers/toGenerateContext.ts'
-import { toParsedDocument } from '../helpers/toParsedDocument.ts'
+import { toGenerateContext } from '@/test/helpers/toGenerateContext.ts'
+import { toParsedDocument } from '@/test/helpers/toParsedDocument.ts'
 
 Deno.test('Security - lists requirements with scheme kind and scopes', () => {
   const parsed = toParsedDocument({

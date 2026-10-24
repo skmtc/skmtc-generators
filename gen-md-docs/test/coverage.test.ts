@@ -5,9 +5,13 @@
  */
 import { assert, assertEquals, assertExists } from '@std/assert'
 import type { OasOperation } from '@skmtc/core'
-import { kitchenSinkBasePath, kitchenSinkDocument, runKitchenSink } from './helpers/kitchenSink.ts'
-import { toParsedDocument } from './helpers/toParsedDocument.ts'
-import { toDocsExportPath } from '../src/paths.ts'
+import {
+  kitchenSinkBasePath,
+  kitchenSinkDocument,
+  runKitchenSink
+} from '@/test/helpers/kitchenSink.ts'
+import { toParsedDocument } from '@/test/helpers/toParsedDocument.ts'
+import { toDocsExportPath } from '@/src/paths.ts'
 
 const parsed = toParsedDocument(kitchenSinkDocument)
 

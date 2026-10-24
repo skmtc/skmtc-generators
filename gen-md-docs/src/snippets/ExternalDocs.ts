@@ -1,5 +1,5 @@
 import { SnippetBase, type GenerateContextType } from '@skmtc/core'
-import { Wrap } from '../Maybe.ts'
+import { Wrap } from '@/src/Maybe.ts'
 
 /** The bits of an OpenAPI `externalDocs` object we render (core doesn't export the type). */
 export type ExternalDocsData = {

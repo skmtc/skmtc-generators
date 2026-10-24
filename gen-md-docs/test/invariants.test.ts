@@ -7,8 +7,8 @@
  */
 import { assertEquals } from '@std/assert'
 import { StackTrail, toArtifacts } from '@skmtc/core'
-import { mdDocsEntry } from '../src/mod.ts'
-import { runKitchenSink } from './helpers/kitchenSink.ts'
+import { mdDocsEntry } from '@/src/mod.ts'
+import { runKitchenSink } from '@/test/helpers/kitchenSink.ts'
 import {
   checkAll,
   checkAnchorLinks,
@@ -16,7 +16,7 @@ import {
   checkFrontmatter,
   checkIndexIntegrity,
   checkJsonExamples
-} from './helpers/invariants.ts'
+} from '@/test/helpers/invariants.ts'
 
 const { artifacts } = runKitchenSink()
 

@@ -1,6 +1,6 @@
 import { SnippetBase, type GenerateContextType } from '@skmtc/core'
-import { Description } from './Description.ts'
-import { Loop, Maybe, Wrap } from '../Maybe.ts'
+import { Description } from '@/src/snippets/Description.ts'
+import { Loop, Maybe, Wrap } from '@/src/Maybe.ts'
 
 type SummaryArgs = {
   context: GenerateContextType

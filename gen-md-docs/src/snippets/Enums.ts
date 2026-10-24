@@ -1,5 +1,5 @@
 import { SnippetBase, type GenerateContextType } from '@skmtc/core'
-import { Loop, Wrap } from '../Maybe.ts'
+import { Loop, Wrap } from '@/src/Maybe.ts'
 
 type EnumsArgs = {
   context: GenerateContextType

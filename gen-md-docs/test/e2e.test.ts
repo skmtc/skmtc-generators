@@ -5,7 +5,7 @@
 import { assertEquals } from '@std/assert'
 import { StackTrail, toArtifacts } from '@skmtc/core'
 import type { OpenAPIV3 } from 'openapi-types'
-import { mdDocsEntry } from '../src/mod.ts'
+import { mdDocsEntry } from '@/src/mod.ts'
 
 const documentObject: OpenAPIV3.Document = {
   openapi: '3.0.0',

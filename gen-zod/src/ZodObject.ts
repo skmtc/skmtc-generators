@@ -14,10 +14,10 @@ import type {
   TypeSystemRecord,
   TypeSystemValue
 } from '@skmtc/core'
-import { toZodValue } from './Zod.ts'
-import { Loop, Maybe, Wrap } from './Maybe.ts'
-import { ZodModifiers } from './ZodModifiers.ts'
-import { ZodUnknown } from './ZodUnknown.ts'
+import { toZodValue } from '@/src/Zod.ts'
+import { Loop, Maybe, Wrap } from '@/src/Maybe.ts'
+import { ZodModifiers } from '@/src/ZodModifiers.ts'
+import { ZodUnknown } from '@/src/ZodUnknown.ts'
 
 type ZodObjectProps = {
   context: GenerateContextType

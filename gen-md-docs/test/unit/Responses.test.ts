@@ -1,9 +1,9 @@
 import { assert, assertEquals } from '@std/assert'
-import { Responses } from '../../src/snippets/Responses.ts'
-import { Definitions } from '../../src/snippets/Schema.ts'
-import { toGenerateContext } from '../helpers/toGenerateContext.ts'
-import { toParsedDocument } from '../helpers/toParsedDocument.ts'
-import { Maybe } from '../../src/Maybe.ts'
+import { Responses } from '@/src/snippets/Responses.ts'
+import { Definitions } from '@/src/snippets/Schema.ts'
+import { toGenerateContext } from '@/test/helpers/toGenerateContext.ts'
+import { toParsedDocument } from '@/test/helpers/toParsedDocument.ts'
+import { Maybe } from '@/src/Maybe.ts'
 
 Deno.test('Responses - renders every status code with description and schema', () => {
   const parsed = toParsedDocument({

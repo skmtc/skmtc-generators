@@ -4,7 +4,7 @@
  * with `deno task test:update` (then review the diff before committing).
  */
 import { assertEquals } from '@std/assert'
-import { runKitchenSink } from './helpers/kitchenSink.ts'
+import { runKitchenSink } from '@/test/helpers/kitchenSink.ts'
 
 const goldenUrl = new URL('./golden/kitchen-sink.txt', import.meta.url)
 const goldenDir = new URL('./golden/', import.meta.url)

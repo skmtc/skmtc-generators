@@ -1,6 +1,6 @@
 import { assertEquals } from '@std/assert'
-import { TopIndex, TagIndex, Catalog, type IndexEntry } from '../../src/snippets/DocsIndex.ts'
-import { toGenerateContext } from '../helpers/toGenerateContext.ts'
+import { TopIndex, TagIndex, Catalog, type IndexEntry } from '@/src/snippets/DocsIndex.ts'
+import { toGenerateContext } from '@/test/helpers/toGenerateContext.ts'
 
 const entry = (over: Partial<IndexEntry>): IndexEntry => ({
   tags: ['pets'],

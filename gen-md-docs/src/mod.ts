@@ -5,11 +5,17 @@ import {
   type OasOperation,
   type Stringable
 } from '@skmtc/core'
-import { OperationDoc } from './snippets/OperationDoc.ts'
-import { TopIndex, TagIndex, Catalog, type IndexEntry, type Server } from './snippets/DocsIndex.ts'
-import { toDocsExportPath } from './paths.ts'
-import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
-import denoJson from '../deno.json' with { type: 'json' }
+import { OperationDoc } from '@/src/snippets/OperationDoc.ts'
+import {
+  TopIndex,
+  TagIndex,
+  Catalog,
+  type IndexEntry,
+  type Server
+} from '@/src/snippets/DocsIndex.ts'
+import { toDocsExportPath } from '@/src/paths.ts'
+import { toEnrichmentSchema, type EnrichmentSchema } from '@/src/enrichments.ts'
+import denoJson from '@/deno.json' with { type: 'json' }
 
 const topIndexPath = '@/docs/index.md'
 const catalogPath = '@/docs/index.json'

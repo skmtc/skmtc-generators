@@ -1,5 +1,5 @@
 import { SnippetBase, type GenerateContextType, type OasInteger, type OasNumber } from '@skmtc/core'
-import { Loop, Maybe } from './Maybe.ts'
+import { Loop, Maybe } from '@/src/Maybe.ts'
 
 type ZodConstraintArgs = {
   context: GenerateContextType

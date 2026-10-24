@@ -1,11 +1,11 @@
 import { SnippetBase, type GenerateContextType, type OasParameter } from '@skmtc/core'
-import { Name } from './Name.ts'
-import { Schema, type Definitions } from './Schema.ts'
-import { Example } from './Example.ts'
-import { toExample } from '../toExample.ts'
-import { toContent, MediaTypes } from '../toContent.ts'
-import { safeResolve } from '../safeResolve.ts'
-import { Loop, Maybe, Wrap } from '../Maybe.ts'
+import { Name } from '@/src/snippets/Name.ts'
+import { Schema, type Definitions } from '@/src/snippets/Schema.ts'
+import { Example } from '@/src/snippets/Example.ts'
+import { toExample } from '@/src/toExample.ts'
+import { toContent, MediaTypes } from '@/src/toContent.ts'
+import { safeResolve } from '@/src/safeResolve.ts'
+import { Loop, Maybe, Wrap } from '@/src/Maybe.ts'
 
 type ParametersArgs = {
   context: GenerateContextType

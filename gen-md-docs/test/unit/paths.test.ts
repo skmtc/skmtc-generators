@@ -1,6 +1,6 @@
 import { assert, assertEquals } from '@std/assert'
-import { toDocsExportPath } from '../../src/paths.ts'
-import { toParsedDocument } from '../helpers/toParsedDocument.ts'
+import { toDocsExportPath } from '@/src/paths.ts'
+import { toParsedDocument } from '@/test/helpers/toParsedDocument.ts'
 
 Deno.test('toDocsExportPath - camelCased path segments, method last, grouped by first tag', () => {
   const parsed = toParsedDocument({

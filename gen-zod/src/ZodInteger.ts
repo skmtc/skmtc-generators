@@ -6,10 +6,10 @@ import type {
   OasInteger,
   Stringable
 } from '@skmtc/core'
-import { Maybe, Wrap } from './Maybe.ts'
-import { ZodNumericConstraints } from './ZodConstraints.ts'
-import { ZodNumericLiterals } from './ZodLiterals.ts'
-import { ZodModifiers } from './ZodModifiers.ts'
+import { Maybe, Wrap } from '@/src/Maybe.ts'
+import { ZodNumericConstraints } from '@/src/ZodConstraints.ts'
+import { ZodNumericLiterals } from '@/src/ZodLiterals.ts'
+import { ZodModifiers } from '@/src/ZodModifiers.ts'
 
 type ZodIntegerArgs = {
   context: GenerateContextType

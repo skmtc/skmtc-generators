@@ -1,6 +1,6 @@
 import { StackTrail, toArtifacts } from '@skmtc/core'
 import type { OpenAPIV3 } from 'openapi-types'
-import { mdDocsEntry } from '../../src/mod.ts'
+import { mdDocsEntry } from '@/src/mod.ts'
 
 export const kitchenSinkBasePath = 'api'
 

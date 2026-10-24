@@ -1,9 +1,9 @@
 import { assert, assertEquals, assertExists } from '@std/assert'
 import { OasArray, OasNumber, OasObject, OasString, OasUnion } from '@skmtc/core'
-import { Definitions, Schema } from '../../src/snippets/Schema.ts'
-import { toGenerateContext } from '../helpers/toGenerateContext.ts'
-import { toParsedDocument } from '../helpers/toParsedDocument.ts'
-import { Loop, Maybe } from '../../src/Maybe.ts'
+import { Definitions, Schema } from '@/src/snippets/Schema.ts'
+import { toGenerateContext } from '@/test/helpers/toGenerateContext.ts'
+import { toParsedDocument } from '@/test/helpers/toParsedDocument.ts'
+import { Loop, Maybe } from '@/src/Maybe.ts'
 
 Deno.test('Schema - renders a named scalar with its description', () => {
   const snippet = new Schema({
