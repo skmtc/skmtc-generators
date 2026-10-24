@@ -8,8 +8,6 @@ import type {
 } from '@skmtc/core'
 import { StringInput } from './fields/StringInput.ts'
 import { CustomInput } from './fields/CustomInput.ts'
-import ShadcnSelectInput from '@skmtc/gen-shadcn-select'
-import invariant from 'tiny-invariant'
 import { Table } from './fields/Table.ts'
 import { ObjectInput } from './fields/ObjectInput.ts'
 import { SelectInput } from './fields/SelectInput.ts'
@@ -191,26 +189,4 @@ export const getLabel = ({ schema, name }: GetLabelArgs): string | undefined => 
     ? schema.resolve().extensionFields?.['x-label']
     : schema.extensionFields?.['x-label']
   return typeof label === 'string' ? label : undefined
-}
-
-type GetReferencedOperationArgs = {
-  references: string
-  context: GenerateContextType
-}
-
-const getReferencedOperation = ({ context, references }: GetReferencedOperationArgs) => {
-  invariant(
-    context.document.type === 'oas',
-    `Expected OAS document for shadcn-form reference '${references}'`
-  )
-  const operation = context.document.value.operations.find(operation => {
-    return (
-      operation.tags?.includes(references) &&
-      ShadcnSelectInput.isSupported({ context, operation, variant: 'main' })
-    )
-  })
-
-  invariant(operation, `Operation '${operation?.method} ${operation?.path}' not found`)
-
-  return operation
 }

@@ -46,35 +46,35 @@ export class ValibotUnion extends TsSnippet {
   override toString(): string {
     const members = this.members.map(member => `${member}`).join(', ')
 
-    const content = this.discriminator ? this.buildVariantUnion() : `v.union([${members}])`
+    const content = this.discriminator
+      ? toVariantUnion(this.discriminator, this.members)
+      : `v.union([${members}])`
 
     return applyModifiers(content, this.modifiers)
   }
+}
 
-  private buildVariantUnion(): string {
-    if (!this.discriminator) return `v.union([${this.members.join(', ')}])`
+const toVariantUnion = (discriminator: string, members: TypeSystemValue[]): string => {
+  // Extract discriminator values from each member
+  const variants: Record<string, string> = {}
 
-    // Extract discriminator values from each member
-    const variants: Record<string, string> = {}
+  members.forEach(member => {
+    const memberStr = member.toString()
 
-    this.members.forEach(member => {
-      const memberStr = member.toString()
+    // Try to extract the discriminator value from the member string
+    // This is a simplified approach - in a real implementation you might need more sophisticated parsing
+    const literalMatch = memberStr.match(
+      new RegExp(`${discriminator}: v\\.literal\\("([^"]+)"\\)`)
+    )
+    if (literalMatch) {
+      const value = literalMatch[1]
+      variants[value] = memberStr
+    }
+  })
 
-      // Try to extract the discriminator value from the member string
-      // This is a simplified approach - in a real implementation you might need more sophisticated parsing
-      const literalMatch = memberStr.match(
-        new RegExp(`${this.discriminator}: v\\.literal\\("([^"]+)"\\)`)
-      )
-      if (literalMatch) {
-        const value = literalMatch[1]
-        variants[value] = memberStr
-      }
-    })
+  const variantEntries = Object.entries(variants)
+    .map(([key, value]) => `${key}: ${value}`)
+    .join(', ')
 
-    const variantEntries = Object.entries(variants)
-      .map(([key, value]) => `${key}: ${value}`)
-      .join(', ')
-
-    return `v.variant("${this.discriminator}", {${variantEntries}})`
-  }
+  return `v.variant("${discriminator}", {${variantEntries}})`
 }

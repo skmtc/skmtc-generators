@@ -1,7 +1,7 @@
 import type { GenerateContextType, OasOperation } from '@skmtc/core'
-import { SpringServiceInterface } from './SpringServiceInterface.ts'
-import { SpringControllerClass } from './SpringControllerClass.ts'
-import { SpringServiceImplementationClass } from './SpringServiceImplementation.ts'
+import type { SpringServiceInterface } from './SpringServiceInterface.ts'
+import type { SpringControllerClass } from './SpringControllerClass.ts'
+import type { SpringServiceImplementationClass } from './SpringServiceImplementation.ts'
 import { SpringApiMethod } from './SpringApiMethod.ts'
 
 type SpringTagApiArgs = {

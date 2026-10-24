@@ -4,7 +4,7 @@ import {
   type OasSecurityScheme,
   type OasRef
 } from '@skmtc/core'
-import { type ExternalDocsData } from './ExternalDocs.ts'
+import type { ExternalDocsData } from './ExternalDocs.ts'
 import { safeResolve } from '../safeResolve.ts'
 
 export type IndexEntry = {

@@ -1,6 +1,6 @@
 import type { GenerateContextType } from '@skmtc/core'
 import { KtAnnotation, KtFunctionSignature, KtSnippet } from '@skmtc/lang-kotlin'
-import { HTTP_PACKAGE, WEB_BIND_ANNOTATION_PACKAGE, WEB_SERVER_PACKAGE } from './lib.ts'
+import { WEB_BIND_ANNOTATION_PACKAGE } from './lib.ts'
 
 /**
  * The `@RestControllerAdvice` that turns a `ResponseStatusException` —

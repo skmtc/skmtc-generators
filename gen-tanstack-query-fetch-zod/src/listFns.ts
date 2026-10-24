@@ -49,7 +49,7 @@ export const isListResponse = (operation: OasOperation) => {
     const itemType = schema?.resolve().type
 
     return itemType === 'object'
-  } catch (error) {
+  } catch {
     return false
   }
 }

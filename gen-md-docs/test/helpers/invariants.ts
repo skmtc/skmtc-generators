@@ -1,4 +1,4 @@
-import { parse as parseYaml } from 'jsr:@std/yaml@^1.0.0'
+import { parse as parseYaml } from '@std/yaml'
 
 type Artifacts = Record<string, string>
 

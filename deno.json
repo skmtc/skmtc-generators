@@ -65,6 +65,11 @@
   "lint": {
     "plugins": [
       "jsr:@skmtc/lint-plugin@0.1.0"
-    ]
+    ],
+    "rules": {
+      "exclude": [
+        "no-slow-types"
+      ]
+    }
   }
 }

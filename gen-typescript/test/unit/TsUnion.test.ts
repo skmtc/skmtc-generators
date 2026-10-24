@@ -1,4 +1,4 @@
-import { assertEquals } from 'jsr:@std/assert@^1.0.0'
+import { assertEquals } from '@std/assert'
 import { TsUnion } from '../../src/TsUnion.ts'
 import { toGeneratorOnlyKey, OasString, OasNumber, OasBoolean, OasDiscriminator } from '@skmtc/core'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'

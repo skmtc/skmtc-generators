@@ -1,4 +1,4 @@
-import { assertEquals } from 'jsr:@std/assert@^1.0.0'
+import { assertEquals } from '@std/assert'
 import { ValibotInteger } from '../../src/ValibotInteger.ts'
 import { OasInteger } from '@skmtc/core'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'

@@ -5,7 +5,7 @@
  * kitchen-sink fixture, and — with `LIVE=1` and `--allow-net` — over the full
  * GitHub REST spec to exercise the same invariants at scale.
  */
-import { assertEquals } from 'jsr:@std/assert@^1.0.0'
+import { assertEquals } from '@std/assert'
 import { StackTrail, toArtifacts } from '@skmtc/core'
 import { mdDocsEntry } from '../src/mod.ts'
 import { runKitchenSink } from './helpers/kitchenSink.ts'

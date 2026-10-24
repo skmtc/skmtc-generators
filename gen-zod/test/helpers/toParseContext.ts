@@ -1,6 +1,6 @@
 import { ParseContext } from "@skmtc/core";
 import type { OpenAPIV3 } from "openapi-types";
-import * as log from "jsr:@std/log@^0.224.0";
+import * as log from "@std/log";
 
 type ToParseContextArgs = {
   schemas?: Record<string, OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject>;

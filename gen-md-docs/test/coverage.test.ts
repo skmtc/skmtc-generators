@@ -3,7 +3,7 @@
  * every operation is documented (or a recorded error), every response status
  * appears, and a request body documents every field.
  */
-import { assert, assertEquals, assertExists } from 'jsr:@std/assert@^1.0.0'
+import { assert, assertEquals, assertExists } from '@std/assert'
 import type { OasOperation } from '@skmtc/core'
 import { kitchenSinkBasePath, kitchenSinkDocument, runKitchenSink } from './helpers/kitchenSink.ts'
 import { toParsedDocument } from './helpers/toParsedDocument.ts'

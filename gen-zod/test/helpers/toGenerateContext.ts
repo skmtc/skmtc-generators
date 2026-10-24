@@ -1,6 +1,6 @@
 import { GenerateContext, OasDocument } from "@skmtc/core";
 import type { SkmtcParsedDocument } from "@skmtc/core";
-import * as log from "jsr:@std/log@0.224/logger";
+import * as log from "@std/log/logger";
 import { zodEntry } from "../../src/mod.ts";
 
 type ToGenerateContextArgs = {

@@ -1,21 +1,18 @@
-import { assertEquals } from 'jsr:@std/assert@^1.0.0'
+import { assertEquals } from '@std/assert'
 import { TsInteger } from '../../src/TsInteger.ts'
-import { OasInteger } from '@skmtc/core'
+import { OasInteger, toGeneratorOnlyKey } from '@skmtc/core'
+import { toGenerateContext } from '../helpers/toGenerateContext.ts'
 
-// Mock context for unit tests
-const mockContext = {
-  trace: (_name: string, fn: () => any) => fn(),
-  stackTrail: { slice: () => '' }
-} as any
+const context = toGenerateContext()
 
-const mockGeneratorKey = { generatorId: '@skmtc/gen-typescript', type: 'generator' } as any
+const generatorKey = toGeneratorOnlyKey({ generatorId: '@skmtc/gen-typescript' })
 
 Deno.test('TsInteger - basic integer type', () => {
   const tsInteger = new TsInteger({
-    context: mockContext,
+    context,
     integerSchema: new OasInteger(),
     modifiers: { required: true },
-    generatorKey: mockGeneratorKey
+    generatorKey
   })
 
   assertEquals(tsInteger.toString(), 'number')
@@ -23,10 +20,10 @@ Deno.test('TsInteger - basic integer type', () => {
 
 Deno.test('TsInteger - with format', () => {
   const tsInteger = new TsInteger({
-    context: mockContext,
+    context,
     integerSchema: new OasInteger({ format: 'int32' }),
     modifiers: { required: true },
-    generatorKey: mockGeneratorKey
+    generatorKey
   })
 
   assertEquals(tsInteger.toString(), 'number')
@@ -34,10 +31,10 @@ Deno.test('TsInteger - with format', () => {
 
 Deno.test('TsInteger - nullable integer', () => {
   const tsInteger = new TsInteger({
-    context: mockContext,
+    context,
     integerSchema: new OasInteger(),
     modifiers: { required: true, nullable: true },
-    generatorKey: mockGeneratorKey
+    generatorKey
   })
 
   assertEquals(tsInteger.toString(), 'number | null')
@@ -45,10 +42,10 @@ Deno.test('TsInteger - nullable integer', () => {
 
 Deno.test('TsInteger - optional integer', () => {
   const tsInteger = new TsInteger({
-    context: mockContext,
+    context,
     integerSchema: new OasInteger(),
     modifiers: { required: false },
-    generatorKey: mockGeneratorKey
+    generatorKey
   })
 
   assertEquals(tsInteger.toString(), 'number | undefined')

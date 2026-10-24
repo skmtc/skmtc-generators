@@ -1,4 +1,4 @@
-import { assertEquals } from 'jsr:@std/assert@^1.0.0'
+import { assertEquals } from '@std/assert'
 import { toSchemaV3, StackTrail } from '@skmtc/core'
 import { toValibotValue } from '../src/Valibot.ts'
 import type { OpenAPIV3 } from 'openapi-types'

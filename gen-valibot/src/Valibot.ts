@@ -10,7 +10,6 @@ import { ValibotInteger } from './ValibotInteger.ts'
 import { ValibotBoolean } from './ValibotBoolean.ts'
 import { ValibotVoid } from './ValibotVoid.ts'
 import { ValibotUnknown } from './ValibotUnknown.ts'
-import { ValibotNull } from './ValibotNull.ts'
 import { toGeneratorOnlyKey, toRefName } from '@skmtc/core'
 import { valibotEntry } from './mod.ts'
 

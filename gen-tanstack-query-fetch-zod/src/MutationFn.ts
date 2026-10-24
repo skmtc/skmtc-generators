@@ -1,5 +1,5 @@
-// @deno-types="npm:@types/babel__helper-validator-identifier@7.15.2"
-import { isIdentifierName } from 'npm:@babel/helper-validator-identifier@7.22.20'
+// @deno-types="@types/babel__helper-validator-identifier"
+import { isIdentifierName } from '@babel/helper-validator-identifier'
 import { handleKey, List, FunctionParameter, toPathTemplate, type ListObject } from '@skmtc/lang-typescript'
 import { capitalize, camelCase, OasVoid, decapitalize } from '@skmtc/core'
 import type { OasOperationProjectionConstructorArgs, Stringable } from '@skmtc/core'

@@ -1,6 +1,6 @@
-import { assertEquals } from 'jsr:@std/assert@^1.0.0'
+import { assertEquals } from '@std/assert'
 import { ValibotObject } from '../../src/ValibotObject.ts'
-import { OasObject, OasString, OasNumber, OasUnknown } from '@skmtc/core'
+import { OasObject, OasString, OasNumber } from '@skmtc/core'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
 import { toGeneratorOnlyKey } from '@skmtc/core'
 
