@@ -6,7 +6,7 @@ import type {
   OasInteger,
   Stringable
 } from '@skmtc/core'
-import { Wrap } from './Maybe.ts'
+import { Maybe, Wrap } from './Maybe.ts'
 import { ZodNumericConstraints } from './ZodConstraints.ts'
 import { ZodNumericLiterals } from './ZodLiterals.ts'
 import { ZodModifiers } from './ZodModifiers.ts'
@@ -35,9 +35,11 @@ export class ZodInteger extends TsSnippet {
     this.modifiers = modifiers
     this.modifierCalls = new ZodModifiers(modifiers)
 
-    this.content = schema.enums
-      ? new ZodNumericLiterals({ enums: schema.enums })
-      : new Wrap(['z.number().int()', new ZodNumericConstraints({ context, schema })])
+    this.content = new Maybe(
+      schema.enums,
+      enums => new ZodNumericLiterals({ enums }),
+      () => new Wrap(['z.number().int()', new ZodNumericConstraints({ context, schema })])
+    )
 
     this.register({ imports: { zod: ['z'] }, destinationPath })
   }

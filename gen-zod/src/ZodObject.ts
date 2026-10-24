@@ -78,10 +78,19 @@ export class ZodObject extends TsSnippet {
 
     // Properties and additionalProperties together intersect; either alone
     // renders as itself; neither is an empty object.
-    this.content =
-      objectProperties && recordProperties
-        ? new Wrap([objectProperties, '.and(', recordProperties, ')'])
-        : (recordProperties ?? objectProperties ?? 'z.object({})')
+    switch (true) {
+      case objectProperties !== null && recordProperties !== null:
+        this.content = new Wrap([objectProperties, '.and(', recordProperties, ')'])
+        break
+      case recordProperties !== null:
+        this.content = recordProperties
+        break
+      case objectProperties !== null:
+        this.content = objectProperties
+        break
+      default:
+        this.content = 'z.object({})'
+    }
 
     this.register({ imports: { zod: ['z'] }, destinationPath })
   }
@@ -152,7 +161,7 @@ class ZodProperty {
   value: TypeSystemValue
 
   constructor({ key, value }: ZodPropertyArgs) {
-    const quote = new Maybe(/[^a-zA-Z0-9_$]|^\d/.test(key), () => '"')
+    const quote = Maybe.when(/[^a-zA-Z0-9_$]|^\d/.test(key), () => '"')
 
     this.key = new Wrap([quote, key, quote])
     this.value = value

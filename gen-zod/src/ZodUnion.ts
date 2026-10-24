@@ -10,7 +10,7 @@ import type {
   TypeSystemValue
 } from '@skmtc/core'
 import { toZodValue } from './Zod.ts'
-import { Loop, Wrap } from './Maybe.ts'
+import { Loop, Maybe, Wrap } from './Maybe.ts'
 import { ZodModifiers } from './ZodModifiers.ts'
 
 type ZodUnionArgs = {
@@ -30,7 +30,7 @@ export class ZodUnion extends TsSnippet {
   members: TypeSystemValue[]
   discriminator: string | undefined
   modifiers: Modifiers
-  content: Wrap
+  content: Maybe<true, Wrap, Wrap>
   modifierCalls: ZodModifiers
 
   constructor({
@@ -61,9 +61,11 @@ export class ZodUnion extends TsSnippet {
 
     const memberList = new Loop(this.members)
 
-    this.content = this.discriminator
-      ? new Wrap(['z.discriminatedUnion("', this.discriminator, '", [', memberList, '])'])
-      : new Wrap(['z.union([', memberList, '])'])
+    this.content = Maybe.nonEmptyText(
+      this.discriminator,
+      propertyName => new Wrap(['z.discriminatedUnion("', propertyName, '", [', memberList, '])']),
+      () => new Wrap(['z.union([', memberList, '])'])
+    )
 
     this.register({ imports: { zod: ['z'] }, destinationPath })
   }

@@ -35,26 +35,31 @@ export class ZodString extends TsSnippet {
     this.modifiers = modifiers
     this.modifierCalls = new ZodModifiers(modifiers)
 
-    const { enums } = stringSchema
+    const { enums, minLength, maxLength } = stringSchema
     const literals = new Loop(enums?.map(value => `"${value}"`))
 
-    this.content =
-      enums?.length === 1
-        ? new Wrap(['z.literal(', literals, ')'])
-        : enums
-          ? new Wrap(['z.enum([', literals, '])'])
-          : 'z.string()'
+    // One value is a literal, several an enum; no enums is a plain string.
+    this.content = new Maybe(
+      enums,
+      values =>
+        values.length === 1
+          ? new Wrap(['z.literal(', literals, ')'])
+          : new Wrap(['z.enum([', literals, '])']),
+      () => 'z.string()'
+    )
 
-    // A zero length bound is not rendered (`.min(0)` is a no-op), so `0`
-    // counts as absent here.
+    // Length bounds render only when positive: `.min(0)` is a no-op, and the
+    // generator has never rendered `.max(0)` either.
     this.constraints = new Loop(
       [
-        new Maybe(
-          stringSchema.minLength || undefined,
+        Maybe.fromPredicate(
+          minLength,
+          value => value > 0,
           value => new ZodConstraint({ context, name: 'min', value })
         ),
-        new Maybe(
-          stringSchema.maxLength || undefined,
+        Maybe.fromPredicate(
+          maxLength,
+          value => value > 0,
           value => new ZodConstraint({ context, name: 'max', value })
         )
       ],
