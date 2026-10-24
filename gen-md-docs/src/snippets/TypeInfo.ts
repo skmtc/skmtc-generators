@@ -6,6 +6,7 @@ import {
   type OasRef
 } from '@skmtc/core'
 import { Enums } from './Enums.ts'
+import { toConstraints } from './Constraints.ts'
 import { safeResolve } from '../safeResolve.ts'
 import { Loop, Maybe, Wrap } from '../Maybe.ts'
 
@@ -28,9 +29,11 @@ type TypeInfoArgs = {
  * `` `string` required (min length: 3, pattern: `^[a-z]+$`) ``.
  *
  * Each optional part is a `Maybe` keyed on the schema field it reads, so an
- * absent field drops out of the space- or comma-separated `Loop` around it. The
- * remaining branches are `'field' in schema` checks: the fields live on only
- * some members of the `OasSchema` union.
+ * absent field drops out of the space- or comma-separated `Loop` around it.
+ * Type-specific constraints come from {@link toConstraints}, which reads each
+ * field from a schema known to have it. The remaining `'field' in schema`
+ * checks are annotations that only some members of the `OasSchema` union
+ * declare.
  */
 export class TypeInfo extends SnippetBase {
   parts: Loop
@@ -84,57 +87,7 @@ export class TypeInfo extends SnippetBase {
       r =>
         new Loop(
           [
-            new Maybe(
-              'minLength' in r ? r.minLength : undefined,
-              v => new Wrap(['min length: ', v])
-            ),
-            new Maybe(
-              'maxLength' in r ? r.maxLength : undefined,
-              v => new Wrap(['max length: ', v])
-            ),
-            new Maybe(
-              'pattern' in r ? r.pattern : undefined,
-              v => new Wrap(['pattern: `', v, '`'])
-            ),
-            new Maybe(
-              'minimum' in r ? r.minimum : undefined,
-              v =>
-                new Wrap([
-                  'minimum: ',
-                  v,
-                  Maybe.when(
-                    'exclusiveMinimum' in r && r.exclusiveMinimum === true,
-                    () => ' (exclusive)'
-                  )
-                ])
-            ),
-            new Maybe(
-              'maximum' in r ? r.maximum : undefined,
-              v =>
-                new Wrap([
-                  'maximum: ',
-                  v,
-                  Maybe.when(
-                    'exclusiveMaximum' in r && r.exclusiveMaximum === true,
-                    () => ' (exclusive)'
-                  )
-                ])
-            ),
-            new Maybe(
-              'multipleOf' in r ? r.multipleOf : undefined,
-              v => new Wrap(['multiple of: ', v])
-            ),
-            new Maybe('minItems' in r ? r.minItems : undefined, v => new Wrap(['min items: ', v])),
-            new Maybe('maxItems' in r ? r.maxItems : undefined, v => new Wrap(['max items: ', v])),
-            Maybe.when('uniqueItems' in r && r.uniqueItems === true, () => 'unique items'),
-            new Maybe(
-              'minProperties' in r ? r.minProperties : undefined,
-              v => new Wrap(['min properties: ', v])
-            ),
-            new Maybe(
-              'maxProperties' in r ? r.maxProperties : undefined,
-              v => new Wrap(['max properties: ', v])
-            ),
+            toConstraints(r),
             // `default` is typed `unknown`, which is not `Stringable`, so it is
             // stringified here; `false`, `0` and `''` are real defaults and render.
             new Maybe(
