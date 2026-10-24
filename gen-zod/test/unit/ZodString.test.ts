@@ -1,4 +1,4 @@
-import { assertEquals } from "jsr:@std/assert@^1.0.0";
+import { assertEquals } from "@std/assert";
 import { ZodString } from "../../src/ZodString.ts";
 import { OasString } from "@skmtc/core";
 import { toGenerateContext } from "../helpers/toGenerateContext.ts";

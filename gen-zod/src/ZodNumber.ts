@@ -1,4 +1,4 @@
-import { type GenerateContextType, type GeneratorKey, type Modifiers, type OasNumber } from '@skmtc/core'
+import type { GenerateContextType, GeneratorKey, Modifiers, OasNumber } from '@skmtc/core'
 import { TsSnippet, List } from '@skmtc/lang-typescript'
 import { applyModifiers } from "./applyModifiers.ts";
 import { ZodConstraint } from "./ZodConstraints.ts";

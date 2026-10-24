@@ -1,4 +1,4 @@
-import { assert, assertEquals } from 'jsr:@std/assert@^1.0.0'
+import { assert, assertEquals } from '@std/assert'
 import { Responses } from '../../src/snippets/Responses.ts'
 import { Definitions } from '../../src/snippets/Schema.ts'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'

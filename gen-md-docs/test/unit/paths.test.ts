@@ -1,4 +1,4 @@
-import { assert, assertEquals } from 'jsr:@std/assert@^1.0.0'
+import { assert, assertEquals } from '@std/assert'
 import { toDocsExportPath } from '../../src/paths.ts'
 import { toParsedDocument } from '../helpers/toParsedDocument.ts'
 

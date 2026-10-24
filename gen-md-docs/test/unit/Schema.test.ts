@@ -1,4 +1,4 @@
-import { assert, assertEquals, assertExists } from 'jsr:@std/assert@^1.0.0'
+import { assert, assertEquals, assertExists } from '@std/assert'
 import { OasArray, OasNumber, OasObject, OasString, OasUnion } from '@skmtc/core'
 import { Definitions, Schema } from '../../src/snippets/Schema.ts'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'

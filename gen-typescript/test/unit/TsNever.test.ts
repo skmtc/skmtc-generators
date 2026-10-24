@@ -1,18 +1,12 @@
-import { assertEquals } from 'jsr:@std/assert@^1.0.0'
+import { assertEquals } from '@std/assert'
 import { TsNever } from '../../src/TsNever.ts'
-
-// Mock context for unit tests
-const mockContext = {
-  trace: (_name: string, fn: () => any) => fn(),
-  stackTrail: { slice: () => '' }
-} as any
-
-const mockGeneratorKey = { generatorId: '@skmtc/gen-typescript', type: 'generator' } as any
+import { toGeneratorOnlyKey } from '@skmtc/core'
+import { toGenerateContext } from '../helpers/toGenerateContext.ts'
 
 Deno.test('TsNever - basic never type', () => {
   const tsNever = new TsNever({
-    context: mockContext,
-    generatorKey: mockGeneratorKey
+    context: toGenerateContext(),
+    generatorKey: toGeneratorOnlyKey({ generatorId: '@skmtc/gen-typescript' })
   })
   
   assertEquals(tsNever.toString(), 'never')

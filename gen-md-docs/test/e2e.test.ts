@@ -2,7 +2,7 @@
  * End-to-end gate: a full Parse → Generate → Render run over a fixture schema
  * through the real pipeline, pinning the generated Markdown byte-for-byte.
  */
-import { assertEquals } from 'jsr:@std/assert@^1.0.0'
+import { assertEquals } from '@std/assert'
 import { StackTrail, toArtifacts } from '@skmtc/core'
 import type { OpenAPIV3 } from 'openapi-types'
 import { mdDocsEntry } from '../src/mod.ts'

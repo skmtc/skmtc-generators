@@ -6,7 +6,9 @@
     "@skmtc/gen-zod": "jsr:@skmtc/gen-zod@0.2.10",
     "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.2.10",
     "@skmtc/core": "jsr:@skmtc/core@0.30.1",
-    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.12.26"
+    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.12.26",
+    "@babel/helper-validator-identifier": "npm:@babel/helper-validator-identifier@7.22.20",
+    "@types/babel__helper-validator-identifier": "npm:@types/babel__helper-validator-identifier@7.15.2"
   },
   "tasks": {
     "test": "deno test --allow-env --allow-sys --allow-read",
@@ -19,6 +21,12 @@
   "lint": {
     "plugins": [
       "jsr:@skmtc/lint-plugin@0.1.0"
-    ]
+    ],
+    "rules": {
+      "exclude": [
+        "no-slow-types",
+        "skmtc/single-dispatch"
+      ]
+    }
   }
 }

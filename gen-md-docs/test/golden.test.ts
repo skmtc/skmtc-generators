@@ -3,7 +3,7 @@
  * so any change to a rendered document surfaces as a reviewable diff. Regenerate
  * with `deno task test:update` (then review the diff before committing).
  */
-import { assertEquals } from 'jsr:@std/assert@^1.0.0'
+import { assertEquals } from '@std/assert'
 import { runKitchenSink } from './helpers/kitchenSink.ts'
 
 const goldenUrl = new URL('./golden/kitchen-sink.txt', import.meta.url)

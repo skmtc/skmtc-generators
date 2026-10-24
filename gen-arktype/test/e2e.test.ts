@@ -6,7 +6,7 @@
  * the import header. A `$ref` renders as a bare identifier, so the only proof
  * that it resolves is the `import { … }` line the engine stitched in beside it.
  */
-import { assertEquals } from 'jsr:@std/assert@^1.0.0'
+import { assertEquals } from '@std/assert'
 import { runFixture } from './helpers/fixture.ts'
 
 Deno.test('e2e - every model lands in its own file', () => {

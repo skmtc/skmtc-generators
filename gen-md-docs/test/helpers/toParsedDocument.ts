@@ -1,6 +1,6 @@
 import { ParseContext, StackTrail, type SkmtcParsedDocument } from '@skmtc/core'
 import type { OpenAPIV3 } from 'openapi-types'
-import * as log from 'jsr:@std/log@0.224/logger'
+import * as log from '@std/log/logger'
 
 /**
  * Parse a raw OpenAPI document through `ParseContext` into a resolved

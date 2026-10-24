@@ -1,4 +1,4 @@
-import { assertEquals } from 'jsr:@std/assert@^1.0.0'
+import { assertEquals } from '@std/assert'
 import { OasArray, OasObject, OasString } from '@skmtc/core'
 import { TypeInfo } from '../../src/snippets/TypeInfo.ts'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'

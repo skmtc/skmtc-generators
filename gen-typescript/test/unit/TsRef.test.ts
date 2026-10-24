@@ -1,4 +1,4 @@
-import { assertEquals } from 'jsr:@std/assert@^1.0.0'
+import { assertEquals } from '@std/assert'
 import { TsRef } from '../../src/TsRef.ts'
 import { OasRef, type RefName, StackTrail } from '@skmtc/core'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'

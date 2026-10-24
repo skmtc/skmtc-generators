@@ -43,7 +43,7 @@ export const isListResponse = (operation: OasOperation) => {
     const { schema } = toListKeyAndItem(operation)
 
     return Boolean(schema)
-  } catch (error) {
+  } catch {
     return false
   }
 }

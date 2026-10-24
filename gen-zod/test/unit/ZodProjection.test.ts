@@ -1,4 +1,4 @@
-import { assert, assertEquals } from "jsr:@std/assert@^1.0.0";
+import { assert, assertEquals } from "@std/assert";
 import { ZodProjection } from "../../src/ZodProjection.ts";
 import { type RefName, StackTrail } from "@skmtc/core";
 import { toGenerateContext } from "../helpers/toGenerateContext.ts";
