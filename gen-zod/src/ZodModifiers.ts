@@ -11,7 +11,10 @@ export class ZodModifiers {
 
   constructor({ nullable, required }: Modifiers) {
     this.calls = new Loop(
-      [new Maybe(nullable, () => '.nullable()'), new Maybe(!required, () => '.optional()')],
+      [
+        Maybe.when(nullable === true, () => '.nullable()'),
+        Maybe.when(required !== true, () => '.optional()')
+      ],
       { separator: '' }
     )
   }
