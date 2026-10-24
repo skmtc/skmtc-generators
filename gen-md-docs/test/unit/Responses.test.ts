@@ -3,6 +3,7 @@ import { Responses } from '../../src/snippets/Responses.ts'
 import { Definitions } from '../../src/snippets/Schema.ts'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
 import { toParsedDocument } from '../helpers/toParsedDocument.ts'
+import { Maybe } from '../../src/Maybe.ts'
 
 Deno.test('Responses - renders every status code with description and schema', () => {
   const parsed = toParsedDocument({
@@ -14,7 +15,9 @@ Deno.test('Responses - renders every status code with description and schema', (
           responses: {
             '200': {
               description: 'A list of pets',
-              content: { 'application/json': { schema: { type: 'array', items: { type: 'string' } } } }
+              content: {
+                'application/json': { schema: { type: 'array', items: { type: 'string' } } }
+              }
             },
             '404': { description: 'Not found' }
           }
@@ -36,18 +39,21 @@ Deno.test('Responses - renders every status code with description and schema', (
   // Both codes documented; the no-content 404 renders heading-only.
   assertEquals(
     responses.toString(),
-    [
-      '## Responses',
-      '### `200` — A list of pets',
-      '`string[]`',
-      '### `404` — Not found'
-    ].join('\n\n')
+    ['## Responses', '### `200` — A list of pets', '`string[]`', '### `404` — Not found'].join(
+      '\n\n'
+    )
   )
 })
 
-Deno.test('Responses - renders the empty string when there are no responses', () => {
+// Responses always renders; the operation builds it only when it declares
+// responses (an empty list is absent).
+Deno.test('Responses - no section is built when there are no responses', () => {
   const context = toGenerateContext()
-  const responses = new Responses({ context, responses: {}, definitions: new Definitions({ context }) })
+  const declared = {}
+  const responses = new Maybe(
+    Object.values(declared),
+    () => new Responses({ context, responses: declared, definitions: new Definitions({ context }) })
+  )
 
   assertEquals(responses.toString(), '')
 })
@@ -62,7 +68,9 @@ Deno.test('Responses - surfaces a non-JSON content type and its schema', () => {
           responses: {
             '200': {
               description: 'The file',
-              content: { 'application/octet-stream': { schema: { type: 'string', format: 'binary' } } }
+              content: {
+                'application/octet-stream': { schema: { type: 'string', format: 'binary' } }
+              }
             }
           }
         }

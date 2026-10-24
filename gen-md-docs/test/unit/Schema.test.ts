@@ -3,6 +3,7 @@ import { OasArray, OasNumber, OasObject, OasString, OasUnion } from '@skmtc/core
 import { Definitions, Schema } from '../../src/snippets/Schema.ts'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
 import { toParsedDocument } from '../helpers/toParsedDocument.ts'
+import { Loop, Maybe } from '../../src/Maybe.ts'
 
 Deno.test('Schema - renders a named scalar with its description', () => {
   const snippet = new Schema({
@@ -138,7 +139,10 @@ Deno.test('Schema - renders numeric range with read-only and deprecated flags', 
     required: false
   })
 
-  assertEquals(snippet.toString(), '**age** `number` deprecated read-only (minimum: 0, maximum: 120)')
+  assertEquals(
+    snippet.toString(),
+    '**age** `number` deprecated read-only (minimum: 0, maximum: 120)'
+  )
 })
 
 Deno.test('Schema - an unresolvable $ref degrades to a plain name with no definition', () => {
@@ -163,15 +167,24 @@ Deno.test('Schema - an unresolvable $ref degrades to a plain name with no defini
   assertExists(bodyRef)
 
   const context = toGenerateContext({ oasDocument: parsed })
-  const definitions = new Definitions({ context })
+  const entries = new Loop([], { separator: '\n\n' })
+  const definitions = new Definitions({ context, entries })
 
   // No crash: the dangling ref renders as a plain name, with no anchor link.
-  const body = new Schema({ context, name: undefined, schema: bodyRef, required: false, definitions })
+  const body = new Schema({
+    context,
+    name: undefined,
+    schema: bodyRef,
+    required: false,
+    definitions
+  })
   assertEquals(body.toString(), '`Missing`')
 
-  // And it is never registered, so no broken definition is emitted.
+  // And it is never registered, so the owner's section (keyed on the entries)
+  // is not rendered and no broken definition is emitted.
   definitions.build()
-  assertEquals(definitions.toString(), '')
+  assertEquals(entries.isEmpty(), true)
+  assertEquals(new Maybe(entries, () => definitions).toString(), '')
 })
 
 Deno.test('Schema - renders a $ref by name; Definitions defines it once, cycle-safe', () => {
@@ -208,7 +221,13 @@ Deno.test('Schema - renders a $ref by name; Definitions defines it once, cycle-s
   const definitions = new Definitions({ context })
 
   // In the body, the ref is a leaf — its name, linked to its definition.
-  const body = new Schema({ context, name: undefined, schema: bodyRef, required: false, definitions })
+  const body = new Schema({
+    context,
+    name: undefined,
+    schema: bodyRef,
+    required: false,
+    definitions
+  })
   assertEquals(body.toString(), '[`Node`](#node)')
 
   // Its type is defined once; the recursive `next` links back (no loop).

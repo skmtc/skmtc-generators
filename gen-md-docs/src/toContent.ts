@@ -5,10 +5,12 @@ import {
   type OasRef,
   type OasMediaType
 } from '@skmtc/core'
-import { Loop, Maybe, Wrap } from './Maybe.ts'
+import { Loop, Wrap } from './Maybe.ts'
 
 type Content = {
   mediaTypes: string[]
+  /** The media types worth annotating: none for no media types or the plain single `application/json`. */
+  listedMediaTypes: string[]
   schema: OasSchema | OasRef<'schema'> | undefined
 }
 
@@ -26,7 +28,10 @@ export const toContent = (content: Record<string, OasMediaType> | undefined): Co
     content?.['application/json']?.schema ??
     (first !== undefined ? content?.[first]?.schema : undefined)
 
-  return { mediaTypes, schema }
+  const plain =
+    mediaTypes.length === 0 || (mediaTypes.length === 1 && mediaTypes[0] === 'application/json')
+
+  return { mediaTypes, listedMediaTypes: plain ? [] : mediaTypes, schema }
 }
 
 type MediaTypesArgs = {
@@ -36,28 +41,23 @@ type MediaTypesArgs = {
 
 /**
  * The content-type annotation, e.g. ``Content types: `text/csv`, `application/json` ``.
- * Nothing for no media types or the plain single `application/json`.
+ * Always renders: a parent builds it through
+ * `new Maybe(content.listedMediaTypes, types => new MediaTypes(…))`, which is
+ * empty for no media types or the plain single `application/json`.
  */
 export class MediaTypes extends SnippetBase {
-  content: Maybe<boolean, Wrap>
+  annotation: Wrap
 
   constructor({ context, mediaTypes }: MediaTypesArgs) {
     super({ context })
 
-    const plain =
-      mediaTypes.length === 0 || (mediaTypes.length === 1 && mediaTypes[0] === 'application/json')
-
-    this.content = new Maybe(
-      !plain,
-      () =>
-        new Wrap([
-          mediaTypes.length === 1 ? 'Content type: ' : 'Content types: ',
-          new Loop(mediaTypes.map(type => new Wrap(['`', type, '`'])))
-        ])
-    )
+    this.annotation = new Wrap([
+      mediaTypes.length === 1 ? 'Content type: ' : 'Content types: ',
+      new Loop(mediaTypes.map(type => new Wrap(['`', type, '`'])))
+    ])
   }
 
   override toString(): string {
-    return `${this.content}`
+    return `${this.annotation}`
   }
 }

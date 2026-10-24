@@ -12,7 +12,7 @@ type SecuritySchemes = Record<string, OasSecurityScheme | OasRef<'securityScheme
 
 type SecurityArgs = {
   context: GenerateContextType
-  security: OasSecurityRequirement[] | undefined
+  security: OasSecurityRequirement[]
   securitySchemes: SecuritySchemes
 }
 
@@ -21,27 +21,26 @@ type SecurityArgs = {
  * requirement (alternatives are OR-ed; schemes within a requirement are AND-ed),
  * each naming its scheme(s), the scheme kind and any required scopes. The
  * required scopes are among the highest-value details for an agent making an
- * authorised call. Renders the empty string when no security applies — a public
- * operation, or a document that declares none.
+ * authorized call. Always renders: the operation builds it only when security
+ * applies, with `new Maybe(operation.security ?? document?.security, security => new Security(…))`,
+ * so a public operation, or a document that declares none, has no section.
  */
 export class Security extends SnippetBase {
-  content: Maybe<Loop, Wrap>
+  requirements: Loop
 
   constructor({ context, security, securitySchemes }: SecurityArgs) {
     super({ context })
 
-    const requirements = new Loop(
-      (security ?? []).map(
+    this.requirements = new Loop(
+      security.map(
         requirement => new Wrap(['- ', new Requirement({ context, requirement, securitySchemes })])
       ),
       { separator: '\n' }
     )
-
-    this.content = new Maybe(requirements, loop => new Wrap(['## Security\n\n', loop]))
   }
 
   override toString(): string {
-    return `${this.content}`
+    return `## Security\n\n${this.requirements}`
   }
 }
 

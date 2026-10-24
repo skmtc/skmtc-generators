@@ -2,6 +2,7 @@ import { assertEquals } from '@std/assert'
 import { OasNumber, OasObject, OasString } from '@skmtc/core'
 import { Section } from '../../src/snippets/Section.ts'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
+import { Loop, Maybe } from '../../src/Maybe.ts'
 
 Deno.test('Section - renders heading, schema and a collated example', () => {
   const snippet = new Section({
@@ -39,15 +40,18 @@ Deno.test('Section - renders a description without a schema', () => {
   assertEquals(snippet.toString(), '## Response\n\nPet found.')
 })
 
-Deno.test('Section - renders the empty string with neither schema nor description', () => {
-  const snippet = new Section({
-    context: toGenerateContext(),
-    title: 'Request body',
-    schema: undefined,
-    description: undefined
-  })
+// A Section always renders; the operation builds one only when there is a
+// schema or a non-blank description.
+const toSection = (schema: OasString | undefined, description: string | undefined) =>
+  new Maybe(
+    new Loop([schema, description?.trim()]),
+    () => new Section({ context: toGenerateContext(), title: 'Request body', schema, description })
+  )
 
-  assertEquals(snippet.toString(), '')
+Deno.test('Section - not built with neither schema nor description', () => {
+  assertEquals(toSection(undefined, undefined).toString(), '')
+  assertEquals(toSection(undefined, '  ').toString(), '')
+  assertEquals(toSection(undefined, 'Pet to add.').toString(), '## Request body\n\nPet to add.')
 })
 
 Deno.test('Section - annotates a non-JSON content type, but not plain application/json', () => {
@@ -63,13 +67,14 @@ Deno.test('Section - annotates a non-JSON content type, but not plain applicatio
     '## Request body\n\nContent type: `application/octet-stream`\n\n`string` binary'
   )
 
-  // A plain single application/json is left unannotated.
+  // A plain single application/json is left unannotated: `toContent` lists no
+  // media types for it, so the section receives an empty list.
   const json = new Section({
     context: toGenerateContext(),
     title: 'Request body',
     schema: new OasString({}),
     description: undefined,
-    mediaTypes: ['application/json']
+    mediaTypes: []
   })
   assertEquals(json.toString(), '## Request body\n\n`string`')
 })

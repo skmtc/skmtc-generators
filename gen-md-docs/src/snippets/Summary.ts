@@ -11,15 +11,19 @@ type SummaryArgs = {
 /**
  * Renders an operation's title and description — the Markdown counterpart of the
  * docs viewer's `OperationSummary`. The summary renders as a level-one heading;
- * the description follows as a paragraph. Either may be absent.
+ * the description follows as a paragraph.
+ *
+ * Either part may be absent, but not both: the parent builds a `Summary` only
+ * when there is something to show, with
+ * `new Maybe(new Loop([summary?.trim(), description?.trim()]), () => new Summary(…))`.
  */
 export class Summary extends SnippetBase {
-  content: Loop
+  parts: Loop
 
   constructor({ context, summary, description }: SummaryArgs) {
     super({ context })
 
-    this.content = new Loop(
+    this.parts = new Loop(
       [
         new Maybe(summary?.trim(), present => new Wrap(['# ', present])),
         new Maybe(
@@ -32,6 +36,6 @@ export class Summary extends SnippetBase {
   }
 
   override toString(): string {
-    return `${this.content}`
+    return `${this.parts}`
   }
 }

@@ -72,10 +72,14 @@ export class TypeInfo extends SnippetBase {
       { separator: ' ' }
     )
 
-    const enums = new Enums({
-      context,
-      enums: resolved !== undefined && 'enums' in resolved ? resolved.enums : undefined
-    })
+    const enums = new Maybe(
+      resolved,
+      r =>
+        new Maybe(
+          'enums' in r ? r.enums : undefined,
+          values => new Enums({ context, enums: values })
+        )
+    )
 
     const constraints = new Maybe(resolved, r => {
       const defaultValue = 'default' in r ? r.default : undefined
@@ -140,7 +144,7 @@ export class TypeInfo extends SnippetBase {
           ? new Wrap(['`', type, '`'])
           : new Wrap(['[`', type, '`](#', anchor, ')']),
         modifiers,
-        enums.content,
+        enums,
         new Maybe(constraints, c => new Wrap(['(', c, ')']))
       ],
       { separator: ' ' }

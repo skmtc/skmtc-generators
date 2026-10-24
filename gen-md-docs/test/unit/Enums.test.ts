@@ -1,5 +1,6 @@
 import { assertEquals } from '@std/assert'
 import { Enums } from '../../src/snippets/Enums.ts'
+import { Maybe } from '../../src/Maybe.ts'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
 
 Deno.test('Enums - renders string values as inline code', () => {
@@ -20,20 +21,13 @@ Deno.test('Enums - renders non-string values via String()', () => {
   assertEquals(snippet.toString(), '(`1`, `2`, `true`)')
 })
 
-Deno.test('Enums - renders the empty string when there are no enums', () => {
-  const snippet = new Enums({
-    context: toGenerateContext(),
-    enums: undefined
-  })
+// Enums always renders; the parent decides presence. Missing or empty allowed
+// values (an empty array is absent) are never built.
+const toEnums = (enums: readonly unknown[] | undefined) =>
+  new Maybe(enums, values => new Enums({ context: toGenerateContext(), enums: values }))
 
-  assertEquals(snippet.toString(), '')
-})
-
-Deno.test('Enums - renders the empty string for an empty array', () => {
-  const snippet = new Enums({
-    context: toGenerateContext(),
-    enums: []
-  })
-
-  assertEquals(snippet.toString(), '')
+Deno.test('Enums - missing or empty allowed values are not built by the parent', () => {
+  assertEquals(toEnums(undefined).toString(), '')
+  assertEquals(toEnums([]).toString(), '')
+  assertEquals(toEnums(['active']).toString(), '(`active`)')
 })

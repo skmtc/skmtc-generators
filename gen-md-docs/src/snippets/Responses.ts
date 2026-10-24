@@ -25,27 +25,26 @@ type ResponsesArgs = {
  * code, with its description, schema and a collated example. Documenting the
  * error responses (their status codes and schemas), not just the success one,
  * is the highest-value content for an agent generating request and error
- * handling. Renders the empty string when the operation declares no responses.
+ * handling. Always renders: the operation builds it only when it declares
+ * responses, with `new Maybe(Object.values(responses), () => new Responses(…))`.
  */
 export class Responses extends SnippetBase {
-  content: Maybe<Loop, Wrap>
+  entries: Loop
 
   constructor({ context, responses, definitions }: ResponsesArgs) {
     super({ context })
 
-    const entries = new Loop(
+    this.entries = new Loop(
       Object.entries(responses).map(
         ([code, response]) =>
           new ResponseEntry({ context, code, response: safeResolve(response), definitions })
       ),
       { separator: '\n\n' }
     )
-
-    this.content = new Maybe(entries, loop => new Wrap(['## Responses\n\n', loop]))
   }
 
   override toString(): string {
-    return `${this.content}`
+    return `## Responses\n\n${this.entries}`
   }
 }
 
@@ -97,7 +96,10 @@ class ResponseEntry extends SnippetBase {
           '`',
           new Maybe(response?.description?.trim(), text => new Wrap([' — ', text]))
         ]),
-        new MediaTypes({ context, mediaTypes: content.mediaTypes }).content,
+        new Maybe(
+          content.listedMediaTypes,
+          types => new MediaTypes({ context, mediaTypes: types })
+        ),
         new Maybe(
           content.schema,
           schema =>
@@ -105,7 +107,7 @@ class ResponseEntry extends SnippetBase {
         ),
         new Maybe(headers, loop => new Wrap(['**Headers**\n\n', loop])),
         new Maybe(links, loop => new Wrap(['**Links**\n\n', loop])),
-        new Example({ context, example: toExample(content.schema) }).content
+        new Maybe(toExample(content.schema), example => new Example({ context, example }))
       ],
       { separator: '\n\n' }
     )
@@ -142,7 +144,7 @@ class Header extends SnippetBase {
           })
         : new Loop(
             [
-              new Name({ context, name }).content,
+              new Maybe(name, present => new Name({ context, name: present })),
               new Maybe(header.description?.trim(), text => new Wrap(['— ', text]))
             ],
             { separator: ' ' }
@@ -174,7 +176,7 @@ class Link extends SnippetBase {
 
     this.content = new Loop(
       [
-        new Name({ context, name }).content,
+        new Maybe(name, present => new Name({ context, name: present })),
         new Maybe(link.operationId ?? link.operationRef, target => new Wrap(['→ `', target, '`'])),
         new Maybe(link.description?.trim(), text => new Wrap(['— ', text]))
       ],

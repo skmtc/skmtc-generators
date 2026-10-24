@@ -100,7 +100,7 @@ export class TopIndex extends SnippetBase {
         new Wrap(['# ', title]),
         new Maybe(version, value => new Wrap(['> Version ', value, '.'])),
         new Maybe(description),
-        new ExternalDocs({ context, externalDocs }).content,
+        new Maybe(externalDocs, docs => new ExternalDocs({ context, externalDocs: docs })),
         new Maybe(serverLines, loop => new Wrap(['## Servers\n\n', loop])),
         new Maybe(schemeLines, loop => new Wrap(['## Authentication\n\n', loop])),
         new Loop(
@@ -177,7 +177,7 @@ export class TagIndex extends SnippetBase {
       [
         new Wrap(['# ', tag]),
         new Maybe(description),
-        new ExternalDocs({ context, externalDocs }).content,
+        new Maybe(externalDocs, docs => new ExternalDocs({ context, externalDocs: docs })),
         this.links
       ],
       { separator: '\n\n' }

@@ -5,32 +5,28 @@ import { toGenerateContext } from '../helpers/toGenerateContext.ts'
 Deno.test('Example - renders an object as a fenced json block', () => {
   const snippet = new Example({
     context: toGenerateContext(),
-    example: { id: 1, name: 'Fido' }
+    example: { value: { id: 1, name: 'Fido' } }
   })
 
   assertEquals(snippet.toString(), '```json\n{\n  "id": 1,\n  "name": "Fido"\n}\n```')
 })
 
 Deno.test('Example - renders a scalar inline', () => {
-  const snippet = new Example({ context: toGenerateContext(), example: 'active' })
+  const snippet = new Example({ context: toGenerateContext(), example: { value: 'active' } })
 
   assertEquals(snippet.toString(), 'Example: `active`')
 })
 
 Deno.test('Example - renders a number inline', () => {
-  const snippet = new Example({ context: toGenerateContext(), example: 42 })
+  const snippet = new Example({ context: toGenerateContext(), example: { value: 42 } })
 
   assertEquals(snippet.toString(), 'Example: `42`')
 })
 
-Deno.test('Example - renders the empty string when the example is absent', () => {
-  const snippet = new Example({ context: toGenerateContext(), example: undefined })
+Deno.test('Example - false, empty string and empty array are real examples', () => {
+  const context = toGenerateContext()
 
-  assertEquals(snippet.toString(), '')
-})
-
-Deno.test('Example - renders the empty string for a null example', () => {
-  const snippet = new Example({ context: toGenerateContext(), example: null })
-
-  assertEquals(snippet.toString(), '')
+  assertEquals(new Example({ context, example: { value: false } }).toString(), 'Example: `false`')
+  assertEquals(new Example({ context, example: { value: '' } }).toString(), 'Example: ``')
+  assertEquals(new Example({ context, example: { value: [] } }).toString(), '```json\n[]\n```')
 })

@@ -1,5 +1,5 @@
 import { SnippetBase, type GenerateContextType } from '@skmtc/core'
-import { Maybe, Wrap } from '../Maybe.ts'
+import { Wrap } from '../Maybe.ts'
 
 /** The bits of an OpenAPI `externalDocs` object we render (core doesn't export the type). */
 export type ExternalDocsData = {
@@ -9,27 +9,33 @@ export type ExternalDocsData = {
 
 type ExternalDocsArgs = {
   context: GenerateContextType
-  externalDocs: ExternalDocsData | undefined
+  externalDocs: ExternalDocsData
   label?: string
 }
 
 /**
  * A "see also" link to external documentation (`externalDocs` at the document,
- * operation or tag level), or the empty string when none is declared.
+ * operation or tag level). Always renders: a parent builds it through
+ * `new Maybe(externalDocs, docs => new ExternalDocs(…))`.
  */
 export class ExternalDocs extends SnippetBase {
-  content: Maybe<ExternalDocsData, Wrap>
+  link: Wrap
 
   constructor({ context, externalDocs, label = 'See also' }: ExternalDocsArgs) {
     super({ context })
 
-    this.content = new Maybe(
-      externalDocs,
-      docs => new Wrap(['**', label, ':** [', docs.description ?? docs.url, '](', docs.url, ')'])
-    )
+    this.link = new Wrap([
+      '**',
+      label,
+      ':** [',
+      externalDocs.description ?? externalDocs.url,
+      '](',
+      externalDocs.url,
+      ')'
+    ])
   }
 
   override toString(): string {
-    return `${this.content}`
+    return `${this.link}`
   }
 }

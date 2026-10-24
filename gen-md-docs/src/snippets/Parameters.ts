@@ -18,25 +18,25 @@ type ParametersArgs = {
  * Renders a titled group of parameters — `## Path parameters` and the like —
  * the Markdown counterpart of the docs viewer's `Parameters`.
  *
- * Renders the empty string when the group has no parameters, so an operation
- * can interpolate every group (path / query / header / cookie) unconditionally.
+ * Always renders: the operation builds a group only when it has parameters,
+ * with `new Maybe(operation.toParams([location]), parameters => new Parameters(…))`.
  */
 export class Parameters extends SnippetBase {
-  content: Maybe<Loop, Wrap>
+  title: string
+  rows: Loop
 
   constructor({ context, title, parameters, definitions }: ParametersArgs) {
     super({ context })
 
-    const rows = new Loop(
+    this.title = title
+    this.rows = new Loop(
       parameters.map(parameter => new Parameter({ context, parameter, definitions })),
       { separator: '\n\n' }
     )
-
-    this.content = new Maybe(rows, loop => new Wrap(['## ', title, '\n\n', loop]))
   }
 
   override toString(): string {
-    return `${this.content}`
+    return `## ${this.title}\n\n${this.rows}`
   }
 }
 
@@ -62,7 +62,7 @@ type ParameterArgs = {
  * noise.
  */
 class Parameter extends SnippetBase {
-  content: Loop
+  parts: Loop
 
   constructor({ context, parameter, definitions }: ParameterArgs) {
     super({ context, stackTrail: parameter.stackTrail.clone() })
@@ -96,7 +96,7 @@ class Parameter extends SnippetBase {
       { separator: ', ' }
     )
 
-    this.content = new Loop(
+    this.parts = new Loop(
       [
         schema
           ? new Schema({
@@ -109,20 +109,23 @@ class Parameter extends SnippetBase {
             })
           : new Loop(
               [
-                new Name({ context, name: parameter.name }).content,
+                new Maybe(parameter.name, name => new Name({ context, name })),
                 new Maybe(parameter.description?.trim(), text => new Wrap(['— ', text]))
               ],
               { separator: ' ' }
             ),
-        new Maybe(content, c => new MediaTypes({ context, mediaTypes: c.mediaTypes }).content),
+        new Maybe(
+          content?.listedMediaTypes,
+          types => new MediaTypes({ context, mediaTypes: types })
+        ),
         new Maybe(note, loop => new Wrap(['_', loop, '_'])),
-        new Example({ context, example: toExample(schema) }).content
+        new Maybe(toExample(schema), example => new Example({ context, example }))
       ],
       { separator: '\n\n' }
     )
   }
 
   override toString(): string {
-    return `${this.content}`
+    return `${this.parts}`
   }
 }

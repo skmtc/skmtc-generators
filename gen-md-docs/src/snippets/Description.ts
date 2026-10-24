@@ -1,31 +1,29 @@
 import { SnippetBase, type GenerateContextType } from '@skmtc/core'
-import { Maybe } from '../Maybe.ts'
 
 type DescriptionArgs = {
   context: GenerateContextType
-  description: string | undefined
+  description: string
 }
 
 /**
- * Renders an optional schema / operation description.
+ * Renders a schema / operation description.
  *
  * Descriptions are already CommonMark / GFM in the source document, so this
- * passes the text through verbatim (trimmed). It renders the empty string when
- * the description is absent, so a parent can interpolate `${this.content}`
- * unconditionally without branching. A parent that joins parts in a `Loop`
- * uses `.content` (the `Maybe`), so an absent description also drops its
- * separator: the `Loop` cannot see that a Snippet renders empty.
+ * passes the text through verbatim (trimmed). It always renders: a parent with
+ * an optional description builds it through
+ * `new Maybe(description?.trim(), present => new Description(…))`, so an absent
+ * description drops out of the parent's `Loop` together with its separator.
  */
 export class Description extends SnippetBase {
-  content: Maybe<string>
+  description: string
 
   constructor({ context, description }: DescriptionArgs) {
     super({ context })
 
-    this.content = new Maybe(description?.trim())
+    this.description = description.trim()
   }
 
   override toString(): string {
-    return `${this.content}`
+    return this.description
   }
 }

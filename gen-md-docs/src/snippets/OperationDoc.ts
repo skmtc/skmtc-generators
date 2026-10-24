@@ -10,7 +10,7 @@ import { ExternalDocs } from './ExternalDocs.ts'
 import { Definitions } from './Schema.ts'
 import { safeResolve } from '../safeResolve.ts'
 import { toContent } from '../toContent.ts'
-import { Loop } from '../Maybe.ts'
+import { Loop, Maybe } from '../Maybe.ts'
 
 type OperationDocArgs = {
   context: GenerateContextType
@@ -28,65 +28,78 @@ type OperationDocArgs = {
  * each named type is defined once per document, self-contained and lookup-free.
  */
 export class OperationDoc extends SnippetBase {
-  content: Loop
+  parts: Loop
 
   constructor({ context, operation }: OperationDocArgs) {
     super({ context, stackTrail: operation.stackTrail.clone() })
 
-    const definitions = new Definitions({ context })
+    const referenced = new Loop([], { separator: '\n\n' })
+    const definitions = new Definitions({ context, entries: referenced })
     const document = context.document.type === 'oas' ? context.document.value : undefined
     const servers = (document?.servers ?? []).map(server => server.url)
     const requestBody = operation.requestBody ? safeResolve(operation.requestBody) : undefined
     const requestContent = toContent(requestBody?.content)
 
-    this.content = new Loop(
+    this.parts = new Loop(
       [
         new Frontmatter({ context, operation, servers }),
-        new Summary({ context, summary: operation.summary, description: operation.description })
-          .content,
+        new Maybe(
+          new Loop([operation.summary?.trim(), operation.description?.trim()]),
+          () =>
+            new Summary({ context, summary: operation.summary, description: operation.description })
+        ),
         new PathMethod({ context, method: operation.method, path: operation.path }),
-        new ExternalDocs({ context, externalDocs: operation.externalDocs }).content,
-        new Security({
-          context,
-          security: operation.security ?? document?.security,
-          securitySchemes: document?.components?.securitySchemes
-        }).content,
-        new Parameters({
-          context,
-          title: 'Path parameters',
-          parameters: operation.toParams(['path']),
-          definitions
-        }).content,
-        new Parameters({
-          context,
-          title: 'Query parameters',
-          parameters: operation.toParams(['query']),
-          definitions
-        }).content,
-        new Parameters({
-          context,
-          title: 'Headers',
-          parameters: operation.toParams(['header']),
-          definitions
-        }).content,
-        new Parameters({
-          context,
-          title: 'Cookies',
-          parameters: operation.toParams(['cookie']),
-          definitions
-        }).content,
-        new Section({
-          context,
-          title: 'Request body',
-          schema: requestContent.schema,
-          description: requestBody?.description,
-          definitions,
-          mediaTypes: requestContent.mediaTypes,
-          required: requestBody?.required
-        }).content,
-        new Responses({ context, responses: operation.responses, definitions }).content,
-        // Filled by `build()` below, after the body has registered every referenced type.
-        definitions.content
+        new Maybe(
+          operation.externalDocs,
+          externalDocs => new ExternalDocs({ context, externalDocs })
+        ),
+        new Maybe(
+          operation.security ?? document?.security,
+          security =>
+            new Security({
+              context,
+              security,
+              securitySchemes: document?.components?.securitySchemes
+            })
+        ),
+        new Maybe(
+          operation.toParams(['path']),
+          parameters =>
+            new Parameters({ context, title: 'Path parameters', parameters, definitions })
+        ),
+        new Maybe(
+          operation.toParams(['query']),
+          parameters =>
+            new Parameters({ context, title: 'Query parameters', parameters, definitions })
+        ),
+        new Maybe(
+          operation.toParams(['header']),
+          parameters => new Parameters({ context, title: 'Headers', parameters, definitions })
+        ),
+        new Maybe(
+          operation.toParams(['cookie']),
+          parameters => new Parameters({ context, title: 'Cookies', parameters, definitions })
+        ),
+        new Maybe(
+          new Loop([requestContent.schema, requestBody?.description?.trim()]),
+          () =>
+            new Section({
+              context,
+              title: 'Request body',
+              schema: requestContent.schema,
+              description: requestBody?.description,
+              definitions,
+              mediaTypes: requestContent.listedMediaTypes,
+              required: requestBody?.required
+            })
+        ),
+        new Maybe(
+          Object.values(operation.responses),
+          () => new Responses({ context, responses: operation.responses, definitions })
+        ),
+        // `referenced` is filled by `build()` below, after the body has
+        // registered every referenced type, so its presence is decided at render.
+        new Maybe(referenced, () => definitions)
       ],
       { separator: '\n\n' }
     )
@@ -95,6 +108,6 @@ export class OperationDoc extends SnippetBase {
   }
 
   override toString(): string {
-    return `${this.content}`
+    return `${this.parts}`
   }
 }

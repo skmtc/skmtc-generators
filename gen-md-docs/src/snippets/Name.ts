@@ -1,27 +1,26 @@
 import { SnippetBase, type GenerateContextType } from '@skmtc/core'
-import { Maybe, Wrap } from '../Maybe.ts'
 
 type NameArgs = {
   context: GenerateContextType
-  name: string | undefined
+  name: string
 }
 
 /**
  * Renders a property name in bold, e.g. `**id**`.
  *
- * Renders the empty string when there is no name (a root schema), so a parent
- * can interpolate it unconditionally.
+ * Always renders: a parent with an optional name (a root schema has none)
+ * builds it through `new Maybe(name, present => new Name(…))`.
  */
 export class Name extends SnippetBase {
-  content: Maybe<string, Wrap>
+  name: string
 
   constructor({ context, name }: NameArgs) {
     super({ context })
 
-    this.content = new Maybe(name, present => new Wrap(['**', present, '**']))
+    this.name = name
   }
 
   override toString(): string {
-    return `${this.content}`
+    return `**${this.name}**`
   }
 }

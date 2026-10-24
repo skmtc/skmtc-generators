@@ -1,31 +1,29 @@
 import { SnippetBase, type GenerateContextType } from '@skmtc/core'
-import { Loop, Maybe, Wrap } from '../Maybe.ts'
+import { Loop, Wrap } from '../Maybe.ts'
 
 type EnumsArgs = {
   context: GenerateContextType
-  enums: readonly unknown[] | undefined
+  enums: readonly unknown[]
 }
 
 /**
  * Renders a schema's allowed values as an inline-code list, e.g.
  * `` (`active`, `inactive`) ``.
  *
- * The values are a comma-separated {@link Loop}; the `Maybe` around its
- * parentheses renders the empty string when there are no allowed values, so a
- * parent can interpolate it unconditionally.
+ * Always renders: a parent builds it through
+ * `new Maybe(enums, values => new Enums(…))`, and an empty list of allowed
+ * values is absent, so it is never built.
  */
 export class Enums extends SnippetBase {
-  content: Maybe<Loop, Wrap>
+  values: Loop
 
   constructor({ context, enums }: EnumsArgs) {
     super({ context })
 
-    const values = new Loop((enums ?? []).map(value => new Wrap(['`', String(value), '`'])))
-
-    this.content = new Maybe(values, loop => new Wrap(['(', loop, ')']))
+    this.values = new Loop(enums.map(value => new Wrap(['`', String(value), '`'])))
   }
 
   override toString(): string {
-    return `${this.content}`
+    return `(${this.values})`
   }
 }

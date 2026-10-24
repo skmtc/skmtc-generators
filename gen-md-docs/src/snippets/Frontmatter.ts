@@ -32,8 +32,8 @@ export class Frontmatter extends SnippetBase {
         new Maybe(operationId, value => new Wrap(['operationId: ', value])),
         new Wrap(['method: ', operation.method.toUpperCase()]),
         new Wrap(['path: ', new YamlString(operation.path)]),
-        new YamlList({ key: 'servers', values: servers }).content,
-        new YamlList({ key: 'tags', values: operation.tags }).content,
+        new Maybe(servers, values => new YamlList({ key: 'servers', values })),
+        new Maybe(operation.tags, values => new YamlList({ key: 'tags', values })),
         new Maybe(operation.deprecated, () => 'deprecated: true')
       ],
       { separator: '\n' }
@@ -49,24 +49,24 @@ export class Frontmatter extends SnippetBase {
 
 type YamlListArgs = {
   key: string
-  values: string[] | undefined
+  values: string[]
 }
 
-/** A named YAML block list, or nothing when there are no values. */
+/** A named YAML block list. Built only for a non-empty list of values. */
 class YamlList {
-  content: Maybe<Loop, Wrap>
+  key: string
+  items: Loop
 
   constructor({ key, values }: YamlListArgs) {
-    const items = new Loop(
-      (values ?? []).map(value => new Wrap(['  - ', new YamlString(value)])),
+    this.key = key
+    this.items = new Loop(
+      values.map(value => new Wrap(['  - ', new YamlString(value)])),
       { separator: '\n' }
     )
-
-    this.content = new Maybe(items, loop => new Wrap([key, ':\n', loop]))
   }
 
   toString(): string {
-    return `${this.content}`
+    return `${this.key}:\n${this.items}`
   }
 }
 

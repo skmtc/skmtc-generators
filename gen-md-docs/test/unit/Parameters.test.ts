@@ -2,6 +2,7 @@ import { assertEquals } from '@std/assert'
 import { OasInteger, OasObject, OasParameter, OasString } from '@skmtc/core'
 import { Parameters } from '../../src/snippets/Parameters.ts'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
+import { Maybe } from '../../src/Maybe.ts'
 
 Deno.test('Parameters - renders a heading and a parameter with its description', () => {
   const snippet = new Parameters({
@@ -60,12 +61,13 @@ Deno.test('Parameters - expands the fields of an object parameter', () => {
   )
 })
 
-Deno.test('Parameters - renders the empty string when there are no parameters', () => {
-  const snippet = new Parameters({
-    context: toGenerateContext(),
-    title: 'Headers',
-    parameters: []
-  })
+// A group always renders; the operation builds one only when it has
+// parameters (an empty list is absent).
+Deno.test('Parameters - an empty group is not built by the operation', () => {
+  const group = new Maybe(
+    [],
+    parameters => new Parameters({ context: toGenerateContext(), title: 'Headers', parameters })
+  )
 
-  assertEquals(snippet.toString(), '')
+  assertEquals(group.toString(), '')
 })

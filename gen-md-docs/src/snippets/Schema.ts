@@ -56,7 +56,7 @@ export class Schema extends SnippetBase {
 
     const row = new Loop(
       [
-        new Name({ context, name }).content,
+        new Maybe(name, present => new Name({ context, name: present })),
         new TypeInfo({ context, schema, required }),
         new Maybe(
           resolved,
@@ -194,18 +194,20 @@ const toAdditionalProperties = (object: OasObject): Property[] =>
  * register in turn ({@link build} drains the queue to a fixpoint), so a
  * recursive schema is defined once and its self-reference reads as a name — no
  * loop, no repetition.
+ *
+ * Always renders. The section only exists once something is referenced, which
+ * is known after {@link build}, so the owner passes in the `entries` Loop and
+ * keys its `Maybe` on it: `new Maybe(entries, () => definitions)`.
  */
 export class Definitions extends SnippetBase {
   private seen: Set<RefName> = new Set()
   private queue: OasRef<'schema'>[] = []
-  private entries: Loop<TypeDefinition>
-  content: Maybe<Loop<TypeDefinition>, Wrap>
+  private entries: Loop
 
-  constructor({ context }: DefinitionsArgs) {
+  constructor({ context, entries = new Loop([], { separator: '\n\n' }) }: DefinitionsArgs) {
     super({ context })
 
-    this.entries = new Loop([], { separator: '\n\n' })
-    this.content = new Maybe(this.entries, loop => new Wrap(['## Referenced types\n\n', loop]))
+    this.entries = entries
   }
 
   add(ref: OasRef<'schema'>): void {
@@ -228,12 +230,14 @@ export class Definitions extends SnippetBase {
   }
 
   override toString(): string {
-    return `${this.content}`
+    return `## Referenced types\n\n${this.entries}`
   }
 }
 
 type DefinitionsArgs = {
   context: GenerateContextType
+  /** Filled by {@link Definitions.build}; the owner keys its `Maybe` on it. */
+  entries?: Loop
 }
 
 type TypeDefinitionArgs = {
@@ -262,10 +266,10 @@ class TypeDefinition extends SnippetBase {
         new Maybe(
           resolved,
           schema =>
-            new ExternalDocs({
-              context,
-              externalDocs: 'externalDocs' in schema ? schema.externalDocs : undefined
-            }).content
+            new Maybe(
+              'externalDocs' in schema ? schema.externalDocs : undefined,
+              externalDocs => new ExternalDocs({ context, externalDocs })
+            )
         )
       ],
       { separator: '\n\n' }

@@ -2,12 +2,12 @@ import type { Stringable } from '@skmtc/core'
 
 /**
  * Local copy of the four composable rendering classes proposed in
- * `skmtc/notes/maybe/README.md` (copied from `notes/maybe/prototype/mod.ts`),
- * trialled in gen-zod before anything lands in `@skmtc/core`.
+ * `skmtc/notes/maybe/README.md`, trialled in gen-md-docs and gen-zod before
+ * anything lands in `@skmtc/core`. Both copies are identical.
  *
  * Two kinds of absence, checked at different times:
  *
- * - Value absence (`undefined`, `null`, `''`, `false`) is checked when a
+ * - Value absence (`undefined`, `null`, `''`, `false`, `[]`) is checked when a
  *   `Maybe` is constructed. It decides whether `build` runs.
  * - Structural emptiness (`Nothing`, an empty `Loop`, a `Maybe` that is
  *   Nothing) is checked during render, from each instance's current state.
@@ -24,7 +24,8 @@ export class Nothing implements Stringable {
 }
 
 /** Value absence: decides at construction whether `Maybe` builds its value. */
-const isBlank = (value: unknown): boolean => value === '' || value === false
+const isBlank = (value: unknown): boolean =>
+  value === '' || value === false || (Array.isArray(value) && value.length === 0)
 
 /**
  * Structural emptiness: read at render time from current state. Never calls
@@ -83,7 +84,7 @@ export type LoopOptions = {
 
 /**
  * A list: items joined by a separator. Absent items (`undefined`, `null`,
- * `''`, `false`, `Nothing`, empty `Loop`s, `Maybe`s that are Nothing) are
+ * `''`, `false`, `[]`, `Nothing`, empty `Loop`s, `Maybe`s that are Nothing) are
  * skipped at render. No bookends and no `skipEmpty`: wrap it in `Wrap` for
  * bookends and in `Maybe` to make an empty list disappear.
  */
