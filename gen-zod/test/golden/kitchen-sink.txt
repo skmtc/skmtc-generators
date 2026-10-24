@@ -1,0 +1,338 @@
+==== src/types/allOfMerged.generated.ts ====
+
+import {z} from 'zod'
+
+export const allOfMerged = z.object({id: z.string(), count: z.number().int().gte(0), label: z.string().nullable().optional(), "kebab-key": z.boolean().optional(), "1leading": z.number().optional(), nested: z.object({inner: z.string()}).optional(), extra: z.string().optional()});
+
+
+==== src/types/arrayNullable.generated.ts ====
+
+import {z} from 'zod'
+
+export const arrayNullable = z.array(z.number().int().gte(0)).nullable();
+
+
+==== src/types/arrayOfRefs.generated.ts ====
+
+import {objectWithProperties} from '@/types/objectWithProperties.generated.ts'
+import {z} from 'zod'
+
+export const arrayOfRefs = z.array(objectWithProperties);
+
+
+==== src/types/arrayOfStrings.generated.ts ====
+
+import {z} from 'zod'
+
+export const arrayOfStrings = z.array(z.string());
+
+
+==== src/types/booleanEnum.generated.ts ====
+
+import {z} from 'zod'
+
+export const booleanEnum = z.literal(true);
+
+
+==== src/types/booleanNullable.generated.ts ====
+
+import {z} from 'zod'
+
+export const booleanNullable = z.boolean().nullable();
+
+
+==== src/types/booleanPlain.generated.ts ====
+
+import {z} from 'zod'
+
+export const booleanPlain = z.boolean();
+
+
+==== src/types/cat.generated.ts ====
+
+import {z} from 'zod'
+
+export const cat = z.object({kind: z.literal("cat"), meow: z.boolean().optional()});
+
+
+==== src/types/dog.generated.ts ====
+
+import {z} from 'zod'
+
+export const dog = z.object({kind: z.literal("dog"), bark: z.boolean().optional()});
+
+
+==== src/types/integerBounds.generated.ts ====
+
+import {z} from 'zod'
+
+export const integerBounds = z.number().int().gte(1).lte(10).multipleOf(2);
+
+
+==== src/types/integerEnum.generated.ts ====
+
+import {z} from 'zod'
+
+export const integerEnum = z.union([z.literal(1), z.literal(2), z.literal(3)]);
+
+
+==== src/types/integerExclusive.generated.ts ====
+
+import {z} from 'zod'
+
+export const integerExclusive = z.number().int().gt(0).lt(100);
+
+
+==== src/types/integerInt64.generated.ts ====
+
+import {z} from 'zod'
+
+export const integerInt64 = z.number().int().lte(0);
+
+
+==== src/types/integerNullable.generated.ts ====
+
+import {z} from 'zod'
+
+export const integerNullable = z.number().int().gte(5).nullable();
+
+
+==== src/types/integerPlain.generated.ts ====
+
+import {z} from 'zod'
+
+export const integerPlain = z.number().int();
+
+
+==== src/types/integerSingleEnum.generated.ts ====
+
+import {z} from 'zod'
+
+export const integerSingleEnum = z.literal(7);
+
+
+==== src/types/integerZeroMinimum.generated.ts ====
+
+import {z} from 'zod'
+
+export const integerZeroMinimum = z.number().int().gte(0);
+
+
+==== src/types/numberBounds.generated.ts ====
+
+import {z} from 'zod'
+
+export const numberBounds = z.number().gte(-1.5).lte(2.5).multipleOf(0.5);
+
+
+==== src/types/numberEnum.generated.ts ====
+
+import {z} from 'zod'
+
+export const numberEnum = z.union([z.literal(0.5), z.literal(1.5)]);
+
+
+==== src/types/numberExclusive.generated.ts ====
+
+import {z} from 'zod'
+
+export const numberExclusive = z.number().gt(0).lt(1);
+
+
+==== src/types/numberFloat.generated.ts ====
+
+import {z} from 'zod'
+
+export const numberFloat = z.number();
+
+
+==== src/types/numberNullable.generated.ts ====
+
+import {z} from 'zod'
+
+export const numberNullable = z.number().nullable();
+
+
+==== src/types/numberPlain.generated.ts ====
+
+import {z} from 'zod'
+
+export const numberPlain = z.number();
+
+
+==== src/types/objectAdditionalSchema.generated.ts ====
+
+import {z} from 'zod'
+
+export const objectAdditionalSchema = z.record(z.string(), z.number().int());
+
+
+==== src/types/objectAdditionalTrue.generated.ts ====
+
+import {z} from 'zod'
+
+export const objectAdditionalTrue = z.record(z.string(), z.unknown());
+
+
+==== src/types/objectEmpty.generated.ts ====
+
+import {z} from 'zod'
+
+export const objectEmpty = z.object({});
+
+
+==== src/types/objectNullable.generated.ts ====
+
+import {z} from 'zod'
+
+export const objectNullable = z.object({a: z.string().optional()}).nullable();
+
+
+==== src/types/objectPropertiesAndAdditional.generated.ts ====
+
+import {z} from 'zod'
+
+export const objectPropertiesAndAdditional = z.object({name: z.string()}).and(z.record(z.string(), z.string()));
+
+
+==== src/types/objectWithProperties.generated.ts ====
+
+import {z} from 'zod'
+
+export const objectWithProperties = z.object({id: z.string(), count: z.number().int().gte(0), label: z.string().nullable().optional(), "kebab-key": z.boolean().optional(), "1leading": z.number().optional(), nested: z.object({inner: z.string()}).optional()});
+
+
+==== src/types/refAlias.generated.ts ====
+
+import {z} from 'zod'
+
+export const refAlias = z.enum(["a", "b"]);
+
+
+==== src/types/stringDate.generated.ts ====
+
+import {z} from 'zod'
+
+export const stringDate = z.string();
+
+
+==== src/types/stringDateTime.generated.ts ====
+
+import {z} from 'zod'
+
+export const stringDateTime = z.string();
+
+
+==== src/types/stringEmail.generated.ts ====
+
+import {z} from 'zod'
+
+export const stringEmail = z.string();
+
+
+==== src/types/stringEnum.generated.ts ====
+
+import {z} from 'zod'
+
+export const stringEnum = z.enum(["a", "b"]);
+
+
+==== src/types/stringLengths.generated.ts ====
+
+import {z} from 'zod'
+
+export const stringLengths = z.string().max(20);
+
+
+==== src/types/stringNullable.generated.ts ====
+
+import {z} from 'zod'
+
+export const stringNullable = z.string().min(1).nullable();
+
+
+==== src/types/stringNullableEnum.generated.ts ====
+
+import {z} from 'zod'
+
+export const stringNullableEnum = z.enum(["x", "y"]).nullable();
+
+
+==== src/types/stringPattern.generated.ts ====
+
+import {z} from 'zod'
+
+export const stringPattern = z.string();
+
+
+==== src/types/stringPlain.generated.ts ====
+
+import {z} from 'zod'
+
+export const stringPlain = z.string();
+
+
+==== src/types/stringSingleEnum.generated.ts ====
+
+import {z} from 'zod'
+
+export const stringSingleEnum = z.literal("only");
+
+
+==== src/types/stringUri.generated.ts ====
+
+import {z} from 'zod'
+
+export const stringUri = z.string();
+
+
+==== src/types/stringUuid.generated.ts ====
+
+import {z} from 'zod'
+
+export const stringUuid = z.string();
+
+
+==== src/types/treeNode.generated.ts ====
+
+import {z} from 'zod'
+
+export const treeNode: z.ZodType<TreeNode> = z.object({value: z.string(), children: z.array(z.lazy(() => treeNode)).optional()});
+
+
+==== src/types/unionAnyOf.generated.ts ====
+
+import {z} from 'zod'
+
+export const unionAnyOf = z.union([z.boolean(), z.number().gte(0)]);
+
+
+==== src/types/unionDiscriminated.generated.ts ====
+
+import {cat} from '@/types/cat.generated.ts'
+import {dog} from '@/types/dog.generated.ts'
+import {z} from 'zod'
+
+export const unionDiscriminated = z.discriminatedUnion("kind", [cat, dog]);
+
+
+==== src/types/unionNullable.generated.ts ====
+
+import {z} from 'zod'
+
+export const unionNullable = z.union([z.string(), z.number().int()]).nullable();
+
+
+==== src/types/unionOneOf.generated.ts ====
+
+import {z} from 'zod'
+import {stringEnum} from '@/types/stringEnum.generated.ts'
+
+export const unionOneOf = z.union([z.string(), z.number().int(), stringEnum]);
+
+
+==== src/types/unknown.generated.ts ====
+
+import {z} from 'zod'
+
+export const unknown = z.unknown();

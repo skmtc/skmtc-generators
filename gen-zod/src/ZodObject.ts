@@ -1,24 +1,40 @@
 import { isEmpty } from '@skmtc/core'
 import { TsSnippet } from '@skmtc/lang-typescript'
-import type { CustomValue, GenerateContextType, GeneratorKey, Modifiers, OasObject, OasRef, OasSchema, RefName, TypeSystemObjectProperties, TypeSystemRecord, TypeSystemValue } from '@skmtc/core'
-import { toZodValue } from "./Zod.ts";
-import { applyModifiers } from "./applyModifiers.ts";
-import { ZodUnknown } from "./ZodUnknown.ts";
+import type {
+  CustomValue,
+  GenerateContextType,
+  GeneratorKey,
+  Modifiers,
+  OasObject,
+  OasRef,
+  OasSchema,
+  RefName,
+  Stringable,
+  TypeSystemObjectProperties,
+  TypeSystemRecord,
+  TypeSystemValue
+} from '@skmtc/core'
+import { toZodValue } from './Zod.ts'
+import { Loop, Maybe, Wrap } from './Maybe.ts'
+import { ZodModifiers } from './ZodModifiers.ts'
+import { ZodUnknown } from './ZodUnknown.ts'
 
 type ZodObjectProps = {
-  context: GenerateContextType;
-  destinationPath: string;
-  objectSchema: OasObject;
-  modifiers: Modifiers;
-  generatorKey: GeneratorKey;
-  rootRef?: RefName;
-};
+  context: GenerateContextType
+  destinationPath: string
+  objectSchema: OasObject
+  modifiers: Modifiers
+  generatorKey: GeneratorKey
+  rootRef?: RefName
+}
 
 export class ZodObject extends TsSnippet {
-  type = "object" as const;
-  recordProperties: TypeSystemRecord | null;
-  objectProperties: TypeSystemObjectProperties | null;
-  modifiers: Modifiers;
+  type = 'object' as const
+  recordProperties: TypeSystemRecord | null
+  objectProperties: TypeSystemObjectProperties | null
+  modifiers: Modifiers
+  content: Stringable
+  modifierCalls: ZodModifiers
 
   constructor({
     context,
@@ -26,72 +42,68 @@ export class ZodObject extends TsSnippet {
     destinationPath,
     objectSchema,
     modifiers,
-    rootRef,
+    rootRef
   }: ZodObjectProps) {
-    super({ context, generatorKey, stackTrail: objectSchema.stackTrail.clone() });
+    super({ context, generatorKey, stackTrail: objectSchema.stackTrail.clone() })
 
-    this.modifiers = modifiers;
+    this.modifiers = modifiers
+    this.modifierCalls = new ZodModifiers(modifiers)
 
-    const { properties, required, additionalProperties } = objectSchema;
+    const { properties, required, additionalProperties } = objectSchema
 
-    const hasProperties = properties && !isEmpty(properties);
-
-    this.recordProperties = additionalProperties
+    const recordProperties = additionalProperties
       ? new ZodRecord({
-        context,
-        generatorKey,
-        destinationPath,
-        schema: additionalProperties,
-        rootRef,
-      })
-      : null;
+          context,
+          generatorKey,
+          destinationPath,
+          schema: additionalProperties,
+          rootRef
+        })
+      : null
 
-    this.objectProperties = hasProperties
-      ? new ZodObjectProperties({
-        context,
-        generatorKey,
-        destinationPath,
-        properties,
-        required, // 'required' here refers to the object's properties, not object itself,
-        modifiers,
-        rootRef,
-      })
-      : null;
+    const objectProperties =
+      properties && !isEmpty(properties)
+        ? new ZodObjectProperties({
+            context,
+            generatorKey,
+            destinationPath,
+            properties,
+            required, // 'required' here refers to the object's properties, not object itself,
+            rootRef
+          })
+        : null
 
-    this.register({ imports: { zod: ["z"] }, destinationPath });
+    this.recordProperties = recordProperties
+    this.objectProperties = objectProperties
+
+    // Properties and additionalProperties together intersect; either alone
+    // renders as itself; neither is an empty object.
+    this.content =
+      objectProperties && recordProperties
+        ? new Wrap([objectProperties, '.and(', recordProperties, ')'])
+        : (recordProperties ?? objectProperties ?? 'z.object({})')
+
+    this.register({ imports: { zod: ['z'] }, destinationPath })
   }
 
   override toString(): string {
-    const { objectProperties, recordProperties } = this;
-
-    if (objectProperties && recordProperties) {
-      return applyModifiers(
-        `${objectProperties}.and(${recordProperties})`,
-        this.modifiers,
-      );
-    }
-
-    return applyModifiers(
-      recordProperties?.toString() ?? objectProperties?.toString() ??
-        "z.object({})",
-      this.modifiers,
-    );
+    return `${this.content}${this.modifierCalls}`
   }
 }
 
 type ZodObjectPropertiesArgs = {
-  modifiers: Modifiers;
-  context: GenerateContextType;
-  destinationPath: string;
-  properties: Record<string, OasSchema | OasRef<"schema"> | CustomValue>;
-  required: OasObject["required"];
-  generatorKey: GeneratorKey;
-  rootRef?: RefName;
-};
+  context: GenerateContextType
+  destinationPath: string
+  properties: Record<string, OasSchema | OasRef<'schema'> | CustomValue>
+  required: OasObject['required']
+  generatorKey: GeneratorKey
+  rootRef?: RefName
+}
 
 class ZodObjectProperties extends TsSnippet {
-  properties: Record<string, TypeSystemValue>;
-  required: string[];
+  properties: Record<string, TypeSystemValue>
+  required: string[]
+  entries: Loop<ZodProperty>
 
   constructor({
     context,
@@ -99,11 +111,11 @@ class ZodObjectProperties extends TsSnippet {
     destinationPath,
     properties,
     required = [],
-    rootRef,
+    rootRef
   }: ZodObjectPropertiesArgs) {
-    super({ context, generatorKey });
+    super({ context, generatorKey })
 
-    this.required = required;
+    this.required = required
 
     this.properties = Object.fromEntries(
       Object.entries(properties).map(([key, property]) => {
@@ -112,58 +124,73 @@ class ZodObjectProperties extends TsSnippet {
           schema: property,
           required: required?.includes(key),
           context,
-          rootRef,
-        });
+          rootRef
+        })
 
-        return [key, value];
-      }),
-    );
+        return [key, value]
+      })
+    )
+
+    this.entries = new Loop(
+      Object.entries(this.properties).map(([key, value]) => new ZodProperty({ key, value }))
+    )
   }
 
   override toString(): string {
-    return `z.object({${
-      Object.entries(this.properties)
-        .map(([key, value]) => {
-          // Check if key needs quotes
-          const needsQuotes = /[^a-zA-Z0-9_$]/.test(key) || /^\d/.test(key);
-          const formattedKey = needsQuotes ? `"${key}"` : key;
-          return `${formattedKey}: ${value}`;
-        })
-        .join(", ")
-    }})`;
+    return `z.object({${this.entries}})`
+  }
+}
+
+type ZodPropertyArgs = {
+  key: string
+  value: TypeSystemValue
+}
+
+/** `key: value`, quoting a key that is not a valid bare identifier. */
+class ZodProperty {
+  key: Wrap
+  value: TypeSystemValue
+
+  constructor({ key, value }: ZodPropertyArgs) {
+    const quote = new Maybe(/[^a-zA-Z0-9_$]|^\d/.test(key), () => '"')
+
+    this.key = new Wrap([quote, key, quote])
+    this.value = value
+  }
+
+  toString(): string {
+    return `${this.key}: ${this.value}`
   }
 }
 
 type ZodRecordArgs = {
-  context: GenerateContextType;
-  destinationPath: string;
-  schema: true | OasSchema | OasRef<"schema">;
-  generatorKey: GeneratorKey;
-  rootRef?: RefName;
-};
+  context: GenerateContextType
+  destinationPath: string
+  schema: true | OasSchema | OasRef<'schema'>
+  generatorKey: GeneratorKey
+  rootRef?: RefName
+}
 
 class ZodRecord extends TsSnippet {
-  value: TypeSystemValue | "true";
+  value: TypeSystemValue | 'true'
 
-  constructor(
-    { context, generatorKey, destinationPath, schema, rootRef }: ZodRecordArgs,
-  ) {
-    super({ context, generatorKey });
+  constructor({ context, generatorKey, destinationPath, schema, rootRef }: ZodRecordArgs) {
+    super({ context, generatorKey })
 
     if (schema === true || isEmpty(schema)) {
-      this.value = new ZodUnknown({ context, destinationPath, generatorKey });
+      this.value = new ZodUnknown({ context, destinationPath, generatorKey })
     } else {
       this.value = toZodValue({
         destinationPath,
         schema,
         required: true,
         context,
-        rootRef,
-      });
+        rootRef
+      })
     }
   }
 
   override toString(): string {
-    return `z.record(z.string(), ${this.value})`;
+    return `z.record(z.string(), ${this.value})`
   }
 }

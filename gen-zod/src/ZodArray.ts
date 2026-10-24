@@ -1,44 +1,59 @@
-import { TsSnippet } from "@skmtc/lang-typescript";
-import type { GenerateContextType, GeneratorKey, Modifiers, OasRef, OasSchema, RefName, TypeSystemValue } from '@skmtc/core'
-import { toZodValue } from "./Zod.ts";
-import { applyModifiers } from "./applyModifiers.ts";
+import { TsSnippet } from '@skmtc/lang-typescript'
+import type {
+  GenerateContextType,
+  GeneratorKey,
+  Modifiers,
+  OasRef,
+  OasSchema,
+  RefName,
+  TypeSystemValue
+} from '@skmtc/core'
+import { toZodValue } from './Zod.ts'
+import { ZodModifiers } from './ZodModifiers.ts'
 
 type ZodArrayArgs = {
-  context: GenerateContextType;
-  destinationPath: string;
-  items: OasSchema | OasRef<"schema">;
+  context: GenerateContextType
+  destinationPath: string
+  items: OasSchema | OasRef<'schema'>
   /** The originating array schema node — for fine-grained attribution. */
-  schema?: OasSchema | OasRef<"schema">;
-  modifiers: Modifiers;
-  generatorKey: GeneratorKey;
-  rootRef?: RefName;
-};
+  schema?: OasSchema | OasRef<'schema'>
+  modifiers: Modifiers
+  generatorKey: GeneratorKey
+  rootRef?: RefName
+}
 
 export class ZodArray extends TsSnippet {
-  type = "array" as const;
-  items: TypeSystemValue;
-  modifiers: Modifiers;
+  type = 'array' as const
+  items: TypeSystemValue
+  modifiers: Modifiers
+  modifierCalls: ZodModifiers
 
-  constructor(
-    { context, generatorKey, destinationPath, items, modifiers, rootRef, schema }:
-      ZodArrayArgs,
-  ) {
-    super({ context, generatorKey, stackTrail: schema?.stackTrail.clone() });
+  constructor({
+    context,
+    generatorKey,
+    destinationPath,
+    items,
+    modifiers,
+    rootRef,
+    schema
+  }: ZodArrayArgs) {
+    super({ context, generatorKey, stackTrail: schema?.stackTrail.clone() })
 
-    this.modifiers = modifiers;
+    this.modifiers = modifiers
+    this.modifierCalls = new ZodModifiers(modifiers)
 
     this.items = toZodValue({
       destinationPath,
       schema: items,
       required: true,
       context,
-      rootRef,
-    });
+      rootRef
+    })
 
-    this.register({ imports: { zod: ["z"] }, destinationPath });
+    this.register({ imports: { zod: ['z'] }, destinationPath })
   }
 
   override toString(): string {
-    return applyModifiers(`z.array(${this.items})`, this.modifiers);
+    return `z.array(${this.items})${this.modifierCalls}`
   }
 }
