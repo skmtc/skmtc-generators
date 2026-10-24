@@ -49,21 +49,21 @@ export class TypeInfo extends SnippetBase {
           r =>
             new Loop(
               [
-                new Maybe('format' in r ? r.format : undefined),
-                new Maybe('nullable' in r ? r.nullable : undefined, () => 'nullable')
+                Maybe.nonEmptyText('format' in r ? r.format : undefined, format => format),
+                Maybe.when('nullable' in r && r.nullable === true, () => 'nullable')
               ],
               { separator: ' ' }
             )
         ),
-        new Maybe(required, () => 'required'),
+        Maybe.when(required === true, () => 'required'),
         new Maybe(
           resolved,
           r =>
             new Loop(
               [
-                new Maybe('deprecated' in r ? r.deprecated : undefined, () => 'deprecated'),
-                new Maybe('readOnly' in r ? r.readOnly : undefined, () => 'read-only'),
-                new Maybe('writeOnly' in r ? r.writeOnly : undefined, () => 'write-only')
+                Maybe.when('deprecated' in r && r.deprecated === true, () => 'deprecated'),
+                Maybe.when('readOnly' in r && r.readOnly === true, () => 'read-only'),
+                Maybe.when('writeOnly' in r && r.writeOnly === true, () => 'write-only')
               ],
               { separator: ' ' }
             )
@@ -72,77 +72,89 @@ export class TypeInfo extends SnippetBase {
       { separator: ' ' }
     )
 
-    const enums = new Maybe(
+    const enums = new Maybe(resolved, r =>
+      Maybe.nonEmpty(
+        'enums' in r ? r.enums : undefined,
+        values => new Enums({ context, enums: values })
+      )
+    )
+
+    const constraints = new Maybe(
       resolved,
       r =>
-        new Maybe(
-          'enums' in r ? r.enums : undefined,
-          values => new Enums({ context, enums: values })
+        new Loop(
+          [
+            new Maybe(
+              'minLength' in r ? r.minLength : undefined,
+              v => new Wrap(['min length: ', v])
+            ),
+            new Maybe(
+              'maxLength' in r ? r.maxLength : undefined,
+              v => new Wrap(['max length: ', v])
+            ),
+            new Maybe(
+              'pattern' in r ? r.pattern : undefined,
+              v => new Wrap(['pattern: `', v, '`'])
+            ),
+            new Maybe(
+              'minimum' in r ? r.minimum : undefined,
+              v =>
+                new Wrap([
+                  'minimum: ',
+                  v,
+                  Maybe.when(
+                    'exclusiveMinimum' in r && r.exclusiveMinimum === true,
+                    () => ' (exclusive)'
+                  )
+                ])
+            ),
+            new Maybe(
+              'maximum' in r ? r.maximum : undefined,
+              v =>
+                new Wrap([
+                  'maximum: ',
+                  v,
+                  Maybe.when(
+                    'exclusiveMaximum' in r && r.exclusiveMaximum === true,
+                    () => ' (exclusive)'
+                  )
+                ])
+            ),
+            new Maybe(
+              'multipleOf' in r ? r.multipleOf : undefined,
+              v => new Wrap(['multiple of: ', v])
+            ),
+            new Maybe('minItems' in r ? r.minItems : undefined, v => new Wrap(['min items: ', v])),
+            new Maybe('maxItems' in r ? r.maxItems : undefined, v => new Wrap(['max items: ', v])),
+            Maybe.when('uniqueItems' in r && r.uniqueItems === true, () => 'unique items'),
+            new Maybe(
+              'minProperties' in r ? r.minProperties : undefined,
+              v => new Wrap(['min properties: ', v])
+            ),
+            new Maybe(
+              'maxProperties' in r ? r.maxProperties : undefined,
+              v => new Wrap(['max properties: ', v])
+            ),
+            // `default` is typed `unknown`, which is not `Stringable`, so it is
+            // stringified here; `false`, `0` and `''` are real defaults and render.
+            new Maybe(
+              'default' in r && r.default !== undefined && r.default !== null
+                ? String(r.default)
+                : undefined,
+              value => new Wrap(['default: `', value, '`'])
+            )
+          ],
+          { separator: ', ' }
         )
     )
 
-    const constraints = new Maybe(resolved, r => {
-      const defaultValue = 'default' in r ? r.default : undefined
-
-      return new Loop(
-        [
-          new Maybe('minLength' in r ? r.minLength : undefined, v => new Wrap(['min length: ', v])),
-          new Maybe('maxLength' in r ? r.maxLength : undefined, v => new Wrap(['max length: ', v])),
-          new Maybe('pattern' in r ? r.pattern : undefined, v => new Wrap(['pattern: `', v, '`'])),
-          new Maybe(
-            'minimum' in r ? r.minimum : undefined,
-            v =>
-              new Wrap([
-                'minimum: ',
-                v,
-                new Maybe(
-                  'exclusiveMinimum' in r ? r.exclusiveMinimum : undefined,
-                  () => ' (exclusive)'
-                )
-              ])
-          ),
-          new Maybe(
-            'maximum' in r ? r.maximum : undefined,
-            v =>
-              new Wrap([
-                'maximum: ',
-                v,
-                new Maybe(
-                  'exclusiveMaximum' in r ? r.exclusiveMaximum : undefined,
-                  () => ' (exclusive)'
-                )
-              ])
-          ),
-          new Maybe(
-            'multipleOf' in r ? r.multipleOf : undefined,
-            v => new Wrap(['multiple of: ', v])
-          ),
-          new Maybe('minItems' in r ? r.minItems : undefined, v => new Wrap(['min items: ', v])),
-          new Maybe('maxItems' in r ? r.maxItems : undefined, v => new Wrap(['max items: ', v])),
-          new Maybe('uniqueItems' in r ? r.uniqueItems : undefined, () => 'unique items'),
-          new Maybe(
-            'minProperties' in r ? r.minProperties : undefined,
-            v => new Wrap(['min properties: ', v])
-          ),
-          new Maybe(
-            'maxProperties' in r ? r.maxProperties : undefined,
-            v => new Wrap(['max properties: ', v])
-          ),
-          // `false` and `''` are real defaults, so presence is a boolean subject.
-          new Maybe(
-            defaultValue !== undefined && defaultValue !== null,
-            () => new Wrap(['default: `', String(defaultValue), '`'])
-          )
-        ],
-        { separator: ', ' }
-      )
-    })
-
     this.parts = new Loop(
       [
-        anchor === undefined
-          ? new Wrap(['`', type, '`'])
-          : new Wrap(['[`', type, '`](#', anchor, ')']),
+        Maybe.nonEmptyText(
+          anchor,
+          a => new Wrap(['[`', type, '`](#', a, ')']),
+          () => new Wrap(['`', type, '`'])
+        ),
         modifiers,
         enums,
         new Maybe(constraints, c => new Wrap(['(', c, ')']))

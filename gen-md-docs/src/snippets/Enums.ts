@@ -11,7 +11,7 @@ type EnumsArgs = {
  * `` (`active`, `inactive`) ``.
  *
  * Always renders: a parent builds it through
- * `new Maybe(enums, values => new Enums(…))`, and an empty list of allowed
+ * `Maybe.nonEmpty(enums, values => new Enums(…))`, and an empty list of allowed
  * values is absent, so it is never built.
  */
 export class Enums extends SnippetBase {

@@ -44,7 +44,7 @@ Deno.test('Section - renders a description without a schema', () => {
 // schema or a non-blank description.
 const toSection = (schema: OasString | undefined, description: string | undefined) =>
   new Maybe(
-    new Loop([schema, description?.trim()]),
+    new Loop([schema, Maybe.nonEmptyText(description?.trim(), text => text)]),
     () => new Section({ context: toGenerateContext(), title: 'Request body', schema, description })
   )
 

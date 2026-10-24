@@ -64,7 +64,7 @@ Deno.test('Parameters - expands the fields of an object parameter', () => {
 // A group always renders; the operation builds one only when it has
 // parameters (an empty list is absent).
 Deno.test('Parameters - an empty group is not built by the operation', () => {
-  const group = new Maybe(
+  const group = Maybe.nonEmpty(
     [],
     parameters => new Parameters({ context: toGenerateContext(), title: 'Headers', parameters })
   )

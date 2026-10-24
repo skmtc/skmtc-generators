@@ -10,7 +10,7 @@ import { Loop, Maybe, Wrap } from '../Maybe.ts'
 type ParametersArgs = {
   context: GenerateContextType
   title: string
-  parameters: OasParameter[]
+  parameters: readonly OasParameter[]
   definitions?: Definitions
 }
 
@@ -19,7 +19,7 @@ type ParametersArgs = {
  * the Markdown counterpart of the docs viewer's `Parameters`.
  *
  * Always renders: the operation builds a group only when it has parameters,
- * with `new Maybe(operation.toParams([location]), parameters => new Parameters(…))`.
+ * with `Maybe.nonEmpty(operation.toParams([location]), parameters => new Parameters(…))`.
  */
 export class Parameters extends SnippetBase {
   title: string
@@ -81,40 +81,50 @@ class Parameter extends SnippetBase {
 
     const note = new Loop(
       [
-        new Maybe(parameter.deprecated, () => 'deprecated'),
-        new Maybe(
-          serializes && parameter.style !== defaultStyle ? parameter.style : undefined,
+        Maybe.when(parameter.deprecated === true, () => 'deprecated'),
+        Maybe.fromPredicate(
+          parameter.style,
+          style => serializes && style !== defaultStyle,
           style => new Wrap(['style: ', style])
         ),
-        // `explode: false` is a value to report, so presence is a boolean subject.
-        new Maybe(
-          serializes && parameter.explode !== undefined && parameter.explode !== defaultExplode,
-          () => (parameter.explode ? 'exploded' : 'not exploded')
+        Maybe.fromPredicate(
+          parameter.explode,
+          explode => serializes && explode !== defaultExplode,
+          explode =>
+            Maybe.when(
+              explode,
+              () => 'exploded',
+              () => 'not exploded'
+            )
         ),
-        new Maybe(parameter.allowReserved, () => 'allows reserved characters')
+        Maybe.when(parameter.allowReserved === true, () => 'allows reserved characters')
       ],
       { separator: ', ' }
     )
 
     this.parts = new Loop(
       [
-        schema
-          ? new Schema({
+        new Maybe(
+          schema,
+          present =>
+            new Schema({
               context,
               name: parameter.name,
-              schema,
+              schema: present,
               required: parameter.required,
               description: parameter.description,
               definitions
-            })
-          : new Loop(
+            }),
+          () =>
+            new Loop(
               [
-                new Maybe(parameter.name, name => new Name({ context, name })),
-                new Maybe(parameter.description?.trim(), text => new Wrap(['— ', text]))
+                Maybe.nonEmptyText(parameter.name, name => new Name({ context, name })),
+                Maybe.nonEmptyText(parameter.description?.trim(), text => new Wrap(['— ', text]))
               ],
               { separator: ' ' }
-            ),
-        new Maybe(
+            )
+        ),
+        Maybe.nonEmpty(
           content?.listedMediaTypes,
           types => new MediaTypes({ context, mediaTypes: types })
         ),

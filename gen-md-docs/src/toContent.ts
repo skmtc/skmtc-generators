@@ -5,7 +5,7 @@ import {
   type OasRef,
   type OasMediaType
 } from '@skmtc/core'
-import { Loop, Wrap } from './Maybe.ts'
+import { Loop, Maybe, Wrap } from './Maybe.ts'
 
 type Content = {
   mediaTypes: string[]
@@ -36,13 +36,13 @@ export const toContent = (content: Record<string, OasMediaType> | undefined): Co
 
 type MediaTypesArgs = {
   context: GenerateContextType
-  mediaTypes: string[]
+  mediaTypes: readonly string[]
 }
 
 /**
  * The content-type annotation, e.g. ``Content types: `text/csv`, `application/json` ``.
  * Always renders: a parent builds it through
- * `new Maybe(content.listedMediaTypes, types => new MediaTypes(…))`, which is
+ * `Maybe.nonEmpty(content.listedMediaTypes, types => new MediaTypes(…))`, which is
  * empty for no media types or the plain single `application/json`.
  */
 export class MediaTypes extends SnippetBase {
@@ -52,7 +52,11 @@ export class MediaTypes extends SnippetBase {
     super({ context })
 
     this.annotation = new Wrap([
-      mediaTypes.length === 1 ? 'Content type: ' : 'Content types: ',
+      Maybe.when(
+        mediaTypes.length === 1,
+        () => 'Content type: ',
+        () => 'Content types: '
+      ),
       new Loop(mediaTypes.map(type => new Wrap(['`', type, '`'])))
     ])
   }

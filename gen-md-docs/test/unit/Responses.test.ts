@@ -50,7 +50,7 @@ Deno.test('Responses - renders every status code with description and schema', (
 Deno.test('Responses - no section is built when there are no responses', () => {
   const context = toGenerateContext()
   const declared = {}
-  const responses = new Maybe(
+  const responses = Maybe.nonEmpty(
     Object.values(declared),
     () => new Responses({ context, responses: declared, definitions: new Definitions({ context }) })
   )

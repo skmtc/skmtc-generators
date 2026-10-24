@@ -9,7 +9,7 @@ type NameArgs = {
  * Renders a property name in bold, e.g. `**id**`.
  *
  * Always renders: a parent with an optional name (a root schema has none)
- * builds it through `new Maybe(name, present => new Name(…))`.
+ * builds it through `Maybe.nonEmptyText(name, present => new Name(…))`.
  */
 export class Name extends SnippetBase {
   name: string

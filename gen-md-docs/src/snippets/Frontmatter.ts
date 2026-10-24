@@ -19,22 +19,19 @@ export class Frontmatter extends SnippetBase {
   constructor({ context, operation, servers }: FrontmatterArgs) {
     super({ context, stackTrail: operation.stackTrail.clone() })
 
-    // A defined-but-empty summary or id still renders (`title: ""`), so presence
-    // is decided on `undefined`, not by `Maybe`'s blank check.
-    const title = operation.summary !== undefined ? new YamlString(operation.summary) : undefined
-    const operationId =
-      operation.operationId !== undefined ? new YamlString(operation.operationId) : undefined
-
     const lines = new Loop(
       [
         'type: operation',
-        new Maybe(title, value => new Wrap(['title: ', value])),
-        new Maybe(operationId, value => new Wrap(['operationId: ', value])),
+        new Maybe(operation.summary, value => new Wrap(['title: ', new YamlString(value)])),
+        new Maybe(
+          operation.operationId,
+          value => new Wrap(['operationId: ', new YamlString(value)])
+        ),
         new Wrap(['method: ', operation.method.toUpperCase()]),
         new Wrap(['path: ', new YamlString(operation.path)]),
-        new Maybe(servers, values => new YamlList({ key: 'servers', values })),
-        new Maybe(operation.tags, values => new YamlList({ key: 'tags', values })),
-        new Maybe(operation.deprecated, () => 'deprecated: true')
+        Maybe.nonEmpty(servers, values => new YamlList({ key: 'servers', values })),
+        Maybe.nonEmpty(operation.tags, values => new YamlList({ key: 'tags', values })),
+        Maybe.when(operation.deprecated === true, () => 'deprecated: true')
       ],
       { separator: '\n' }
     )
@@ -49,7 +46,7 @@ export class Frontmatter extends SnippetBase {
 
 type YamlListArgs = {
   key: string
-  values: string[]
+  values: readonly string[]
 }
 
 /** A named YAML block list. Built only for a non-empty list of values. */

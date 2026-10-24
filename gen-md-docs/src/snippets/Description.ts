@@ -11,7 +11,7 @@ type DescriptionArgs = {
  * Descriptions are already CommonMark / GFM in the source document, so this
  * passes the text through verbatim (trimmed). It always renders: a parent with
  * an optional description builds it through
- * `new Maybe(description?.trim(), present => new Description(…))`, so an absent
+ * `Maybe.nonEmptyText(description?.trim(), present => new Description(…))`, so an absent
  * description drops out of the parent's `Loop` together with its separator.
  */
 export class Description extends SnippetBase {

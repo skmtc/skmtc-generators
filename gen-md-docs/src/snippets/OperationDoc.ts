@@ -44,7 +44,10 @@ export class OperationDoc extends SnippetBase {
       [
         new Frontmatter({ context, operation, servers }),
         new Maybe(
-          new Loop([operation.summary?.trim(), operation.description?.trim()]),
+          new Loop([
+            Maybe.nonEmptyText(operation.summary?.trim(), text => text),
+            Maybe.nonEmptyText(operation.description?.trim(), text => text)
+          ]),
           () =>
             new Summary({ context, summary: operation.summary, description: operation.description })
         ),
@@ -53,7 +56,7 @@ export class OperationDoc extends SnippetBase {
           operation.externalDocs,
           externalDocs => new ExternalDocs({ context, externalDocs })
         ),
-        new Maybe(
+        Maybe.nonEmpty(
           operation.security ?? document?.security,
           security =>
             new Security({
@@ -62,26 +65,29 @@ export class OperationDoc extends SnippetBase {
               securitySchemes: document?.components?.securitySchemes
             })
         ),
-        new Maybe(
+        Maybe.nonEmpty(
           operation.toParams(['path']),
           parameters =>
             new Parameters({ context, title: 'Path parameters', parameters, definitions })
         ),
-        new Maybe(
+        Maybe.nonEmpty(
           operation.toParams(['query']),
           parameters =>
             new Parameters({ context, title: 'Query parameters', parameters, definitions })
         ),
-        new Maybe(
+        Maybe.nonEmpty(
           operation.toParams(['header']),
           parameters => new Parameters({ context, title: 'Headers', parameters, definitions })
         ),
-        new Maybe(
+        Maybe.nonEmpty(
           operation.toParams(['cookie']),
           parameters => new Parameters({ context, title: 'Cookies', parameters, definitions })
         ),
         new Maybe(
-          new Loop([requestContent.schema, requestBody?.description?.trim()]),
+          new Loop([
+            requestContent.schema,
+            Maybe.nonEmptyText(requestBody?.description?.trim(), text => text)
+          ]),
           () =>
             new Section({
               context,
@@ -93,7 +99,7 @@ export class OperationDoc extends SnippetBase {
               required: requestBody?.required
             })
         ),
-        new Maybe(
+        Maybe.nonEmpty(
           Object.values(operation.responses),
           () => new Responses({ context, responses: operation.responses, definitions })
         ),

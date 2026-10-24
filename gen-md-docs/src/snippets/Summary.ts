@@ -25,8 +25,8 @@ export class Summary extends SnippetBase {
 
     this.parts = new Loop(
       [
-        new Maybe(summary?.trim(), present => new Wrap(['# ', present])),
-        new Maybe(
+        Maybe.nonEmptyText(summary?.trim(), present => new Wrap(['# ', present])),
+        Maybe.nonEmptyText(
           description?.trim(),
           present => new Description({ context, description: present })
         )

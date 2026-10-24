@@ -56,7 +56,7 @@ Deno.test('Security - lists requirements with scheme kind and scopes', () => {
 // Security always renders; the operation decides presence. No requirements
 // (undefined or an empty list) means the section is never built.
 const toSecurity = (security: OasSecurityRequirement[] | undefined) =>
-  new Maybe(
+  Maybe.nonEmpty(
     security,
     present =>
       new Security({ context: toGenerateContext(), security: present, securitySchemes: undefined })

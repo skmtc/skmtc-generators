@@ -56,13 +56,15 @@ export class Schema extends SnippetBase {
 
     const row = new Loop(
       [
-        new Maybe(name, present => new Name({ context, name: present })),
+        Maybe.nonEmptyText(name, present => new Name({ context, name: present })),
         new TypeInfo({ context, schema, required }),
-        new Maybe(
-          resolved,
-          r => new Maybe('title' in r ? r.title : undefined, title => new Wrap(['_', title, '_']))
+        new Maybe(resolved, r =>
+          Maybe.nonEmptyText(
+            'title' in r ? r.title : undefined,
+            title => new Wrap(['_', title, '_'])
+          )
         ),
-        new Maybe((description ?? ownDescription)?.trim(), text => new Wrap(['— ', text]))
+        Maybe.nonEmptyText((description ?? ownDescription)?.trim(), text => new Wrap(['— ', text]))
       ],
       { separator: ' ' }
     )
@@ -70,9 +72,9 @@ export class Schema extends SnippetBase {
     this.content = new Loop(
       [
         row,
-        new Maybe(
-          properties.length > 0,
-          () => new Properties({ context, properties, definitions, depth })
+        Maybe.nonEmpty(
+          properties,
+          present => new Properties({ context, properties: present, definitions, depth })
         )
       ],
       { separator: '\n' }
@@ -92,7 +94,7 @@ type Property = {
 
 type PropertiesArgs = {
   context: GenerateContextType
-  properties: Property[]
+  properties: readonly Property[]
   definitions: Definitions
   depth: number
 }

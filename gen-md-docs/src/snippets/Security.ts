@@ -3,8 +3,7 @@ import {
   type GenerateContextType,
   type OasSecurityRequirement,
   type OasSecurityScheme,
-  type OasRef,
-  type Stringable
+  type OasRef
 } from '@skmtc/core'
 import { Loop, Maybe, Wrap } from '../Maybe.ts'
 
@@ -12,7 +11,7 @@ type SecuritySchemes = Record<string, OasSecurityScheme | OasRef<'securityScheme
 
 type SecurityArgs = {
   context: GenerateContextType
-  security: OasSecurityRequirement[]
+  security: readonly OasSecurityRequirement[]
   securitySchemes: SecuritySchemes
 }
 
@@ -52,28 +51,28 @@ type RequirementArgs = {
 
 /** One requirement: its schemes AND-ed together, or a note when it demands none. */
 class Requirement extends SnippetBase {
-  content: Stringable
+  content: Maybe<true, Loop, string>
 
   constructor({ context, requirement, securitySchemes }: RequirementArgs) {
     super({ context })
 
-    const schemes = Object.entries(requirement.requirement)
-
-    this.content =
-      schemes.length === 0
-        ? '_no authentication_'
-        : new Loop(
-            schemes.map(
-              ([name, scopes]) =>
-                new SchemeReference({
-                  context,
-                  name,
-                  scopes,
-                  scheme: securitySchemes?.[name]?.resolve()
-                })
-            ),
-            { separator: ' + ' }
-          )
+    this.content = Maybe.nonEmpty(
+      Object.entries(requirement.requirement),
+      schemes =>
+        new Loop(
+          schemes.map(
+            ([name, scopes]) =>
+              new SchemeReference({
+                context,
+                name,
+                scopes,
+                scheme: securitySchemes?.[name]?.resolve()
+              })
+          ),
+          { separator: ' + ' }
+        ),
+      () => '_no authentication_'
+    )
   }
 
   override toString(): string {
@@ -103,11 +102,11 @@ class SchemeReference extends SnippetBase {
         scheme,
         resolved => new Wrap([' (', new SchemeKind({ context, scheme: resolved }), ')'])
       ),
-      new Maybe(
-        new Loop(scopes.map(scope => new Wrap(['`', scope, '`']))),
-        loop => new Wrap([' — scopes: ', loop])
+      Maybe.nonEmpty(
+        scopes,
+        list => new Wrap([' — scopes: ', new Loop(list.map(scope => new Wrap(['`', scope, '`'])))])
       ),
-      new Maybe(scheme?.description, description => new Wrap([' — ', description]))
+      Maybe.nonEmptyText(scheme?.description, description => new Wrap([' — ', description]))
     ])
   }
 

@@ -24,7 +24,7 @@ Deno.test('Enums - renders non-string values via String()', () => {
 // Enums always renders; the parent decides presence. Missing or empty allowed
 // values (an empty array is absent) are never built.
 const toEnums = (enums: readonly unknown[] | undefined) =>
-  new Maybe(enums, values => new Enums({ context: toGenerateContext(), enums: values }))
+  Maybe.nonEmpty(enums, values => new Enums({ context: toGenerateContext(), enums: values }))
 
 Deno.test('Enums - missing or empty allowed values are not built by the parent', () => {
   assertEquals(toEnums(undefined).toString(), '')

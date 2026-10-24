@@ -46,9 +46,12 @@ export class Section extends SnippetBase {
     this.parts = new Loop(
       [
         new Wrap(['## ', title]),
-        new Maybe(required, () => '**Required.**'),
-        new Maybe(description?.trim(), text => new Description({ context, description: text })),
-        new Maybe(mediaTypes, types => new MediaTypes({ context, mediaTypes: types })),
+        Maybe.when(required === true, () => '**Required.**'),
+        Maybe.nonEmptyText(
+          description?.trim(),
+          text => new Description({ context, description: text })
+        ),
+        Maybe.nonEmpty(mediaTypes, types => new MediaTypes({ context, mediaTypes: types })),
         new Maybe(
           schema,
           present =>

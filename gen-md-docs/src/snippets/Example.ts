@@ -1,5 +1,5 @@
 import { SnippetBase, type GenerateContextType } from '@skmtc/core'
-import { Wrap } from '../Maybe.ts'
+import { Maybe, Wrap } from '../Maybe.ts'
 import type { CollatedExample } from '../toExample.ts'
 
 type ExampleArgs = {
@@ -18,17 +18,18 @@ type ExampleArgs = {
  * holds the value in an object so that `false`, `''` and `[]` stay present.
  */
 export class Example extends SnippetBase {
-  block: Wrap
+  block: Maybe<true, Wrap, Wrap>
 
   constructor({ context, example }: ExampleArgs) {
     super({ context })
 
     const { value } = example
 
-    this.block =
-      typeof value === 'object'
-        ? new Wrap(['```json\n', JSON.stringify(value, null, 2), '\n```'])
-        : new Wrap(['Example: `', String(value), '`'])
+    this.block = Maybe.when(
+      typeof value === 'object',
+      () => new Wrap(['```json\n', JSON.stringify(value, null, 2), '\n```']),
+      () => new Wrap(['Example: `', String(value), '`'])
+    )
   }
 
   override toString(): string {

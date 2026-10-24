@@ -26,7 +26,7 @@ type ResponsesArgs = {
  * error responses (their status codes and schemas), not just the success one,
  * is the highest-value content for an agent generating request and error
  * handling. Always renders: the operation builds it only when it declares
- * responses, with `new Maybe(Object.values(responses), () => new Responses(…))`.
+ * responses, with `Maybe.nonEmpty(Object.values(responses), () => new Responses(…))`.
  */
 export class Responses extends SnippetBase {
   entries: Loop
@@ -94,9 +94,9 @@ class ResponseEntry extends SnippetBase {
           '### `',
           code,
           '`',
-          new Maybe(response?.description?.trim(), text => new Wrap([' — ', text]))
+          Maybe.nonEmptyText(response?.description?.trim(), text => new Wrap([' — ', text]))
         ]),
-        new Maybe(
+        Maybe.nonEmpty(
           content.listedMediaTypes,
           types => new MediaTypes({ context, mediaTypes: types })
         ),
@@ -133,23 +133,27 @@ class Header extends SnippetBase {
     super({ context, stackTrail: header.schema?.stackTrail.clone() })
 
     this.content = new Wrap([
-      header.schema
-        ? new Schema({
+      new Maybe(
+        header.schema,
+        schema =>
+          new Schema({
             context,
             name,
-            schema: header.schema,
+            schema,
             required: header.required,
             description: header.description,
             definitions
-          })
-        : new Loop(
+          }),
+        () =>
+          new Loop(
             [
-              new Maybe(name, present => new Name({ context, name: present })),
-              new Maybe(header.description?.trim(), text => new Wrap(['— ', text]))
+              Maybe.nonEmptyText(name, present => new Name({ context, name: present })),
+              Maybe.nonEmptyText(header.description?.trim(), text => new Wrap(['— ', text]))
             ],
             { separator: ' ' }
-          ),
-      new Maybe(header.deprecated, () => ' _(deprecated)_')
+          )
+      ),
+      Maybe.when(header.deprecated === true, () => ' _(deprecated)_')
     ])
   }
 
@@ -176,9 +180,9 @@ class Link extends SnippetBase {
 
     this.content = new Loop(
       [
-        new Maybe(name, present => new Name({ context, name: present })),
+        Maybe.nonEmptyText(name, present => new Name({ context, name: present })),
         new Maybe(link.operationId ?? link.operationRef, target => new Wrap(['→ `', target, '`'])),
-        new Maybe(link.description?.trim(), text => new Wrap(['— ', text]))
+        Maybe.nonEmptyText(link.description?.trim(), text => new Wrap(['— ', text]))
       ],
       { separator: ' ' }
     )

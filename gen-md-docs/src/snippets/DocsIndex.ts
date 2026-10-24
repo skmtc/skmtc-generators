@@ -78,7 +78,7 @@ export class TopIndex extends SnippetBase {
             '- `',
             server.url,
             '`',
-            new Maybe(server.description, text => new Wrap([' — ', text]))
+            Maybe.nonEmptyText(server.description, text => new Wrap([' — ', text]))
           ])
       ),
       { separator: '\n' }
@@ -99,7 +99,7 @@ export class TopIndex extends SnippetBase {
       [
         new Wrap(['# ', title]),
         new Maybe(version, value => new Wrap(['> Version ', value, '.'])),
-        new Maybe(description),
+        Maybe.nonEmptyText(description, text => text),
         new Maybe(externalDocs, docs => new ExternalDocs({ context, externalDocs: docs })),
         new Maybe(serverLines, loop => new Wrap(['## Servers\n\n', loop])),
         new Maybe(schemeLines, loop => new Wrap(['## Authentication\n\n', loop])),
@@ -176,7 +176,7 @@ export class TagIndex extends SnippetBase {
     this.content = new Loop(
       [
         new Wrap(['# ', tag]),
-        new Maybe(description),
+        Maybe.nonEmptyText(description, text => text),
         new Maybe(externalDocs, docs => new ExternalDocs({ context, externalDocs: docs })),
         this.links
       ],
@@ -309,7 +309,7 @@ class SchemeDetail extends SnippetBase {
   constructor({ context, scheme }: SchemeDetailArgs) {
     super({ context })
 
-    const description = new Maybe(scheme.description, text => new Wrap([' — ', text]))
+    const description = Maybe.nonEmptyText(scheme.description, text => new Wrap([' — ', text]))
 
     switch (scheme.type) {
       case 'http':
@@ -395,7 +395,12 @@ class OAuth2Detail extends SnippetBase {
     const scopeParts = new Loop(
       Object.entries(scopes).map(
         ([name, detail]) =>
-          new Wrap(['`', name, '`', new Maybe(detail, text => new Wrap([' (', text, ')']))])
+          new Wrap([
+            '`',
+            name,
+            '`',
+            Maybe.nonEmptyText(detail, text => new Wrap([' (', text, ')']))
+          ])
       )
     )
 
