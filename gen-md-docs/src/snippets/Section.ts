@@ -3,7 +3,8 @@ import { Schema, type Definitions } from './Schema.ts'
 import { Description } from './Description.ts'
 import { Example } from './Example.ts'
 import { toExample } from '../toExample.ts'
-import { toMediaTypeLine } from '../toContent.ts'
+import { MediaTypes } from '../toContent.ts'
+import { Loop, Maybe, Wrap } from '../Maybe.ts'
 
 type SectionArgs = {
   context: GenerateContextType
@@ -26,12 +27,7 @@ type SectionArgs = {
  * a description, so an operation can interpolate every section unconditionally.
  */
 export class Section extends SnippetBase {
-  title: string
-  required: boolean
-  description: Description
-  mediaTypeLine: string | undefined
-  schema: Schema | undefined
-  example: Example
+  content: Maybe<Loop, Loop>
 
   constructor({
     context,
@@ -44,33 +40,31 @@ export class Section extends SnippetBase {
   }: SectionArgs) {
     super({ context, stackTrail: schema?.stackTrail.clone() })
 
-    this.title = title
-    this.required = required === true
-    this.description = new Description({ context, description })
-    this.mediaTypeLine = mediaTypes !== undefined ? toMediaTypeLine(mediaTypes) : undefined
-    this.schema = schema
-      ? new Schema({ context, name: undefined, schema, required: undefined, definitions })
-      : undefined
-    this.example = new Example({ context, example: toExample(schema) })
+    const text = new Description({ context, description }).content
+    const body = new Maybe(
+      schema,
+      present =>
+        new Schema({ context, name: undefined, schema: present, required: undefined, definitions })
+    )
+
+    this.content = new Maybe(
+      new Loop([body, text]),
+      () =>
+        new Loop(
+          [
+            new Wrap(['## ', title]),
+            new Maybe(required, () => '**Required.**'),
+            text,
+            new Maybe(mediaTypes, types => new MediaTypes({ context, mediaTypes: types }).content),
+            body,
+            new Example({ context, example: toExample(schema) }).content
+          ],
+          { separator: '\n\n' }
+        )
+    )
   }
 
   override toString(): string {
-    const description = this.description.toString()
-    const schema = this.schema?.toString() ?? ''
-
-    if (schema === '' && description === '') {
-      return ''
-    }
-
-    return [
-      `## ${this.title}`,
-      this.required ? '**Required.**' : '',
-      description,
-      this.mediaTypeLine ?? '',
-      schema,
-      this.example.toString()
-    ]
-      .filter(part => part !== '')
-      .join('\n\n')
+    return `${this.content}`
   }
 }

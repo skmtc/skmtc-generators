@@ -1,4 +1,5 @@
-import { SnippetBase, type GenerateContextType } from '@skmtc/core'
+import { SnippetBase, type GenerateContextType, type Stringable } from '@skmtc/core'
+import { Maybe, Wrap } from '../Maybe.ts'
 
 type ExampleArgs = {
   context: GenerateContextType
@@ -14,27 +15,24 @@ type ExampleArgs = {
  * string, so a parent can interpolate it unconditionally. The collation of a
  * schema into an example value is the caller's concern (`collateExamples`),
  * keeping this a generic value renderer.
+ *
+ * Presence is a boolean subject, not the value itself: `false` and `''` are
+ * real example values here, and `Maybe` would treat them as absent.
  */
 export class Example extends SnippetBase {
-  example: unknown
+  content: Maybe<boolean, Stringable>
 
   constructor({ context, example }: ExampleArgs) {
     super({ context })
 
-    this.example = example
+    this.content = new Maybe(example !== undefined && example !== null, () =>
+      typeof example === 'object'
+        ? new Wrap(['```json\n', JSON.stringify(example, null, 2), '\n```'])
+        : new Wrap(['Example: `', String(example), '`'])
+    )
   }
 
   override toString(): string {
-    const { example } = this
-
-    if (example === undefined || example === null) {
-      return ''
-    }
-
-    if (typeof example === 'object') {
-      return `\`\`\`json\n${JSON.stringify(example, null, 2)}\n\`\`\``
-    }
-
-    return `Example: \`${String(example)}\``
+    return `${this.content}`
   }
 }

@@ -1,17 +1,11 @@
-import {
-  SnippetBase,
-  type GenerateContextType,
-  type OasParameter,
-  type OasSchema,
-  type OasRef
-} from '@skmtc/core'
+import { SnippetBase, type GenerateContextType, type OasParameter } from '@skmtc/core'
 import { Name } from './Name.ts'
 import { Schema, type Definitions } from './Schema.ts'
-import { Description } from './Description.ts'
 import { Example } from './Example.ts'
 import { toExample } from '../toExample.ts'
-import { toContent, toMediaTypeLine } from '../toContent.ts'
+import { toContent, MediaTypes } from '../toContent.ts'
 import { safeResolve } from '../safeResolve.ts'
+import { Loop, Maybe, Wrap } from '../Maybe.ts'
 
 type ParametersArgs = {
   context: GenerateContextType
@@ -28,24 +22,21 @@ type ParametersArgs = {
  * can interpolate every group (path / query / header / cookie) unconditionally.
  */
 export class Parameters extends SnippetBase {
-  title: string
-  parameters: Parameter[]
+  content: Maybe<Loop, Wrap>
 
   constructor({ context, title, parameters, definitions }: ParametersArgs) {
     super({ context })
 
-    this.title = title
-    this.parameters = parameters.map(parameter => new Parameter({ context, parameter, definitions }))
+    const rows = new Loop(
+      parameters.map(parameter => new Parameter({ context, parameter, definitions })),
+      { separator: '\n\n' }
+    )
+
+    this.content = new Maybe(rows, loop => new Wrap(['## ', title, '\n\n', loop]))
   }
 
   override toString(): string {
-    if (this.parameters.length === 0) {
-      return ''
-    }
-
-    return [`## ${this.title}`, ...this.parameters.map(parameter => parameter.toString())].join(
-      '\n\n'
-    )
+    return `${this.content}`
   }
 }
 
@@ -64,14 +55,14 @@ type ParameterArgs = {
  * expands its fields — with the parameter's own `description` as the external
  * override. A `content`-typed parameter uses its media type's schema; one with
  * neither falls back to its bold name and description.
+ *
+ * The note's style/explode only matter for array and object schema parameters,
+ * and only when they differ from the location's defaults; the parser fills
+ * defaults in (including `explode: false` for scalars), so this suppresses that
+ * noise.
  */
 class Parameter extends SnippetBase {
-  name: Name
-  mediaTypeLine: string | undefined
-  schema: Schema | undefined
-  description: Description
-  note: string | undefined
-  example: Example
+  content: Loop
 
   constructor({ context, parameter, definitions }: ParameterArgs) {
     super({ context, stackTrail: parameter.stackTrail.clone() })
@@ -82,64 +73,56 @@ class Parameter extends SnippetBase {
         : undefined
     const schema = parameter.schema ?? content?.schema
 
-    this.name = new Name({ context, name: parameter.name })
-    this.mediaTypeLine = content !== undefined ? toMediaTypeLine(content.mediaTypes) : undefined
-    this.schema = schema
-      ? new Schema({
-          context,
-          name: parameter.name,
-          schema,
-          required: parameter.required,
-          description: parameter.description,
-          definitions
-        })
-      : undefined
-    this.description = new Description({ context, description: parameter.description })
-    this.note = toParameterNote(parameter, schema, content !== undefined)
-    this.example = new Example({ context, example: toExample(schema) })
+    const type = schema !== undefined ? safeResolve(schema)?.type : undefined
+    const serializes = content === undefined && (type === 'array' || type === 'object')
+    const defaultStyle =
+      parameter.location === 'query' || parameter.location === 'cookie' ? 'form' : 'simple'
+    const defaultExplode = (parameter.style ?? defaultStyle) === 'form'
+
+    const note = new Loop(
+      [
+        new Maybe(parameter.deprecated, () => 'deprecated'),
+        new Maybe(
+          serializes && parameter.style !== defaultStyle ? parameter.style : undefined,
+          style => new Wrap(['style: ', style])
+        ),
+        // `explode: false` is a value to report, so presence is a boolean subject.
+        new Maybe(
+          serializes && parameter.explode !== undefined && parameter.explode !== defaultExplode,
+          () => (parameter.explode ? 'exploded' : 'not exploded')
+        ),
+        new Maybe(parameter.allowReserved, () => 'allows reserved characters')
+      ],
+      { separator: ', ' }
+    )
+
+    this.content = new Loop(
+      [
+        schema
+          ? new Schema({
+              context,
+              name: parameter.name,
+              schema,
+              required: parameter.required,
+              description: parameter.description,
+              definitions
+            })
+          : new Loop(
+              [
+                new Name({ context, name: parameter.name }).content,
+                new Maybe(parameter.description?.trim(), text => new Wrap(['— ', text]))
+              ],
+              { separator: ' ' }
+            ),
+        new Maybe(content, c => new MediaTypes({ context, mediaTypes: c.mediaTypes }).content),
+        new Maybe(note, loop => new Wrap(['_', loop, '_'])),
+        new Example({ context, example: toExample(schema) }).content
+      ],
+      { separator: '\n\n' }
+    )
   }
 
   override toString(): string {
-    const description = this.description.toString()
-    const header =
-      this.schema?.toString() ??
-      [`${this.name}`, description && `— ${description}`].filter(part => part !== '').join(' ')
-
-    return [header, this.mediaTypeLine ?? '', this.note ?? '', this.example.toString()]
-      .filter(part => part !== '')
-      .join('\n\n')
+    return `${this.content}`
   }
-}
-
-/**
- * A parameter's serialization note — deprecated / allowReserved, plus style and
- * explode. Style/explode only matter for array and object schema parameters and
- * only when they differ from the location's defaults; the parser fills defaults
- * in (including `explode: false` for scalars), so this suppresses that noise.
- */
-const toParameterNote = (
-  parameter: OasParameter,
-  schema: OasSchema | OasRef<'schema'> | undefined,
-  isContent: boolean
-): string | undefined => {
-  const type = schema !== undefined ? safeResolve(schema)?.type : undefined
-  const serializes = !isContent && (type === 'array' || type === 'object')
-  const defaultStyle =
-    parameter.location === 'query' || parameter.location === 'cookie' ? 'form' : 'simple'
-  const defaultExplode = (parameter.style ?? defaultStyle) === 'form'
-
-  const parts = [
-    parameter.deprecated === true ? 'deprecated' : undefined,
-    serializes && parameter.style !== undefined && parameter.style !== defaultStyle
-      ? `style: ${parameter.style}`
-      : undefined,
-    serializes && parameter.explode !== undefined && parameter.explode !== defaultExplode
-      ? parameter.explode
-        ? 'exploded'
-        : 'not exploded'
-      : undefined,
-    parameter.allowReserved === true ? 'allows reserved characters' : undefined
-  ].filter((part): part is string => part !== undefined)
-
-  return parts.length > 0 ? `_${parts.join(', ')}_` : undefined
 }

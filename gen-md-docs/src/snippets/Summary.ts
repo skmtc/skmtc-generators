@@ -1,5 +1,6 @@
 import { SnippetBase, type GenerateContextType } from '@skmtc/core'
 import { Description } from './Description.ts'
+import { Loop, Maybe, Wrap } from '../Maybe.ts'
 
 type SummaryArgs = {
   context: GenerateContextType
@@ -13,19 +14,24 @@ type SummaryArgs = {
  * the description follows as a paragraph. Either may be absent.
  */
 export class Summary extends SnippetBase {
-  summary: string | undefined
-  description: Description
+  content: Loop
 
   constructor({ context, summary, description }: SummaryArgs) {
     super({ context })
 
-    this.summary = summary?.trim()
-    this.description = new Description({ context, description })
+    this.content = new Loop(
+      [
+        new Maybe(summary?.trim(), present => new Wrap(['# ', present])),
+        new Maybe(
+          description?.trim(),
+          present => new Description({ context, description: present })
+        )
+      ],
+      { separator: '\n\n' }
+    )
   }
 
   override toString(): string {
-    const heading = this.summary ? `# ${this.summary}` : ''
-
-    return [heading, this.description.toString()].filter(part => part !== '').join('\n\n')
+    return `${this.content}`
   }
 }

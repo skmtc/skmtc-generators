@@ -1,5 +1,5 @@
 import { SnippetBase, type GenerateContextType } from '@skmtc/core'
-import { List } from '@skmtc/lang-typescript'
+import { Loop, Maybe, Wrap } from '../Maybe.ts'
 
 type EnumsArgs = {
   context: GenerateContextType
@@ -10,23 +10,22 @@ type EnumsArgs = {
  * Renders a schema's allowed values as an inline-code list, e.g.
  * `` (`active`, `inactive`) ``.
  *
- * The values are arranged into a parenthesised, comma-separated {@link List} in
- * the constructor; `skipEmpty` makes it render the empty string when there are
- * no allowed values, so a parent can interpolate it unconditionally.
+ * The values are a comma-separated {@link Loop}; the `Maybe` around its
+ * parentheses renders the empty string when there are no allowed values, so a
+ * parent can interpolate it unconditionally.
  */
 export class Enums extends SnippetBase {
-  values: List
+  content: Maybe<Loop, Wrap>
 
   constructor({ context, enums }: EnumsArgs) {
     super({ context })
 
-    this.values = new List(
-      (enums ?? []).map(value => `\`${String(value)}\``),
-      { separator: ', ', bookends: '()', skipEmpty: true }
-    )
+    const values = new Loop((enums ?? []).map(value => new Wrap(['`', String(value), '`'])))
+
+    this.content = new Maybe(values, loop => new Wrap(['(', loop, ')']))
   }
 
   override toString(): string {
-    return this.values.toString()
+    return `${this.content}`
   }
 }

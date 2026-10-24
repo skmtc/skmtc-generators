@@ -8,11 +8,11 @@ import {
 } from '@skmtc/core'
 import { Name } from './Name.ts'
 import { Schema, type Definitions } from './Schema.ts'
-import { Description } from './Description.ts'
 import { Example } from './Example.ts'
 import { toExample } from '../toExample.ts'
 import { safeResolve } from '../safeResolve.ts'
-import { toContent, toMediaTypeLine } from '../toContent.ts'
+import { toContent, MediaTypes } from '../toContent.ts'
+import { Loop, Maybe, Wrap } from '../Maybe.ts'
 
 type ResponsesArgs = {
   context: GenerateContextType
@@ -28,23 +28,24 @@ type ResponsesArgs = {
  * handling. Renders the empty string when the operation declares no responses.
  */
 export class Responses extends SnippetBase {
-  entries: ResponseEntry[]
+  content: Maybe<Loop, Wrap>
 
   constructor({ context, responses, definitions }: ResponsesArgs) {
     super({ context })
 
-    this.entries = Object.entries(responses).map(
-      ([code, response]) =>
-        new ResponseEntry({ context, code, response: safeResolve(response), definitions })
+    const entries = new Loop(
+      Object.entries(responses).map(
+        ([code, response]) =>
+          new ResponseEntry({ context, code, response: safeResolve(response), definitions })
+      ),
+      { separator: '\n\n' }
     )
+
+    this.content = new Maybe(entries, loop => new Wrap(['## Responses\n\n', loop]))
   }
 
   override toString(): string {
-    if (this.entries.length === 0) {
-      return ''
-    }
-
-    return ['## Responses', ...this.entries.map(entry => entry.toString())].join('\n\n')
+    return `${this.content}`
   }
 }
 
@@ -59,60 +60,59 @@ type ResponseEntryArgs = {
  * `response` is `undefined` when its `$ref` could not be resolved — the status
  * code still documents, without a schema. */
 class ResponseEntry extends SnippetBase {
-  code: string
-  description: Description
-  mediaTypeLine: string | undefined
-  headers: Header[]
-  links: Link[]
-  schema: Schema | undefined
-  example: Example
+  content: Loop
 
   constructor({ context, code, response, definitions }: ResponseEntryArgs) {
     const content = toContent(response?.content)
 
     super({ context, stackTrail: content.schema?.stackTrail.clone() })
 
-    this.code = code
-    this.description = new Description({ context, description: response?.description })
-    this.mediaTypeLine = toMediaTypeLine(content.mediaTypes)
-    this.headers = Object.entries(response?.headers ?? {}).flatMap(([name, header]) => {
-      const resolved = safeResolve(header)
+    const headers = new Loop(
+      Object.entries(response?.headers ?? {}).map(
+        ([name, header]) =>
+          new Maybe(
+            safeResolve(header),
+            resolved =>
+              new Wrap(['- ', new Header({ context, name, header: resolved, definitions })])
+          )
+      ),
+      { separator: '\n' }
+    )
+    const links = new Loop(
+      Object.entries(response?.links ?? {}).map(
+        ([name, link]) =>
+          new Maybe(
+            safeResolve(link),
+            resolved => new Wrap(['- ', new Link({ context, name, link: resolved })])
+          )
+      ),
+      { separator: '\n' }
+    )
 
-      return resolved !== undefined ? [new Header({ context, name, header: resolved, definitions })] : []
-    })
-    this.links = Object.entries(response?.links ?? {}).flatMap(([name, link]) => {
-      const resolved = safeResolve(link)
-
-      return resolved !== undefined ? [new Link({ context, name, link: resolved })] : []
-    })
-    this.schema = content.schema
-      ? new Schema({ context, name: undefined, schema: content.schema, required: undefined, definitions })
-      : undefined
-    this.example = new Example({ context, example: toExample(content.schema) })
+    this.content = new Loop(
+      [
+        new Wrap([
+          '### `',
+          code,
+          '`',
+          new Maybe(response?.description?.trim(), text => new Wrap([' — ', text]))
+        ]),
+        new MediaTypes({ context, mediaTypes: content.mediaTypes }).content,
+        new Maybe(
+          content.schema,
+          schema =>
+            new Schema({ context, name: undefined, schema, required: undefined, definitions })
+        ),
+        new Maybe(headers, loop => new Wrap(['**Headers**\n\n', loop])),
+        new Maybe(links, loop => new Wrap(['**Links**\n\n', loop])),
+        new Example({ context, example: toExample(content.schema) }).content
+      ],
+      { separator: '\n\n' }
+    )
   }
 
   override toString(): string {
-    const description = this.description.toString()
-    const heading = description ? `### \`${this.code}\` — ${description}` : `### \`${this.code}\``
-    const headers =
-      this.headers.length > 0
-        ? ['**Headers**', this.headers.map(header => `- ${header}`).join('\n')].join('\n\n')
-        : ''
-    const links =
-      this.links.length > 0
-        ? ['**Links**', this.links.map(link => `- ${link}`).join('\n')].join('\n\n')
-        : ''
-
-    return [
-      heading,
-      this.mediaTypeLine ?? '',
-      this.schema?.toString() ?? '',
-      headers,
-      links,
-      this.example.toString()
-    ]
-      .filter(part => part !== '')
-      .join('\n\n')
+    return `${this.content}`
   }
 }
 
@@ -125,36 +125,34 @@ type HeaderArgs = {
 
 /** One response header — its name, schema (name/type/required/description) and deprecation. */
 class Header extends SnippetBase {
-  name: Name
-  description: Description
-  schema: Schema | undefined
-  deprecated: boolean
+  content: Wrap
 
   constructor({ context, name, header, definitions }: HeaderArgs) {
     super({ context, stackTrail: header.schema?.stackTrail.clone() })
 
-    this.name = new Name({ context, name })
-    this.description = new Description({ context, description: header.description })
-    this.schema = header.schema
-      ? new Schema({
-          context,
-          name,
-          schema: header.schema,
-          required: header.required,
-          description: header.description,
-          definitions
-        })
-      : undefined
-    this.deprecated = header.deprecated === true
+    this.content = new Wrap([
+      header.schema
+        ? new Schema({
+            context,
+            name,
+            schema: header.schema,
+            required: header.required,
+            description: header.description,
+            definitions
+          })
+        : new Loop(
+            [
+              new Name({ context, name }).content,
+              new Maybe(header.description?.trim(), text => new Wrap(['— ', text]))
+            ],
+            { separator: ' ' }
+          ),
+      new Maybe(header.deprecated, () => ' _(deprecated)_')
+    ])
   }
 
   override toString(): string {
-    const description = this.description.toString()
-    const base =
-      this.schema?.toString() ??
-      [`${this.name}`, description && `— ${description}`].filter(part => part !== '').join(' ')
-
-    return this.deprecated ? `${base} _(deprecated)_` : base
+    return `${this.content}`
   }
 }
 
@@ -169,27 +167,22 @@ type LinkArgs = {
  * name, the target operation (`operationId` or `operationRef`) and description.
  */
 class Link extends SnippetBase {
-  name: Name
-  target: string | undefined
-  description: Description
+  content: Loop
 
   constructor({ context, name, link }: LinkArgs) {
     super({ context })
 
-    this.name = new Name({ context, name })
-    this.target = link.operationId ?? link.operationRef
-    this.description = new Description({ context, description: link.description })
+    this.content = new Loop(
+      [
+        new Name({ context, name }).content,
+        new Maybe(link.operationId ?? link.operationRef, target => new Wrap(['→ `', target, '`'])),
+        new Maybe(link.description?.trim(), text => new Wrap(['— ', text]))
+      ],
+      { separator: ' ' }
+    )
   }
 
   override toString(): string {
-    const description = this.description.toString()
-
-    return [
-      `${this.name}`,
-      this.target !== undefined ? `→ \`${this.target}\`` : '',
-      description && `— ${description}`
-    ]
-      .filter(part => part !== '')
-      .join(' ')
+    return `${this.content}`
   }
 }

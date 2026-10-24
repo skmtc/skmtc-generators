@@ -4,8 +4,9 @@ import {
   type OasSecurityScheme,
   type OasRef
 } from '@skmtc/core'
-import type { ExternalDocsData } from './ExternalDocs.ts'
+import { ExternalDocs, type ExternalDocsData } from './ExternalDocs.ts'
 import { safeResolve } from '../safeResolve.ts'
+import { Loop, Maybe, Wrap } from '../Maybe.ts'
 
 export type IndexEntry = {
   /** Every tag on the operation (for the JSON catalog). */
@@ -44,61 +45,115 @@ type TopIndexArgs = {
  * description, its servers and authentication, and a lightweight tag directory
  * an agent reads first, then follows a tag to its per-tag index. Untagged
  * operations are listed directly.
+ *
+ * An accumulator: the static sections are built in the constructor, and
+ * {@link add} fills the operation count, the tag groups (kept in tag order) and
+ * the untagged links before render.
  */
 export class TopIndex extends SnippetBase {
-  title: string
-  version: string | undefined
-  description: string | undefined
-  servers: Server[]
-  externalDocs: ExternalDocsData | undefined
-  securitySchemes: SecuritySchemes
-  entries: IndexEntry[]
+  count: OperationCount
+  groups: Loop<TagGroup>
+  untagged: Loop<OperationLink>
+  content: Loop
 
-  constructor({ context, title, version, description, servers, externalDocs, securitySchemes }: TopIndexArgs) {
+  constructor({
+    context,
+    title,
+    version,
+    description,
+    servers,
+    externalDocs,
+    securitySchemes
+  }: TopIndexArgs) {
     super({ context })
 
-    this.title = title
-    this.version = version
-    this.description = description
-    this.servers = servers
-    this.externalDocs = externalDocs
-    this.securitySchemes = securitySchemes
-    this.entries = []
+    this.count = new OperationCount()
+    this.groups = new Loop([], { separator: '\n' })
+    this.untagged = new Loop([], { separator: '\n' })
+
+    const serverLines = new Loop(
+      servers.map(
+        server =>
+          new Wrap([
+            '- `',
+            server.url,
+            '`',
+            new Maybe(server.description, text => new Wrap([' — ', text]))
+          ])
+      ),
+      { separator: '\n' }
+    )
+    const schemeLines = new Loop(
+      Object.entries(securitySchemes ?? {}).map(
+        ([name, scheme]) =>
+          new Maybe(
+            safeResolve(scheme),
+            resolved =>
+              new Wrap(['- `', name, '` — ', new SchemeDetail({ context, scheme: resolved })])
+          )
+      ),
+      { separator: '\n' }
+    )
+
+    this.content = new Loop(
+      [
+        new Wrap(['# ', title]),
+        new Maybe(version, value => new Wrap(['> Version ', value, '.'])),
+        new Maybe(description),
+        new ExternalDocs({ context, externalDocs }).content,
+        new Maybe(serverLines, loop => new Wrap(['## Servers\n\n', loop])),
+        new Maybe(schemeLines, loop => new Wrap(['## Authentication\n\n', loop])),
+        new Loop(
+          [
+            '## Operations',
+            new Wrap(['> Reference for ', this.count, ', grouped by tag.']),
+            this.groups
+          ],
+          { separator: '\n\n' }
+        ),
+        new Maybe(this.untagged, loop => new Wrap(['## Other\n\n', loop]))
+      ],
+      { separator: '\n\n' }
+    )
   }
 
   add(entry: IndexEntry): void {
-    this.entries.push(entry)
+    this.count.value += 1
+
+    if (entry.tagFolder === '') {
+      this.untagged.add(
+        new OperationLink({
+          title: entry.title,
+          href: entry.link,
+          method: entry.method,
+          path: entry.path
+        })
+      )
+
+      return
+    }
+
+    const group = this.groups.items.find(candidate => candidate?.folder === entry.tagFolder)
+
+    if (group) {
+      group.count.value += 1
+
+      return
+    }
+
+    const created = new TagGroup({ folder: entry.tagFolder, tag: entry.tags[0] ?? entry.tagFolder })
+    const before = this.groups.items.findIndex(
+      candidate =>
+        candidate !== undefined &&
+        candidate !== null &&
+        created.tag.localeCompare(candidate.tag) < 0
+    )
+
+    this.groups.items.splice(before === -1 ? this.groups.items.length : before, 0, created)
   }
 
   override toString(): string {
-    const { groups, untagged } = toGroups(this.entries)
-    const count = this.entries.length
-
-    const sections = [
-      `# ${this.title}`,
-      this.version !== undefined ? `> Version ${this.version}.` : '',
-      this.description ?? '',
-      toExternalDocsLink(this.externalDocs),
-      toServersSection(this.servers),
-      toAuthSection(this.securitySchemes),
-      [
-        '## Operations',
-        `> Reference for ${count} operation${count === 1 ? '' : 's'}, grouped by tag.`,
-        groups
-          .map(
-            ({ folder, tag, count: n }) =>
-              `- [${tag}](${folder}/index.md) — ${n} operation${n === 1 ? '' : 's'}`
-          )
-          .join('\n')
-      ]
-        .filter(part => part !== '')
-        .join('\n\n'),
-      untagged.length > 0
-        ? ['## Other', untagged.map(toOperationLink).join('\n')].join('\n\n')
-        : ''
-    ]
-
-    return sections.filter(part => part !== '').join('\n\n')
+    return `${this.content}`
   }
 }
 
@@ -111,37 +166,37 @@ type TagIndexArgs = {
 
 /** A per-tag index (`docs/<tag>/index.md`) — its description and operations. */
 export class TagIndex extends SnippetBase {
-  tag: string
-  description: string | undefined
-  externalDocs: ExternalDocsData | undefined
-  entries: IndexEntry[]
+  links: Loop<OperationLink>
+  content: Loop
 
   constructor({ context, tag, description, externalDocs }: TagIndexArgs) {
     super({ context })
 
-    this.tag = tag
-    this.description = description
-    this.externalDocs = externalDocs
-    this.entries = []
+    this.links = new Loop([], { separator: '\n' })
+    this.content = new Loop(
+      [
+        new Wrap(['# ', tag]),
+        new Maybe(description),
+        new ExternalDocs({ context, externalDocs }).content,
+        this.links
+      ],
+      { separator: '\n\n' }
+    )
   }
 
   add(entry: IndexEntry): void {
-    this.entries.push(entry)
+    this.links.add(
+      new OperationLink({
+        title: entry.title,
+        href: entry.file,
+        method: entry.method,
+        path: entry.path
+      })
+    )
   }
 
   override toString(): string {
-    const links = this.entries.map(
-      entry => `- [${entry.title}](${entry.file}) — \`${entry.method}\` \`${entry.path}\``
-    )
-
-    return [
-      `# ${this.tag}`,
-      this.description ?? '',
-      toExternalDocsLink(this.externalDocs),
-      links.join('\n')
-    ]
-      .filter(part => part !== '')
-      .join('\n\n')
+    return `${this.content}`
   }
 }
 
@@ -190,112 +245,168 @@ export class Catalog extends SnippetBase {
   }
 }
 
-type Group = {
+/** A running operation count, e.g. `1 operation` or `3 operations`. */
+class OperationCount {
+  value = 0
+
+  toString(): string {
+    return `${this.value} operation${this.value === 1 ? '' : 's'}`
+  }
+}
+
+type TagGroupArgs = {
   folder: string
   tag: string
-  count: number
 }
 
-/** Entries grouped by tag folder (alphabetical) plus the untagged entries. */
-const toGroups = (entries: IndexEntry[]): { groups: Group[]; untagged: IndexEntry[] } => {
-  const byFolder = new Map<string, Group>()
-  const untagged: IndexEntry[] = []
+/** One tag's line in the top index — a link to its per-tag index and its count. */
+class TagGroup {
+  folder: string
+  tag: string
+  count: OperationCount
 
-  for (const entry of entries) {
-    if (entry.tagFolder === '') {
-      untagged.push(entry)
-      continue
-    }
-
-    const group = byFolder.get(entry.tagFolder)
-
-    if (group) {
-      group.count += 1
-    } else {
-      byFolder.set(entry.tagFolder, { folder: entry.tagFolder, tag: entry.tags[0] ?? entry.tagFolder, count: 1 })
-    }
+  constructor({ folder, tag }: TagGroupArgs) {
+    this.folder = folder
+    this.tag = tag
+    this.count = new OperationCount()
+    this.count.value = 1
   }
 
-  const groups = [...byFolder.values()].sort((a, b) => a.tag.localeCompare(b.tag))
-
-  return { groups, untagged }
-}
-
-const toOperationLink = (entry: IndexEntry): string =>
-  `- [${entry.title}](${entry.link}) — \`${entry.method}\` \`${entry.path}\``
-
-const toExternalDocsLink = (externalDocs: ExternalDocsData | undefined): string =>
-  externalDocs !== undefined
-    ? `**See also:** [${externalDocs.description ?? externalDocs.url}](${externalDocs.url})`
-    : ''
-
-const toServersSection = (servers: Server[]): string =>
-  servers.length > 0
-    ? [
-        '## Servers',
-        servers
-          .map(server => `- \`${server.url}\`${server.description ? ` — ${server.description}` : ''}`)
-          .join('\n')
-      ].join('\n\n')
-    : ''
-
-const toAuthSection = (securitySchemes: SecuritySchemes): string => {
-  const schemes = Object.entries(securitySchemes ?? {}).flatMap(([name, scheme]) => {
-    const resolved = safeResolve(scheme)
-
-    return resolved !== undefined ? [`- \`${name}\` — ${toSchemeDetail(resolved)}`] : []
-  })
-
-  return schemes.length > 0 ? ['## Authentication', schemes.join('\n')].join('\n\n') : ''
-}
-
-const toSchemeDetail = (scheme: OasSecurityScheme): string => {
-  const description =
-    scheme.description !== undefined && scheme.description !== '' ? ` — ${scheme.description}` : ''
-
-  switch (scheme.type) {
-    case 'http':
-      return `HTTP ${scheme.scheme}${scheme.bearerFormat !== undefined ? ` (${scheme.bearerFormat})` : ''}${description}`
-    case 'apiKey':
-      return `API key in ${scheme.location} \`${scheme.name}\`${description}`
-    case 'oauth2':
-      return `${toOAuth2Detail(scheme)}${description}`
-    case 'openIdConnect':
-      return `OpenID Connect (\`${scheme.openIdConnectUrl}\`)${description}`
-    default: {
-      const exhaustive: never = scheme
-      throw new Error(`Unhandled security scheme: ${JSON.stringify(exhaustive)}`)
-    }
+  toString(): string {
+    return `- [${this.tag}](${this.folder}/index.md) — ${this.count}`
   }
 }
 
-const toOAuth2Detail = (scheme: Extract<OasSecurityScheme, { type: 'oauth2' }>): string => {
-  const { flows } = scheme
-  const flowParts = [
-    flows.authorizationCode !== undefined
-      ? `authorization code (authorize \`${flows.authorizationCode.authorizationUrl}\`, token \`${flows.authorizationCode.tokenUrl}\`)`
-      : undefined,
-    flows.clientCredentials !== undefined
-      ? `client credentials (token \`${flows.clientCredentials.tokenUrl}\`)`
-      : undefined,
-    flows.implicit !== undefined
-      ? `implicit (authorize \`${flows.implicit.authorizationUrl}\`)`
-      : undefined,
-    flows.password !== undefined ? `password (token \`${flows.password.tokenUrl}\`)` : undefined
-  ].filter((part): part is string => part !== undefined)
+type OperationLinkArgs = {
+  title: string
+  href: string
+  method: string
+  path: string
+}
 
-  const scopes = {
-    ...flows.implicit?.scopes,
-    ...flows.password?.scopes,
-    ...flows.clientCredentials?.scopes,
-    ...flows.authorizationCode?.scopes
+/** A link to one operation document with its method and path. */
+class OperationLink {
+  content: Wrap
+
+  constructor({ title, href, method, path }: OperationLinkArgs) {
+    this.content = new Wrap(['- [', title, '](', href, ') — `', method, '` `', path, '`'])
   }
-  const scopeParts = Object.entries(scopes).map(
-    ([name, detail]) => `\`${name}\`${detail ? ` (${detail})` : ''}`
-  )
 
-  const flowText = flowParts.length > 0 ? ` — ${flowParts.join('; ')}` : ''
-  const scopeText = scopeParts.length > 0 ? `; scopes: ${scopeParts.join(', ')}` : ''
+  toString(): string {
+    return `${this.content}`
+  }
+}
 
-  return `OAuth2${flowText}${scopeText}`
+type SchemeDetailArgs = {
+  context: GenerateContextType
+  scheme: OasSecurityScheme
+}
+
+/** A security scheme's kind and details, then its description. */
+class SchemeDetail extends SnippetBase {
+  content: Wrap
+
+  constructor({ context, scheme }: SchemeDetailArgs) {
+    super({ context })
+
+    const description = new Maybe(scheme.description, text => new Wrap([' — ', text]))
+
+    switch (scheme.type) {
+      case 'http':
+        this.content = new Wrap([
+          'HTTP ',
+          scheme.scheme,
+          new Maybe(scheme.bearerFormat, format => new Wrap([' (', format, ')'])),
+          description
+        ])
+        break
+      case 'apiKey':
+        this.content = new Wrap([
+          'API key in ',
+          scheme.location,
+          ' `',
+          scheme.name,
+          '`',
+          description
+        ])
+        break
+      case 'oauth2':
+        this.content = new Wrap([new OAuth2Detail({ context, flows: scheme.flows }), description])
+        break
+      case 'openIdConnect':
+        this.content = new Wrap(['OpenID Connect (`', scheme.openIdConnectUrl, '`)', description])
+        break
+      default: {
+        const exhaustive: never = scheme
+        throw new Error(`Unhandled security scheme: ${JSON.stringify(exhaustive)}`)
+      }
+    }
+  }
+
+  override toString(): string {
+    return `${this.content}`
+  }
+}
+
+type OAuth2DetailArgs = {
+  context: GenerateContextType
+  flows: Extract<OasSecurityScheme, { type: 'oauth2' }>['flows']
+}
+
+/** An OAuth2 scheme's flows (with their URLs) and the union of their scopes. */
+class OAuth2Detail extends SnippetBase {
+  content: Wrap
+
+  constructor({ context, flows }: OAuth2DetailArgs) {
+    super({ context })
+
+    const flowParts = new Loop(
+      [
+        new Maybe(
+          flows.authorizationCode,
+          flow =>
+            new Wrap([
+              'authorization code (authorize `',
+              flow.authorizationUrl,
+              '`, token `',
+              flow.tokenUrl,
+              '`)'
+            ])
+        ),
+        new Maybe(
+          flows.clientCredentials,
+          flow => new Wrap(['client credentials (token `', flow.tokenUrl, '`)'])
+        ),
+        new Maybe(
+          flows.implicit,
+          flow => new Wrap(['implicit (authorize `', flow.authorizationUrl, '`)'])
+        ),
+        new Maybe(flows.password, flow => new Wrap(['password (token `', flow.tokenUrl, '`)']))
+      ],
+      { separator: '; ' }
+    )
+
+    const scopes = {
+      ...flows.implicit?.scopes,
+      ...flows.password?.scopes,
+      ...flows.clientCredentials?.scopes,
+      ...flows.authorizationCode?.scopes
+    }
+    const scopeParts = new Loop(
+      Object.entries(scopes).map(
+        ([name, detail]) =>
+          new Wrap(['`', name, '`', new Maybe(detail, text => new Wrap([' (', text, ')']))])
+      )
+    )
+
+    this.content = new Wrap([
+      'OAuth2',
+      new Maybe(flowParts, loop => new Wrap([' — ', loop])),
+      new Maybe(scopeParts, loop => new Wrap(['; scopes: ', loop]))
+    ])
+  }
+
+  override toString(): string {
+    return `${this.content}`
+  }
 }

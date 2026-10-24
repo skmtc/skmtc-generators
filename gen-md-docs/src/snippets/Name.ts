@@ -1,4 +1,5 @@
 import { SnippetBase, type GenerateContextType } from '@skmtc/core'
+import { Maybe, Wrap } from '../Maybe.ts'
 
 type NameArgs = {
   context: GenerateContextType
@@ -12,15 +13,15 @@ type NameArgs = {
  * can interpolate it unconditionally.
  */
 export class Name extends SnippetBase {
-  name: string | undefined
+  content: Maybe<string, Wrap>
 
   constructor({ context, name }: NameArgs) {
     super({ context })
 
-    this.name = name
+    this.content = new Maybe(name, present => new Wrap(['**', present, '**']))
   }
 
   override toString(): string {
-    return this.name ? `**${this.name}**` : ''
+    return `${this.content}`
   }
 }

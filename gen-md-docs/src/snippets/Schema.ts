@@ -9,9 +9,9 @@ import {
 } from '@skmtc/core'
 import { Name } from './Name.ts'
 import { TypeInfo } from './TypeInfo.ts'
-import { Description } from './Description.ts'
 import { ExternalDocs } from './ExternalDocs.ts'
 import { safeResolve } from '../safeResolve.ts'
+import { Loop, Maybe, Wrap } from '../Maybe.ts'
 
 type SchemaArgs = {
   context: GenerateContextType
@@ -36,11 +36,7 @@ type SchemaArgs = {
  * have no name to reference, so they expand in place.
  */
 export class Schema extends SnippetBase {
-  name: Name
-  typeInfo: TypeInfo
-  title: string | undefined
-  description: Description
-  properties: Properties | undefined
+  content: Loop
 
   constructor({
     context,
@@ -55,34 +51,36 @@ export class Schema extends SnippetBase {
 
     const resolved = safeResolve(schema)
     const properties = toExpansion(schema, definitions)
+    const ownDescription =
+      resolved !== undefined && 'description' in resolved ? resolved.description : undefined
 
-    this.name = new Name({ context, name })
-    this.typeInfo = new TypeInfo({ context, schema, required })
-    this.title = resolved !== undefined && 'title' in resolved ? resolved.title : undefined
-    this.description = new Description({
-      context,
-      description:
-        description ??
-        (resolved !== undefined && 'description' in resolved ? resolved.description : undefined)
-    })
-    this.properties =
-      properties.length > 0
-        ? new Properties({ context, properties, definitions, depth })
-        : undefined
+    const row = new Loop(
+      [
+        new Name({ context, name }).content,
+        new TypeInfo({ context, schema, required }),
+        new Maybe(
+          resolved,
+          r => new Maybe('title' in r ? r.title : undefined, title => new Wrap(['_', title, '_']))
+        ),
+        new Maybe((description ?? ownDescription)?.trim(), text => new Wrap(['— ', text]))
+      ],
+      { separator: ' ' }
+    )
+
+    this.content = new Loop(
+      [
+        row,
+        new Maybe(
+          properties.length > 0,
+          () => new Properties({ context, properties, definitions, depth })
+        )
+      ],
+      { separator: '\n' }
+    )
   }
 
   override toString(): string {
-    const description = this.description.toString()
-    const row = [
-      `${this.name}`,
-      `${this.typeInfo}`,
-      this.title ? `_${this.title}_` : '',
-      description && `— ${description}`
-    ]
-      .filter(part => part !== '')
-      .join(' ')
-
-    return this.properties ? `${row}\n${this.properties}` : row
+    return `${this.content}`
   }
 }
 
@@ -106,22 +104,28 @@ type PropertiesArgs = {
  * `$ref`s register.
  */
 class Properties extends SnippetBase {
-  depth: number
-  rows: Schema[]
+  content: Loop
 
   constructor({ context, properties, definitions, depth }: PropertiesArgs) {
     super({ context })
 
-    this.depth = depth
-    this.rows = properties.map(
-      property => new Schema({ context, ...property, definitions, depth: depth + 1 })
+    const indent = '  '.repeat(depth)
+
+    this.content = new Loop(
+      properties.map(
+        property =>
+          new Wrap([
+            indent,
+            '- ',
+            new Schema({ context, ...property, definitions, depth: depth + 1 })
+          ])
+      ),
+      { separator: '\n' }
     )
   }
 
   override toString(): string {
-    const indent = '  '.repeat(this.depth)
-
-    return this.rows.map(row => `${indent}- ${row}`).join('\n')
+    return `${this.content}`
   }
 }
 
@@ -149,7 +153,11 @@ const toExpansion = (
     case 'array':
       return toExpansion(schema.items, definitions)
     case 'union':
-      return schema.members.map(member => ({ name: undefined, schema: member, required: undefined }))
+      return schema.members.map(member => ({
+        name: undefined,
+        schema: member,
+        required: undefined
+      }))
     case 'string':
     case 'number':
     case 'integer':
@@ -171,7 +179,13 @@ const toObjectProperties = (object: OasObject): Property[] =>
 /** A map's value type, as an `«additional properties»` row, when it is a schema (not a boolean). */
 const toAdditionalProperties = (object: OasObject): Property[] =>
   object.additionalProperties !== undefined && typeof object.additionalProperties !== 'boolean'
-    ? [{ name: '«additional properties»', schema: object.additionalProperties, required: undefined }]
+    ? [
+        {
+          name: '«additional properties»',
+          schema: object.additionalProperties,
+          required: undefined
+        }
+      ]
     : []
 
 /**
@@ -184,7 +198,15 @@ const toAdditionalProperties = (object: OasObject): Property[] =>
 export class Definitions extends SnippetBase {
   private seen: Set<RefName> = new Set()
   private queue: OasRef<'schema'>[] = []
-  private entries: TypeDefinition[] = []
+  private entries: Loop<TypeDefinition>
+  content: Maybe<Loop<TypeDefinition>, Wrap>
+
+  constructor({ context }: DefinitionsArgs) {
+    super({ context })
+
+    this.entries = new Loop([], { separator: '\n\n' })
+    this.content = new Maybe(this.entries, loop => new Wrap(['## Referenced types\n\n', loop]))
+  }
 
   add(ref: OasRef<'schema'>): void {
     const name = ref.toRefName()
@@ -200,18 +222,18 @@ export class Definitions extends SnippetBase {
     let next = this.queue.shift()
 
     while (next !== undefined) {
-      this.entries.push(new TypeDefinition({ context: this.context, ref: next, definitions: this }))
+      this.entries.add(new TypeDefinition({ context: this.context, ref: next, definitions: this }))
       next = this.queue.shift()
     }
   }
 
   override toString(): string {
-    if (this.entries.length === 0) {
-      return ''
-    }
-
-    return ['## Referenced types', ...this.entries.map(entry => entry.toString())].join('\n\n')
+    return `${this.content}`
   }
+}
+
+type DefinitionsArgs = {
+  context: GenerateContextType
 }
 
 type TypeDefinitionArgs = {
@@ -222,30 +244,35 @@ type TypeDefinitionArgs = {
 
 /** One entry in the {@link Definitions} section: `### Name` over the resolved type's shape. */
 class TypeDefinition extends SnippetBase {
-  name: string
-  schema: Schema | undefined
-  externalDocs: ExternalDocs
+  content: Loop
 
   constructor({ context, ref, definitions }: TypeDefinitionArgs) {
     super({ context, stackTrail: ref.stackTrail.clone() })
 
     const resolved = safeResolve(ref)
 
-    this.name = camelCase(ref.toRefName(), { upperFirst: true })
-    this.schema =
-      resolved !== undefined
-        ? new Schema({ context, name: undefined, schema: resolved, required: undefined, definitions })
-        : undefined
-    this.externalDocs = new ExternalDocs({
-      context,
-      externalDocs:
-        resolved !== undefined && 'externalDocs' in resolved ? resolved.externalDocs : undefined
-    })
+    this.content = new Loop(
+      [
+        new Wrap(['### ', camelCase(ref.toRefName(), { upperFirst: true })]),
+        new Maybe(
+          resolved,
+          schema =>
+            new Schema({ context, name: undefined, schema, required: undefined, definitions })
+        ),
+        new Maybe(
+          resolved,
+          schema =>
+            new ExternalDocs({
+              context,
+              externalDocs: 'externalDocs' in schema ? schema.externalDocs : undefined
+            }).content
+        )
+      ],
+      { separator: '\n\n' }
+    )
   }
 
   override toString(): string {
-    return [`### ${this.name}`, this.schema?.toString(), this.externalDocs.toString()]
-      .filter(part => part !== undefined && part !== '')
-      .join('\n\n')
+    return `${this.content}`
   }
 }

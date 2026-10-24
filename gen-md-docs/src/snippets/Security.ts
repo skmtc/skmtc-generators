@@ -3,12 +3,12 @@ import {
   type GenerateContextType,
   type OasSecurityRequirement,
   type OasSecurityScheme,
-  type OasRef
+  type OasRef,
+  type Stringable
 } from '@skmtc/core'
+import { Loop, Maybe, Wrap } from '../Maybe.ts'
 
-type SecuritySchemes =
-  | Record<string, OasSecurityScheme | OasRef<'securityScheme'>>
-  | undefined
+type SecuritySchemes = Record<string, OasSecurityScheme | OasRef<'securityScheme'>> | undefined
 
 type SecurityArgs = {
   context: GenerateContextType
@@ -25,75 +25,135 @@ type SecurityArgs = {
  * operation, or a document that declares none.
  */
 export class Security extends SnippetBase {
-  requirements: string[]
+  content: Maybe<Loop, Wrap>
 
   constructor({ context, security, securitySchemes }: SecurityArgs) {
     super({ context })
 
-    this.requirements = (security ?? []).map(requirement =>
-      toRequirementLine(requirement, securitySchemes)
+    const requirements = new Loop(
+      (security ?? []).map(
+        requirement => new Wrap(['- ', new Requirement({ context, requirement, securitySchemes })])
+      ),
+      { separator: '\n' }
     )
+
+    this.content = new Maybe(requirements, loop => new Wrap(['## Security\n\n', loop]))
   }
 
   override toString(): string {
-    if (this.requirements.length === 0) {
-      return ''
-    }
-
-    const list = this.requirements.map(line => `- ${line}`).join('\n')
-
-    return `## Security\n\n${list}`
+    return `${this.content}`
   }
+}
+
+type RequirementArgs = {
+  context: GenerateContextType
+  requirement: OasSecurityRequirement
+  securitySchemes: SecuritySchemes
 }
 
 /** One requirement: its schemes AND-ed together, or a note when it demands none. */
-const toRequirementLine = (
-  requirement: OasSecurityRequirement,
-  securitySchemes: SecuritySchemes
-): string => {
-  const schemes = Object.entries(requirement.requirement)
+class Requirement extends SnippetBase {
+  content: Stringable
 
-  if (schemes.length === 0) {
-    return '_no authentication_'
+  constructor({ context, requirement, securitySchemes }: RequirementArgs) {
+    super({ context })
+
+    const schemes = Object.entries(requirement.requirement)
+
+    this.content =
+      schemes.length === 0
+        ? '_no authentication_'
+        : new Loop(
+            schemes.map(
+              ([name, scopes]) =>
+                new SchemeReference({
+                  context,
+                  name,
+                  scopes,
+                  scheme: securitySchemes?.[name]?.resolve()
+                })
+            ),
+            { separator: ' + ' }
+          )
   }
 
-  return schemes
-    .map(([name, scopes]) => toSchemeText(name, scopes, securitySchemes?.[name]?.resolve()))
-    .join(' + ')
+  override toString(): string {
+    return `${this.content}`
+  }
+}
+
+type SchemeReferenceArgs = {
+  context: GenerateContextType
+  name: string
+  scopes: string[]
+  scheme: OasSecurityScheme | undefined
 }
 
 /** A scheme reference: its name, its kind (when resolvable), scopes and description. */
-const toSchemeText = (
-  name: string,
-  scopes: string[],
-  scheme: OasSecurityScheme | undefined
-): string => {
-  const kind = scheme !== undefined ? ` (${toSchemeKind(scheme)})` : ''
-  const scopeList =
-    scopes.length > 0 ? ` — scopes: ${scopes.map(scope => `\`${scope}\``).join(', ')}` : ''
-  const description =
-    scheme?.description !== undefined && scheme.description !== ''
-      ? ` — ${scheme.description}`
-      : ''
+class SchemeReference extends SnippetBase {
+  content: Wrap
 
-  return `\`${name}\`${kind}${scopeList}${description}`
+  constructor({ context, name, scopes, scheme }: SchemeReferenceArgs) {
+    super({ context })
+
+    this.content = new Wrap([
+      '`',
+      name,
+      '`',
+      new Maybe(
+        scheme,
+        resolved => new Wrap([' (', new SchemeKind({ context, scheme: resolved }), ')'])
+      ),
+      new Maybe(
+        new Loop(scopes.map(scope => new Wrap(['`', scope, '`']))),
+        loop => new Wrap([' — scopes: ', loop])
+      ),
+      new Maybe(scheme?.description, description => new Wrap([' — ', description]))
+    ])
+  }
+
+  override toString(): string {
+    return `${this.content}`
+  }
 }
 
-const toSchemeKind = (scheme: OasSecurityScheme): string => {
-  switch (scheme.type) {
-    case 'http':
-      return scheme.bearerFormat !== undefined
-        ? `HTTP ${scheme.scheme} (${scheme.bearerFormat})`
-        : `HTTP ${scheme.scheme}`
-    case 'apiKey':
-      return `API key in ${scheme.location} \`${scheme.name}\``
-    case 'oauth2':
-      return 'OAuth2'
-    case 'openIdConnect':
-      return 'OpenID Connect'
-    default: {
-      const exhaustive: never = scheme
-      throw new Error(`Unhandled security scheme: ${JSON.stringify(exhaustive)}`)
+type SchemeKindArgs = {
+  context: GenerateContextType
+  scheme: OasSecurityScheme
+}
+
+/** The kind of a security scheme, e.g. `HTTP bearer (JWT)` or ``API key in header `X-Key` ``. */
+class SchemeKind extends SnippetBase {
+  content: Wrap
+
+  constructor({ context, scheme }: SchemeKindArgs) {
+    super({ context })
+
+    switch (scheme.type) {
+      case 'http':
+        this.content = new Wrap([
+          'HTTP ',
+          scheme.scheme,
+          new Maybe(scheme.bearerFormat, format => new Wrap([' (', format, ')']))
+        ])
+        break
+      case 'apiKey':
+        this.content = new Wrap(['API key in ', scheme.location, ' `', scheme.name, '`'])
+        break
+      case 'oauth2':
+        this.content = new Wrap(['OAuth2'])
+        break
+      case 'openIdConnect':
+        this.content = new Wrap(['OpenID Connect'])
+        break
+      default: {
+        const exhaustive: never = scheme
+        throw new Error(`Unhandled security scheme: ${JSON.stringify(exhaustive)}`)
+      }
     }
+  }
+
+  override toString(): string {
+    return `${this.content}`
   }
 }
