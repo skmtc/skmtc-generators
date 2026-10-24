@@ -1,5 +1,5 @@
 import type { OasArray, OasInteger, OasNumber, OasObject, OasSchema, OasString } from '@skmtc/core'
-import { Loop, Maybe, Wrap } from '../Maybe.ts'
+import { Loop, Maybe, Nothing, Wrap } from '../Maybe.ts'
 
 const SEPARATOR = { separator: ', ' }
 
@@ -10,10 +10,16 @@ const SEPARATOR = { separator: ', ' }
  * directly from a schema that is known to have it.
  *
  * `toConstraints` is the one place that chooses between them by
- * `schema.type`. Every class is a `Loop`, so a schema with no constraints is
- * an empty `Loop` and the parenthetical around it drops out at render.
+ * `schema.type`. A type that has no constraints is `Nothing`. A schema whose
+ * constraints are all absent is an empty `Loop`. Either way the parenthetical
+ * around it drops out at render.
+ *
+ * Every resolved schema has a `type`: when a document leaves it out, the
+ * parser infers it from `properties`, `items`, `default` or `example`, and
+ * otherwise produces `OasUnknown`. The switch is exhaustive, so a new member of
+ * `OasSchema` is a type error here rather than silently unconstrained.
  */
-export const toConstraints = (schema: OasSchema): Loop => {
+export const toConstraints = (schema: OasSchema): Loop | Nothing => {
   switch (schema.type) {
     case 'string':
       return new StringConstraints({ schema })
@@ -24,8 +30,14 @@ export const toConstraints = (schema: OasSchema): Loop => {
       return new ArrayConstraints({ schema })
     case 'object':
       return new ObjectConstraints({ schema })
-    default:
-      return new Loop([])
+    case 'boolean':
+    case 'unknown':
+    case 'union':
+      return new Nothing()
+    default: {
+      const unhandled: never = schema
+      return unhandled
+    }
   }
 }
 
