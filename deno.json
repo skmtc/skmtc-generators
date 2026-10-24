@@ -68,7 +68,8 @@
     ],
     "rules": {
       "exclude": [
-        "no-slow-types"
+        "no-slow-types",
+        "skmtc/single-dispatch"
       ]
     }
   }
