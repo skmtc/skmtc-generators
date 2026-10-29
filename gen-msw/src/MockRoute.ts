@@ -48,11 +48,11 @@ export class MockRoute extends MswBase {
     const resolved = operation.toSuccessResponse()?.resolve()
     const json = resolved?.toJsonContent()
     const schema = json?.schema
-    const mediaType = json ? resolved?.content?.[json.mediaType] : undefined
+    const mediaTypeObject = json ? resolved?.content?.[json.mediaType] : undefined
 
     this.contentType = json && json.contentType !== 'application/json' ? json.contentType : undefined
 
-    const example = toExampleData(Object.values(mediaType?.examples ?? {})[0]?.resolve())
+    const example = toExampleData(Object.values(mediaTypeObject?.examples ?? {})[0]?.resolve())
 
     this.responseData = example ? example.data : collateExamples({ objectSchema: schema, depth: 0 })
 

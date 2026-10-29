@@ -71,6 +71,8 @@ Deno.test('Parameters - renders the empty string when there are no parameters', 
   assertEquals(snippet.toString(), '')
 })
 
+// OpenAPI allows one `content` entry per parameter; this two-entry document is
+// a robustness case for documents that break that rule.
 Deno.test('Parameters - a content parameter renders the JSON schema when a non-JSON media type comes first', () => {
   const parsed = toParsedDocument({
     openapi: '3.0.0',
