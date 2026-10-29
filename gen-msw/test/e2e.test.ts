@@ -13,8 +13,10 @@ import {
   operationDocument,
   queryDocument,
   runE2eFixture,
-  serializedValueDocument
+  serializedValueDocument,
+  toMediaTypeDocument
 } from '@skmtc/test-support'
+import type { OpenAPIV3 } from 'openapi-types'
 import { MswEntry } from '../src/mod.ts'
 
 const { artifacts } = runE2eFixture({
@@ -92,4 +94,104 @@ Deno.test('e2e - the handler returns an explicit null example', () => {
   })
 
   assertStringIncludes(artifacts['src/mocks/handlers.generated.ts'], 'HttpResponse.json(null)')
+})
+
+const userSchema: OpenAPIV3.SchemaObject = {
+  type: 'object',
+  properties: { name: { type: 'string', example: 'Ada Lovelace' } },
+  required: ['name']
+}
+
+const toHandlers = (mediaType: string, mediaTypeObject: OpenAPIV3.MediaTypeObject): string => {
+  const { artifacts, manifest } = runE2eFixture({
+    id: '@skmtc/gen-msw',
+    entry: MswEntry,
+    document: toMediaTypeDocument(mediaType, mediaTypeObject)
+  })
+
+  assertNoResultErrors(manifest)
+
+  return artifacts['src/mocks/handlers.generated.ts']
+}
+
+Deno.test('e2e - an application/vnd.api+json response gets its example and Content-Type', () => {
+  const handlers = toHandlers('application/vnd.api+json', {
+    schema: userSchema,
+    examples: { first: { value: { name: 'Grace Hopper' } } }
+  })
+
+  assertStringIncludes(handlers, 'http.get<never, never, {name: string}>')
+  assertStringIncludes(handlers, '"Grace Hopper"')
+  assertStringIncludes(handlers, `, { headers: { 'Content-Type': "application/vnd.api+json" } })`)
+})
+
+Deno.test('e2e - an application/json;v=1.0 response gets collated data and its Content-Type', () => {
+  const handlers = toHandlers('application/json;v=1.0', { schema: userSchema })
+
+  assertStringIncludes(handlers, 'http.get<never, never, {name: string}>')
+  assertStringIncludes(handlers, '"Ada Lovelace"')
+  assertStringIncludes(handlers, `'Content-Type': "application/json;v=1.0"`)
+})
+
+Deno.test('e2e - a */* response with an object schema is read as JSON, with no Content-Type', () => {
+  const handlers = toHandlers('*/*', { schema: userSchema })
+
+  assertStringIncludes(handlers, 'http.get<never, never, {name: string}>')
+  assertStringIncludes(handlers, '"Ada Lovelace"')
+  assertEquals(handlers.includes('Content-Type'), false)
+})
+
+Deno.test('e2e - a */* response with a string schema is still never', () => {
+  const handlers = toHandlers('*/*', { schema: { type: 'string' } })
+
+  assertStringIncludes(handlers, 'http.get<never, never, never>')
+  assertStringIncludes(handlers, 'HttpResponse.json(undefined)')
+})
+
+Deno.test('e2e - examples come from the media type toJsonContent picks, not the first key', () => {
+  const document: OpenAPIV3.Document = {
+    openapi: '3.0.0',
+    info: { title: 'Fixture API', version: '1.0.0' },
+    paths: {
+      '/users': {
+        get: {
+          responses: {
+            '200': {
+              description: 'Every user',
+              content: {
+                'text/plain': { schema: { type: 'string' }, examples: { plain: { value: 'plain text' } } },
+                'application/vnd.api+json': {
+                  schema: userSchema,
+                  examples: { first: { value: { name: 'Grace Hopper' } } }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  const { artifacts, manifest } = runE2eFixture({ id: '@skmtc/gen-msw', entry: MswEntry, document })
+
+  assertNoResultErrors(manifest)
+
+  const handlers = artifacts['src/mocks/handlers.generated.ts']
+
+  assertStringIncludes(handlers, 'http.get<never, never, {name: string}>')
+  assertStringIncludes(handlers, '"Grace Hopper"')
+  assertStringIncludes(handlers, `'Content-Type': "application/vnd.api+json"`)
+})
+
+Deno.test('e2e - an application/json response sends no Content-Type of its own', () => {
+  const handlers = toHandlers('application/json', { schema: userSchema })
+
+  assertStringIncludes(
+    handlers,
+    `http.get<never, never, {name: string}>('/users', () => {
+  return HttpResponse.json({
+  "name": "Ada Lovelace"
+})
+})`
+  )
 })

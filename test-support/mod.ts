@@ -225,6 +225,27 @@ export const nullExampleDocument: OpenAPIV3.Document = toDocumentObject(
   'nullExampleDocument'
 )
 
+/**
+ * A `GET /users` whose success response offers one media type, such as
+ * `application/vnd.api+json` or `*\/*`, to check which body a generator reads.
+ */
+export const toMediaTypeDocument = (
+  mediaType: string,
+  mediaTypeObject: OpenAPIV3.MediaTypeObject
+): OpenAPIV3.Document => ({
+  openapi: '3.0.0',
+  info: { title: 'Fixture API', version: '1.0.0' },
+  paths: {
+    '/users': {
+      get: {
+        responses: {
+          '200': { description: 'Every user', content: { [mediaType]: mediaTypeObject } }
+        }
+      }
+    }
+  }
+})
+
 type RunE2eFixtureArgs = {
   /** The generator's package name, which keys it in the config map. */
   id: string

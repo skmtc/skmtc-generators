@@ -1,3 +1,4 @@
+import { toJsonContent } from '@skmtc/core'
 import type { OasSchema, OasRef, OasMediaType } from '@skmtc/core'
 
 type Content = {
@@ -6,17 +7,18 @@ type Content = {
 }
 
 /**
- * The media types a request body or response offers, plus a representative
- * schema — JSON-preferred, else the first media type's. Surfacing the media
- * type tells an agent what to send or accept (form uploads, binary, custom
- * types); the schema still renders once (rare per-media-type schema divergence
- * is not expanded).
+ * The media types a request body, response or parameter offers, plus a
+ * representative schema — the one `toJsonContent` picks (`application/json`,
+ * else the first JSON-like type, else a JSON-shaped `*\/*`), else the first
+ * media type's. Surfacing the media type tells an agent what to send or accept
+ * (form uploads, binary, custom types); the schema still renders once (rare
+ * per-media-type schema divergence is not expanded).
  */
 export const toContent = (content: Record<string, OasMediaType> | undefined): Content => {
   const mediaTypes = Object.keys(content ?? {})
   const first = mediaTypes[0]
   const schema =
-    content?.['application/json']?.schema ??
+    toJsonContent(content)?.schema ??
     (first !== undefined ? content?.[first]?.schema : undefined)
 
   return { mediaTypes, schema }
