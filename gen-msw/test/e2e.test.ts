@@ -148,6 +148,41 @@ Deno.test('e2e - a */* response with a string schema is still never', () => {
   assertStringIncludes(handlers, 'HttpResponse.json(undefined)')
 })
 
+Deno.test('e2e - examples come from the media type toJsonContent picks, not the first key', () => {
+  const document: OpenAPIV3.Document = {
+    openapi: '3.0.0',
+    info: { title: 'Fixture API', version: '1.0.0' },
+    paths: {
+      '/users': {
+        get: {
+          responses: {
+            '200': {
+              description: 'Every user',
+              content: {
+                'text/plain': { schema: { type: 'string' }, examples: { plain: { value: 'plain text' } } },
+                'application/vnd.api+json': {
+                  schema: userSchema,
+                  examples: { first: { value: { name: 'Grace Hopper' } } }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  const { artifacts, manifest } = runE2eFixture({ id: '@skmtc/gen-msw', entry: MswEntry, document })
+
+  assertNoResultErrors(manifest)
+
+  const handlers = artifacts['src/mocks/handlers.generated.ts']
+
+  assertStringIncludes(handlers, 'http.get<never, never, {name: string}>')
+  assertStringIncludes(handlers, '"Grace Hopper"')
+  assertStringIncludes(handlers, `'Content-Type': "application/vnd.api+json"`)
+})
+
 Deno.test('e2e - an application/json response sends no Content-Type of its own', () => {
   const handlers = toHandlers('application/json', { schema: userSchema })
 
