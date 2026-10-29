@@ -39,15 +39,22 @@ export class MockRoute extends MswBase {
   requestBodyType: TypeSystemValue
   responseType: TypeSystemValue
   pathParamsType: TypeSystemValue
+  /** The `Content-Type` to send, when it is not the `application/json` that `HttpResponse.json` sets. */
+  contentType: string | undefined
 
   constructor({ context, operation, settings }: OasOperationProjectionConstructorArgs<EnrichmentSchema>) {
     super({ context, operation, settings })
 
-    const response = operation.toSuccessResponse()?.resolve().content?.['application/json']
+    const resolved = operation.toSuccessResponse()?.resolve()
+    const json = resolved?.toJsonContent()
+    const schema = json?.schema
+    const mediaType = json ? resolved?.content?.[json.mediaType] : undefined
 
-    const example = toExampleData(Object.values(response?.examples ?? {})[0]?.resolve())
+    this.contentType = json && json.contentType !== 'application/json' ? json.contentType : undefined
 
-    this.responseData = example ? example.data : collateExamples({ objectSchema: response?.schema, depth: 0 })
+    const example = toExampleData(Object.values(mediaType?.examples ?? {})[0]?.resolve())
+
+    this.responseData = example ? example.data : collateExamples({ objectSchema: schema, depth: 0 })
 
     this.requestBodyType =
       operation.toRequestBody(({ schema }) => {
@@ -73,13 +80,13 @@ export class MockRoute extends MswBase {
           required: true
         })
 
-    this.responseType = response?.schema
+    this.responseType = schema
       ? toTsValue({
           context,
-          schema: response.schema,
+          schema,
           destinationPath: settings.exportPath,
           required: true,
-          rootRef: response.schema.isRef() ? response.schema.toRefName() : undefined
+          rootRef: schema.isRef() ? schema.toRefName() : undefined
         })
       : new TsNever({ context, generatorKey: this.generatorKey })
 
@@ -95,10 +102,14 @@ export class MockRoute extends MswBase {
 
     const route = `${path.replaceAll(/{([^}]*)}/g, ':$1')}`
 
+    const init = this.contentType
+      ? `, { headers: { 'Content-Type': ${JSON.stringify(this.contentType)} } }`
+      : ''
+
     return `http.${method}<${this.pathParamsType}, ${this.requestBodyType}, ${
       this.responseType
     }>('${route}', () => {
-  return HttpResponse.json(${JSON.stringify(this.responseData, null, 2)})
+  return HttpResponse.json(${JSON.stringify(this.responseData, null, 2)}${init})
 })`
   }
 }

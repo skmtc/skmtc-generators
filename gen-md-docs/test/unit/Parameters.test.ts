@@ -1,7 +1,8 @@
-import { assertEquals } from '@std/assert'
+import { assert, assertEquals } from '@std/assert'
 import { OasInteger, OasObject, OasParameter, OasString } from '@skmtc/core'
 import { Parameters } from '../../src/snippets/Parameters.ts'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
+import { toParsedDocument } from '../helpers/toParsedDocument.ts'
 
 Deno.test('Parameters - renders a heading and a parameter with its description', () => {
   const snippet = new Parameters({
@@ -68,4 +69,43 @@ Deno.test('Parameters - renders the empty string when there are no parameters', 
   })
 
   assertEquals(snippet.toString(), '')
+})
+
+Deno.test('Parameters - a content parameter renders the JSON schema when a non-JSON media type comes first', () => {
+  const parsed = toParsedDocument({
+    openapi: '3.0.0',
+    info: { title: 'Test', version: '1.0.0' },
+    paths: {
+      '/pets': {
+        get: {
+          parameters: [
+            {
+              name: 'filter',
+              in: 'query',
+              content: {
+                'text/plain': { schema: { type: 'string' } },
+                'application/vnd.api+json': {
+                  schema: { type: 'object', properties: { status: { type: 'string' } } }
+                }
+              }
+            }
+          ],
+          responses: { '204': { description: 'No pets' } }
+        }
+      }
+    }
+  })
+
+  assert(parsed.type === 'oas')
+
+  const snippet = new Parameters({
+    context: toGenerateContext({ oasDocument: parsed }),
+    title: 'Query parameters',
+    parameters: parsed.value.operations[0].toParams(['query'])
+  })
+
+  assertEquals(
+    snippet.toString(),
+    '## Query parameters\n\n**filter** `object`\n- **status** `string`\n\nContent types: `text/plain`, `application/vnd.api+json`'
+  )
 })

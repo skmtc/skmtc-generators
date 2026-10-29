@@ -87,3 +87,74 @@ Deno.test('Responses - surfaces a non-JSON content type and its schema', () => {
     ].join('\n\n')
   )
 })
+
+Deno.test('Responses - renders the JSON schema when a non-JSON media type comes first', () => {
+  const parsed = toParsedDocument({
+    openapi: '3.0.0',
+    info: { title: 'Test', version: '1.0.0' },
+    paths: {
+      '/pets': {
+        get: {
+          responses: {
+            '200': {
+              description: 'A pet',
+              content: {
+                'text/plain': { schema: { type: 'string' } },
+                'application/vnd.api+json': {
+                  schema: { type: 'object', properties: { id: { type: 'integer' } } }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  })
+
+  assert(parsed.type === 'oas')
+
+  const context = toGenerateContext({ oasDocument: parsed })
+  const responses = new Responses({
+    context,
+    responses: parsed.value.operations[0].responses,
+    definitions: new Definitions({ context })
+  })
+
+  assertEquals(
+    responses.toString(),
+    [
+      '## Responses',
+      '### `200` — A pet\n\nContent types: `text/plain`, `application/vnd.api+json`\n\n`object`\n- **id** `integer`'
+    ].join('\n\n')
+  )
+})
+
+Deno.test('Responses - a text/plain-only response still renders its schema', () => {
+  const parsed = toParsedDocument({
+    openapi: '3.0.0',
+    info: { title: 'Test', version: '1.0.0' },
+    paths: {
+      '/greeting': {
+        get: {
+          responses: {
+            '200': { description: 'A greeting', content: { 'text/plain': { schema: { type: 'string' } } } }
+          }
+        }
+      }
+    }
+  })
+
+  assert(parsed.type === 'oas')
+
+  const context = toGenerateContext({ oasDocument: parsed })
+  const responses = new Responses({
+    context,
+    responses: parsed.value.operations[0].responses,
+    definitions: new Definitions({ context })
+  })
+
+  assertEquals(
+    responses.toString(),
+    ['## Responses', '### `200` — A greeting\n\nContent type: `text/plain`\n\n`string`'].join('\n\n')
+  )
+})
