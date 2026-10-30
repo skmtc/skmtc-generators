@@ -1,7 +1,8 @@
 # @skmtc/gen-effect-http
 
 OpenAPI to [Effect](https://effect.website) 4 HTTP client generator for
-[Skmtc](https://skm.tc).
+[Skmtc](https://skm.tc). The generated code imports from `effect/http`, so it
+needs `effect` 4.1 or later.
 
 Writes one function per operation to
 `@/client-effect/<endpointName>.generated.ts`, plus a barrel at

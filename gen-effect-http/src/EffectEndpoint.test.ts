@@ -179,7 +179,7 @@ Deno.test('the endpoint pins its render: an Effect over HttpClient, schemas co-l
     `import {Schema, Effect} from 'effect'
 import {SearchRequest} from '@/schema-effect/searchRequest.generated.ts'
 import {WebResult} from '@/schema-effect/webResult.generated.ts'
-import {HttpClient, HttpClientRequest, HttpClientResponse} from 'effect/unstable/http'
+import {HttpClient, HttpClientRequest, HttpClientResponse} from 'effect/http'
 
 export const CreateApiSearchParams = Schema.Struct({});
 
@@ -235,7 +235,7 @@ Deno.test('a DELETE with no response body is executed and not read', () => {
 
   assertStringIncludes(
     endpoint,
-    `import {HttpClient, HttpClientRequest} from 'effect/unstable/http'`,
+    `import {HttpClient, HttpClientRequest} from 'effect/http'`,
   )
   assertStringIncludes(
     endpoint,
