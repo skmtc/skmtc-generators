@@ -13,7 +13,8 @@ import type {
 import { match } from 'ts-pattern'
 import { effectSchemaEntry } from './mod.ts'
 import type { EffectModifiers } from './modifiers.ts'
-import { rendersDefaults, rendersOpenEnums } from './settings.ts'
+import { generatorSchema } from './enrichments.ts'
+import * as v from 'valibot'
 import { EffectArray } from './EffectArray.ts'
 import { EffectObject } from './EffectObject.ts'
 import { EffectRef } from './EffectRef.ts'
@@ -37,6 +38,18 @@ import {
 export type ToEffectValueImplArgs = Parameters<SchemaToValueFn>[0] & {
   coerce?: boolean
 }
+
+/**
+ * Whether this project renders defaults — the generator-scoped flag, read
+ * off the context so it reaches a value built by a peer (a route
+ * generator's parameter objects) as well as one built by the projection.
+ */
+const rendersDefaults = (context: GenerateContextType): boolean =>
+  v.parse(
+    generatorSchema,
+    context.readEnrichment([effectSchemaEntry.id, '_generator']),
+  )
+    ?.defaults ?? false
 
 /**
  * The schema's `default`, wherever the engine keeps it: `default` on the
@@ -143,7 +156,6 @@ export const toEffectValueImpl = (
         modifiers,
         destinationPath,
         generatorKey,
-        openEnum: rendersOpenEnums(context),
       })
     })
     .with({ type: 'number' }, (schema) => {

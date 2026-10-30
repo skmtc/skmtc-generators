@@ -15,7 +15,7 @@ PascalCase name of the type it decodes to
 - **Checks**: string length and pattern; numeric bounds
 - **Composites**: object (`Schema.Struct`), array, `additionalProperties`
   (`Schema.Record`), union
-- **Enums**: `Schema.Literals`, or open with the `openEnums` option
+- **Enums**: `Schema.Literals`
 - **Modifiers**: optional, nullable
 - **References**: `$ref` lands as an import of the target schema, never an
   inline copy
@@ -36,13 +36,6 @@ At `client.json#settings.enrichments["@skmtc/gen-effect-schema"]._generator`:
 
 - `defaults` (boolean, default `false`): render a schema's `default` as a
   decoding default (`Schema.withDecodingDefaultType`).
-- `openEnums` (boolean, default `false`): render a string enum of two or more
-  values as `Schema.Union([Schema.Literals([…]), Schema.String])`, so a value
-  the document does not list still decodes. Use it for APIs that add enum values
-  without a new version of their document, such as Google's. A one-value enum
-  and a number enum stay closed. A recursive model that has an enum this option
-  opens is refused, because the type gen-typescript writes for it keeps the enum
-  closed.
 
 ## Customizing
 

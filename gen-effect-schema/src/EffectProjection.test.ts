@@ -158,7 +158,7 @@ const fixture = {
 type GenerateOptions = {
   /** The document, when a test needs one the fixture is not. */
   document?: typeof fixture
-  /** This generator's `_generator` scope: `defaults`, `openEnums`. */
+  /** This generator's `_generator` scope: `defaults`. */
   generator?: EnrichmentSchema['generator']
   /** Run the query-params consumer below alongside, as a route generator would. */
   withQuery?: boolean
@@ -554,74 +554,4 @@ Deno.test('a default is decoded in only where the project asks for it', () => {
   // Off by default: a default is not decoded in.
   assertStringIncludes(without, 'quantity: Schema.Int,')
   assertEquals(without.includes('Effect'), false)
-})
-
-Deno.test('under openEnums a string enum also takes any other string, and only where the project asks', () => {
-  const open = generate({
-    generator: { openEnums: true },
-    document: {
-      ...fixture,
-      components: {
-        schemas: {
-          OrderStatus: fixture.components.schemas.OrderStatus,
-          Tag: { type: 'string', enum: ['only'] },
-          Rating: {
-            type: 'string',
-            nullable: true,
-            enum: ['like', 'dislike', null],
-          },
-          Radius: { type: 'integer', enum: [25, 50] },
-        },
-      },
-    } as never,
-  }).artifacts
-
-  assertStringIncludes(
-    open['schema-effect/orderStatus.generated.ts'],
-    'Schema.Union([Schema.Literals(["pending", "shipped", "delivered"]), Schema.String])',
-  )
-  // The null member stays the nullable modifier, outside the union.
-  assertStringIncludes(
-    open['schema-effect/rating.generated.ts'],
-    'Schema.NullOr(Schema.Union([Schema.Literals(["like", "dislike"]), Schema.String]))',
-  )
-  // A one-member enum is a constant, often a union's tag: still closed.
-  assertStringIncludes(
-    open['schema-effect/tag.generated.ts'],
-    'Schema.Literal("only");',
-  )
-  // Only string enums open: a number is never a new value of a name.
-  assertStringIncludes(
-    open['schema-effect/radius.generated.ts'],
-    'Schema.Literals([25, 50]);',
-  )
-
-  // Off by default: the same enum is closed.
-  assertStringIncludes(
-    generate().artifacts['schema-effect/orderStatus.generated.ts'],
-    'export const OrderStatus = Schema.Literals(["pending", "shipped", "delivered"]);',
-  )
-})
-
-Deno.test('under openEnums a recursive model with an enum it opens is refused, not emitted with a suspend that does not hold', () => {
-  // gen-typescript types `kind` as 'leaf' | 'branch', and the open schema
-  // decodes any string, so `Schema.Codec<Category$Type>` would not hold.
-  const { artifacts, manifest } = generate({ generator: { openEnums: true } })
-
-  assertStringIncludes(
-    JSON.stringify(manifest.results),
-    '"Category":{"variant%3A main":"error"}',
-  )
-  assertEquals(
-    artifacts['schema-effect/category.generated.ts']?.includes(
-      'Schema.suspend',
-    ) ??
-      false,
-    false,
-  )
-  // A cycle with no enum in it renders as before.
-  assertStringIncludes(
-    artifacts['schema-effect/edge.generated.ts'],
-    'Schema.suspend((): Schema.Codec<Node$Type> => Node)',
-  )
 })

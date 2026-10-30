@@ -18,8 +18,6 @@ import { LIB, LIB_MODULE } from './lib.ts'
 import { needsCoercion } from './coercion.ts'
 import { toOptions } from './options.ts'
 import { toTypeAlias } from './base.ts'
-import { hasOpenEnum } from './openEnums.ts'
-import { rendersOpenEnums } from './settings.ts'
 
 type EffectRefArgs = {
   context: GenerateContextType
@@ -88,14 +86,6 @@ export class EffectRef extends TsSnippet {
       if (coerced) {
         throw new Error(
           `${refName} is recursive and referenced from a path or query parameter, which its FromString twin cannot express — inline the parameter's schema instead`,
-        )
-      }
-
-      // gen-typescript writes the enums closed, so the annotation below
-      // would be narrower than the schema it annotates.
-      if (rendersOpenEnums(context) && hasOpenEnum(schema)) {
-        throw new Error(
-          `${refName} is recursive and has an enum that openEnums opens, which the type gen-typescript writes for it cannot express. Turn openEnums off, or break the cycle`,
         )
       }
 

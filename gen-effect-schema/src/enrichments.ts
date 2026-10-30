@@ -8,16 +8,10 @@ import * as v from 'valibot'
  *   values of their own schema (`{}` on a struct with a required key,
  *   `["web"]` on a list of objects), and such a document is usually only
  *   decoded, never built from.
- * - `openEnums`: render a string enum of two or more members as its
- *   literals or any other string. Off unless set. Some APIs add enum values
- *   without a new version of their document (Google's do), and a closed
- *   enum then refuses a whole response for one new value. A one-member
- *   enum stays closed: it is a constant, often a union's tag.
  */
 export const generatorSchema = v.optional(
   v.object({
     defaults: v.optional(v.boolean()),
-    openEnums: v.optional(v.boolean()),
   }),
 )
 

@@ -9,7 +9,6 @@ import {
 import { EffectCheck, EffectChecks } from './EffectChecks.ts'
 import { LIB, LIB_MODULE } from './lib.ts'
 import { toLiterals, withNullMember } from './literals.ts'
-import { opensEnum } from './openEnums.ts'
 
 type EffectStringArgs = {
   context: GenerateContextType
@@ -17,25 +16,6 @@ type EffectStringArgs = {
   modifiers: EffectModifiers
   destinationPath: string
   generatorKey: GeneratorKey
-  /** The `openEnums` setting: an enum of two or more members also takes any other string. */
-  openEnum?: boolean
-}
-
-/**
- * The literals, or under `openEnums` the literals or any other string. The
- * literals stay in the union: they are the values the document names, and
- * a reader of the schema finds them there. Not `null`, which is the leaf's
- * nullable modifier (see `withNullMember`).
- */
-const toEnum = (
-  enums: string[] | (string | null)[],
-  open: boolean,
-): string => {
-  const literals = toLiterals(enums)
-
-  return open && opensEnum(enums)
-    ? `${LIB}.Union([${literals}, ${LIB}.String])`
-    : literals
 }
 
 export class EffectString extends TsSnippet {
@@ -45,17 +25,10 @@ export class EffectString extends TsSnippet {
   enums: string[] | (string | null)[] | undefined
   checks: EffectChecks
   modifiers: EffectModifiers
-  openEnum: boolean
 
   constructor(
-    {
-      context,
-      stringSchema,
-      generatorKey,
-      destinationPath,
-      modifiers,
-      openEnum = false,
-    }: EffectStringArgs,
+    { context, stringSchema, generatorKey, destinationPath, modifiers }:
+      EffectStringArgs,
   ) {
     super({
       context,
@@ -66,7 +39,6 @@ export class EffectString extends TsSnippet {
     this.format = stringSchema.format
     this.enums = stringSchema.enums
     this.modifiers = modifiers
-    this.openEnum = openEnum
     this.checks = new EffectChecks()
 
     if (stringSchema.minLength !== undefined) {
@@ -111,7 +83,7 @@ export class EffectString extends TsSnippet {
     // wire value of a `date-time` or `uri` is a string, and a decoded
     // value the type file does not know about would not match it.
     const content = this.enums?.length
-      ? toEnum(this.enums, this.openEnum)
+      ? toLiterals(this.enums)
       : `${LIB}.String${this.checks}`
 
     return applyModifiers(content, withNullMember(this.modifiers, this.enums))
