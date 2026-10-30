@@ -89,7 +89,7 @@ export class EffectEndpoint extends EffectHttpBase {
     this.register({
       imports: {
         effect: ['Effect'],
-        'effect/unstable/http': ['HttpClient'],
+        'effect/http': ['HttpClient'],
       },
     })
 

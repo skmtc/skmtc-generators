@@ -61,7 +61,7 @@ export class EffectRequest extends TsSnippet {
     this.yields = bodyName !== null
 
     this.register({
-      imports: { 'effect/unstable/http': ['HttpClientRequest'] },
+      imports: { 'effect/http': ['HttpClientRequest'] },
       destinationPath,
     })
   }

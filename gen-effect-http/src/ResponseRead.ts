@@ -20,7 +20,7 @@ export class ResponseRead extends TsSnippet {
     // Imported only where a body is read, so a bodiless endpoint's file
     // carries no unused import.
     this.register({
-      imports: { 'effect/unstable/http': ['HttpClientResponse'] },
+      imports: { 'effect/http': ['HttpClientResponse'] },
       destinationPath,
     })
   }
