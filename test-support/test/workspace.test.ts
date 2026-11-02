@@ -69,7 +69,7 @@ const toOwnPinDrift = (name: string): string[] =>
     .filter(([dir, version]) => toOwnPin(dir, name) !== undefined && version !== toOwnPin(dir, name))
     .map(([dir, version]) => `${dir}: ${version} (ownCorePin has ${toOwnPin(dir, name)})`)
 
-Deno.test('workspace - every member pins @skmtc/core at the root pin', () => {
+Deno.test('workspace - every member pins @skmtc/core at the root pin or its ownCorePin entry', () => {
   const rootPin = toPinnedVersion(root.imports?.['@skmtc/core'] ?? '')
   assert(rootPin, 'the root import map must pin @skmtc/core')
 
