@@ -7,6 +7,11 @@
  * `instanceof` checks failed across them, and every file came out empty
  * with exit 0. The pins had drifted apart one package at a time. These tests
  * fail the moment one pin moves without the others.
+ *
+ * A member listed in `ownCorePin` may pin a different core and
+ * lang-typescript, on purpose and with its reason. Every other member must
+ * still match the root. Delete an entry when that member is back on the root
+ * pin, so the guard is strict again.
  */
 import { assert, assertEquals } from '@std/assert'
 import { parse } from '@std/yaml'
@@ -42,6 +47,28 @@ const toMemberPins = (name: string): Record<string, string | undefined> =>
       .map(({ dir, config }) => [dir, toPinnedVersion(config.imports?.[name] ?? '')])
   )
 
+type OwnPin = { '@skmtc/core': string; '@skmtc/lang-typescript': string; why: string }
+
+/** Members released on a core other than the root's, by directory. */
+const ownCorePin: Record<string, OwnPin> = {
+  'gen-md-docs': {
+    '@skmtc/core': '0.37.0',
+    '@skmtc/lang-typescript': '0.12.40',
+    why:
+      '#86: released on core 0.37 for the markdown-docs extractor; the other stock generators follow on their own schedule'
+  }
+}
+
+/** The member's pin of `name`, when `ownCorePin` sets one. */
+const toOwnPin = (dir: string, name: string): string | undefined =>
+  name === '@skmtc/core' || name === '@skmtc/lang-typescript' ? ownCorePin[dir]?.[name] : undefined
+
+/** Pins of `name` that differ from their member's `ownCorePin` entry, as `dir: version`. */
+const toOwnPinDrift = (name: string): string[] =>
+  Object.entries(toMemberPins(name))
+    .filter(([dir, version]) => toOwnPin(dir, name) !== undefined && version !== toOwnPin(dir, name))
+    .map(([dir, version]) => `${dir}: ${version} (ownCorePin has ${toOwnPin(dir, name)})`)
+
 Deno.test('workspace - every member pins @skmtc/core at the root pin', () => {
   const rootPin = toPinnedVersion(root.imports?.['@skmtc/core'] ?? '')
   assert(rootPin, 'the root import map must pin @skmtc/core')
@@ -49,17 +76,20 @@ Deno.test('workspace - every member pins @skmtc/core at the root pin', () => {
   const pins = toMemberPins('@skmtc/core')
 
   assertEquals(
-    Object.entries(pins).filter(([, version]) => version !== rootPin),
+    Object.entries(pins).filter(([dir, version]) => toOwnPin(dir, '@skmtc/core') === undefined && version !== rootPin),
     [],
-    `every @skmtc/core pin must be ${rootPin}`
+    `every @skmtc/core pin outside ownCorePin must be ${rootPin}`
   )
+  assertEquals(toOwnPinDrift('@skmtc/core'), [])
 })
 
 for (const name of ['@skmtc/lang-typescript', '@skmtc/lang-kotlin']) {
   Deno.test(`workspace - every member pins the same ${name}`, () => {
-    const versions = new Set(Object.values(toMemberPins(name)))
+    const shared = Object.entries(toMemberPins(name)).filter(([dir]) => toOwnPin(dir, name) === undefined)
+    const versions = new Set(shared.map(([, version]) => version))
 
-    assertEquals(versions.size, 1, `${name} pins disagree: ${JSON.stringify(toMemberPins(name))}`)
+    assertEquals(versions.size, 1, `${name} pins disagree: ${JSON.stringify(Object.fromEntries(shared))}`)
+    assertEquals(toOwnPinDrift(name), [])
   })
 }
 
@@ -95,12 +125,17 @@ Deno.test('workspace - a pin on another workspace generator names its current ve
   assertEquals(stale, [])
 })
 
-Deno.test('workspace - the lockfile resolves exactly one @skmtc/core', () => {
+Deno.test('workspace - the lockfile resolves one @skmtc/core per pin', () => {
   const lock = readJson<{ jsr?: Record<string, unknown> }>('deno.lock')
 
-  const cores = Object.keys(lock.jsr ?? {}).filter(key => key.startsWith('@skmtc/core@'))
+  const cores = Object.keys(lock.jsr ?? {}).filter(key => key.startsWith('@skmtc/core@')).sort()
 
-  assertEquals(cores, [`@skmtc/core@${toPinnedVersion(root.imports?.['@skmtc/core'] ?? '')}`])
+  const pins = [
+    toPinnedVersion(root.imports?.['@skmtc/core'] ?? ''),
+    ...Object.values(ownCorePin).map(pin => pin['@skmtc/core'])
+  ]
+
+  assertEquals(cores, [...new Set(pins)].map(version => `@skmtc/core@${version}`).sort())
 })
 
 Deno.test('workspace - no generator source imports an OS-aware path module', () => {
