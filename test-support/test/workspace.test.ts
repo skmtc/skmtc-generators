@@ -96,6 +96,8 @@ Deno.test('workspace - a pin on another workspace generator names its current ve
 })
 
 Deno.test('workspace - the lockfile resolves one @skmtc/core, at the root pin', () => {
+  assert(rootCorePin, 'the root import map must pin @skmtc/core')
+
   const lock = readJson<{ jsr?: Record<string, unknown> }>('deno.lock')
 
   const cores = Object.keys(lock.jsr ?? {}).filter(key => key.startsWith('@skmtc/core@'))
