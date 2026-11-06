@@ -509,7 +509,7 @@ Deno.test('a recursive target reffed from a parameter is refused, not emitted', 
   // throw leaves the twin's file behind — engine behaviour on any throw.)
   assertStringIncludes(
     JSON.stringify(manifest.results),
-    '"/orders%3Aget":{"variant%3A main":"error"}',
+    '"/orders":{"get":{"variant":{"main":"error"}}}',
   )
   assertEquals(
     artifacts['schema-effect/categoryFromString.generated.ts']
@@ -534,7 +534,7 @@ Deno.test('a component named with the reserved suffix is refused by name', () =>
   // The failure is the item's own, not a definition mismatch on `Date`.
   assertStringIncludes(
     JSON.stringify(manifest.results),
-    '"DateFromString":{"variant%3A main":"error"}',
+    '"DateFromString":{"variant":{"main":"error"}}',
   )
 })
 

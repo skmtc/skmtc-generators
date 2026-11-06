@@ -269,8 +269,9 @@ export const runE2eFixture = ({ id, entry, document }: RunE2eFixtureArgs): Retur
 
 /**
  * Every `ResultType` leaf in a manifest's results tree — the VALUES
- * only. The tree's keys are subject paths (`/error-logs:get`) and
- * destination paths (`ApiError.generated.kt`), so matching a substring
+ * only. The tree's keys are subject paths and methods, one level each
+ * (`/error-logs` → `get`), and destination paths
+ * (`ApiError.generated.kt`), so matching a substring
  * against the serialized tree reports an error for any document whose
  * own names contain one.
  */
