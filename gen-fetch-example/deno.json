@@ -1,11 +1,11 @@
 {
   "name": "@skmtc/gen-fetch-example",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "license": "MIT",
   "exports": "./mod.ts",
   "imports": {
-    "@skmtc/core": "jsr:@skmtc/core@0.37.0",
-    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.12.40",
+    "@skmtc/core": "jsr:@skmtc/core@0.38.0",
+    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.12.41",
     "valibot": "npm:valibot@1.1.0"
   },
   "tasks": {

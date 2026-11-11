@@ -1,6 +1,6 @@
 {
   "name": "@skmtc/gen-kotlin-spring",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "exports": "./mod.ts",
   "tasks": {
     "test": "deno test --allow-env --allow-sys --allow-read",
@@ -10,8 +10,8 @@
     "coverage:check": "deno coverage coverage --detailed"
   },
   "imports": {
-    "@skmtc/core": "jsr:@skmtc/core@0.37.0",
-    "@skmtc/lang-kotlin": "jsr:@skmtc/lang-kotlin@0.11.19",
+    "@skmtc/core": "jsr:@skmtc/core@0.38.0",
+    "@skmtc/lang-kotlin": "jsr:@skmtc/lang-kotlin@0.11.20",
     "@std/assert": "jsr:@std/assert@^1.0.10",
     "@skmtc/gen-kotlin-jackson": "../gen-kotlin-jackson/mod.ts"
   },
