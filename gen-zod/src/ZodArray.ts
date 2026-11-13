@@ -2,6 +2,7 @@ import { TsSnippet } from "@skmtc/lang-typescript";
 import type { GenerateContextType, GeneratorKey, Modifiers, OasRef, OasSchema, RefName, TypeSystemValue } from '@skmtc/core'
 import { toZodValue } from "./Zod.ts";
 import { applyModifiers } from "./applyModifiers.ts";
+import { isDeferred } from "./deferred.ts";
 
 type ZodArrayArgs = {
   context: GenerateContextType;
@@ -18,6 +19,8 @@ export class ZodArray extends TsSnippet {
   type = "array" as const;
   items: TypeSystemValue;
   modifiers: Modifiers;
+  /** See `isDeferred`. */
+  deferred: boolean;
 
   constructor(
     { context, generatorKey, destinationPath, items, modifiers, rootRef, schema }:
@@ -34,6 +37,8 @@ export class ZodArray extends TsSnippet {
       context,
       rootRef,
     });
+
+    this.deferred = isDeferred(this.items);
 
     this.register({ imports: { zod: ["z"] }, destinationPath });
   }

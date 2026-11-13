@@ -147,7 +147,10 @@ class TsRecord extends SnippetBase {
         : toTsValue({ destinationPath, schema, required: true, context, rootRef })
   }
 
+  // An index signature, not `Record<string, …>`: TypeScript expands the
+  // alias eagerly, so a model that holds itself in a record
+  // (`type Bag = Record<string, Bag>`) fails with TS2456.
   override toString(): string {
-    return `Record<string, ${this.value}>`
+    return `{[key: string]: ${this.value}}`
   }
 }

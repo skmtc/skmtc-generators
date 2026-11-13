@@ -18,8 +18,8 @@ export class ZodRef extends TsSnippet {
   type = "ref" as const;
   modifiers: Modifiers;
   name: string;
-  /** Renders `z.lazy(...)`: a reference back, or another reference inside a cycle. */
-  terminal: boolean;
+  /** A reference inside a cycle, which a getter or `z.lazy` above defers (see `isDeferred`). */
+  deferred: boolean;
   constructor(
     { context, refName, destinationPath, modifiers, rootRef, schema }:
       ConstructorProps,
@@ -34,12 +34,11 @@ export class ZodRef extends TsSnippet {
       stackTrail: schema?.stackTrail.clone(),
     });
 
-     // A reference back to a model whose projection is being constructed
+    // A reference back to a model whose projection is being constructed
     // comes back `suspended`; any other reference inside a cycle comes back
-    // `inCycle`. Both render `z.lazy(...)`: zod reads a plain reference when
-    // the module loads, and any model of a cycle can be the first one loaded.
-    // `toModelRef` constructs or reuses every other model, and stitches the
-    // import, the reference back's included.
+    // `inCycle`. Both are deferred, because any model of a cycle can be the
+    // first one loaded. `toModelRef` constructs or reuses every other model,
+    // and stitches the import, the reference back's included.
     const ref = toModelRef({
       context,
       refName,
@@ -51,15 +50,10 @@ export class ZodRef extends TsSnippet {
 
     this.name = ref.settings.identifier.name;
     this.modifiers = modifiers;
-    this.terminal = ref.suspended || ref.inCycle;
-
-    if (this.terminal) {
-      this.register({ imports: { zod: ["z"] }, destinationPath });
-    }
+    this.deferred = ref.suspended || ref.inCycle;
   }
 
- override toString(): string {
-    const out = applyModifiers(this.name, this.modifiers);
-    return this.terminal ? `z.lazy(() => ${out})` : out;
+  override toString(): string {
+    return applyModifiers(this.name, this.modifiers);
   }
 }

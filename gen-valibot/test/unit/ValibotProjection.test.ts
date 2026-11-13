@@ -1,4 +1,4 @@
-import { assertEquals } from '@std/assert'
+import { assert, assertEquals } from '@std/assert'
 import { ValibotProjection } from '../../src/ValibotProjection.ts'
 import { type RefName, StackTrail } from '@skmtc/core'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
@@ -107,7 +107,7 @@ Deno.test('ValibotProjection - union type', () => {
   assertEquals(`${valibotProjection.toValue()}`, 'v.union([v.string(), v.number()])')
 })
 
-Deno.test('ValibotProjection - every reference in a cycle of two models is lazy', () => {
+Deno.test('ValibotProjection - every reference in a cycle of two models is lazy; the model referred back to is typed by gen-typescript', () => {
   const schemas = {
     Employee: {
       type: 'object' as const,
@@ -141,4 +141,15 @@ Deno.test('ValibotProjection - every reference in a cycle of two models is lazy'
     'v.object({name: v.string(), team: v.optional(v.lazy(() => team))})'
   )
   assertEquals(`${team.toValue()}`, 'v.object({members: v.array(v.lazy(() => employee))})')
+
+  // Unannotated, each `export const` depends on its own initializer through
+  // the other (TS7022). Every cycle passes through the model referred back
+  // to, so annotating that one breaks it; the type is gen-typescript's, in
+  // the file gen-valibot and gen-typescript share.
+  assertEquals(employee.toIdentifier().typeName, 'v.GenericSchema<Employee>')
+  assertEquals(team.toIdentifier().typeName, undefined)
+  assert(
+    context.findDefinition({ name: 'Employee', exportPath: '@/types/employee.generated.ts' }),
+    "gen-typescript's Employee type should be beside the schema"
+  )
 })

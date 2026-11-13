@@ -415,9 +415,9 @@ export type Pet = {
 <td>
 
 ```typescript
-export type Metadata = Record<string, string>
+export type Metadata = {[key: string]: string}
 
-export type Config = {id: string} | Record<string, number>
+export type Config = {id: string} | {[key: string]: number}
 ```
 
 </td>

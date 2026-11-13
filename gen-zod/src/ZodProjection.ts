@@ -1,7 +1,9 @@
-import { camelCase, capitalize, isReferencedBack, type ContentSettings, type GenerateContextType, type RefName, type TypeSystemValue } from '@skmtc/core'
+import type { ContentSettings, GenerateContextType, RefName, TypeSystemValue } from '@skmtc/core'
 import { createVariable } from '@skmtc/lang-typescript'
+import { TsProjection } from '@skmtc/gen-typescript'
 import { toZodValue } from "./Zod.ts";
 import { ZodBase } from "./base.ts";
+import { isDeferred } from "./deferred.ts";
 import type { EnrichmentSchema } from "./enrichments.ts";
 
 type ConstructorArgs = {
@@ -14,6 +16,8 @@ type ConstructorArgs = {
 
 export class ZodProjection extends ZodBase {
   value: TypeSystemValue;
+  /** Renders `z.lazy(() => …)`: the value holds a reference inside a cycle that no getter defers. */
+  lazy: boolean;
   constructor(
     { context, refName, settings, destinationPath, rootRef }: ConstructorArgs,
   ) {
@@ -29,21 +33,24 @@ export class ZodProjection extends ZodBase {
       rootRef,
     });
 
-    // A recursive schema renders a `z.lazy(() => self)` back-reference
-    // (see ZodRef). The enclosing `export const` then references its own
-    // initializer, which TypeScript cannot type by inference — TS7022 /
-    // TS7024. Annotating the identifier with `typeName` makes `Definition`
-    // emit `export const x: z.ZodType<X> = ...`, breaking the cycle.
-    //
-    // `isReferencedBack` asks core, which counts each reference back to
-    // this model while its constructor runs, on its own or in a cycle of
-    // several models. (Reading the rendered string here would pre-render the
-    // value tree outside the attribution pass and orphan every inner snippet
-    // from the gen-map.)
-    if (isReferencedBack({ context, settings })) {
-      this.settings.identifier.typeName = `z.ZodType<${
-        capitalize(camelCase(refName))
-      }>`;
+    // A reference inside a cycle is deferred by the nearest object property,
+    // as a getter (see ZodObject). A union, array or record of the model's
+    // own has no property on the way, so the whole model is deferred instead.
+    // Its `export const` then refers to its own initializer, which TypeScript
+    // cannot type by inference (TS7022 / TS7024): the annotation
+    // `z.ZodType<T>` breaks the cycle, with T gen-typescript's type for the
+    // model, imported into this file unless the two share it.
+    this.lazy = isDeferred(this.value);
+
+    if (this.lazy) {
+      const type = context.insertModel(TsProjection, refName, {
+        variant: "main",
+        destinationPath,
+      });
+
+      this.settings.identifier.typeName = `z.ZodType<${type.toName()}>`;
+
+      this.register({ imports: { zod: ["z"] } });
     }
   }
 
@@ -54,6 +61,6 @@ export class ZodProjection extends ZodBase {
   static createIdentifier = createVariable;
 
   override toString() {
-    return `${this.value}`;
+    return this.lazy ? `z.lazy(() => ${this.value})` : `${this.value}`;
   }
 }

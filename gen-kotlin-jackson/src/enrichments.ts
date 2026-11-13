@@ -5,6 +5,10 @@ import { isKtIdentifierName, ktHardKeywords } from '@skmtc/lang-kotlin'
 const isKotlinPackage = (value: string): boolean =>
   value.split('.').every((segment) => isKtIdentifierName(segment) && !ktHardKeywords.has(segment))
 
+/** What a run without `basePackage` reports, so the setting is named. */
+const basePackageRequired =
+  'gen-kotlin-jackson needs _generator.basePackage, the Kotlin package every model is written to, e.g. "com.acme.api"'
+
 /**
  * The `generator`-scope config (`client.json#enrichments[id]._generator`):
  * `basePackage` (REQUIRED, validated, no default) is the Kotlin package
@@ -16,13 +20,13 @@ const isKotlinPackage = (value: string): boolean =>
  */
 export const generatorConfigSchema = v.object({
   basePackage: v.pipe(
-    v.string(),
+    v.string(basePackageRequired),
     v.check(
       isKotlinPackage,
       'gen-kotlin-jackson: basePackage must be a dot-separated Kotlin package name',
     ),
   ),
-})
+}, basePackageRequired)
 
 export type GeneratorConfig = v.InferOutput<typeof generatorConfigSchema>
 

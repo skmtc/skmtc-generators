@@ -159,7 +159,7 @@ Deno.test('toTsValue - object with additionalProperties', () => {
     type: 'object',
     additionalProperties: { type: 'string' }
   }
-  assertEquals(schemaToTs(schema), 'Record<string, string>')
+  assertEquals(schemaToTs(schema), '{[key: string]: string}')
 })
 
 Deno.test('toTsValue - object with properties and additionalProperties', () => {
@@ -171,7 +171,7 @@ Deno.test('toTsValue - object with properties and additionalProperties', () => {
     required: ['id'],
     additionalProperties: { type: 'number' }
   }
-  assertEquals(schemaToTs(schema), '{id: string} | Record<string, number>')
+  assertEquals(schemaToTs(schema), '{id: string} | {[key: string]: number}')
 })
 
 Deno.test('toTsValue - nested object', () => {
@@ -376,7 +376,7 @@ Deno.test('toTsValue - additionalProperties with boolean true', () => {
     type: 'object',
     additionalProperties: true
   }
-  assertEquals(schemaToTs(schema), 'Record<string, unknown>')
+  assertEquals(schemaToTs(schema), '{[key: string]: unknown}')
 })
 
 Deno.test('toTsValue - additionalProperties with empty object', () => {
@@ -384,7 +384,7 @@ Deno.test('toTsValue - additionalProperties with empty object', () => {
     type: 'object',
     additionalProperties: {}
   }
-  assertEquals(schemaToTs(schema), 'Record<string, unknown>')
+  assertEquals(schemaToTs(schema), '{[key: string]: unknown}')
 })
 
 Deno.test('toTsValue - integer with format', () => {

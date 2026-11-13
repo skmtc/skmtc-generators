@@ -74,7 +74,7 @@ Deno.test('TsObject - object with additionalProperties', () => {
     generatorKey: toGeneratorOnlyKey({ generatorId: '@skmtc/gen-typescript' })
   })
 
-  assertEquals(tsObject.toString(), 'Record<string, string>')
+  assertEquals(tsObject.toString(), '{[key: string]: string}')
 })
 
 Deno.test('TsObject - object with properties and additionalProperties', () => {
@@ -94,7 +94,7 @@ Deno.test('TsObject - object with properties and additionalProperties', () => {
     generatorKey: toGeneratorOnlyKey({ generatorId: '@skmtc/gen-typescript' })
   })
 
-  assertEquals(tsObject.toString(), '{id: string} | Record<string, number>')
+  assertEquals(tsObject.toString(), '{id: string} | {[key: string]: number}')
 })
 
 Deno.test('TsObject - nullable object', () => {

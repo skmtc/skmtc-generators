@@ -334,9 +334,13 @@ export const Category = Schema.Struct({name: Schema.String, kind: Schema.optiona
   )
 })
 
-Deno.test('mutual recursion imports the value it suspends, beside the aliased type', () => {
+Deno.test('mutual recursion suspends both references, each beside its aliased type', () => {
   const { artifacts } = generate()
 
+  // Node is built first, so Edge's reference back to it comes back
+  // suspended and Node's reference to Edge comes back inCycle. Both
+  // suspend: a plain `Edge` in Node's file reads Edge before its module has
+  // run when the barrel exports Edge first.
   assertEquals(
     artifacts['schema-effect/edge.generated.ts'],
     `import {Node} from '@/schema-effect/node.generated.ts'
@@ -346,9 +350,14 @@ import type {Node as Node$Type} from '@/types/node.generated.ts'
 export const Edge = Schema.Struct({to: Schema.suspend((): Schema.Codec<Node$Type> => Node)});
 `,
   )
-  assertStringIncludes(
+  assertEquals(
     artifacts['schema-effect/node.generated.ts'],
-    `import {Edge} from '@/schema-effect/edge.generated.ts'`,
+    `import {Edge} from '@/schema-effect/edge.generated.ts'
+import {Schema} from 'effect'
+import type {Edge as Edge$Type} from '@/types/edge.generated.ts'
+
+export const Node = Schema.Struct({edges: Schema.mutable(Schema.Array(Schema.suspend((): Schema.Codec<Edge$Type> => Edge)))});
+`,
   )
 })
 

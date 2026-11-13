@@ -49,7 +49,7 @@ export class EffectRef extends TsSnippet {
   modifiers: Modifiers
   name: string
   /**
-   * Set only on a recursive back-reference: gen-typescript's type, under
+   * Set only on a reference inside a cycle: gen-typescript's type, under
    * an alias, annotating the `Schema.suspend` callback so the enclosing
    * `export const` escapes circular inference.
    */
@@ -81,9 +81,12 @@ export class EffectRef extends TsSnippet {
     const coerced = coerce && needsCoercion(schema)
 
     // A reference back to a model whose projection is being constructed
-    // comes back `suspended`; `toModelRef` constructs or reuses every other
-    // model, and stitches the model's import in every case. The options are
-    // part of the identity: a coerced reference names the FromString twin.
+    // comes back `suspended`; any other reference inside a cycle comes back
+    // `inCycle`. Both render `Schema.suspend`: a plain reference is read when
+    // the module loads, and any model of a cycle can be the first one loaded.
+    // `toModelRef` constructs or reuses every other model, and stitches the
+    // model's import in every case. The options are part of the identity: a
+    // coerced reference names the FromString twin.
     const ref = toModelRef({
       context,
       refName,
@@ -96,7 +99,7 @@ export class EffectRef extends TsSnippet {
 
     this.name = ref.settings.identifier.name
 
-    if (ref.suspended) {
+    if (ref.suspended || ref.inCycle) {
       // A twin's arrays are readonly (`mutable` refuses `ArrayEnsure`), so
       // no annotation on its suspend holds against the model's type.
       if (coerced) {
@@ -105,8 +108,8 @@ export class EffectRef extends TsSnippet {
         )
       }
 
-      // A reference back, rendered below as `Schema.suspend`. Never coerced —
-      // that case threw above — so it is the JSON reading it names.
+      // Rendered below as `Schema.suspend`. Never coerced — that case threw
+      // above — so it is the JSON reading it names.
       const settings = ref.settings
 
       // Identity only, before anything is inserted: a clone that points both

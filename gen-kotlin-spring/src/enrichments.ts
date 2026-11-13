@@ -26,6 +26,10 @@ export const springOperationSchema = v.optional(
   v.object({ serviceMethodName: v.optional(v.string()) })
 )
 
+/** What a run without `basePackage` reports, so the setting is named. */
+const basePackageRequired =
+  'gen-kotlin-spring needs _generator.basePackage, the Kotlin package the <Tag>Api and ApiError files are written to, e.g. "com.acme.api"'
+
 /**
  * The `generator`-scope config (`client.json#enrichments[id]._generator`):
  * `basePackage` (REQUIRED, validated) is where the `<Tag>Api` + `ApiError`
@@ -36,7 +40,7 @@ export const springOperationSchema = v.optional(
  */
 export const generatorConfigSchema = v.object({
   basePackage: v.pipe(
-    v.string(),
+    v.string(basePackageRequired),
     v.check(
       isKotlinPackage,
       'gen-kotlin-spring: basePackage must be a dot-separated Kotlin package name'
@@ -83,7 +87,7 @@ export const generatorConfigSchema = v.object({
    * entry's `GenericSchema<EnrichmentType>` slot rejects).
    */
   emitServiceImplementations: v.optional(v.boolean())
-})
+}, basePackageRequired)
 
 export type GeneratorConfig = v.InferOutput<typeof generatorConfigSchema>
 

@@ -2,6 +2,7 @@ import { TsSnippet } from "@skmtc/lang-typescript";
 import type { GenerateContextType, GeneratorKey, Modifiers, OasDiscriminator, OasRef, OasSchema, RefName, TypeSystemValue } from '@skmtc/core'
 import { toZodValue } from "./Zod.ts";
 import { applyModifiers } from "./applyModifiers.ts";
+import { isDeferred } from "./deferred.ts";
 
 type ZodUnionArgs = {
   context: GenerateContextType;
@@ -20,6 +21,8 @@ export class ZodUnion extends TsSnippet {
   members: TypeSystemValue[];
   discriminator: string | undefined;
   modifiers: Modifiers;
+  /** See `isDeferred`. */
+  deferred: boolean;
 
   constructor({
     context,
@@ -45,6 +48,7 @@ export class ZodUnion extends TsSnippet {
 
     this.discriminator = discriminator?.propertyName;
     this.modifiers = modifiers;
+    this.deferred = this.members.some(isDeferred);
 
     this.register({ imports: { zod: ["z"] }, destinationPath });
   }

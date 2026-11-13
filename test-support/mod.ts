@@ -6,6 +6,7 @@
  * members — so it holds test code only.
  */
 import { assert, assertEquals } from '@std/assert'
+import { dirname, join } from '@std/path'
 import { StackTrail, toArtifacts } from '@skmtc/core'
 import type { ResultsItem, ResultType } from '@skmtc/core'
 import type { OpenAPIV3 } from 'openapi-types'
@@ -294,10 +295,9 @@ export const toResultTypes = (results: ResultsItem): ResultType[] => {
 }
 
 /**
- * A generate-phase throw never touches `parseIssues` — it lands in
- * `manifest.results.generate` as a per-subject `error`, while the
- * accumulator's already-registered container still renders a
- * valid-but-empty file. Every fixture asserts BOTH channels.
+ * A generate-phase throw lands in `manifest.results.generate` as a
+ * per-subject `error`, and fails the run: `parseIssues` gets a
+ * `RUN_FAILED` issue and no file renders.
  */
 export const assertNoResultErrors = (manifest: { results: ResultsItem }): void => {
   assertEquals(toResultTypes(manifest.results).filter(result => result === 'error'), [])
@@ -306,4 +306,150 @@ export const assertNoResultErrors = (manifest: { results: ResultsItem }): void =
 /** The inverse gate: a run that MUST fail its subjects. */
 export const assertHasResultError = (manifest: { results: ResultsItem }): void => {
   assertEquals(toResultTypes(manifest.results).includes('error'), true)
+}
+
+/**
+ * Every recursive shape a model generator has to defer: two objects that
+ * refer to each other (Employee, Team), an object that refers to itself
+ * (TreeNode), a model that refers into the cycle from outside it
+ * (Directory), a union of objects in a cycle (Shape, Group), a union that
+ * refers to itself with no object on the way (JsonValue), an array model in
+ * a cycle with an object (Crew, Person), and a record that holds itself
+ * (Bag).
+ */
+export const cycleDocument: OpenAPIV3.Document = {
+  openapi: '3.0.3',
+  info: { title: 'Cycle fixture', version: '1.0.0' },
+  paths: {},
+  components: {
+    schemas: {
+      Employee: {
+        type: 'object',
+        required: ['name', 'role'],
+        properties: {
+          name: { type: 'string' },
+          role: { type: 'string', enum: ['engineer', 'manager'] },
+          nickname: { type: 'string', nullable: true },
+          team: { $ref: '#/components/schemas/Team' }
+        }
+      },
+      Team: {
+        type: 'object',
+        required: ['members'],
+        properties: {
+          members: { type: 'array', items: { $ref: '#/components/schemas/Employee' } },
+          labels: { type: 'object', additionalProperties: { type: 'string' } }
+        }
+      },
+      TreeNode: {
+        type: 'object',
+        required: ['value'],
+        properties: {
+          value: { type: 'string' },
+          children: { type: 'array', items: { $ref: '#/components/schemas/TreeNode' } }
+        }
+      },
+      Directory: {
+        type: 'object',
+        required: ['lead'],
+        properties: { lead: { $ref: '#/components/schemas/Employee' } }
+      },
+      Shape: {
+        oneOf: [{ $ref: '#/components/schemas/Circle' }, { $ref: '#/components/schemas/Group' }]
+      },
+      Circle: {
+        type: 'object',
+        required: ['kind', 'radius'],
+        properties: { kind: { type: 'string', enum: ['circle'] }, radius: { type: 'number' } }
+      },
+      Group: {
+        type: 'object',
+        required: ['kind', 'children'],
+        properties: {
+          kind: { type: 'string', enum: ['group'] },
+          children: { type: 'array', items: { $ref: '#/components/schemas/Shape' } }
+        }
+      },
+      JsonValue: {
+        oneOf: [
+          { type: 'string' },
+          { type: 'number' },
+          { type: 'boolean' },
+          { type: 'array', items: { $ref: '#/components/schemas/JsonValue' } },
+          { type: 'object', additionalProperties: { $ref: '#/components/schemas/JsonValue' } }
+        ]
+      },
+      Person: {
+        type: 'object',
+        required: ['name'],
+        properties: { name: { type: 'string' }, crew: { $ref: '#/components/schemas/Crew' } }
+      },
+      Crew: { type: 'array', items: { $ref: '#/components/schemas/Person' } },
+      Bag: { type: 'object', additionalProperties: { $ref: '#/components/schemas/Bag' } }
+    }
+  }
+}
+
+type CheckGeneratedArgs = {
+  /** A run's artifacts, keyed by path under `basePath: './src'`. */
+  artifacts: Record<string, string>
+  /** What the emitted files import besides `@/`, e.g. `{ zod: 'npm:zod@4.6.7' }`. */
+  imports: Record<string, string>
+}
+
+const runDeno = async (args: string[]): Promise<{ code: number; output: string }> => {
+  const { code, stdout, stderr } = await new Deno.Command('deno', {
+    args,
+    env: { NO_COLOR: '1' },
+    stdout: 'piped',
+    stderr: 'piped'
+  }).output()
+
+  const decoder = new TextDecoder()
+
+  return { code, output: `${decoder.decode(stdout)}${decoder.decode(stderr)}` }
+}
+
+/**
+ * Write a run's artifacts to a project of their own, type-check them, then
+ * load each file first, in a process of its own: a module of a cycle that
+ * reads another model before that model's module has run throws there.
+ * Returns what failed, so a passing run is `[]`.
+ *
+ * Needs write, `run=deno` and net, which the default test tasks do not
+ * grant: call it from a `test:typecheck` task.
+ */
+export const checkGenerated = async ({ artifacts, imports }: CheckGeneratedArgs): Promise<string[]> => {
+  const root = await Deno.makeTempDir({ prefix: 'skmtc-generated-' })
+
+  try {
+    const config = join(root, 'deno.json')
+    const paths = Object.keys(artifacts).toSorted()
+
+    await Deno.writeTextFile(config, JSON.stringify({ imports: { '@/': './src/', ...imports } }))
+
+    for (const path of paths) {
+      const target = join(root, path)
+      await Deno.mkdir(dirname(target), { recursive: true })
+      await Deno.writeTextFile(target, artifacts[path])
+    }
+
+    const check = await runDeno(['check', '--quiet', '--config', config, ...paths.map(path => join(root, path))])
+
+    const loads = await Promise.all(
+      paths.map(async path => ({
+        path,
+        load: await runDeno(['run', '--quiet', '--no-check', '--config', config, join(root, path)])
+      }))
+    )
+
+    return [
+      ...(check.code === 0 ? [] : [`deno check failed:\n${check.output}`]),
+      ...loads
+        .filter(({ load }) => load.code !== 0)
+        .map(({ path, load }) => `loading ${path} first failed:\n${load.output}`)
+    ]
+  } finally {
+    await Deno.remove(root, { recursive: true })
+  }
 }

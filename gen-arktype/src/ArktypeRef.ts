@@ -25,7 +25,6 @@ export class ArktypeRef extends TsSnippet {
   atomicStringSyntax = undefined
   modifiers: Modifiers
   name: string
-  terminal: boolean
 
   constructor({ context, refName, destinationPath, modifiers, rootRef, schema }: ArktypeRefArgs) {
     super({
@@ -39,10 +38,7 @@ export class ArktypeRef extends TsSnippet {
     })
 
     // A reference back to a model whose projection is being constructed
-    // comes back `suspended`, so the model is not constructed again;
-    // `toModelRef` stitches the import in every case. Only the reference back
-    // renders as a thunk: a lone `type(…)` cannot defer a cycle anyway (see
-    // `toString`).
+    // comes back `suspended`; `toModelRef` stitches the import in every case.
     const ref = toModelRef({
       context,
       refName,
@@ -52,19 +48,21 @@ export class ArktypeRef extends TsSnippet {
       variant: 'main'
     })
 
+    // A lone `type(…)` reads its references when its module loads, and runs
+    // a thunk while it parses, so no spelling defers a reference back. A
+    // cycle needs its models in one `scope`, which this generator does not
+    // render.
+    if (ref.suspended) {
+      throw new Error(
+        `${refName} is recursive, which gen-arktype cannot render: each model is a lone type(…), and a reference back to ${refName} fails when the module loads. Remove the cycle from the schema to generate it with gen-arktype.`
+      )
+    }
+
     this.name = ref.settings.identifier.name
-    this.terminal = ref.suspended
     this.modifiers = modifiers
   }
 
   override toString(): string {
-    // A thunk is arktype's spelling for a cyclic reference, but it only defers
-    // inside a `scope` / `type.module` — a lone `type(…)` invokes it while
-    // parsing, so a self-recursive model still throws at run time. Emitted
-    // because it is the closest correct shape; genuine cycles need the whole
-    // file to become one `type.module({ … })`.
-    const value = this.terminal ? `() => ${this.name}` : this.name
-
-    return applyValueModifiers(value, this.modifiers)
+    return applyValueModifiers(this.name, this.modifiers)
   }
 }

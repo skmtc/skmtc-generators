@@ -1,5 +1,7 @@
+import { isReferencedBack } from '@skmtc/core'
 import type { TypeSystemValue, GenerateContextType, RefName, ContentSettings } from '@skmtc/core'
 import { createVariable } from '@skmtc/lang-typescript'
+import { TsProjection } from '@skmtc/gen-typescript'
 import { toValibotValue } from './Valibot.ts'
 import { ValibotBase } from './base.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
@@ -26,6 +28,22 @@ export class ValibotProjection extends ValibotBase {
       context,
       rootRef
     })
+
+    // Every reference inside a cycle renders `v.lazy(() => …)` (see
+    // ValibotRef), so the `export const` of a model the cycle refers back to
+    // depends on its own initializer, which TypeScript cannot type by
+    // inference (TS7022 / TS7024). Every cycle passes through such a model,
+    // so annotating it `v.GenericSchema<T>` breaks every one, with T
+    // gen-typescript's type for the model, imported into this file unless
+    // the two share it.
+    if (isReferencedBack({ context, settings })) {
+      const type = context.insertModel(TsProjection, refName, {
+        variant: 'main',
+        destinationPath
+      })
+
+      this.settings.identifier.typeName = `v.GenericSchema<${type.toName()}>`
+    }
   }
 
   static schemaToValueFn = (...args: Parameters<typeof toValibotValue>) => {

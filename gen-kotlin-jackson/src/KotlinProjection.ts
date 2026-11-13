@@ -155,10 +155,11 @@ export class KotlinProjection extends KotlinJacksonBase {
 
     // SLOT(recursion-annotation): deliberately empty. Core still tracks
     // cycles (`isReferencedBack` would report a reference back to this
-    // model), but Kotlin needs no annotation to break one: a class may name itself inside its
-    // own body, so `Category.children: List<Category>?` compiles as
-    // written. The TypeScript skeleton needs this slot only because
-    // `export const` dies of circular inference (TS7022/7024).
+    // model), but Kotlin needs no annotation to break one: a class may
+    // name itself inside its own body, so `Category.children:
+    // List<Category>?` compiles as written. The TypeScript skeleton needs
+    // this slot only because `export const` dies of circular inference
+    // (TS7022/7024).
   }
 
   // These two statics make the projection consumable by PEER generators

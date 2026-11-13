@@ -353,7 +353,7 @@ Deno.test('the model peer basePackage is REQUIRED — omitting it fails the run,
   assertEquals(artifacts, {})
   assertStringIncludes(
     manifest.parseIssues.find(issue => issue.type === 'RUN_FAILED')?.message ?? '',
-    "'@skmtc/gen-kotlin-jackson → _generator': Invalid type: Expected Object but received undefined"
+    `'@skmtc/gen-kotlin-jackson → _generator': gen-kotlin-jackson needs _generator.basePackage, the Kotlin package every model is written to, e.g. "com.acme.api"`
   )
 })
 

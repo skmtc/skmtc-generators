@@ -85,9 +85,11 @@ jobs:
 
     # gen-arktype compiles its own generated output against real arktype, whose
     # definition parser is type-level — so `deno check` over the emitted files
-    # is what proves they are valid. Opt-in because it needs write/run/net.
+    # is what proves they are valid. gen-zod, gen-valibot and gen-effect-schema
+    # compile their cycles and load each file first, which is where a cycle
+    # read too early throws. Opt-in because it needs write/run/net.
     - name: Typecheck generated output for ${{ matrix.generator }}
-      if: matrix.generator == 'gen-arktype'
+      if: contains(fromJSON('["gen-arktype", "gen-zod", "gen-valibot", "gen-effect-schema"]'), matrix.generator)
       working-directory: ${{ matrix.generator }}
       run: deno task test:typecheck
 
