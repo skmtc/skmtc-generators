@@ -1,7 +1,7 @@
 import { assertEquals } from '@std/assert'
 import { ValibotNumber } from '../../src/ValibotNumber.ts'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
-import { toGeneratorOnlyKey } from '@skmtc/core'
+import { OasNumber, toGeneratorOnlyKey } from '@skmtc/core'
 
 Deno.test('ValibotNumber - basic number type', () => {
   const valibotNumber = new ValibotNumber({
@@ -45,4 +45,16 @@ Deno.test('ValibotNumber - optional and nullable number', () => {
   })
 
   assertEquals(valibotNumber.toString(), 'v.optional(v.nullable(v.number()))')
+})
+
+Deno.test('ValibotNumber - an enum is its literals', () => {
+  const valibotNumber = new ValibotNumber({
+    context: toGenerateContext(),
+    modifiers: { required: true },
+    generatorKey: toGeneratorOnlyKey({ generatorId: '@skmtc/gen-valibot' }),
+    destinationPath: '/test',
+    schema: new OasNumber({ enums: [0.5, 1] })
+  })
+
+  assertEquals(valibotNumber.toString(), 'v.picklist([0.5, 1])')
 })

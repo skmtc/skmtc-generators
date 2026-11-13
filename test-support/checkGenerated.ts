@@ -47,19 +47,19 @@ export const checkGenerated = async ({ artifacts, imports }: CheckGeneratedArgs)
 
     const check = await runDeno(['check', '--quiet', '--config', config, ...paths.map(path => join(root, path))])
 
-    const loads = await Promise.all(
-      paths.map(async path => ({
-        path,
-        load: await runDeno(['run', '--quiet', '--no-check', '--config', config, join(root, path)])
-      }))
-    )
+    const failures = check.code === 0 ? [] : [`deno check failed:\n${check.output}`]
 
-    return [
-      ...(check.code === 0 ? [] : [`deno check failed:\n${check.output}`]),
-      ...loads
-        .filter(({ load }) => load.code !== 0)
-        .map(({ path, load }) => `loading ${path} first failed:\n${load.output}`)
-    ]
+    // One process at a time: a few seconds slower, and no run of dozens of
+    // processes that compete for the npm cache and the runner's memory.
+    for (const path of paths) {
+      const load = await runDeno(['run', '--quiet', '--no-check', '--config', config, join(root, path)])
+
+      if (load.code !== 0) {
+        failures.push(`loading ${path} first failed:\n${load.output}`)
+      }
+    }
+
+    return failures
   } finally {
     await Deno.remove(root, { recursive: true })
   }

@@ -145,6 +145,24 @@ Deno.test("ZodString - with minLength and maxLength and optional", () => {
   assertEquals(zodString.toString(), "z.string().min(5).max(100).optional()");
 });
 
+Deno.test("ZodString - an enum drops its length checks, which z.enum has no method for", () => {
+  // Cloudflare's firewall mode: `enum` beside `maxLength: 12` rendered
+  // `z.enum([…]).max(12)`, which fails to type-check (TS2339).
+  const zodString = new ZodString({
+    context: toGenerateContext(),
+    stringSchema: new OasString({
+      enums: ["block", "challenge"],
+      format: undefined,
+      maxLength: 12,
+    }),
+    modifiers: { required: false },
+    generatorKey: toGeneratorOnlyKey({ generatorId: "@skmtc/gen-zod" }),
+    destinationPath: "/test",
+  });
+
+  assertEquals(zodString.toString(), 'z.enum(["block", "challenge"]).optional()');
+});
+
 // Deno.test('ZodString - with date-time format', () => {
 //   const zodString = new ZodString({
 //     context: toGenerateContext(),

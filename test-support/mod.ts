@@ -309,7 +309,8 @@ export const assertHasResultError = (manifest: { results: ResultsItem }): void =
 
 /**
  * Every recursive shape a model generator has to defer: two objects that
- * refer to each other (Employee, Team), an object that refers to itself
+ * refer to each other (Employee, Team, with boolean, integer and number
+ * enums on the model the cycle refers back to), an object that refers to itself
  * (TreeNode), a model that refers into the cycle from outside it
  * (Directory), a union of objects in a cycle (Shape, Group), a union that
  * refers to itself with no object on the way (JsonValue), an array model in
@@ -329,7 +330,12 @@ export const cycleDocument: OpenAPIV3.Document = {
           name: { type: 'string' },
           role: { type: 'string', enum: ['engineer', 'manager'] },
           nickname: { type: 'string', nullable: true },
-          team: { $ref: '#/components/schemas/Team' }
+          team: { $ref: '#/components/schemas/Team' },
+          // Enums gen-typescript types as literals (`true`, `1 | 2 | 3`):
+          // an annotation from that type checks the schema against them.
+          active: { type: 'boolean', enum: [true] },
+          level: { type: 'integer', enum: [1, 2, 3] },
+          weight: { type: 'number', enum: [0.5, 1] }
         }
       },
       Team: {

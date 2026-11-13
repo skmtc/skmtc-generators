@@ -58,15 +58,17 @@ export class ZodString extends TsSnippet {
   override toString(): string {
     const { enums } = this;
 
-    let content: string;
+    // An enum lists every value it accepts, so the length and pattern
+    // checks add nothing, and `z.enum` / `z.literal` have no `.max()` to
+    // call. ZodNumber and ZodInteger drop theirs the same way.
     if (enums && Array.isArray(enums)) {
-      content = enums.length === 1
+      const content = enums.length === 1
         ? `z.literal("${enums[0]}")`
         : `z.enum([${enums.map((str) => `"${str}"`).join(", ")}])`;
-    } else {
-      content = `z.string()`;
+
+      return applyModifiers(content, this.modifiers);
     }
 
-    return applyModifiers(`${content}${this.constraints}`, this.modifiers);
+    return applyModifiers(`z.string()${this.constraints}`, this.modifiers);
   }
 }
