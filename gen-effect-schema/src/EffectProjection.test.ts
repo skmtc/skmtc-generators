@@ -339,8 +339,8 @@ Deno.test('mutual recursion imports the value it suspends, beside the aliased ty
 
   assertEquals(
     artifacts['schema-effect/edge.generated.ts'],
-    `import {Schema} from 'effect'
-import {Node} from '@/schema-effect/node.generated.ts'
+    `import {Node} from '@/schema-effect/node.generated.ts'
+import {Schema} from 'effect'
 import type {Node as Node$Type} from '@/types/node.generated.ts'
 
 export const Edge = Schema.Struct({to: Schema.suspend((): Schema.Codec<Node$Type> => Node)});
@@ -505,16 +505,16 @@ Deno.test('a recursive target reffed from a parameter is refused, not emitted', 
     },
   })
 
-  // The failure is the parameter's item. (A leaf registered before the
-  // throw leaves the twin's file behind — engine behaviour on any throw.)
+  // The failure is the parameter's item, and it fails the run: nothing is
+  // written, and the RUN_FAILED issue carries the refusal.
   assertStringIncludes(
     JSON.stringify(manifest.results),
     '"/orders":{"get":{"variant":{"main":"error"}}}',
   )
-  assertEquals(
-    artifacts['schema-effect/categoryFromString.generated.ts']
-      .includes('export const'),
-    false,
+  assertEquals(artifacts, {})
+  assertStringIncludes(
+    manifest.parseIssues.find(({ type }) => type === 'RUN_FAILED')?.message ?? '',
+    'Category is recursive and referenced from a path or query parameter',
   )
 })
 

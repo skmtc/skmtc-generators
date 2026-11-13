@@ -1,5 +1,5 @@
 import type { OasRef, OasSchema } from '@skmtc/core'
-import { ModelDriver, toModelGeneratorKey } from '@skmtc/core'
+import { toModelGeneratorKey, toModelRef } from '@skmtc/core'
 import { TsSnippet } from '@skmtc/lang-typescript'
 import { applyValueModifiers } from './applyModifiers.ts'
 import { ArktypeProjection } from './ArktypeProjection.ts'
@@ -38,47 +38,22 @@ export class ArktypeRef extends TsSnippet {
       stackTrail: schema?.stackTrail.clone()
     })
 
-    if (context.modelDepth[`${arktypeEntry.id}:${refName}`] > 0) {
-      // A back-reference to a model still open on the build stack. Driving it
-      // again would recurse forever, so read its settings without building.
-      //
-      // `ZodRef` also bumps the counter here, because `ZodProjection` reads
-      // `> 1` to decide whether to annotate the export and break TypeScript's
-      // circular inference. Arktype has no such annotation — a cycle cannot be
-      // expressed in a lone `type(…)` at all (see `toString`) — so nothing
-      // would read the bump, and it is not made.
-      const settings = context.toModelContentSettings({
-        refName,
-        projection: ArktypeProjection,
-        variant: 'main'
-      })
+    // A reference back to a model whose projection is being constructed
+    // comes back `suspended`, so the model is not constructed again;
+    // `toModelRef` stitches the import in every case. Only the reference back
+    // renders as a thunk: a lone `type(…)` cannot defer a cycle anyway (see
+    // `toString`).
+    const ref = toModelRef({
+      context,
+      refName,
+      destinationPath,
+      rootRef,
+      projection: ArktypeProjection,
+      variant: 'main'
+    })
 
-      // Not always the same file: with mutual recursion (A → B → A) the
-      // back-reference lands in B, so the name still has to be imported. The
-      // engine cannot stitch this one, because nothing was inserted.
-      this.register({
-        imports: { [settings.exportPath]: [settings.identifier.name] },
-        destinationPath
-      })
-
-      this.name = settings.identifier.name
-      this.terminal = true
-    } else {
-      // Building the referenced model is what makes it exist AND what stitches
-      // its import into this file.
-      const { settings } = new ModelDriver({
-        context,
-        refName,
-        destinationPath,
-        rootRef,
-        projection: ArktypeProjection,
-        variant: 'main'
-      })
-
-      this.name = settings.identifier.name
-      this.terminal = false
-    }
-
+    this.name = ref.settings.identifier.name
+    this.terminal = ref.suspended
     this.modifiers = modifiers
   }
 

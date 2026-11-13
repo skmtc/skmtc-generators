@@ -29,7 +29,7 @@ export class EffectProjection extends EffectBase {
   ) {
     super({ context, refName, settings, options })
 
-    const schema = context.resolveSchemaRefOnce(refName, EffectBase.id)
+    const schema = context.resolveSchemaRefOnce(refName)
 
     // The coerced reading is asked for by the caller (see options.ts); the
     // router threads it to every leaf, and a ref on the way passes it on.

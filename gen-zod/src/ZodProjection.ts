@@ -1,4 +1,4 @@
-import { camelCase, capitalize, type ContentSettings, type GenerateContextType, type RefName, type TypeSystemValue } from '@skmtc/core'
+import { camelCase, capitalize, isReferencedBack, type ContentSettings, type GenerateContextType, type RefName, type TypeSystemValue } from '@skmtc/core'
 import { createVariable } from '@skmtc/lang-typescript'
 import { toZodValue } from "./Zod.ts";
 import { ZodBase } from "./base.ts";
@@ -19,7 +19,7 @@ export class ZodProjection extends ZodBase {
   ) {
     super({ context, refName, settings });
 
-    const schema = context.resolveSchemaRefOnce(refName, ZodBase.id);
+    const schema = context.resolveSchemaRefOnce(refName);
 
     this.value = toZodValue({
       schema,
@@ -35,14 +35,12 @@ export class ZodProjection extends ZodBase {
     // TS7024. Annotating the identifier with `typeName` makes `Definition`
     // emit `export const x: z.ZodType<X> = ...`, breaking the cycle.
     //
-    // Detected via `modelDepth`, not by rendering: `resolveSchemaRefOnce`
-    // above set this key to 1, and every terminal back-reference to this
-    // model bumps it further (see ZodRef), so `> 1` means a recursive cycle
-    // was emitted into this model's value. (Reading the rendered string here
-    // would pre-render the value tree outside the attribution pass and orphan
-    // every inner snippet from the gen-map.) Self-recursion is what OpenAPI
-    // schemas produce; mutual recursion is not detected by this check.
-    if (context.modelDepth[`${ZodBase.id}:${refName}`] > 1) {
+    // `isReferencedBack` asks core, which counts each reference back to
+    // this model while its constructor runs, on its own or in a cycle of
+    // several models. (Reading the rendered string here would pre-render the
+    // value tree outside the attribution pass and orphan every inner snippet
+    // from the gen-map.)
+    if (isReferencedBack({ context, settings })) {
       this.settings.identifier.typeName = `z.ZodType<${
         capitalize(camelCase(refName))
       }>`;

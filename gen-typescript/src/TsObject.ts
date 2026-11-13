@@ -4,7 +4,6 @@ import type { GenerateContextType, OasRef, GeneratorKey, OasSchema, OasObject, C
 import { applyModifiers } from './applyModifiers.ts'
 import { toTsValue } from './Ts.ts'
 import { TsUnknown } from './TsUnknown.ts'
-import { match, P } from 'ts-pattern'
 
 type TsObjectProps = {
   context: GenerateContextType
@@ -140,15 +139,12 @@ class TsRecord extends SnippetBase {
   constructor({ context, generatorKey, destinationPath, schema, rootRef }: TsRecordArgs) {
     super({ context, generatorKey })
 
-    this.value = match(schema)
-      .with(true, () => new TsUnknown({ context, generatorKey }))
-      .with(
-        P.when(schema => isEmpty(schema)),
-        () => new TsUnknown({ context, generatorKey })
-      )
-      .otherwise(matched =>
-        toTsValue({ destinationPath, schema: matched, required: true, context, rootRef })
-      )
+    // Not ts-pattern: its type walk over `OasRef`, whose keywords include
+    // `additionalProperties`, circles back on itself.
+    this.value =
+      schema === true || isEmpty(schema)
+        ? new TsUnknown({ context, generatorKey })
+        : toTsValue({ destinationPath, schema, required: true, context, rootRef })
   }
 
   override toString(): string {

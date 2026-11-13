@@ -16,7 +16,7 @@ export class TsProjection extends TypescriptBase {
   constructor({ context, refName, settings, rootRef }: ConstructorArgs) {
     super({ context, refName, settings })
 
-    const schema = context.resolveSchemaRefOnce(refName, TypescriptBase.id)
+    const schema = context.resolveSchemaRefOnce(refName)
 
     this.value = toTsValue({
       schema,

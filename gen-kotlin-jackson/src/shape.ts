@@ -13,11 +13,9 @@ import type { KtEntityType } from '@skmtc/lang-kotlin'
 type ModelSchema = OasSchema | OasRef<'schema'>
 
 /**
- * Read a component schema WITHOUT the side effect `resolveSchemaRefOnce`
- * carries: that method bumps `context.modelDepth`, the counter the
- * recursion protocol reads, so an identity static calling it would report
- * a cycle that never happened. Identity is computed before construction,
- * so it has to stay side-effect free.
+ * Read a component schema straight from the document. Identity is
+ * computed before construction, so it reads the schema without going
+ * through the context's model machinery.
  *
  * A leaf module by design — imported by `base.ts` AND by the projection,
  * it must not close a load-time cycle back through either.

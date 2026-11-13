@@ -4,7 +4,6 @@ import type { GenerateContextType, GeneratorKey, OasRef, OasSchema, OasObject, C
 import { toValibotValue } from './Valibot.ts'
 import { applyModifiers } from './applyModifiers.ts'
 import { ValibotUnknown } from './ValibotUnknown.ts'
-import { match, P } from 'ts-pattern'
 
 type ValibotObjectProps = {
   context: GenerateContextType
@@ -146,15 +145,12 @@ class ValibotRecord extends SnippetBase {
   constructor({ context, generatorKey, destinationPath, schema, rootRef }: ValibotRecordArgs) {
     super({ context, generatorKey })
 
-    this.value = match(schema)
-      .with(true, () => new ValibotUnknown({ context, destinationPath, generatorKey }))
-      .with(
-        P.when(schema => isEmpty(schema)),
-        () => new ValibotUnknown({ context, destinationPath, generatorKey })
-      )
-      .otherwise(matched =>
-        toValibotValue({ destinationPath, schema: matched, required: true, context, rootRef })
-      )
+    // Not ts-pattern: its type walk over `OasRef`, whose keywords include
+    // `additionalProperties`, circles back on itself.
+    this.value =
+      schema === true || isEmpty(schema)
+        ? new ValibotUnknown({ context, destinationPath, generatorKey })
+        : toValibotValue({ destinationPath, schema, required: true, context, rootRef })
   }
 
   override toString(): string {

@@ -41,7 +41,7 @@ export class KotlinProjection extends KotlinJacksonBase {
   ) {
     super({ context, refName, settings })
 
-    const schema = context.resolveSchemaRefOnce(refName, KotlinJacksonBase.id)
+    const schema = context.resolveSchemaRefOnce(refName)
 
     const generatorKey = toGeneratorOnlyKey({
       generatorId: KotlinJacksonBase.id,
@@ -153,10 +153,9 @@ export class KotlinProjection extends KotlinJacksonBase {
       })
     }
 
-    // SLOT(recursion-annotation): deliberately empty. `context.modelDepth`
-    // still tracks cycles (KotlinRef bumps it, and `> 1` here would mean
-    // this model's value contains a back-reference to itself), but Kotlin
-    // needs no annotation to break one: a class may name itself inside its
+    // SLOT(recursion-annotation): deliberately empty. Core still tracks
+    // cycles (`isReferencedBack` would report a reference back to this
+    // model), but Kotlin needs no annotation to break one: a class may name itself inside its
     // own body, so `Category.children: List<Category>?` compiles as
     // written. The TypeScript skeleton needs this slot only because
     // `export const` dies of circular inference (TS7022/7024).

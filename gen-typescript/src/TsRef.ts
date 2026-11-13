@@ -1,4 +1,4 @@
-import { ModelDriver, toModelGeneratorKey } from '@skmtc/core'
+import { toModelGeneratorKey, toModelRef } from '@skmtc/core'
 import { TsSnippet } from '@skmtc/lang-typescript'
 import type { GenerateContextType, Modifiers, OasRef, OasSchema, RefName } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
@@ -33,30 +33,21 @@ export class TsRef extends TsSnippet {
       stackTrail: schema?.stackTrail.clone()
     })
 
-    if (context.modelDepth[`${typescriptEntry.id}:${refName}`] > 0) {
-      const settings = context.toModelContentSettings({
-        refName,
-        projection: TsProjection,
-        variant: 'main'
-      })
+    // A reference back to a model whose projection is being constructed
+    // comes back `suspended`, so the model is not constructed again. A type
+    // alias may name itself, so it renders like any other reference.
+    const ref = toModelRef({
+      context,
+      refName,
+      destinationPath,
+      projection: TsProjection,
+      rootRef,
+      variant: 'main'
+    })
 
-      this.name = settings.identifier.name
-      this.modifiers = modifiers
-      this.terminal = true
-    } else {
-      const tsDriver = new ModelDriver({
-        context,
-        refName,
-        destinationPath,
-        projection: TsProjection,
-        rootRef,
-        variant: 'main'
-      })
-
-      this.name = tsDriver.settings.identifier.name
-      this.modifiers = modifiers
-      this.terminal = false
-    }
+    this.name = ref.settings.identifier.name
+    this.modifiers = modifiers
+    this.terminal = ref.suspended
   }
 
   override toString(): string {

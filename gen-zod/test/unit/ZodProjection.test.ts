@@ -122,7 +122,7 @@ Deno.test("ZodProjection - union type", () => {
   );
 });
 
-Deno.test("ZodProjection - recursive model is annotated z.ZodType<…> (detected via modelDepth, not by rendering)", () => {
+Deno.test("ZodProjection - recursive model is annotated z.ZodType<…> (detected by isReferencedBack, not by rendering)", () => {
   const stackTrail = new StackTrail(["TEST"]);
   const schemas = {
     TreeNode: {
@@ -150,8 +150,8 @@ Deno.test("ZodProjection - recursive model is annotated z.ZodType<…> (detected
     "recursive ref should render z.lazy(...)",
   );
   // …and the export identifier carries the type annotation that breaks the
-  // TS7022/7024 circular-inference cycle — set from the `modelDepth > 1`
-  // signal, NOT by stringifying the value in the constructor.
+  // TS7022/7024 circular-inference cycle — set from `isReferencedBack`,
+  // NOT by stringifying the value in the constructor.
   assertEquals(inserted.toIdentifier().typeName, "z.ZodType<TreeNode>");
 });
 
@@ -175,4 +175,49 @@ Deno.test("ZodProjection - non-recursive model carries no type annotation", () =
   const inserted = context.insertModel(ZodProjection, "User" as RefName);
 
   assertEquals(inserted.toIdentifier().typeName, undefined);
+});
+
+Deno.test("ZodProjection - every reference in a cycle of two models is lazy; the first model is annotated", () => {
+  const stackTrail = new StackTrail(["TEST"]);
+  const schemas = {
+    Employee: {
+      type: "object" as const,
+      properties: {
+        name: { type: "string" as const },
+        team: { $ref: "#/components/schemas/Team" },
+      },
+      required: ["name"],
+    },
+    Team: {
+      type: "object" as const,
+      properties: {
+        members: {
+          type: "array" as const,
+          items: { $ref: "#/components/schemas/Employee" },
+        },
+      },
+      required: ["members"],
+    },
+  };
+
+  const parseContext = toParseContext({ schemas });
+  const oasDocument = parseContext.parse(stackTrail);
+  const context = toGenerateContext({ oasDocument });
+
+  const employee = context.insertModel(ZodProjection, "Employee" as RefName);
+  const team = context.insertModel(ZodProjection, "Team" as RefName);
+
+  // The trap: a plain `team` in employee's file reads Team before its module
+  // has run when team's file loads first. Any model of a cycle can be first.
+  assertEquals(
+    `${employee.toValue()}`,
+    "z.object({name: z.string(), team: z.lazy(() => team.optional())})",
+  );
+  assertEquals(
+    `${team.toValue()}`,
+    "z.object({members: z.array(z.lazy(() => employee))})",
+  );
+  // Only the model the cycle came back to is referred back to.
+  assertEquals(employee.toIdentifier().typeName, "z.ZodType<Employee>");
+  assertEquals(team.toIdentifier().typeName, undefined);
 });

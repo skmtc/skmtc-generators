@@ -106,3 +106,39 @@ Deno.test('ValibotProjection - union type', () => {
 
   assertEquals(`${valibotProjection.toValue()}`, 'v.union([v.string(), v.number()])')
 })
+
+Deno.test('ValibotProjection - every reference in a cycle of two models is lazy', () => {
+  const schemas = {
+    Employee: {
+      type: 'object' as const,
+      properties: {
+        name: { type: 'string' as const },
+        team: { $ref: '#/components/schemas/Team' }
+      },
+      required: ['name']
+    },
+    Team: {
+      type: 'object' as const,
+      properties: {
+        members: { type: 'array' as const, items: { $ref: '#/components/schemas/Employee' } }
+      },
+      required: ['members']
+    }
+  }
+
+  const stackTrail = new StackTrail(['TEST'])
+  const parseContext = toParseContext({ schemas })
+  const oasDocument = parseContext.parse(stackTrail)
+  const context = toGenerateContext({ oasDocument })
+
+  const employee = context.insertModel(ValibotProjection, 'Employee' as RefName)
+  const team = context.insertModel(ValibotProjection, 'Team' as RefName)
+
+  // The trap: a plain `team` in employee's file reads Team before its module
+  // has run when team's file loads first. Any model of a cycle can be first.
+  assertEquals(
+    `${employee.toValue()}`,
+    'v.object({name: v.string(), team: v.optional(v.lazy(() => team))})'
+  )
+  assertEquals(`${team.toValue()}`, 'v.object({members: v.array(v.lazy(() => employee))})')
+})

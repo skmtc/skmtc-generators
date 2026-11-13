@@ -17,7 +17,7 @@ export class ValibotProjection extends ValibotBase {
   constructor({ context, refName, settings, destinationPath, rootRef }: ConstructorArgs) {
     super({ context, refName, settings })
 
-    const schema = context.resolveSchemaRefOnce(refName, ValibotBase.id)
+    const schema = context.resolveSchemaRefOnce(refName)
 
     this.value = toValibotValue({
       schema,
