@@ -25,6 +25,7 @@ import type {
   OasOperationProjectionConstructorArgs,
 } from '@skmtc/core'
 import { toTsOasOperationProjectionBase } from '@skmtc/lang-typescript'
+import { additionalPropertiesDocument } from '@skmtc/test-support'
 import { assertEquals, assertStringIncludes } from '@std/assert'
 import effectSchemaEntry, { EffectObject } from '../mod.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
@@ -157,7 +158,7 @@ const fixture = {
 
 type GenerateOptions = {
   /** The document, when a test needs one the fixture is not. */
-  document?: typeof fixture
+  document?: typeof fixture | typeof additionalPropertiesDocument
   /** This generator's `_generator` scope: `defaults`. */
   generator?: EnrichmentSchema['generator']
   /** Run the query-params consumer below alongside, as a route generator would. */
@@ -367,6 +368,22 @@ Deno.test('additionalProperties renders as a record', () => {
   assertStringIncludes(
     artifacts['schema-effect/metadata.generated.ts'],
     'Schema.Record(Schema.String, Schema.String)',
+  )
+})
+
+// The trap: a record beside a struct checks every key, so its key must
+// leave out the named ones, each escaped: unescaped, `a.b` also leaves out
+// `aXb`, which then skips the record check (#101).
+Deno.test('a record beside properties checks only the keys they do not name', () => {
+  const { artifacts } = generate({ document: additionalPropertiesDocument })
+
+  assertStringIncludes(
+    artifacts['schema-effect/limits.generated.ts'],
+    'Schema.Record(Schema.String.check(Schema.isPattern(/^(?!(?:id|note)$)/)), Schema.Finite)',
+  )
+  assertStringIncludes(
+    artifacts['schema-effect/dotted.generated.ts'],
+    'Schema.isPattern(/^(?!(?:a\\.b)$)/)',
   )
 })
 
