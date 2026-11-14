@@ -17,12 +17,77 @@
  */
 import { assertEquals } from '@std/assert'
 import { dirname, join } from '@std/path'
+import {
+  additionalPropertiesCases,
+  additionalPropertiesDocument,
+  checkGenerated,
+  runE2eFixture
+} from '@skmtc/test-support'
+import { arktypeEntry } from '../src/mod.ts'
 import { runFixture } from './helpers/fixture.ts'
 
 /** The arktype version the generated output is verified against — pinned
  *  exactly, because the gate rests on arktype's type-level parser and a minor
  *  release could change what it accepts without any change here. */
 const ARKTYPE = 'npm:arktype@2.2.3'
+
+/**
+ * Reads each named property as its own type, and checks every case of
+ * `additionalPropertiesCases`. Loading it throws on the first case arktype
+ * gets wrong.
+ */
+const additionalPropertiesConsumer = `import { type } from 'arktype'
+import { upload } from '@/types/upload.generated.ts'
+import { limits } from '@/types/limits.generated.ts'
+import { dotted } from '@/types/dotted.generated.ts'
+
+export const readUpload = (value: typeof upload.infer): string[] => [value.app_id, ...value.images]
+export const readLimits = (value: typeof limits.infer): [string, string | undefined] => [value.id, value.note]
+export const readDotted = (value: typeof dotted.infer): string => value['a.b']
+
+const accepts: Record<string, (value: unknown) => boolean> = {
+  Upload: value => !(upload(value) instanceof type.errors),
+  Limits: value => !(limits(value) instanceof type.errors),
+  Dotted: value => !(dotted(value) instanceof type.errors)
+}
+
+for (const check of ${JSON.stringify(additionalPropertiesCases)}) {
+  const accepted = accepts[check.model](check.value)
+  if (accepted !== check.accept) {
+    throw new Error(\`\${check.model}, \${check.name}: accepted is \${accepted}\`)
+  }
+}
+`
+
+// The trap: a \`[string]\` index signature checks every key, so a typed
+// record beside named keys of other types does not even load: arktype
+// throws "Intersection at id of string and number results in an
+// unsatisfiable type" (#101).
+Deno.test({
+  name: 'typecheck - a record beside properties checks only the other keys',
+  ignore: Deno.env.get('TYPECHECK') !== '1',
+  fn: async () => {
+    const { artifacts } = runE2eFixture({
+      id: '@skmtc/gen-arktype',
+      entry: arktypeEntry,
+      document: additionalPropertiesDocument
+    })
+
+    assertEquals(Object.keys(artifacts).sort(), [
+      'src/types/dotted.generated.ts',
+      'src/types/limits.generated.ts',
+      'src/types/upload.generated.ts'
+    ])
+
+    assertEquals(
+      await checkGenerated({
+        artifacts: { ...artifacts, 'src/consumer.ts': additionalPropertiesConsumer },
+        imports: { arktype: ARKTYPE }
+      }),
+      []
+    )
+  }
+})
 
 Deno.test({
   name: 'typecheck - generated artifacts compile against arktype',

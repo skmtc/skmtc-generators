@@ -67,6 +67,6 @@ Deno.test('e2e - additionalProperties becomes an index signature', () => {
   assertEquals(
     artifacts['src/types/mixed.generated.ts'],
     `import {type} from 'arktype'\n\n` +
-      `export const mixed = type({ name: "string", "[string]": "unknown" });\n`
+      `export const mixed = type({ name: "string", "[/^(?!(?:name)$)/]": "unknown" });\n`
   )
 })
