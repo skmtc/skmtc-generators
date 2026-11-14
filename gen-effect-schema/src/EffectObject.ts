@@ -1,5 +1,10 @@
 import { isEmpty } from '@skmtc/core'
-import { handleKey, TsSnippet } from '@skmtc/lang-typescript'
+import {
+  handleKey,
+  toAnyStringExceptPattern,
+  toRegExpLiteral,
+  TsSnippet,
+} from '@skmtc/lang-typescript'
 import type {
   CustomValue,
   GenerateContextType,
@@ -213,11 +218,15 @@ class EffectRecord extends TsSnippet {
   ) {
     super({ context, generatorKey })
 
-    this.key = new EffectRecordKey({ context, generatorKey, namedKeys })
-
     // additionalProperties: true (or an empty schema) means untyped
     // values — route to the unknown fallback, never throw.
-    this.value = schema === true || isEmpty(schema)
+    const untyped = schema === true || isEmpty(schema)
+
+    // An untyped record accepts the named keys' values too, so it needs no
+    // pattern: the plain string key renders as before.
+    this.key = new EffectRecordKey({ context, generatorKey, namedKeys: untyped ? [] : namedKeys })
+
+    this.value = untyped
       ? new EffectUnknown({ context, destinationPath, generatorKey })
       : toEffectValueImpl({
         destinationPath,
@@ -240,9 +249,6 @@ type EffectRecordKeyArgs = {
   namedKeys: string[]
 }
 
-/** A character that a regular expression literal reads as syntax. */
-const REGEX_SYNTAX = /[.*+?^${}()|[\]\\/]/g
-
 /**
  * The key schema of a record. `additionalProperties` covers only the keys
  * `properties` does not name, but `Schema.Record` beside a struct checks
@@ -250,20 +256,20 @@ const REGEX_SYNTAX = /[.*+?^${}()|[\]\\/]/g
  * named keys, the key is a string that is none of them.
  */
 class EffectRecordKey extends TsSnippet {
-  namedKeys: string[]
-  /** The named keys as one alternation, each escaped (`a.b` → `a\.b`). */
-  alternation: string
+  /** The regex literal for "any string except the named keys", or `undefined` with none. */
+  pattern: string | undefined
 
   constructor({ context, generatorKey, namedKeys }: EffectRecordKeyArgs) {
     super({ context, generatorKey })
 
-    this.namedKeys = namedKeys
-    this.alternation = namedKeys.map(key => key.replace(REGEX_SYNTAX, '\\$&')).join('|')
+    this.pattern = namedKeys.length === 0
+      ? undefined
+      : toRegExpLiteral(toAnyStringExceptPattern({ names: namedKeys }))
   }
 
   override toString(): string {
-    return this.namedKeys.length === 0
+    return this.pattern === undefined
       ? `${LIB}.String`
-      : `${LIB}.String.check(${LIB}.isPattern(/^(?!(?:${this.alternation})$)/))`
+      : `${LIB}.String.check(${LIB}.isPattern(${this.pattern}))`
   }
 }

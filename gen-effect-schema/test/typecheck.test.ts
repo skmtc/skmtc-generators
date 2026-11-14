@@ -30,15 +30,18 @@ const additionalPropertiesConsumer = `import { Schema } from 'effect'
 import { Upload } from '@/schema-effect/upload.generated.ts'
 import { Limits } from '@/schema-effect/limits.generated.ts'
 import { Dotted } from '@/schema-effect/dotted.generated.ts'
+import { Tree } from '@/schema-effect/tree.generated.ts'
 
 export const readUpload = (value: typeof Upload.Type): string[] => [value.app_id, ...value.images]
 export const readLimits = (value: typeof Limits.Type): [string, string | undefined] => [value.id, value.note]
 export const readDotted = (value: typeof Dotted.Type): string => value['a.b']
+export const readTree = (value: typeof Tree.Type): string => value.label
 
 const accepts: Record<string, (value: unknown) => boolean> = {
   Upload: Schema.is(Upload),
   Limits: Schema.is(Limits),
   Dotted: Schema.is(Dotted),
+  Tree: Schema.is(Tree),
 }
 
 for (const check of ${JSON.stringify(additionalPropertiesCases)}) {
@@ -112,7 +115,10 @@ Deno.test({
       'src/schema-effect/dotted.generated.ts',
       'src/schema-effect/index.generated.ts',
       'src/schema-effect/limits.generated.ts',
+      'src/schema-effect/tree.generated.ts',
       'src/schema-effect/upload.generated.ts',
+      // A model that refers to itself takes its type annotation from gen-typescript.
+      'src/types/tree.generated.ts',
     ])
 
     assertEquals(

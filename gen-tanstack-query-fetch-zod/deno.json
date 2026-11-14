@@ -6,7 +6,7 @@
     "@skmtc/gen-zod": "jsr:@skmtc/gen-zod@0.3.2",
     "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.2.17",
     "@skmtc/core": "jsr:@skmtc/core@0.40.0",
-    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.13.0",
+    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.14.0",
     "@babel/helper-validator-identifier": "npm:@babel/helper-validator-identifier@7.22.20",
     "@types/babel__helper-validator-identifier": "npm:@types/babel__helper-validator-identifier@7.15.2"
   },

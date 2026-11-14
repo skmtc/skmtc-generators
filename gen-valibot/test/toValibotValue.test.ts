@@ -197,18 +197,21 @@ Deno.test('toValibotValue - nested object', () => {
   )
 })
 
+// The trap: wrapping a key in quotes by hand breaks on a key that holds a
+// quote (`it's`).
 Deno.test('toValibotValue - object with special characters in keys', () => {
   const schema: OpenAPIV3.SchemaObject = {
     type: 'object',
     properties: {
       'special-key': { type: 'string' },
-      'another.key': { type: 'number' }
+      'another.key': { type: 'number' },
+      "it's": { type: 'boolean' }
     },
-    required: ['special-key', 'another.key']
+    required: ['special-key', 'another.key', "it's"]
   }
   assertEquals(
     schemaToValibot(schema),
-    'v.object({"special-key": v.string(), "another.key": v.number()})'
+    "v.object({'special-key': v.string(), 'another.key': v.number(), 'it\\'s': v.boolean()})"
   )
 })
 

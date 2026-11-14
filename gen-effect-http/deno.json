@@ -11,7 +11,7 @@
   },
   "imports": {
     "@skmtc/core": "jsr:@skmtc/core@0.40.0",
-    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.13.0",
+    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.14.0",
     "@skmtc/gen-effect-schema": "jsr:@skmtc/gen-effect-schema@0.1.8",
     "@std/assert": "jsr:@std/assert@^1.0.10"
   },

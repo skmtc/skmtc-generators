@@ -207,18 +207,21 @@ Deno.test("toZodValue - nested object", () => {
   );
 });
 
-Deno.test.ignore("toZodValue - object with special characters in keys", () => {
+// The trap: wrapping a key in quotes by hand breaks on a key that holds a
+// quote (`it's`).
+Deno.test("toZodValue - object with special characters in keys", () => {
   const schema: OpenAPIV3.SchemaObject = {
     type: "object",
     properties: {
       "special-key": { type: "string" },
       "another.key": { type: "number" },
+      "it's": { type: "boolean" },
     },
-    required: ["special-key", "another.key"],
+    required: ["special-key", "another.key", "it's"],
   };
   assertEquals(
     schemaToZod(schema),
-    'z.object({"special-key": z.string(), "another.key": z.number()})',
+    "z.object({'special-key': z.string(), 'another.key': z.number(), 'it\\'s': z.boolean()})",
   );
 });
 

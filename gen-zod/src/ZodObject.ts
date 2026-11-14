@@ -1,5 +1,5 @@
 import { isEmpty } from '@skmtc/core'
-import { TsSnippet } from '@skmtc/lang-typescript'
+import { handleKey, TsSnippet } from '@skmtc/lang-typescript'
 import type { CustomValue, GenerateContextType, GeneratorKey, Modifiers, OasObject, OasRef, OasSchema, RefName, TypeSystemObjectProperties, TypeSystemRecord, TypeSystemValue } from '@skmtc/core'
 import { toZodValue } from "./Zod.ts";
 import { applyModifiers } from "./applyModifiers.ts";
@@ -152,9 +152,9 @@ class ZodObjectProperties extends TsSnippet {
     return `z.object({${
       Object.entries(this.properties)
         .map(([key, value]) => {
-          // Check if key needs quotes
-          const needsQuotes = /[^a-zA-Z0-9_$]/.test(key) || /^\d/.test(key);
-          const formattedKey = needsQuotes ? `"${key}"` : key;
+          // Quoted and escaped only when it is not an identifier: `'a-b'`,
+          // `'a\'b'`.
+          const formattedKey = handleKey(key);
 
           // zod 4 reads a getter's schema when it parses, not when the
           // module loads, and infers the object's type through it.

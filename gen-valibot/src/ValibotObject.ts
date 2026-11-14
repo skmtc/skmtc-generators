@@ -1,5 +1,5 @@
 import { SnippetBase, isEmpty } from '@skmtc/core'
-import { TsSnippet } from '@skmtc/lang-typescript'
+import { handleKey, TsSnippet } from '@skmtc/lang-typescript'
 import type { GenerateContextType, GeneratorKey, OasRef, OasSchema, OasObject, CustomValue, RefName, TypeSystemObjectProperties, TypeSystemRecord, TypeSystemValue, Modifiers } from '@skmtc/core'
 import { toValibotValue } from './Valibot.ts'
 import { applyModifiers } from './applyModifiers.ts'
@@ -134,12 +134,8 @@ class ValibotObjectProperties extends SnippetBase {
 
   override toString(): string {
     const entries = `{${Object.entries(this.properties)
-      .map(([key, value]) => {
-        // Check if key needs quotes
-        const needsQuotes = /[^a-zA-Z0-9_$]/.test(key) || /^\d/.test(key)
-        const formattedKey = needsQuotes ? `"${key}"` : key
-        return `${formattedKey}: ${value}`
-      })
+      // Quoted and escaped only when it is not an identifier: `'a-b'`, `'a\'b'`.
+      .map(([key, value]) => `${handleKey(key)}: ${value}`)
       .join(', ')}}`
 
     // `additionalProperties` covers only the keys `properties` does not

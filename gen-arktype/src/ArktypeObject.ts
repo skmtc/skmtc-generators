@@ -8,13 +8,10 @@ import {
   type TypeSystemObjectProperties,
   isEmpty
 } from '@skmtc/core'
-import { TsSnippet } from '@skmtc/lang-typescript'
+import { toAnyStringExceptPattern, toRegExpLiteral, TsSnippet } from '@skmtc/lang-typescript'
 import { ArktypeUnknown } from './ArktypeUnknown.ts'
 import { applyValueModifiers } from './applyModifiers.ts'
 import { type ArktypeValue, toArktypeValue } from './Arktype.ts'
-
-/** A character that a regular expression reads as syntax. */
-const REGEX_SYNTAX = /[.*+?^${}()|[\]\\/]/g
 
 type ArktypeObjectArgs = {
   context: GenerateContextType
@@ -82,13 +79,15 @@ export class ArktypeObject extends TsSnippet {
     // key: a typed record beside named keys of other types failed to parse
     // ("Intersection at id of string and number results in an unsatisfiable
     // type", #101). Beside named keys, the key is a pattern that is none of
-    // them, each escaped (`a.b` → `a\.b`).
-    const namedKeys = Object.keys(this.properties)
+    // them. An untyped record accepts the named keys' values too, so it
+    // keeps `[string]`.
+    const namedKeys = this.additionalProperties instanceof ArktypeUnknown ? [] : Object.keys(this.properties)
 
+    // Double quotes, like every other arktype definition string.
     this.indexKey = JSON.stringify(
       namedKeys.length === 0
         ? '[string]'
-        : `[/^(?!(?:${namedKeys.map(key => key.replace(REGEX_SYNTAX, '\\$&')).join('|')})$)/]`
+        : `[${toRegExpLiteral(toAnyStringExceptPattern({ names: namedKeys }))}]`
     )
 
     // Set for the core `TypeSystemObject` contract; this generator composes
