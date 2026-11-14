@@ -89,6 +89,13 @@ Deno.test('toTsValue - enum values are escaped, and null is left to nullable', (
     enum: ['a', null]
   }
   assertEquals(schemaToTs(nullable), "'a' | null")
+
+  const onlyNull: OpenAPIV3.SchemaObject = {
+    type: 'string',
+    nullable: true,
+    enum: [null]
+  }
+  assertEquals(schemaToTs(onlyNull), 'null | null')
 })
 
 // ============================================================================

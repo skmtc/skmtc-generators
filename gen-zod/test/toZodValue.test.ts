@@ -86,6 +86,13 @@ Deno.test("toZodValue - enum values are escaped, and null is left to nullable", 
     enum: ["a", null],
   };
   assertEquals(schemaToZod(nullable), "z.literal('a').nullable()");
+
+  const onlyNull: OpenAPIV3.SchemaObject = {
+    type: "string",
+    nullable: true,
+    enum: [null],
+  };
+  assertEquals(schemaToZod(onlyNull), "z.null().nullable()");
 });
 
 // ============================================================================

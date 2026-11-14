@@ -82,6 +82,13 @@ Deno.test('toValibotValue - enum values are escaped, and null is left to nullabl
     enum: ['a', null]
   }
   assertEquals(schemaToValibot(nullable), "v.nullable(v.literal('a'))")
+
+  const onlyNull: OpenAPIV3.SchemaObject = {
+    type: 'string',
+    nullable: true,
+    enum: [null]
+  }
+  assertEquals(schemaToValibot(onlyNull), 'v.nullable(v.null())')
 })
 
 // ============================================================================
