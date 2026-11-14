@@ -25,6 +25,12 @@ import type {
   OasOperationProjectionConstructorArgs,
 } from '@skmtc/core'
 import { toTsOasOperationProjectionBase } from '@skmtc/lang-typescript'
+import {
+  additionalPropertiesDocument,
+  emptyEnumDocument,
+  patternDocument,
+  toResultTypes,
+} from '@skmtc/test-support'
 import { assertEquals, assertStringIncludes } from '@std/assert'
 import effectSchemaEntry, { EffectObject } from '../mod.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
@@ -157,7 +163,11 @@ const fixture = {
 
 type GenerateOptions = {
   /** The document, when a test needs one the fixture is not. */
-  document?: typeof fixture
+  document?:
+    | typeof fixture
+    | typeof additionalPropertiesDocument
+    | typeof patternDocument
+    | typeof emptyEnumDocument
   /** This generator's `_generator` scope: `defaults`. */
   generator?: EnrichmentSchema['generator']
   /** Run the query-params consumer below alongside, as a route generator would. */
@@ -368,6 +378,89 @@ Deno.test('additionalProperties renders as a record', () => {
     artifacts['schema-effect/metadata.generated.ts'],
     'Schema.Record(Schema.String, Schema.String)',
   )
+})
+
+// The trap: a record beside a struct checks every key, so its key must
+// leave out the named ones, each escaped: unescaped, `a.b` also leaves out
+// `aXb`, which then skips the record check (#101).
+Deno.test('a record beside properties checks only the keys they do not name', () => {
+  const { artifacts } = generate({ document: additionalPropertiesDocument })
+
+  assertStringIncludes(
+    artifacts['schema-effect/limits.generated.ts'],
+    'Schema.Record(Schema.String.check(Schema.isPattern(/^(?!(?:id|note)$)/)), Schema.Finite)',
+  )
+  assertStringIncludes(
+    artifacts['schema-effect/dotted.generated.ts'],
+    'Schema.isPattern(/^(?!(?:a\\.b)$)/)',
+  )
+})
+
+// The trap: a pattern written for another engine, or one that ends in a
+// backslash, made the file fail to parse, and throwing on it fails the
+// whole run. Its check is left out, with a comment that names it.
+Deno.test('a pattern JavaScript rejects is left out, and a comment names it', () => {
+  const { artifacts, manifest } = generate({ document: patternDocument })
+
+  assertEquals(manifest.parseIssues, [])
+  // Code, Escape and Account: each skipped pattern warns, and the run goes on.
+  assertEquals(
+    toResultTypes(manifest.results).filter((result) => result === 'warning')
+      .length,
+    3,
+  )
+
+  assertStringIncludes(
+    artifacts['schema-effect/url.generated.ts'],
+    'export const Url = Schema.String.check(Schema.isPattern(/^https:\\/\\//u));',
+  )
+  // The trap: without `u`, `\p{L}` matches the text `p{L}`, not a letter.
+  assertStringIncludes(
+    artifacts['schema-effect/letters.generated.ts'],
+    'Schema.isPattern(/^\\p{L}+$/u)',
+  )
+  // Valid only without `u` (`\-` outside a class), so it falls back.
+  assertStringIncludes(
+    artifacts['schema-effect/dash.generated.ts'],
+    'Schema.isPattern(/^a\\-b$/)',
+  )
+  assertStringIncludes(
+    artifacts['schema-effect/code.generated.ts'],
+    "export const Code = /**\n * pattern '(?i)abc' is not a JavaScript regex, so it is not checked\n */\nSchema.String;",
+  )
+  assertStringIncludes(
+    artifacts['schema-effect/escape.generated.ts'],
+    "pattern 'abc\\\\' is not a JavaScript regex",
+  )
+  // `*/` in the pattern would end the comment early.
+  assertStringIncludes(
+    artifacts['schema-effect/account.generated.ts'],
+    "pattern '(?i)x*\\/' is not a JavaScript regex",
+  )
+  assertStringIncludes(
+    artifacts['schema-effect/account.generated.ts'],
+    'name: Schema.String.check(Schema.isPattern(/^[a-z/]+$/u))',
+  )
+})
+
+// The trap: an empty `enum: []` skipped `toLiterals`, so it rendered the
+// plain type and accepted any value.
+Deno.test('an empty enum accepts nothing, for every scalar type', () => {
+  const { artifacts } = generate({ document: emptyEnumDocument })
+
+  for (
+    const [file, name] of [
+      ['emptyString', 'EmptyString'],
+      ['emptyNumber', 'EmptyNumber'],
+      ['emptyInteger', 'EmptyInteger'],
+      ['emptyBoolean', 'EmptyBoolean'],
+    ]
+  ) {
+    assertStringIncludes(
+      artifacts[`schema-effect/${file}.generated.ts`],
+      `export const ${name} = Schema.Never;`,
+    )
+  }
 })
 
 Deno.test('enum and modifiers render at the leaf', () => {

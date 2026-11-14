@@ -17,12 +17,85 @@
  */
 import { assertEquals } from '@std/assert'
 import { dirname, join } from '@std/path'
+import {
+  additionalPropertiesCases,
+  additionalPropertiesDocument,
+  awkwardNamesDocument,
+  checkGenerated,
+  runE2eFixture
+} from '@skmtc/test-support'
+import type { OpenAPIV3 } from 'openapi-types'
+import { arktypeEntry } from '../src/mod.ts'
 import { runFixture } from './helpers/fixture.ts'
 
 /** The arktype version the generated output is verified against — pinned
  *  exactly, because the gate rests on arktype's type-level parser and a minor
  *  release could change what it accepts without any change here. */
 const ARKTYPE = 'npm:arktype@2.2.3'
+
+// gen-arktype cannot render a model that refers to itself, and one such model
+// fails the whole run, so these checks leave out `Tree` and its cases.
+const { Tree: _tree, ...nonRecursiveSchemas } = additionalPropertiesDocument.components?.schemas ?? {}
+const nonRecursiveDocument = { ...additionalPropertiesDocument, components: { schemas: nonRecursiveSchemas } }
+const nonRecursiveCases = additionalPropertiesCases.filter(check => check.model !== 'Tree')
+
+/**
+ * Reads each named property as its own type, and checks every case of
+ * `additionalPropertiesCases`. Loading it throws on the first case arktype
+ * gets wrong.
+ */
+const additionalPropertiesConsumer = `import { type } from 'arktype'
+import { upload } from '@/types/upload.generated.ts'
+import { limits } from '@/types/limits.generated.ts'
+import { dotted } from '@/types/dotted.generated.ts'
+
+export const readUpload = (value: typeof upload.infer): string[] => [value.app_id, ...value.images]
+export const readLimits = (value: typeof limits.infer): [string, string | undefined] => [value.id, value.note]
+export const readDotted = (value: typeof dotted.infer): string => value['a.b']
+
+const accepts: Record<string, (value: unknown) => boolean> = {
+  Upload: value => !(upload(value) instanceof type.errors),
+  Limits: value => !(limits(value) instanceof type.errors),
+  Dotted: value => !(dotted(value) instanceof type.errors)
+}
+
+for (const check of ${JSON.stringify(nonRecursiveCases)}) {
+  const accepted = accepts[check.model](check.value)
+  if (accepted !== check.accept) {
+    throw new Error(\`\${check.model}, \${check.name}: accepted is \${accepted}\`)
+  }
+}
+`
+
+// The trap: a \`[string]\` index signature checks every key, so a typed
+// record beside named keys of other types does not even load: arktype
+// throws "Intersection at id of string and number results in an
+// unsatisfiable type" (#101).
+Deno.test({
+  name: 'typecheck - a record beside properties checks only the other keys',
+  ignore: Deno.env.get('TYPECHECK') !== '1',
+  fn: async () => {
+    const { artifacts } = runE2eFixture({
+      id: '@skmtc/gen-arktype',
+      entry: arktypeEntry,
+      document: nonRecursiveDocument
+    })
+
+    assertEquals(Object.keys(artifacts).sort(), [
+      'src/types/dotted.generated.ts',
+      'src/types/limits.generated.ts',
+      'src/types/upload.generated.ts'
+    ])
+
+    assertEquals(
+      await checkGenerated({
+        artifacts: { ...artifacts, 'src/consumer.ts': additionalPropertiesConsumer },
+        imports: { arktype: ARKTYPE }
+      }),
+      []
+    )
+  }
+})
 
 Deno.test({
   name: 'typecheck - generated artifacts compile against arktype',
@@ -65,5 +138,163 @@ Deno.test({
     } finally {
       await Deno.remove(root, { recursive: true })
     }
+  }
+})
+
+// The trap: `decapitalize` turns `Default` into `default`, and
+// `export const default = …` does not parse; `2FA` starts with a digit.
+Deno.test({
+  name: 'typecheck - schema names that are not valid bindings are repaired',
+  ignore: Deno.env.get('TYPECHECK') !== '1',
+  fn: async () => {
+    const { artifacts } = runE2eFixture({ id: '@skmtc/gen-arktype', entry: arktypeEntry, document: awkwardNamesDocument })
+
+    assertEquals(Object.keys(artifacts).sort(), [
+      'src/types/_2FA.generated.ts',
+      'src/types/account.generated.ts',
+      'src/types/defaultValue.generated.ts',
+      'src/types/deleteValue.generated.ts'
+    ])
+
+    assertEquals(await checkGenerated({ artifacts, imports: { arktype: ARKTYPE } }), [])
+  }
+})
+
+/**
+ * Keys and enum values holding a quote or a backslash. arktype reads a
+ * definition string with escapes of its own, inside the TypeScript string.
+ */
+const escapingDocument: OpenAPIV3.Document = {
+  openapi: '3.0.3',
+  info: { title: 'Escaping fixture', version: '1.0.0' },
+  paths: {},
+  components: {
+    schemas: {
+      Quoted: { type: 'string', enum: ["it's", 'a"b', 'a\\b'] },
+      Keys: {
+        type: 'object',
+        required: ['a"b', 'a\\b'],
+        properties: { 'a"b': { type: 'string' }, 'a\\b': { type: 'string' } },
+        additionalProperties: { type: 'number' }
+      }
+    }
+  }
+}
+
+const escapingConsumer = `import { type } from 'arktype'
+import { quoted } from '@/types/quoted.generated.ts'
+import { keys } from '@/types/keys.generated.ts'
+
+const accepts = (t: (value: unknown) => unknown, value: unknown): boolean => !(t(value) instanceof type.errors)
+
+const checks: Array<[string, boolean]> = [
+  ["it's is an enum value", accepts(quoted, "it's")],
+  ['a"b is an enum value', accepts(quoted, 'a"b')],
+  ['a\\\\b is an enum value', accepts(quoted, 'a\\\\b')],
+  ['other is not an enum value', !accepts(quoted, 'other')],
+  ['the named keys hold strings, an extra key a number', accepts(keys, { 'a"b': 'x', 'a\\\\b': 'y', count: 1 })],
+  ['an extra key holding a string is rejected', !accepts(keys, { 'a"b': 'x', 'a\\\\b': 'y', count: 's' })]
+]
+
+for (const [name, passed] of checks) {
+  if (!passed) {
+    throw new Error(name)
+  }
+}
+`
+
+// The trap: two layers of escaping. A quote or backslash written for
+// arktype inside a hand-quoted TypeScript string ended that string, and a
+// backslash key's `\\` in the index pattern became `\` once arktype read it.
+Deno.test({
+  name: 'typecheck - keys and enum values holding a quote or backslash load and check',
+  ignore: Deno.env.get('TYPECHECK') !== '1',
+  fn: async () => {
+    const { artifacts } = runE2eFixture({ id: '@skmtc/gen-arktype', entry: arktypeEntry, document: escapingDocument })
+
+    assertEquals(Object.keys(artifacts).sort(), ['src/types/keys.generated.ts', 'src/types/quoted.generated.ts'])
+
+    assertEquals(
+      await checkGenerated({ artifacts: { ...artifacts, 'src/consumer.ts': escapingConsumer }, imports: { arktype: ARKTYPE } }),
+      []
+    )
+  }
+})
+
+/**
+ * Keys arktype reads as syntax of its own when written as they are: a
+ * trailing `?`, `[…]`, `...` and `+`, required and optional. And an empty
+ * enum.
+ */
+const keySyntaxDocument: OpenAPIV3.Document = {
+  openapi: '3.0.3',
+  info: { title: 'Key syntax fixture', version: '1.0.0' },
+  paths: {},
+  components: {
+    schemas: {
+      Syntax: {
+        type: 'object',
+        required: ['foo?', '[x]', '...', '+', 'a\\?'],
+        properties: {
+          'foo?': { type: 'string' },
+          '[x]': { type: 'string' },
+          '...': { type: 'string' },
+          '+': { type: 'string' },
+          'a\\?': { type: 'string' },
+          '[y]': { type: 'string' },
+          'b?': { type: 'string' }
+        },
+        additionalProperties: { type: 'number' }
+      },
+      Empty: { type: 'string', enum: [] }
+    }
+  }
+}
+
+const keySyntaxConsumer = `import { type } from 'arktype'
+import { syntax } from '@/types/syntax.generated.ts'
+import { empty } from '@/types/empty.generated.ts'
+
+const accepts = (t: (value: unknown) => unknown, value: unknown): boolean => !(t(value) instanceof type.errors)
+
+const required: Record<string, string> = { 'foo?': 'x', '[x]': 'x', '...': 'x', '+': 'x', 'a\\\\?': 'x' }
+const without = (key: string): Record<string, string> =>
+  Object.fromEntries(Object.entries(required).filter(([name]) => name !== key))
+
+const checks: Array<[string, boolean]> = [
+  ['the required keys are plain keys', accepts(syntax, required)],
+  ...Object.keys(required).map((key): [string, boolean] => [key + ' is required', !accepts(syntax, without(key))]),
+  ['[y] and b? are optional', accepts(syntax, { ...required, '[y]': 'x', 'b?': 'x' })],
+  ['[y] holds a string', !accepts(syntax, { ...required, '[y]': 1 })],
+  ['b? holds a string', !accepts(syntax, { ...required, 'b?': 1 })],
+  ['an extra key holds a number', accepts(syntax, { ...required, count: 1 })],
+  ['an extra key holding a string is rejected', !accepts(syntax, { ...required, count: 's' })],
+  ['an empty enum rejects a string', !accepts(empty, 'x')],
+  ['an empty enum rejects null', !accepts(empty, null)]
+]
+
+for (const [name, passed] of checks) {
+  if (!passed) {
+    throw new Error(name)
+  }
+}
+`
+
+// The trap: a key written as it is can mean something else to arktype. The
+// required key \`foo?\` became the optional key \`foo\`, and \`[x]\` became an
+// index signature that threw "'x' is unresolvable" on load. An empty enum
+// gave \`type("")\`.
+Deno.test({
+  name: 'typecheck - keys arktype reads as syntax, and an empty enum, load and check',
+  ignore: Deno.env.get('TYPECHECK') !== '1',
+  fn: async () => {
+    const { artifacts } = runE2eFixture({ id: '@skmtc/gen-arktype', entry: arktypeEntry, document: keySyntaxDocument })
+
+    assertEquals(Object.keys(artifacts).sort(), ['src/types/empty.generated.ts', 'src/types/syntax.generated.ts'])
+
+    assertEquals(
+      await checkGenerated({ artifacts: { ...artifacts, 'src/consumer.ts': keySyntaxConsumer }, imports: { arktype: ARKTYPE } }),
+      []
+    )
   }
 })

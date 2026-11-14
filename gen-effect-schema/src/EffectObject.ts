@@ -1,5 +1,10 @@
 import { isEmpty } from '@skmtc/core'
-import { handleKey, TsSnippet } from '@skmtc/lang-typescript'
+import {
+  handleKey,
+  toAnyStringExceptPattern,
+  toRegExpLiteral,
+  TsSnippet,
+} from '@skmtc/lang-typescript'
 import type {
   CustomValue,
   GenerateContextType,
@@ -64,6 +69,7 @@ export class EffectObject extends TsSnippet {
         generatorKey,
         destinationPath,
         schema: additionalProperties,
+        namedKeys: hasProperties ? Object.keys(properties) : [],
         rootRef,
         coerce,
       })
@@ -94,7 +100,8 @@ export class EffectObject extends TsSnippet {
     const { objectProperties, recordProperties } = this
 
     // Properties plus additionalProperties: the struct with an index
-    // signature, which is what gen-typescript emits for the same schema.
+    // signature. The record's key leaves out the named keys (see
+    // EffectRecordKey), so it checks only the other keys.
     if (objectProperties && recordProperties) {
       return applyModifiers(
         `${LIB}.StructWithRest(${objectProperties}, [${recordProperties}])`,
@@ -188,22 +195,46 @@ type EffectRecordArgs = {
   destinationPath: string
   schema: true | OasSchema | OasRef<'schema'>
   generatorKey: GeneratorKey
+  /** The keys `properties` names beside the record, which the record must not check. */
+  namedKeys: string[]
   rootRef?: RefName
   coerce?: boolean
 }
 
 class EffectRecord extends TsSnippet {
+  /**
+   * The regex literal for "any string except the named keys", or
+   * `undefined` for a plain string key. `additionalProperties` covers only
+   * the keys `properties` does not name, but `Schema.Record` beside a struct
+   * checks every key, so a typed record rejected the named ones (#101).
+   */
+  keyPattern: string | undefined
   value: TypeSystemValue
 
   constructor(
-    { context, generatorKey, destinationPath, schema, rootRef, coerce = false }:
-      EffectRecordArgs,
+    {
+      context,
+      generatorKey,
+      destinationPath,
+      schema,
+      namedKeys,
+      rootRef,
+      coerce = false,
+    }: EffectRecordArgs,
   ) {
     super({ context, generatorKey })
 
     // additionalProperties: true (or an empty schema) means untyped
     // values — route to the unknown fallback, never throw.
-    this.value = schema === true || isEmpty(schema)
+    const untyped = schema === true || isEmpty(schema)
+
+    // An untyped record accepts the named keys' values too, so it needs no
+    // pattern: the plain string key renders as before.
+    this.keyPattern = untyped || namedKeys.length === 0
+      ? undefined
+      : toRegExpLiteral(toAnyStringExceptPattern({ names: namedKeys }))
+
+    this.value = untyped
       ? new EffectUnknown({ context, destinationPath, generatorKey })
       : toEffectValueImpl({
         destinationPath,
@@ -216,6 +247,10 @@ class EffectRecord extends TsSnippet {
   }
 
   override toString(): string {
-    return `${LIB}.Record(${LIB}.String, ${this.value})`
+    const key = this.keyPattern === undefined
+      ? `${LIB}.String`
+      : `${LIB}.String.check(${LIB}.isPattern(${this.keyPattern}))`
+
+    return `${LIB}.Record(${key}, ${this.value})`
   }
 }

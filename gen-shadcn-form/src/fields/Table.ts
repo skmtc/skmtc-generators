@@ -1,4 +1,4 @@
-import { TsSnippet, List, type EntryList, type ListArray, type ListLines } from '@skmtc/lang-typescript'
+import { TsSnippet, List, toStringLiteral, type EntryList, type ListArray, type ListLines } from '@skmtc/lang-typescript'
 import type { CustomValue, GenerateContextType, OasRef, OasSchema, Stringable, TypeSystemValue } from '@skmtc/core'
 import { OasObject } from '@skmtc/core'
 import { getLabel, schemaToField } from '../schemaToField.ts'
@@ -155,7 +155,7 @@ export class ObjectTable extends TsSnippet {
 
     this.label = label ?? getLabel({ schema: parentSchema, name: 'table' })
 
-    this.headers = items.toArray(([name, schema]) => `'${getLabel({ schema, name })}'`)
+    this.headers = items.toArray(([name, schema]) => toStringLiteral(getLabel({ schema, name }) ?? name))
 
     this.name = name
 

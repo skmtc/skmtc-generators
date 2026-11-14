@@ -1,6 +1,6 @@
 import type { GenerateContextType, Stringable, ModuleExport } from '@skmtc/core'
 import { CustomValue } from '@skmtc/core'
-import { TsSnippet, List, createVariable, TsDefinition, type ListObject } from '@skmtc/lang-typescript'
+import { TsSnippet, List, createVariable, TsDefinition, toStringLiteral, type ListObject } from '@skmtc/lang-typescript'
 import { Column } from './Column.ts'
 type ConstructorArgs = {
   context: GenerateContextType
@@ -55,7 +55,7 @@ export class TableColumn extends TsSnippet {
   }
 
   override toString(): string {
-    return `columnHelper.accessor('${this.name}', ${this.properties})`
+    return `columnHelper.accessor(${toStringLiteral(this.name)}, ${this.properties})`
   }
 }
 
@@ -69,7 +69,7 @@ const getLabel = ({ label, name }: GetLabelArgs) => {
     return `({ column }) => <DataTableColumnHeader column={column} title="${label}" />`
   }
 
-  return `'${name}'`
+  return toStringLiteral(name)
 }
 
 type GetCellArgs = {

@@ -1,4 +1,5 @@
-import { TsSnippet, List } from '@skmtc/lang-typescript'
+import { List, toStringLiteral, TsSnippet } from '@skmtc/lang-typescript'
+import { match } from 'ts-pattern'
 import { applyModifiers } from "./applyModifiers.ts";
 import type { GenerateContextType, GeneratorKey, Modifiers, OasString } from '@skmtc/core'
 import { ZodConstraint } from "./ZodConstraints.ts";
@@ -65,9 +66,16 @@ export class ZodString extends TsSnippet {
     // checks add nothing, and `z.enum` / `z.literal` have no `.max()` to
     // call. ZodNumber and ZodInteger drop theirs the same way.
     if (enums && Array.isArray(enums)) {
-      const content = enums.length === 1
-        ? `z.literal("${enums[0]}")`
-        : `z.enum([${enums.map((str) => `"${str}"`).join(", ")}])`;
+      // Core lists `null` only on a nullable schema, and the nullable
+      // modifier adds `.nullable()`, so the enum lists the strings. An
+      // empty `enum: []` accepts nothing.
+      const members: Array<string | null> = enums;
+      const values = members.filter((value): value is string => value !== null);
+
+      const content = match(values.length)
+        .with(0, () => (members.includes(null) ? "z.null()" : "z.never()"))
+        .with(1, () => `z.literal(${toStringLiteral(values[0])})`)
+        .otherwise(() => `z.enum([${values.map(toStringLiteral).join(", ")}])`);
 
       return applyModifiers(content, this.modifiers);
     }

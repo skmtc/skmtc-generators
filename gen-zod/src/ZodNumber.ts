@@ -75,7 +75,11 @@ export class ZodNumber extends TsSnippet {
     let content: string;
 
     if (enums && Array.isArray(enums)) {
-      content = enums.length === 1
+      // An empty `enum: []` accepts nothing, and `z.union([])` does not
+      // type-check.
+      content = enums.length === 0
+        ? "z.never()"
+        : enums.length === 1
         ? `z.literal(${enums[0]})`
         : `z.union([${enums.map((e) => `z.literal(${e})`).join(", ")}])`;
       return applyModifiers(content, this.modifiers);

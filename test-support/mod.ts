@@ -518,6 +518,84 @@ export const additionalPropertiesDocument: OpenAPIV3.Document = {
   }
 }
 
+/**
+ * Schema names that are not valid bindings as a generator spells them. A
+ * decapitalizing generator turns `Default` and `Delete` into reserved words,
+ * and `2FA` starts with a digit in every generator. `Account` refers to all
+ * three, so its file has to import each one by its repaired name.
+ */
+export const awkwardNamesDocument: OpenAPIV3.Document = {
+  openapi: '3.0.3',
+  info: { title: 'Awkward names fixture', version: '1.0.0' },
+  paths: {},
+  components: {
+    schemas: {
+      Default: { type: 'object', required: ['id'], properties: { id: { type: 'string' } } },
+      Delete: { type: 'string' },
+      '2FA': { type: 'boolean' },
+      Account: {
+        type: 'object',
+        required: ['settings', 'mode', 'secondFactor'],
+        properties: {
+          settings: { $ref: '#/components/schemas/Default' },
+          mode: { $ref: '#/components/schemas/Delete' },
+          secondFactor: { $ref: '#/components/schemas/2FA' }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * `pattern` values a generator writes as regex literals: a slash that would
+ * end the literal (Url), a pattern written for another engine (Code, `(?i)`),
+ * one that ends in a backslash (Escape), one that means letters only under
+ * the `u` flag (Letters), one valid only without it (Dash), and on one object
+ * an invalid pattern that holds `*\/` beside a valid one with a slash in a
+ * class (Account).
+ */
+export const patternDocument: OpenAPIV3.Document = {
+  openapi: '3.0.3',
+  info: { title: 'Pattern fixture', version: '1.0.0' },
+  paths: {},
+  components: {
+    schemas: {
+      Url: { type: 'string', pattern: '^https://' },
+      Code: { type: 'string', pattern: '(?i)abc' },
+      Escape: { type: 'string', pattern: 'abc\\' },
+      Letters: { type: 'string', pattern: '^\\p{L}+$' },
+      Dash: { type: 'string', pattern: '^a\\-b$' },
+      Account: {
+        type: 'object',
+        required: ['code', 'name'],
+        properties: {
+          code: { type: 'string', pattern: '(?i)x*/' },
+          name: { type: 'string', pattern: '^[a-z/]+$' }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * An empty `enum: []` on each scalar type. The list allows no value, so a
+ * generator that renders enums renders each one as never, not as `null` or
+ * as the plain type.
+ */
+export const emptyEnumDocument: OpenAPIV3.Document = {
+  openapi: '3.0.3',
+  info: { title: 'Empty enum fixture', version: '1.0.0' },
+  paths: {},
+  components: {
+    schemas: {
+      EmptyString: { type: 'string', enum: [] },
+      EmptyNumber: { type: 'number', enum: [] },
+      EmptyInteger: { type: 'integer', enum: [] },
+      EmptyBoolean: { type: 'boolean', enum: [] }
+    }
+  }
+}
+
 /** A value, and whether a validator of `additionalPropertiesDocument` should accept it. */
 export type AdditionalPropertiesCase = {
   name: string

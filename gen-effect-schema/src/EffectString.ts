@@ -1,5 +1,9 @@
-import { TsSnippet } from '@skmtc/lang-typescript'
-import { toRegexSource } from './toRegexSource.ts'
+import {
+  toRegExpLiteral,
+  toStringLiteral,
+  TsSnippet,
+  withDescription,
+} from '@skmtc/lang-typescript'
 import type { GenerateContextType, GeneratorKey, OasString } from '@skmtc/core'
 import {
   applyModifiers,
@@ -24,6 +28,8 @@ export class EffectString extends TsSnippet {
   format: string | undefined
   enums: string[] | (string | null)[] | undefined
   checks: EffectChecks
+  /** A `pattern` JavaScript rejects, left unchecked and named in a comment. */
+  skippedPattern: string | undefined
   modifiers: EffectModifiers
 
   constructor(
@@ -62,14 +68,19 @@ export class EffectString extends TsSnippet {
     }
 
     if (stringSchema.pattern) {
-      // A regex literal, so a `/` in the pattern must not end it early.
-      this.checks.values.push(
-        new EffectCheck({
-          context,
-          name: 'isPattern',
-          value: `/${toRegexSource(stringSchema.pattern)}/`,
-        }),
-      )
+      const literal = toPatternLiteral(stringSchema.pattern)
+
+      if (literal === undefined) {
+        this.skippedPattern = stringSchema.pattern
+
+        // A warning sets this model's result to 'warning', so the CLI and
+        // the manifest show it, not only the comment in the output.
+        context.logger.warn(toSkippedPatternNote(stringSchema.pattern))
+      } else {
+        this.checks.values.push(
+          new EffectCheck({ context, name: 'isPattern', value: literal }),
+        )
+      }
     }
 
     this.register({
@@ -81,11 +92,53 @@ export class EffectString extends TsSnippet {
   override toString(): string {
     // `format` stays a plain string, as gen-typescript types it: the
     // wire value of a `date-time` or `uri` is a string, and a decoded
-    // value the type file does not know about would not match it.
-    const content = this.enums?.length
-      ? toLiterals(this.enums)
-      : `${LIB}.String${this.checks}`
+    // value the type file does not know about would not match it. An
+    // empty `enum: []` goes to `toLiterals` too: it accepts nothing.
+    if (this.enums !== undefined) {
+      return applyModifiers(
+        toLiterals(this.enums),
+        withNullMember(this.modifiers, this.enums),
+      )
+    }
 
-    return applyModifiers(content, withNullMember(this.modifiers, this.enums))
+    const content = applyModifiers(`${LIB}.String${this.checks}`, this.modifiers)
+
+    // The trap: a pattern written for another engine (`(?i)`) makes the
+    // whole file fail to parse, and throwing fails the whole run. So the
+    // check is left out, and the comment says which pattern and why.
+    return this.skippedPattern === undefined ? content : withDescription(content, {
+      description: toSkippedPatternNote(this.skippedPattern),
+    })
+  }
+}
+
+/** Says which pattern was left out and why, in the output and the warning. */
+const toSkippedPatternNote = (pattern: string): string =>
+  `pattern ${toStringLiteral(pattern)} is not a JavaScript regex, so it is not checked`
+
+/**
+ * The pattern as a regex literal, or `undefined` when JavaScript rejects it.
+ *
+ * The trap: without the `u` flag, `^\p{L}+$` is valid and matches the text
+ * `p{L}`, not a letter. JSON Schema patterns mean Unicode, so `u` comes
+ * first. A pattern valid only without it (`\-` outside a class) falls back to
+ * no flag.
+ */
+const toPatternLiteral = (pattern: string): string | undefined =>
+  tryRegExpLiteral(pattern, 'u') ?? tryRegExpLiteral(pattern, '')
+
+/**
+ * `toRegExpLiteral` lets the engine escape the literal, and throws a
+ * `SyntaxError` on a pattern or flags it rejects.
+ */
+const tryRegExpLiteral = (pattern: string, flags: string): string | undefined => {
+  try {
+    return toRegExpLiteral(pattern, flags)
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      return undefined
+    }
+
+    throw error
   }
 }

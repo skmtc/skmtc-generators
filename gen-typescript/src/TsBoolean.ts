@@ -35,7 +35,11 @@ export class TsBoolean extends TsSnippet {
     // carries no extra info vs an unconstrained boolean. Multi-value
     // boolean enums fall through to plain `boolean` rather than
     // emitting `true | false` (functionally identical, but the wider
-    // form reads cleaner).
+    // form reads cleaner). An empty `enum: []` accepts nothing.
+    if (enums && enums.length === 0) {
+      return applyModifiers('never', this.modifiers)
+    }
+
     if (enums && enums.length === 1) {
       return applyModifiers(`${enums[0]}`, this.modifiers)
     }

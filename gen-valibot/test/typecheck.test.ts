@@ -11,8 +11,10 @@ import { assertEquals } from '@std/assert'
 import {
   additionalPropertiesCases,
   additionalPropertiesDocument,
+  awkwardNamesDocument,
   checkGenerated,
   cycleDocument,
+  emptyEnumDocument,
   runE2eFixture,
   unionDocument
 } from '@skmtc/test-support'
@@ -116,6 +118,66 @@ Deno.test({
     assertEquals(
       await checkGenerated({
         artifacts: { ...artifacts, 'src/consumer.ts': additionalPropertiesConsumer },
+        imports: { valibot: VALIBOT }
+      }),
+      []
+    )
+  }
+})
+
+// The trap: `decapitalize` turns `Default` into `default`, and
+// `export const default = …` does not parse; `2FA` starts with a digit.
+Deno.test({
+  name: 'typecheck - schema names that are not valid bindings are repaired',
+  ignore: Deno.env.get('TYPECHECK') !== '1',
+  fn: async () => {
+    const { artifacts } = runE2eFixture({ id: '@skmtc/gen-valibot', entry: valibotEntry, document: awkwardNamesDocument })
+
+    assertEquals(Object.keys(artifacts).sort(), [
+      'src/types/_2FA.generated.ts',
+      'src/types/account.generated.ts',
+      'src/types/defaultValue.generated.ts',
+      'src/types/deleteValue.generated.ts'
+    ])
+
+    assertEquals(await checkGenerated({ artifacts, imports: { valibot: VALIBOT } }), [])
+  }
+})
+
+/** Loading it throws when an empty enum accepts a value of its type, or null. */
+const emptyEnumConsumer = `import * as v from 'valibot'
+import { emptyString } from '@/types/emptyString.generated.ts'
+import { emptyNumber } from '@/types/emptyNumber.generated.ts'
+import { emptyInteger } from '@/types/emptyInteger.generated.ts'
+import { emptyBoolean } from '@/types/emptyBoolean.generated.ts'
+
+const cases: Array<[string, (value: unknown) => boolean, unknown]> = [
+  ['EmptyString', value => v.safeParse(emptyString, value).success, 'x'],
+  ['EmptyNumber', value => v.safeParse(emptyNumber, value).success, 1],
+  ['EmptyInteger', value => v.safeParse(emptyInteger, value).success, 1],
+  ['EmptyBoolean', value => v.safeParse(emptyBoolean, value).success, true]
+]
+
+for (const [name, accepts, sample] of cases) {
+  for (const value of [sample, null]) {
+    if (accepts(value)) {
+      throw new Error(name + ' accepts ' + JSON.stringify(value))
+    }
+  }
+}
+`
+
+// The trap: a number, integer or boolean enum gave `v.null()`, which
+// accepts `null` where the list allows nothing.
+Deno.test({
+  name: 'typecheck - an empty enum compiles and accepts nothing',
+  ignore: Deno.env.get('TYPECHECK') !== '1',
+  fn: async () => {
+    const { artifacts } = runE2eFixture({ id: '@skmtc/gen-valibot', entry: valibotEntry, document: emptyEnumDocument })
+
+    assertEquals(
+      await checkGenerated({
+        artifacts: { ...artifacts, 'src/consumer.ts': emptyEnumConsumer },
         imports: { valibot: VALIBOT }
       }),
       []

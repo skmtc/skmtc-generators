@@ -4,6 +4,7 @@ import {
   type TypeSystemValue,
   collateExamples
 } from '@skmtc/core'
+import { toStringLiteral } from '@skmtc/lang-typescript'
 import { MswBase } from './base.ts'
 import { isEmpty } from '@skmtc/core'
 import { toTsValue, TsNever } from '@skmtc/gen-typescript'
@@ -108,7 +109,7 @@ export class MockRoute extends MswBase {
 
     return `http.${method}<${this.pathParamsType}, ${this.requestBodyType}, ${
       this.responseType
-    }>('${route}', () => {
+    }>(${toStringLiteral(route)}, () => {
   return HttpResponse.json(${JSON.stringify(this.responseData, null, 2)}${init})
 })`
   }

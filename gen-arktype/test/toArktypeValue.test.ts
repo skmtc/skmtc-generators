@@ -164,7 +164,7 @@ Deno.test('toArktypeValue - object with properties and additionalProperties', ()
     required: ['name'],
     additionalProperties: { type: 'number' }
   }
-  assertEquals(schemaToArktype(schema), '{ name: "string", "[string]": "number" }')
+  assertEquals(schemaToArktype(schema), '{ name: "string", "[/^(?!(?:name)$)/]": "number" }')
 })
 
 Deno.test('toArktypeValue - nested object', () => {
