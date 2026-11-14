@@ -11,6 +11,7 @@ import { assertEquals } from "@std/assert";
 import {
   additionalPropertiesCases,
   additionalPropertiesDocument,
+  awkwardNamesDocument,
   checkGenerated,
   cycleDocument,
   runE2eFixture,
@@ -122,5 +123,28 @@ Deno.test({
       }),
       [],
     );
+  },
+});
+
+// The trap: `decapitalize` turns `Default` into `default`, and
+// `export const default = …` does not parse; `2FA` starts with a digit.
+Deno.test({
+  name: "typecheck - schema names that are not valid bindings are repaired",
+  ignore: Deno.env.get("TYPECHECK") !== "1",
+  fn: async () => {
+    const { artifacts } = runE2eFixture({
+      id: "@skmtc/gen-zod",
+      entry: zodEntry,
+      document: awkwardNamesDocument,
+    });
+
+    assertEquals(Object.keys(artifacts).sort(), [
+      "src/types/_2FA.generated.ts",
+      "src/types/account.generated.ts",
+      "src/types/defaultValue.generated.ts",
+      "src/types/deleteValue.generated.ts",
+    ]);
+
+    assertEquals(await checkGenerated({ artifacts, imports: { zod: ZOD } }), []);
   },
 });

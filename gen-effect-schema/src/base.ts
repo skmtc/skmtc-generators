@@ -1,5 +1,5 @@
 import { camelCase, capitalize, decapitalize } from '@skmtc/core'
-import { toTsModelProjectionBase } from '@skmtc/lang-typescript'
+import { sanitizeIdentifier, toTsModelProjectionBase } from '@skmtc/lang-typescript'
 import denoJson from '../deno.json' with { type: 'json' }
 import { type EnrichmentSchema, toEnrichmentSchema } from './enrichments.ts'
 import {
@@ -33,7 +33,7 @@ export const EffectBase = toTsModelProjectionBase<
   // definitions are cached by name and export path. Which is also why no
   // component may carry the suffix itself.
   toIdentifierName({ refName, options }): string {
-    const name = capitalize(camelCase(refName))
+    const name = sanitizeIdentifier(capitalize(camelCase(refName)))
 
     assertNotReserved(name, refName)
 

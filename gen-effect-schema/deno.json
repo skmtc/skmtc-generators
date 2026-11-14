@@ -1,6 +1,6 @@
 {
   "name": "@skmtc/gen-effect-schema",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "license": "MIT",
   "exports": "./mod.ts",
   "tasks": {
@@ -13,7 +13,7 @@
   "imports": {
     "@skmtc/core": "jsr:@skmtc/core@0.40.0",
     "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.13.0",
-    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.2.16",
+    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.2.17",
     "@std/assert": "jsr:@std/assert@^1.0.10",
     "ts-pattern": "npm:ts-pattern@^5.9.0",
     "valibot": "npm:valibot@1.1.0"

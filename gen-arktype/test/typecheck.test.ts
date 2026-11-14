@@ -17,6 +17,8 @@
  */
 import { assertEquals } from '@std/assert'
 import { dirname, join } from '@std/path'
+import { awkwardNamesDocument, checkGenerated, runE2eFixture } from '@skmtc/test-support'
+import { arktypeEntry } from '../src/mod.ts'
 import { runFixture } from './helpers/fixture.ts'
 
 /** The arktype version the generated output is verified against — pinned
@@ -65,5 +67,24 @@ Deno.test({
     } finally {
       await Deno.remove(root, { recursive: true })
     }
+  }
+})
+
+// The trap: `decapitalize` turns `Default` into `default`, and
+// `export const default = …` does not parse; `2FA` starts with a digit.
+Deno.test({
+  name: 'typecheck - schema names that are not valid bindings are repaired',
+  ignore: Deno.env.get('TYPECHECK') !== '1',
+  fn: async () => {
+    const { artifacts } = runE2eFixture({ id: '@skmtc/gen-arktype', entry: arktypeEntry, document: awkwardNamesDocument })
+
+    assertEquals(Object.keys(artifacts).sort(), [
+      'src/types/_2FA.generated.ts',
+      'src/types/account.generated.ts',
+      'src/types/defaultValue.generated.ts',
+      'src/types/deleteValue.generated.ts'
+    ])
+
+    assertEquals(await checkGenerated({ artifacts, imports: { arktype: ARKTYPE } }), [])
   }
 })

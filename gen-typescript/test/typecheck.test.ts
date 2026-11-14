@@ -8,7 +8,7 @@
  * the default test task does not grant.
  */
 import { assertEquals } from '@std/assert'
-import { additionalPropertiesDocument, checkGenerated, runE2eFixture } from '@skmtc/test-support'
+import { additionalPropertiesDocument, awkwardNamesDocument, checkGenerated, runE2eFixture } from '@skmtc/test-support'
 import { typescriptEntry } from '../src/mod.ts'
 
 // The trap: `{app_id: string, …} | {[key: string]: unknown}` compiles on its
@@ -60,5 +60,25 @@ Deno.test({
       await checkGenerated({ artifacts: { ...artifacts, 'src/consumer.ts': consumer }, imports: {} }),
       []
     )
+  }
+})
+
+// The trap: `2FA` starts with a digit, and `export type 2FA = …` does not
+// parse. `capitalize` keeps `Default` and `Delete` valid, so their file
+// paths do not change.
+Deno.test({
+  name: 'typecheck - schema names that are not valid bindings are repaired',
+  ignore: Deno.env.get('TYPECHECK') !== '1',
+  fn: async () => {
+    const { artifacts } = runE2eFixture({ id: '@skmtc/gen-typescript', entry: typescriptEntry, document: awkwardNamesDocument })
+
+    assertEquals(Object.keys(artifacts).sort(), [
+      'src/types/_2FA.generated.ts',
+      'src/types/account.generated.ts',
+      'src/types/default.generated.ts',
+      'src/types/delete.generated.ts'
+    ])
+
+    assertEquals(await checkGenerated({ artifacts, imports: {} }), [])
   }
 })

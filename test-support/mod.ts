@@ -518,6 +518,34 @@ export const additionalPropertiesDocument: OpenAPIV3.Document = {
   }
 }
 
+/**
+ * Schema names that are not valid bindings as a generator spells them. A
+ * decapitalizing generator turns `Default` and `Delete` into reserved words,
+ * and `2FA` starts with a digit in every generator. `Account` refers to all
+ * three, so its file has to import each one by its repaired name.
+ */
+export const awkwardNamesDocument: OpenAPIV3.Document = {
+  openapi: '3.0.3',
+  info: { title: 'Awkward names fixture', version: '1.0.0' },
+  paths: {},
+  components: {
+    schemas: {
+      Default: { type: 'object', required: ['id'], properties: { id: { type: 'string' } } },
+      Delete: { type: 'string' },
+      '2FA': { type: 'boolean' },
+      Account: {
+        type: 'object',
+        required: ['settings', 'mode', 'secondFactor'],
+        properties: {
+          settings: { $ref: '#/components/schemas/Default' },
+          mode: { $ref: '#/components/schemas/Delete' },
+          secondFactor: { $ref: '#/components/schemas/2FA' }
+        }
+      }
+    }
+  }
+}
+
 /** A value, and whether a validator of `additionalPropertiesDocument` should accept it. */
 export type AdditionalPropertiesCase = {
   name: string

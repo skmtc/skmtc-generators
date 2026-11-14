@@ -9,6 +9,7 @@
  */
 import { assertEquals } from '@std/assert'
 import {
+  awkwardNamesDocument,
   checkGenerated,
   cycleDocument,
   runE2eFixture,
@@ -37,5 +38,29 @@ Deno.test({
       await checkGenerated({ artifacts, imports: { effect: EFFECT } }),
       [],
     )
+  },
+})
+
+// The trap: `2FA` starts with a digit, and `export const 2FA = …` does not
+// parse. `capitalize` keeps `Default` and `Delete` valid.
+Deno.test({
+  name: 'typecheck - schema names that are not valid bindings are repaired',
+  ignore: Deno.env.get('TYPECHECK') !== '1',
+  fn: async () => {
+    const { artifacts } = runE2eFixture({
+      id: '@skmtc/gen-effect-schema',
+      entry: effectSchemaEntry,
+      document: awkwardNamesDocument,
+    })
+
+    assertEquals(Object.keys(artifacts).sort(), [
+      'src/schema-effect/_2FA.generated.ts',
+      'src/schema-effect/account.generated.ts',
+      'src/schema-effect/default.generated.ts',
+      'src/schema-effect/delete.generated.ts',
+      'src/schema-effect/index.generated.ts',
+    ])
+
+    assertEquals(await checkGenerated({ artifacts, imports: { effect: EFFECT } }), [])
   },
 })
