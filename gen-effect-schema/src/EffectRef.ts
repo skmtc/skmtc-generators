@@ -1,7 +1,7 @@
 import {
-  ModelDriver,
   normalizeWorkspacePath,
   toModelGeneratorKey,
+  toModelRef,
 } from '@skmtc/core'
 import { TsSnippet } from '@skmtc/lang-typescript'
 import { TsProjection } from '@skmtc/gen-typescript'
@@ -49,7 +49,7 @@ export class EffectRef extends TsSnippet {
   modifiers: Modifiers
   name: string
   /**
-   * Set only on a recursive back-reference: gen-typescript's type, under
+   * Set only on a reference inside a cycle: gen-typescript's type, under
    * an alias, annotating the `Schema.suspend` callback so the enclosing
    * `export const` escapes circular inference.
    */
@@ -80,7 +80,26 @@ export class EffectRef extends TsSnippet {
 
     const coerced = coerce && needsCoercion(schema)
 
-    if (context.modelDepth[`${effectSchemaEntry.id}:${refName}`] > 0) {
+    // A reference back to a model whose projection is being constructed
+    // comes back `suspended`; any other reference inside a cycle comes back
+    // `inCycle`. Both render `Schema.suspend`: a plain reference is read when
+    // the module loads, and any model of a cycle can be the first one loaded.
+    // `toModelRef` constructs or reuses every other model, and stitches the
+    // model's import in every case. The options are part of the identity: a
+    // coerced reference names the FromString twin.
+    const ref = toModelRef({
+      context,
+      refName,
+      destinationPath,
+      rootRef,
+      projection: EffectProjection,
+      variant: 'main',
+      options: toOptions(coerced),
+    })
+
+    this.name = ref.settings.identifier.name
+
+    if (ref.suspended || ref.inCycle) {
       // A twin's arrays are readonly (`mutable` refuses `ArrayEnsure`), so
       // no annotation on its suspend holds against the model's type.
       if (coerced) {
@@ -89,14 +108,9 @@ export class EffectRef extends TsSnippet {
         )
       }
 
-      // A back-reference to a model still open on the build stack: a
-      // recursive cycle, rendered below as `Schema.suspend`. Never coerced —
-      // that case threw above — so it is the JSON reading it names.
-      const settings = context.toModelContentSettings({
-        refName,
-        projection: EffectProjection,
-        variant: 'main',
-      })
+      // Rendered below as `Schema.suspend`. Never coerced — that case threw
+      // above — so it is the JSON reading it names.
+      const settings = ref.settings
 
       // Identity only, before anything is inserted: a clone that points both
       // generators at one folder would put the type in the schema's own
@@ -118,24 +132,16 @@ export class EffectRef extends TsSnippet {
       }
 
       // Inserted with no destination so the engine stitches no import: the
-      // type is imported under its alias (base.ts), and the target's value
-      // is imported here when the cycle crosses files, since no Driver
-      // runs on this branch.
+      // type is imported under its alias (base.ts).
       const tsType = context.insertModel(TsProjection, refName, {
         variant: 'main',
       })
 
       const alias = toTypeAlias(settings.identifier.name)
 
-      const sameFile = normalizeWorkspacePath(settings.exportPath) ===
-        normalizeWorkspacePath(destinationPath)
-
       this.register({
         imports: {
           [LIB_MODULE]: [LIB],
-          ...(sameFile ? {} : {
-            [settings.exportPath]: [settings.identifier.name],
-          }),
           [tsSettings.exportPath]: [
             { name: tsType.toName(), alias, type: 'type' },
           ],
@@ -143,23 +149,8 @@ export class EffectRef extends TsSnippet {
         destinationPath,
       })
 
-      this.name = settings.identifier.name
       this.typeName = alias
     } else {
-      // The memoization path: probe the cache; hit → reuse (the peer's
-      // constructor never runs) + auto-stitched import; miss →
-      // construct recursively. The options are part of the probe.
-      const { settings } = new ModelDriver({
-        context,
-        refName,
-        destinationPath,
-        rootRef,
-        projection: EffectProjection,
-        variant: 'main',
-        options: toOptions(coerced),
-      })
-
-      this.name = settings.identifier.name
       this.typeName = null
     }
   }

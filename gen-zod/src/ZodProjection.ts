@@ -1,7 +1,10 @@
-import { camelCase, capitalize, type ContentSettings, type GenerateContextType, type RefName, type TypeSystemValue } from '@skmtc/core'
+import type { ContentSettings, GenerateContextType, RefName, TypeSystemValue } from '@skmtc/core'
 import { createVariable } from '@skmtc/lang-typescript'
+import { TsProjection } from '@skmtc/gen-typescript'
 import { toZodValue } from "./Zod.ts";
 import { ZodBase } from "./base.ts";
+import { isDeferred } from "./deferred.ts";
+import { toLiteralKeys } from "./discriminated.ts";
 import type { EnrichmentSchema } from "./enrichments.ts";
 
 type ConstructorArgs = {
@@ -14,12 +17,16 @@ type ConstructorArgs = {
 
 export class ZodProjection extends ZodBase {
   value: TypeSystemValue;
+  /** Renders `z.lazy(() => …)`: the value holds a reference inside a cycle that no getter defers. */
+  lazy: boolean;
+  /** The value's `literalKeys` (see `isDiscriminable`); none for a `z.lazy` model, which zod 4 does not take as an option. */
+  literalKeys: string[];
   constructor(
     { context, refName, settings, destinationPath, rootRef }: ConstructorArgs,
   ) {
     super({ context, refName, settings });
 
-    const schema = context.resolveSchemaRefOnce(refName, ZodBase.id);
+    const schema = context.resolveSchemaRefOnce(refName);
 
     this.value = toZodValue({
       schema,
@@ -29,23 +36,25 @@ export class ZodProjection extends ZodBase {
       rootRef,
     });
 
-    // A recursive schema renders a `z.lazy(() => self)` back-reference
-    // (see ZodRef). The enclosing `export const` then references its own
-    // initializer, which TypeScript cannot type by inference — TS7022 /
-    // TS7024. Annotating the identifier with `typeName` makes `Definition`
-    // emit `export const x: z.ZodType<X> = ...`, breaking the cycle.
-    //
-    // Detected via `modelDepth`, not by rendering: `resolveSchemaRefOnce`
-    // above set this key to 1, and every terminal back-reference to this
-    // model bumps it further (see ZodRef), so `> 1` means a recursive cycle
-    // was emitted into this model's value. (Reading the rendered string here
-    // would pre-render the value tree outside the attribution pass and orphan
-    // every inner snippet from the gen-map.) Self-recursion is what OpenAPI
-    // schemas produce; mutual recursion is not detected by this check.
-    if (context.modelDepth[`${ZodBase.id}:${refName}`] > 1) {
-      this.settings.identifier.typeName = `z.ZodType<${
-        capitalize(camelCase(refName))
-      }>`;
+    // A reference inside a cycle is deferred by the nearest object property,
+    // as a getter (see ZodObject). A union, array or record of the model's
+    // own has no property on the way, so the whole model is deferred instead.
+    // Its `export const` then refers to its own initializer, which TypeScript
+    // cannot type by inference (TS7022 / TS7024): the annotation
+    // `z.ZodType<T>` breaks the cycle, with T gen-typescript's type for the
+    // model, imported into this file unless the two share it.
+    this.lazy = isDeferred(this.value);
+    this.literalKeys = this.lazy ? [] : toLiteralKeys(this.value);
+
+    if (this.lazy) {
+      const type = context.insertModel(TsProjection, refName, {
+        variant: "main",
+        destinationPath,
+      });
+
+      this.settings.identifier.typeName = `z.ZodType<${type.toName()}>`;
+
+      this.register({ imports: { zod: ["z"] } });
     }
   }
 
@@ -56,6 +65,6 @@ export class ZodProjection extends ZodBase {
   static createIdentifier = createVariable;
 
   override toString() {
-    return `${this.value}`;
+    return this.lazy ? `z.lazy(() => ${this.value})` : `${this.value}`;
   }
 }

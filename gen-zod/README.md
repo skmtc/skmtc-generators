@@ -4,6 +4,9 @@
 
 OpenAPI to [Zod](https://zod.dev/) schema generator for [Skmtc](https://skm.tc).
 
+The generated schemas need zod 4. Recursive models use zod 4 getters, which
+zod 3 cannot type.
+
 ## Supported Features
 
 - **Primitive types**: string, number, integer, boolean, void, unknown
@@ -15,8 +18,13 @@ OpenAPI to [Zod](https://zod.dev/) schema generator for [Skmtc](https://skm.tc).
 - **Additional properties**: Record types (`z.record()`), mixed with regular
   properties using `.and()`
 - **Arrays**: Typed arrays, nested arrays, arrays of objects
-- **Unions**: Simple unions and discriminated unions (`z.discriminatedUnion()`)
-- **References**: Schema references including recursive types with `z.lazy()`
+- **Unions**: Simple unions and discriminated unions (`z.discriminatedUnion()`).
+  A union with a discriminator is `z.union()` when one of its members is
+  nullable, has additional properties, is not an object, or has no literal
+  value for the discriminator property. zod 4 does not accept those members.
+- **References**: Schema references. A property that holds a reference inside
+  a cycle is a getter. A model with no property on the way, such as a union
+  that holds itself, is `z.lazy()`, typed with gen-typescript's type.
 - **Name transformations**: kebab-case and snake_case to PascalCase
 
 ## Getting started
@@ -467,7 +475,9 @@ export const config = z.object({ id: z.string() }).and(
 ```typescript
 export const category = z.object({
   name: z.string(),
-  parent: z.lazy(() => Category).optional(),
+  get parent() {
+    return category.optional();
+  },
 });
 ```
 

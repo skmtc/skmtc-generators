@@ -1,8 +1,7 @@
-import { ModelDriver } from '@skmtc/core'
+import { toModelRef } from '@skmtc/core'
 import { TsSnippet } from '@skmtc/lang-typescript'
 import { applyModifiers } from './applyModifiers.ts'
 import { ValibotProjection } from './ValibotProjection.ts'
-import { ValibotBase } from './base.ts'
 import type { GenerateContextType, GeneratorKey, RefName, Modifiers, OasRef, OasSchema } from '@skmtc/core'
 
 type ValibotRefArgs = {
@@ -24,6 +23,8 @@ export class ValibotRef extends TsSnippet {
   destinationPath: string
   rootRef?: RefName
   terminal: boolean
+  /** The model's `variantKeys` (see `isVariantOption`); none for a `v.lazy` or nullable reference. */
+  variantKeys: string[]
 
   constructor({
     context,
@@ -43,40 +44,23 @@ export class ValibotRef extends TsSnippet {
 
     this.register({ imports: { valibot: [{ '*': 'v' }] }, destinationPath })
 
-    if (context.modelDepth[`${ValibotBase.id}:${refName}`] > 0) {
-      // A back-reference to a model still open on the build stack. Driving it
-      // again would recurse forever, so read its settings without building,
-      // and import the name by hand: with mutual recursion (A → B → A) the
-      // back-reference lands in another file, and nothing was inserted for
-      // the engine to stitch.
-      const settings = context.toModelContentSettings({
-        refName,
-        projection: ValibotProjection,
-        variant: 'main'
-      })
+    // A reference back to a model whose projection is being constructed
+    // comes back `suspended`; any other reference inside a cycle comes back
+    // `inCycle`. Both render `v.lazy(...)`: valibot reads a plain reference
+    // when the module loads, and any model of a cycle can be the first one
+    // loaded. `toModelRef` stitches the import in every case.
+    const ref = toModelRef({
+      context,
+      refName,
+      destinationPath,
+      rootRef,
+      projection: ValibotProjection,
+      variant: 'main'
+    })
 
-      this.register({
-        imports: { [settings.exportPath]: [settings.identifier.name] },
-        destinationPath
-      })
-
-      this.name = settings.identifier.name
-      this.terminal = true
-    } else {
-      // Building the referenced model is what makes it exist AND what stitches
-      // its import into this file.
-      const { settings } = new ModelDriver({
-        context,
-        refName,
-        destinationPath,
-        rootRef,
-        projection: ValibotProjection,
-        variant: 'main'
-      })
-
-      this.name = settings.identifier.name
-      this.terminal = false
-    }
+    this.name = ref.settings.identifier.name
+    this.terminal = ref.suspended || ref.inCycle
+    this.variantKeys = ref.suspended || ref.inCycle || modifiers.nullable ? [] : ref.definition.value.variantKeys
   }
 
   override toString(): string {

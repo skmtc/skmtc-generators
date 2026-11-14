@@ -340,49 +340,20 @@ Deno.test('the error channel renders once: ApiError + advice, byte-pinned', () =
   )
 })
 
-Deno.test('the model peer basePackage is REQUIRED — omitting it drops subjects, not the run', () => {
+Deno.test('the model peer basePackage is REQUIRED — omitting it fails the run, naming the setting', () => {
   // gen-kotlin-jackson is a transitive dependency a spring-only consumer
   // never installs, yet its `basePackage` is read by the value layer on
-  // every schema that needs a named declaration. Omitting it is NOT a
-  // whole-run failure: it is per-subject, and only for subjects whose
-  // schemas reach the model peer's path policy. The four operations
-  // carrying primitives here succeed; only the inline-object body dies.
+  // every schema that needs a named declaration. Only the inline-object
+  // body reaches that path, but a generate error fails the whole run: no
+  // UsersApi that silently lost its POST endpoint, and a message that says
+  // which setting to add.
   const { artifacts, manifest } = runFixture({ withoutJacksonConfig: true })
 
   assertHasResultError(manifest)
-
-  // The parse channel stays clean — this is why parseIssues alone is not
-  // a sufficient gate.
-  assertEquals(manifest.parseIssues.filter(issue => issue.level === 'error'), [])
-
-  // The failure mode is the dangerous one: UsersApi still renders, still
-  // compiles, and has silently LOST its POST endpoint.
-  assertEquals(
-    artifacts['server/src/main/kotlin/com/example/spring/UsersApi.generated.kt'],
-    'package com.example.spring\n' +
-      '\n' +
-      'import org.springframework.web.bind.annotation.GetMapping\n' +
-      'import org.springframework.web.bind.annotation.PathVariable\n' +
-      'import org.springframework.web.bind.annotation.PostMapping\n' +
-      'import org.springframework.web.bind.annotation.RequestParam\n' +
-      'import org.springframework.web.bind.annotation.RestController\n' +
-      '\n' +
-      'interface UsersService {\n' +
-      '    fun getUsersId(id: String, verbose: Boolean? = null): String\n' +
-      '}\n' +
-      '\n' +
-      '@RestController\n' +
-      'class UsersController(\n' +
-      '    private val service: UsersService\n' +
-      ') {\n' +
-      '    @GetMapping("/users/{id}")\n' +
-      '    fun getUsersId(@PathVariable("id") id: String, @RequestParam("verbose") verbose: Boolean?): String = service.getUsersId(id, verbose)\n' +
-      '}\n'
-  )
-
-  assertEquals(
-    artifacts['server/src/main/kotlin/com/example/models/CreateApiUsersBody.generated.kt'],
-    undefined
+  assertEquals(artifacts, {})
+  assertStringIncludes(
+    manifest.parseIssues.find(issue => issue.type === 'RUN_FAILED')?.message ?? '',
+    `'@skmtc/gen-kotlin-jackson → _generator': gen-kotlin-jackson needs _generator.basePackage, the Kotlin package every model is written to, e.g. "com.acme.api"`
   )
 })
 

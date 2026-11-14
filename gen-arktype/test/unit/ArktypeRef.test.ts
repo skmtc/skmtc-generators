@@ -1,4 +1,4 @@
-import { assertEquals } from '@std/assert'
+import { assertEquals, assertThrows } from '@std/assert'
 import { ArktypeRef } from '@skmtc/gen-arktype'
 import { type RefName, StackTrail } from '@skmtc/core'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
@@ -21,6 +21,16 @@ const toRefContext = () => {
     Node: {
       type: 'object' as const,
       properties: { child: { $ref: '#/components/schemas/Node' } }
+    },
+    Employee: {
+      type: 'object' as const,
+      properties: { team: { $ref: '#/components/schemas/Team' } }
+    },
+    Team: {
+      type: 'object' as const,
+      properties: {
+        members: { type: 'array' as const, items: { $ref: '#/components/schemas/Employee' } }
+      }
     }
   }
 
@@ -83,20 +93,33 @@ Deno.test('ArktypeRef - drives the referenced model into its own file', () => {
   )
 })
 
-Deno.test('ArktypeRef - a back-reference to a model still being built renders a thunk', () => {
-  const context = toRefContext()
+// A lone `type(…)` reads a plain reference when its module loads and runs a
+// thunk while it parses, so either spelling of a reference back throws at run
+// time. The generator refuses the model instead of emitting that.
+Deno.test('ArktypeRef - a model that refers to itself is refused, by name', () => {
+  assertThrows(
+    () =>
+      new ArktypeRef({
+        context: toRefContext(),
+        refName: 'Node' as RefName,
+        modifiers: { required: true },
+        destinationPath: '/test'
+      }),
+    Error,
+    'Node is recursive, which gen-arktype cannot render'
+  )
+})
 
-  new ArktypeRef({
-    context,
-    refName: 'Node' as RefName,
-    modifiers: { required: true },
-    destinationPath: '/test'
-  })
-
-  // Driving `Node` again from inside its own build would recurse forever, so
-  // the inner ref reads the model's settings instead and defers to a thunk.
-  assertEquals(
-    context.findDefinition({ name: 'node', exportPath: '@/types/node.generated.ts' })?.toString(),
-    'export const node = type({ "child?": () => node });\n'
+Deno.test('ArktypeRef - a cycle of two models is refused, naming the model referred back to', () => {
+  assertThrows(
+    () =>
+      new ArktypeRef({
+        context: toRefContext(),
+        refName: 'Employee' as RefName,
+        modifiers: { required: true },
+        destinationPath: '/test'
+      }),
+    Error,
+    'Employee is recursive, which gen-arktype cannot render'
   )
 })

@@ -294,10 +294,9 @@ export const toResultTypes = (results: ResultsItem): ResultType[] => {
 }
 
 /**
- * A generate-phase throw never touches `parseIssues` — it lands in
- * `manifest.results.generate` as a per-subject `error`, while the
- * accumulator's already-registered container still renders a
- * valid-but-empty file. Every fixture asserts BOTH channels.
+ * A generate-phase throw lands in `manifest.results.generate` as a
+ * per-subject `error`, and fails the run: `parseIssues` gets a
+ * `RUN_FAILED` issue and no file renders.
  */
 export const assertNoResultErrors = (manifest: { results: ResultsItem }): void => {
   assertEquals(toResultTypes(manifest.results).filter(result => result === 'error'), [])
@@ -307,3 +306,174 @@ export const assertNoResultErrors = (manifest: { results: ResultsItem }): void =
 export const assertHasResultError = (manifest: { results: ResultsItem }): void => {
   assertEquals(toResultTypes(manifest.results).includes('error'), true)
 }
+
+/**
+ * Every recursive shape a model generator has to defer: two objects that
+ * refer to each other (Employee, Team, with boolean, integer and number
+ * enums on the model the cycle refers back to), an object that refers to itself
+ * (TreeNode), a model that refers into the cycle from outside it
+ * (Directory), a union of objects in a cycle (Shape, Group), a union that
+ * refers to itself with no object on the way (JsonValue), an array model in
+ * a cycle with an object (Crew, Person), and a record that holds itself
+ * (Bag).
+ */
+export const cycleDocument: OpenAPIV3.Document = {
+  openapi: '3.0.3',
+  info: { title: 'Cycle fixture', version: '1.0.0' },
+  paths: {},
+  components: {
+    schemas: {
+      Employee: {
+        type: 'object',
+        required: ['name', 'role'],
+        properties: {
+          name: { type: 'string' },
+          role: { type: 'string', enum: ['engineer', 'manager'] },
+          nickname: { type: 'string', nullable: true },
+          team: { $ref: '#/components/schemas/Team' },
+          // Enums gen-typescript types as literals (`true`, `1 | 2 | 3`):
+          // an annotation from that type checks the schema against them.
+          active: { type: 'boolean', enum: [true] },
+          level: { type: 'integer', enum: [1, 2, 3] },
+          weight: { type: 'number', enum: [0.5, 1] }
+        }
+      },
+      Team: {
+        type: 'object',
+        required: ['members'],
+        properties: {
+          members: { type: 'array', items: { $ref: '#/components/schemas/Employee' } },
+          labels: { type: 'object', additionalProperties: { type: 'string' } }
+        }
+      },
+      TreeNode: {
+        type: 'object',
+        required: ['value'],
+        properties: {
+          value: { type: 'string' },
+          children: { type: 'array', items: { $ref: '#/components/schemas/TreeNode' } }
+        }
+      },
+      Directory: {
+        type: 'object',
+        required: ['lead'],
+        properties: { lead: { $ref: '#/components/schemas/Employee' } }
+      },
+      Shape: {
+        oneOf: [{ $ref: '#/components/schemas/Circle' }, { $ref: '#/components/schemas/Group' }]
+      },
+      Circle: {
+        type: 'object',
+        required: ['kind', 'radius'],
+        properties: { kind: { type: 'string', enum: ['circle'] }, radius: { type: 'number' } }
+      },
+      Group: {
+        type: 'object',
+        required: ['kind', 'children'],
+        properties: {
+          kind: { type: 'string', enum: ['group'] },
+          children: { type: 'array', items: { $ref: '#/components/schemas/Shape' } }
+        }
+      },
+      JsonValue: {
+        oneOf: [
+          { type: 'string' },
+          { type: 'number' },
+          { type: 'boolean' },
+          { type: 'array', items: { $ref: '#/components/schemas/JsonValue' } },
+          { type: 'object', additionalProperties: { $ref: '#/components/schemas/JsonValue' } }
+        ]
+      },
+      Person: {
+        type: 'object',
+        required: ['name'],
+        properties: { name: { type: 'string' }, crew: { $ref: '#/components/schemas/Crew' } }
+      },
+      Crew: { type: 'array', items: { $ref: '#/components/schemas/Person' } },
+      Bag: { type: 'object', additionalProperties: { $ref: '#/components/schemas/Bag' } }
+    }
+  }
+}
+
+const toKind = (kind: string): OpenAPIV3.SchemaObject => ({ type: 'string', enum: [kind] })
+
+/**
+ * Discriminated unions whose members a validator's discriminated form may
+ * not take: members that can (Pet), a nullable member (EnvVar, from
+ * Cloudflare's `pages_env_vars`), a key with no literal value (Item, from
+ * Cloudflare's `mcn_list_item`), a union inside a cycle (Shape, Group), and
+ * a member that is recursive on its own (Tree, Branch).
+ */
+export const unionDocument: OpenAPIV3.Document = {
+  openapi: '3.0.3',
+  info: { title: 'Union fixture', version: '1.0.0' },
+  paths: {},
+  components: {
+    schemas: {
+      Pet: {
+        oneOf: [{ $ref: '#/components/schemas/Cat' }, { $ref: '#/components/schemas/Dog' }],
+        discriminator: { propertyName: 'type' }
+      },
+      Cat: { type: 'object', required: ['type'], properties: { type: toKind('cat'), meows: { type: 'boolean' } } },
+      Dog: { type: 'object', required: ['type'], properties: { type: toKind('dog'), barks: { type: 'boolean' } } },
+      EnvVar: {
+        oneOf: [{ $ref: '#/components/schemas/PlainText' }, { $ref: '#/components/schemas/SecretText' }],
+        discriminator: { propertyName: 'type' }
+      },
+      PlainText: {
+        type: 'object',
+        nullable: true,
+        required: ['type', 'value'],
+        properties: { type: toKind('plain_text'), value: { type: 'string' } }
+      },
+      SecretText: {
+        type: 'object',
+        required: ['type', 'value'],
+        properties: { type: toKind('secret_text'), value: { type: 'string' } }
+      },
+      Item: {
+        oneOf: [{ $ref: '#/components/schemas/Link' }, { $ref: '#/components/schemas/Note' }],
+        discriminator: {
+          propertyName: 'item_type',
+          mapping: { link: '#/components/schemas/Link', note: '#/components/schemas/Note' }
+        }
+      },
+      Link: {
+        type: 'object',
+        required: ['item_type', 'href'],
+        properties: { item_type: { type: 'string' }, href: { type: 'string' } }
+      },
+      Note: {
+        type: 'object',
+        required: ['item_type', 'text'],
+        properties: { item_type: { type: 'string' }, text: { type: 'string' } }
+      },
+      Shape: {
+        oneOf: [{ $ref: '#/components/schemas/Circle' }, { $ref: '#/components/schemas/Group' }],
+        discriminator: { propertyName: 'kind' }
+      },
+      Circle: {
+        type: 'object',
+        required: ['kind', 'radius'],
+        properties: { kind: toKind('circle'), radius: { type: 'number' } }
+      },
+      Group: {
+        type: 'object',
+        required: ['kind', 'children'],
+        properties: { kind: toKind('group'), children: { type: 'array', items: { $ref: '#/components/schemas/Shape' } } }
+      },
+      Tree: {
+        oneOf: [{ $ref: '#/components/schemas/Leaf' }, { $ref: '#/components/schemas/Branch' }],
+        discriminator: { propertyName: 'kind' }
+      },
+      Leaf: { type: 'object', required: ['kind'], properties: { kind: toKind('leaf'), value: { type: 'string' } } },
+      Branch: {
+        type: 'object',
+        required: ['kind', 'branches'],
+        properties: { kind: toKind('branch'), branches: { type: 'array', items: { $ref: '#/components/schemas/Branch' } } }
+      }
+    }
+  }
+}
+
+export { checkGenerated } from './checkGenerated.ts'

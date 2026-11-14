@@ -92,13 +92,10 @@ into consumer code:
 }
 ```
 
-Omitting the peer's value does not fail the run — it fails the
-individual operations whose schemas need a named declaration, and
-those endpoints then disappear from an otherwise valid, compiling
-`<Tag>Api.generated.kt`. The symptom is
-`ValiError: Invalid type: Expected Object but received undefined`
-raised from `gen-kotlin-jackson/src/lib.ts`, recorded per subject in
-`manifest.results.generate` (NOT in `parseIssues`).
+If the peer's value is missing, the run fails and writes no files. The
+`RUN_FAILED` issue in `manifest.parseIssues` names the setting:
+`gen-kotlin-jackson needs _generator.basePackage, the Kotlin package
+every model is written to`.
 
 Optional generator-scope config:
 

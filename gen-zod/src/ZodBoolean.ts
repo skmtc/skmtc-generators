@@ -22,6 +22,8 @@ export class ZodBoolean extends TsSnippet {
   type = "boolean" as const;
   modifiers: Modifiers;
   enums?: boolean[] | (boolean | null)[];
+  /** Renders `z.literal`: one value, as `toString` spells it (see `isLiteral`). */
+  literal: boolean;
 
   constructor(
     { context, modifiers, schema, destinationPath, generatorKey }:
@@ -31,6 +33,7 @@ export class ZodBoolean extends TsSnippet {
 
     this.modifiers = modifiers;
     this.enums = schema.enums;
+    this.literal = this.enums?.length === 1;
 
     this.register({ imports: { zod: ["z"] }, destinationPath });
   }

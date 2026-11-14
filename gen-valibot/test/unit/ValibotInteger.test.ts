@@ -51,3 +51,27 @@ Deno.test('ValibotInteger - optional integer', () => {
 
   assertEquals(valibotInteger.toString(), 'v.optional(v.pipe(v.number(), v.integer()))')
 })
+
+Deno.test('ValibotInteger - an enum is its literals', () => {
+  const valibotInteger = new ValibotInteger({
+    context: toGenerateContext(),
+    integerSchema: new OasInteger({ format: undefined, enums: [1, 2, 3] }),
+    modifiers: { required: true },
+    generatorKey: toGeneratorOnlyKey({ generatorId: '@skmtc/gen-valibot' }),
+    destinationPath: '/test'
+  })
+
+  assertEquals(valibotInteger.toString(), 'v.picklist([1, 2, 3])')
+})
+
+Deno.test('ValibotInteger - a nullable enum leaves null to the nullable modifier', () => {
+  const valibotInteger = new ValibotInteger({
+    context: toGenerateContext(),
+    integerSchema: new OasInteger({ format: undefined, nullable: true, enums: [5, null] }),
+    modifiers: { required: true, nullable: true },
+    generatorKey: toGeneratorOnlyKey({ generatorId: '@skmtc/gen-valibot' }),
+    destinationPath: '/test'
+  })
+
+  assertEquals(valibotInteger.toString(), 'v.nullable(v.literal(5))')
+})

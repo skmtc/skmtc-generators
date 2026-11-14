@@ -18,7 +18,7 @@ export class ArktypeProjection extends ArktypeBase {
   constructor({ context, refName, settings, destinationPath, rootRef }: ConstructorArgs) {
     super({ context, refName, settings })
 
-    const schema = context.resolveSchemaRefOnce(refName, ArktypeBase.id)
+    const schema = context.resolveSchemaRefOnce(refName)
 
     this.value = toArktypeValue({
       schema,

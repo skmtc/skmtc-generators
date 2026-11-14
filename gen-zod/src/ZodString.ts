@@ -17,6 +17,8 @@ export class ZodString extends TsSnippet {
   enums: string[] | (string | null)[] | undefined;
   constraints: List<ZodConstraint[]>;
   modifiers: Modifiers;
+  /** Renders `z.literal` or `z.enum` (see `isLiteral`). */
+  literal: boolean;
   constructor(
     { context, stringSchema, generatorKey, destinationPath, modifiers }:
       ZodStringArgs,
@@ -24,6 +26,7 @@ export class ZodString extends TsSnippet {
     super({ context, generatorKey, stackTrail: stringSchema.stackTrail.clone() });
 
     this.enums = stringSchema.enums;
+    this.literal = Array.isArray(this.enums) && this.enums.length > 0;
     this.format = stringSchema.format;
     this.constraints = new List<ZodConstraint[]>([], {
       skipEmpty: true,
@@ -58,15 +61,17 @@ export class ZodString extends TsSnippet {
   override toString(): string {
     const { enums } = this;
 
-    let content: string;
+    // An enum lists every value it accepts, so the length and pattern
+    // checks add nothing, and `z.enum` / `z.literal` have no `.max()` to
+    // call. ZodNumber and ZodInteger drop theirs the same way.
     if (enums && Array.isArray(enums)) {
-      content = enums.length === 1
+      const content = enums.length === 1
         ? `z.literal("${enums[0]}")`
         : `z.enum([${enums.map((str) => `"${str}"`).join(", ")}])`;
-    } else {
-      content = `z.string()`;
+
+      return applyModifiers(content, this.modifiers);
     }
 
-    return applyModifiers(`${content}${this.constraints}`, this.modifiers);
+    return applyModifiers(`z.string()${this.constraints}`, this.modifiers);
   }
 }

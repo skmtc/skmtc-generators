@@ -210,7 +210,7 @@ data class Widget(
   )
 })
 
-Deno.test('synthesized name colliding with a component class name fails that subject loudly', () => {
+Deno.test('synthesized name colliding with a component class name fails the run loudly', () => {
   const { artifacts, manifest } = generate(toDocument({
     Order: {
       type: 'object',
@@ -227,12 +227,12 @@ Deno.test('synthesized name colliding with a component class name fails that sub
   // Kotlin redeclaration scope is the PACKAGE: the inline Order.metadata
   // would synthesize `OrderMetadata` beside the real component of that
   // name — two files, one package, no compile. The claim throws instead:
-  // Order fails per-item, the component still renders.
+  // Order fails, and a generate error fails the run, so nothing is written.
   assertHasResultError(manifest)
-  assertEquals(artifacts['com/example/models/Order.generated.kt'], undefined)
+  assertEquals(artifacts, {})
   assertStringIncludes(
-    artifacts['com/example/models/OrderMetadata.generated.kt'],
-    'data class OrderMetadata'
+    manifest.parseIssues.find(issue => issue.type === 'RUN_FAILED')?.message ?? '',
+    'OrderMetadata'
   )
 })
 
@@ -253,7 +253,7 @@ Deno.test('two inline schemas converging to one name fail loudly instead of shar
   assertHasResultError(manifest)
 })
 
-Deno.test('a LATE collision drops the model but leaves earlier siblings as orphans', () => {
+Deno.test('a LATE collision fails the run, so the siblings declared before it leave no files', () => {
   const { artifacts, manifest } = generate(toDocument({
     Order: {
       type: 'object',
@@ -265,31 +265,12 @@ Deno.test('a LATE collision drops the model but leaves earlier siblings as orpha
     }
   }))
 
-  // Siblings declared before the collision are NOT unwound — per-subject
-  // isolation never rolls back side effects. The orphans are valid
-  // Kotlin dead code; the manifest error on Order is the signal. This
-  // pins the declare-then-throw ordering the collision tests above
-  // don't reach (their collision lands on the first inline property).
+  // The collision lands on the third inline property, after `good` and
+  // `metaData` declared their own files. A generate error fails the run,
+  // so none of them is written: no orphan files and no header-only stub
+  // for Order. The manifest error on Order is the signal.
   assertHasResultError(manifest)
-
-  // Synthesized declarations live in their OWN models-package files, so
-  // the orphans are whole files. The failed model's own file survives as
-  // a header-only stub: the sibling references registered their imports
-  // into it before the collision threw (same-package suppression then
-  // drops them), and per-subject isolation does not unwind the file
-  // entry. Valid Kotlin, dead weight — the manifest error is the signal.
-  assertEquals(
-    artifacts['com/example/models/Order.generated.kt'],
-    'package com.example.models\n'
-  )
-  assertStringIncludes(
-    artifacts['com/example/models/OrderGood.generated.kt'],
-    'data class OrderGood'
-  )
-  assertStringIncludes(
-    artifacts['com/example/models/OrderMetaData.generated.kt'],
-    'data class OrderMetaData'
-  )
+  assertEquals(artifacts, {})
 })
 
 Deno.test('an inline component-property union synthesizes its sealed parent beside the models', () => {

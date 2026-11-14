@@ -2,6 +2,8 @@ import { TsSnippet } from "@skmtc/lang-typescript";
 import type { GenerateContextType, GeneratorKey, Modifiers, OasDiscriminator, OasRef, OasSchema, RefName, TypeSystemValue } from '@skmtc/core'
 import { toZodValue } from "./Zod.ts";
 import { applyModifiers } from "./applyModifiers.ts";
+import { isDeferred } from "./deferred.ts";
+import { isDiscriminable } from "./discriminated.ts";
 
 type ZodUnionArgs = {
   context: GenerateContextType;
@@ -18,8 +20,11 @@ type ZodUnionArgs = {
 export class ZodUnion extends TsSnippet {
   type = "union" as const;
   members: TypeSystemValue[];
+  /** The key `z.discriminatedUnion` switches on, when every member can be its option. */
   discriminator: string | undefined;
   modifiers: Modifiers;
+  /** See `isDeferred`. */
+  deferred: boolean;
 
   constructor({
     context,
@@ -43,8 +48,16 @@ export class ZodUnion extends TsSnippet {
       });
     });
 
-    this.discriminator = discriminator?.propertyName;
+    // See `isDiscriminable`. With a member zod 4 does not take as an option,
+    // the union renders `z.union`, which accepts the same values.
+    const key = discriminator?.propertyName;
+
+    this.discriminator = key !== undefined &&
+        this.members.every((member) => isDiscriminable(member, key))
+      ? key
+      : undefined;
     this.modifiers = modifiers;
+    this.deferred = this.members.some(isDeferred);
 
     this.register({ imports: { zod: ["z"] }, destinationPath });
   }

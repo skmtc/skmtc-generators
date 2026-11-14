@@ -2,6 +2,7 @@ import { TsSnippet } from '@skmtc/lang-typescript'
 import type { GenerateContextType, GeneratorKey, RefName, TypeSystemValue, Modifiers, OasRef, OasSchema, OasDiscriminator } from '@skmtc/core'
 import { toValibotValue } from './Valibot.ts'
 import { applyModifiers } from './applyModifiers.ts'
+import { isVariantOption } from './variant.ts'
 
 type ValibotUnionArgs = {
   context: GenerateContextType
@@ -18,6 +19,7 @@ type ValibotUnionArgs = {
 export class ValibotUnion extends TsSnippet {
   type = 'union' as const
   members: TypeSystemValue[]
+  /** The key `v.variant` switches on, when every member can be its option. */
   discriminator: string | undefined
   modifiers: Modifiers
 
@@ -37,7 +39,12 @@ export class ValibotUnion extends TsSnippet {
       return toValibotValue({ destinationPath, schema: member, required: true, context, rootRef })
     })
 
-    this.discriminator = discriminator?.propertyName
+    // See `isVariantOption`. With a member valibot does not type as an
+    // option, the union renders `v.union`, which accepts the same values.
+    const key = discriminator?.propertyName
+
+    this.discriminator =
+      key !== undefined && this.members.every(member => isVariantOption(member, key)) ? key : undefined
     this.modifiers = modifiers
 
     this.register({ imports: { valibot: [{ '*': 'v' }] }, destinationPath })
@@ -47,34 +54,9 @@ export class ValibotUnion extends TsSnippet {
     const members = this.members.map(member => `${member}`).join(', ')
 
     const content = this.discriminator
-      ? toVariantUnion(this.discriminator, this.members)
+      ? `v.variant("${this.discriminator}", [${members}])`
       : `v.union([${members}])`
 
     return applyModifiers(content, this.modifiers)
   }
-}
-
-const toVariantUnion = (discriminator: string, members: TypeSystemValue[]): string => {
-  // Extract discriminator values from each member
-  const variants: Record<string, string> = {}
-
-  members.forEach(member => {
-    const memberStr = member.toString()
-
-    // Try to extract the discriminator value from the member string
-    // This is a simplified approach - in a real implementation you might need more sophisticated parsing
-    const literalMatch = memberStr.match(
-      new RegExp(`${discriminator}: v\\.literal\\("([^"]+)"\\)`)
-    )
-    if (literalMatch) {
-      const value = literalMatch[1]
-      variants[value] = memberStr
-    }
-  })
-
-  const variantEntries = Object.entries(variants)
-    .map(([key, value]) => `${key}: ${value}`)
-    .join(', ')
-
-  return `v.variant("${discriminator}", {${variantEntries}})`
 }

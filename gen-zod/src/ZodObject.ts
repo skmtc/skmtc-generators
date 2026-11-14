@@ -4,6 +4,8 @@ import type { CustomValue, GenerateContextType, GeneratorKey, Modifiers, OasObje
 import { toZodValue } from "./Zod.ts";
 import { applyModifiers } from "./applyModifiers.ts";
 import { ZodUnknown } from "./ZodUnknown.ts";
+import { isDeferred } from "./deferred.ts";
+import { isLiteral } from "./discriminated.ts";
 
 type ZodObjectProps = {
   context: GenerateContextType;
@@ -19,6 +21,17 @@ export class ZodObject extends TsSnippet {
   recordProperties: TypeSystemRecord | null;
   objectProperties: TypeSystemObjectProperties | null;
   modifiers: Modifiers;
+  /**
+   * See `isDeferred`. A property defers its own references as a getter;
+   * the record beside the properties has no property to do that.
+   */
+  deferred: boolean;
+  /**
+   * The properties holding literal values, which `z.discriminatedUnion` can
+   * switch on (see `isDiscriminable`). None for a nullable object or one
+   * with a record beside its properties: zod 4 takes neither as an option.
+   */
+  literalKeys: string[];
 
   constructor({
     context,
@@ -46,7 +59,7 @@ export class ZodObject extends TsSnippet {
       })
       : null;
 
-    this.objectProperties = hasProperties
+    const objectProperties = hasProperties
       ? new ZodObjectProperties({
         context,
         generatorKey,
@@ -57,6 +70,16 @@ export class ZodObject extends TsSnippet {
         rootRef,
       })
       : null;
+
+    this.objectProperties = objectProperties;
+
+    this.deferred = isDeferred(this.recordProperties);
+
+    this.literalKeys = this.recordProperties || modifiers.nullable || !objectProperties
+      ? []
+      : Object.entries(objectProperties.properties)
+        .filter(([, value]) => isLiteral(value))
+        .map(([key]) => key);
 
     this.register({ imports: { zod: ["z"] }, destinationPath });
   }
@@ -127,7 +150,12 @@ class ZodObjectProperties extends TsSnippet {
           // Check if key needs quotes
           const needsQuotes = /[^a-zA-Z0-9_$]/.test(key) || /^\d/.test(key);
           const formattedKey = needsQuotes ? `"${key}"` : key;
-          return `${formattedKey}: ${value}`;
+
+          // zod 4 reads a getter's schema when it parses, not when the
+          // module loads, and infers the object's type through it.
+          return isDeferred(value)
+            ? `get ${formattedKey}() { return ${value} }`
+            : `${formattedKey}: ${value}`;
         })
         .join(", ")
     }})`;
@@ -144,6 +172,8 @@ type ZodRecordArgs = {
 
 class ZodRecord extends TsSnippet {
   value: TypeSystemValue | "true";
+  /** See `isDeferred`. */
+  deferred: boolean;
 
   constructor(
     { context, generatorKey, destinationPath, schema, rootRef }: ZodRecordArgs,
@@ -161,6 +191,8 @@ class ZodRecord extends TsSnippet {
         rootRef,
       });
     }
+
+    this.deferred = isDeferred(this.value);
   }
 
   override toString(): string {
