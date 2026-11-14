@@ -94,7 +94,7 @@ Deno.test('ValibotObject - object with properties and additionalProperties', () 
 
   assertEquals(
     valibotObject.toString(),
-    'v.intersect([v.object({id: v.string()}), v.record(v.string(), v.number())])'
+    'v.objectWithRest({id: v.string()}, v.number())'
   )
 })
 

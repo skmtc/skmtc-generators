@@ -132,7 +132,7 @@ Deno.test('ValibotUnion - a discriminator with a member holding a record renders
 
   assertEquals(
     toPetUnion([withRecord, toPet({ kind: 'dog' })]).toString(),
-    'v.union([v.intersect([v.object({type: v.literal("bag")}), v.record(v.string(), v.string())]), v.object({type: v.literal("dog"), dog: v.boolean()})])'
+    'v.union([v.objectWithRest({type: v.literal("bag")}, v.string()), v.object({type: v.literal("dog"), dog: v.boolean()})])'
   )
 })
 
