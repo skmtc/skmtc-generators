@@ -153,6 +153,32 @@ Deno.test('TsObject - a typed record takes in undefined from an optional propert
   )
 })
 
+// The trap: a nullable property has the type `T | null`, so the index type
+// must take in `null` too, or TS2411 fires on `note`.
+Deno.test('TsObject - a typed record takes in null from a nullable property', () => {
+  const oasObject = new OasObject({
+    properties: {
+      id: new OasString(),
+      note: new OasString({ nullable: true })
+    },
+    required: ['id', 'note'],
+    additionalProperties: new OasNumber()
+  })
+
+  const tsObject = new TsObject({
+    context: toGenerateContext(),
+    destinationPath: '/test',
+    value: oasObject,
+    modifiers: { required: true },
+    generatorKey: toGeneratorOnlyKey({ generatorId: '@skmtc/gen-typescript' })
+  })
+
+  assertEquals(
+    tsObject.toString(),
+    '{id: string, note: string | null, [key: string]: number | string | string | null}'
+  )
+})
+
 Deno.test('TsObject - nullable object', () => {
   const oasObject = new OasObject({
     properties: {
