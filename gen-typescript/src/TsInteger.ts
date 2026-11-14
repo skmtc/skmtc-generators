@@ -27,8 +27,19 @@ export class TsInteger extends TsSnippet {
   override toString(): string {
     const { enums } = this
 
+    // As in TsString: the nullable modifier adds `| null`, so the union
+    // lists the numbers. Joined with the `null`, `[1, null]` gave
+    // `1 |  | null`, and an empty `enum: []` gave no type at all. Neither
+    // parses. An empty list accepts nothing.
     const content = match({ enums })
-      .with({ enums: P.array() }, ({ enums }) => enums.join(' | '))
+      .with({ enums: P.array() }, ({ enums }) => {
+        const members: Array<number | null> = enums
+        const values = members.filter((value): value is number => value !== null)
+
+        return match(values.length)
+          .with(0, () => (members.includes(null) ? 'null' : 'never'))
+          .otherwise(() => values.join(' | '))
+      })
       .otherwise(() => `number`)
 
     return applyModifiers(content, this.modifiers)

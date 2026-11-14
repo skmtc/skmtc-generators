@@ -14,6 +14,7 @@ import {
   awkwardNamesDocument,
   checkGenerated,
   cycleDocument,
+  emptyEnumDocument,
   patternDocument,
   runE2eFixture,
 } from '@skmtc/test-support'
@@ -156,5 +157,50 @@ Deno.test({
     ])
 
     assertEquals(await checkGenerated({ artifacts, imports: { effect: EFFECT } }), [])
+  },
+})
+
+/** Loading it throws when an empty enum accepts a value of its type, or null. */
+const emptyEnumConsumer = `import { Schema } from 'effect'
+import { EmptyString } from '@/schema-effect/emptyString.generated.ts'
+import { EmptyNumber } from '@/schema-effect/emptyNumber.generated.ts'
+import { EmptyInteger } from '@/schema-effect/emptyInteger.generated.ts'
+import { EmptyBoolean } from '@/schema-effect/emptyBoolean.generated.ts'
+
+const cases: Array<[string, (value: unknown) => boolean, unknown]> = [
+  ['EmptyString', Schema.is(EmptyString), 'x'],
+  ['EmptyNumber', Schema.is(EmptyNumber), 1],
+  ['EmptyInteger', Schema.is(EmptyInteger), 1],
+  ['EmptyBoolean', Schema.is(EmptyBoolean), true],
+]
+
+for (const [name, accepts, sample] of cases) {
+  for (const value of [sample, null]) {
+    if (accepts(value)) {
+      throw new Error(name + ' accepts ' + JSON.stringify(value))
+    }
+  }
+}
+`
+
+// The trap: an empty `enum: []` rendered the plain type, which accepts any
+// value of it.
+Deno.test({
+  name: 'typecheck - an empty enum compiles and accepts nothing',
+  ignore: Deno.env.get('TYPECHECK') !== '1',
+  fn: async () => {
+    const { artifacts } = runE2eFixture({
+      id: '@skmtc/gen-effect-schema',
+      entry: effectSchemaEntry,
+      document: emptyEnumDocument,
+    })
+
+    assertEquals(
+      await checkGenerated({
+        artifacts: { ...artifacts, 'src/consumer.ts': emptyEnumConsumer },
+        imports: { effect: EFFECT },
+      }),
+      [],
+    )
   },
 })

@@ -28,7 +28,10 @@ export class ArktypeString extends TsSnippet {
     this.format = stringSchema.format
     this.enums = stringSchema.enums
 
+    // An empty `enum: []` accepts nothing. Joined, it gave `type("")`,
+    // which arktype cannot parse.
     const content = match({ enums: stringSchema.enums })
+      .with({ enums: [] }, () => 'never')
       .with({ enums: P.array() }, matched => matched.enums.map(toEnumMember).join(' | '))
       .otherwise(() => 'string')
 

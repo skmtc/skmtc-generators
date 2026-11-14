@@ -46,8 +46,10 @@ export class ZodBoolean extends TsSnippet {
       // by `ZodNumber`, `ZodInteger`, and `ZodString`. Multi-value
       // enums on a boolean (`enum: [true, false]`) carry no extra
       // information vs an unconstrained boolean — fall through to
-      // `z.boolean()`.
-      const content = enums.length === 1
+      // `z.boolean()`. An empty `enum: []` accepts nothing.
+      const content = enums.length === 0
+        ? "z.never()"
+        : enums.length === 1
         ? `z.literal(${enums[0]})`
         : `z.boolean()`;
       return applyModifiers(content, this.modifiers);

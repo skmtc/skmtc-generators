@@ -8,7 +8,7 @@ import {
   type TypeSystemObjectProperties,
   isEmpty
 } from '@skmtc/core'
-import { toAnyStringExceptPattern, toRegExpLiteral, TsSnippet } from '@skmtc/lang-typescript'
+import { toAnyStringExceptPattern, toRegExpLiteral, toStringLiteral, TsSnippet } from '@skmtc/lang-typescript'
 import { ArktypeUnknown } from './ArktypeUnknown.ts'
 import { applyValueModifiers } from './applyModifiers.ts'
 import { type ArktypeValue, toArktypeValue } from './Arktype.ts'
@@ -32,6 +32,11 @@ export class ArktypeObject extends TsSnippet {
   stringSyntax = undefined
   atomicStringSyntax = undefined
   properties: Record<string, ArktypeValue>
+  /**
+   * Each property's key as arktype reads it (see `toKeySyntax`), before
+   * quoting. A key arktype has no spelling for is not in it.
+   */
+  keySyntax: Record<string, string>
   additionalProperties: ArktypeValue | undefined
   /** The index signature's key, quoted for the object literal. */
   indexKey: string
@@ -57,6 +62,26 @@ export class ArktypeObject extends TsSnippet {
         // `key?` spelling below, not by the value.
         toArktypeValue({ schema: property, required: true, destinationPath, context, rootRef })
       ])
+    )
+
+    // A key arktype cannot spell is left out, and a warning names it:
+    // spelled as it is, arktype would read another key and reject every
+    // object that has the real one.
+    this.keySyntax = Object.fromEntries(
+      Object.keys(this.properties).flatMap(key => {
+        const optional = !this.required.includes(key)
+        const syntax = toKeySyntax({ key, optional })
+
+        if (syntax === undefined) {
+          context.logger.warn(
+            `arktype has no key for the ${optional ? 'optional' : 'required'} property ${toStringLiteral(key)}, so it is not checked`
+          )
+
+          return []
+        }
+
+        return [[key, syntax]]
+      })
     )
 
     const { additionalProperties } = objectSchema
@@ -101,15 +126,12 @@ export class ArktypeObject extends TsSnippet {
   }
 
   override toString(): string {
-    const entries = Object.entries(this.properties).map(([key, value]) => {
-      const name = this.required.includes(key) ? key : `${key}?`
+    const entries = Object.entries(this.keySyntax).map(([key, syntax]) => {
       // Quoted unless the whole key is a bare identifier — `age?` and
-      // `user-name` both need quotes. JSON.stringify escapes a `"` or `\`
-      // in the key, and arktype reads the string as the key, a trailing `?`
-      // marking it optional.
-      const needsQuotes = /[^a-zA-Z0-9_$]/.test(name) || /^\d/.test(name)
+      // `user-name` both need quotes. JSON.stringify escapes a `"` or `\`.
+      const needsQuotes = /[^a-zA-Z0-9_$]/.test(syntax) || /^\d/.test(syntax)
 
-      return `${needsQuotes ? JSON.stringify(name) : name}: ${value}`
+      return `${needsQuotes ? JSON.stringify(syntax) : syntax}: ${this.properties[key]}`
     })
 
     if (this.additionalProperties) {
@@ -123,4 +145,41 @@ export class ArktypeObject extends TsSnippet {
 
     return applyValueModifiers(literal, this.modifiers)
   }
+}
+
+type ToKeySyntaxArgs = {
+  key: string
+  optional: boolean
+}
+
+/**
+ * A property key as arktype reads it in an object definition, or
+ * `undefined` when arktype has no spelling for it.
+ *
+ * The trap: arktype gives some keys a meaning of its own. A trailing `?`
+ * marks the key optional, `[…]` is an index signature, and `...` and `+`
+ * are a spread and the rule for undeclared keys. A `\` makes each one a
+ * plain key: `foo\?`, `\[x]`, `\...`, `\+`. That `\` is also why two kinds
+ * of key have no spelling: an optional key that ends in `\` (arktype reads
+ * `a\?` as the required key `a?`), and a required key that already starts
+ * with that `\` (arktype reads `\[x]` as `[x]`).
+ */
+const toKeySyntax = ({ key, optional }: ToKeySyntaxArgs): string | undefined => {
+  if (optional) {
+    return key.endsWith('\\') ? undefined : `${key}?`
+  }
+
+  if (key.endsWith('?')) {
+    return `${key.slice(0, -1)}\\?`
+  }
+
+  if ((key.startsWith('[') && key.endsWith(']')) || key === '...' || key === '+') {
+    return `\\${key}`
+  }
+
+  if ((key.startsWith('\\[') && key.endsWith(']')) || key === '\\...' || key === '\\+') {
+    return undefined
+  }
+
+  return key
 }

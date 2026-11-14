@@ -577,6 +577,25 @@ export const patternDocument: OpenAPIV3.Document = {
   }
 }
 
+/**
+ * An empty `enum: []` on each scalar type. The list allows no value, so a
+ * generator that renders enums renders each one as never, not as `null` or
+ * as the plain type.
+ */
+export const emptyEnumDocument: OpenAPIV3.Document = {
+  openapi: '3.0.3',
+  info: { title: 'Empty enum fixture', version: '1.0.0' },
+  paths: {},
+  components: {
+    schemas: {
+      EmptyString: { type: 'string', enum: [] },
+      EmptyNumber: { type: 'number', enum: [] },
+      EmptyInteger: { type: 'integer', enum: [] },
+      EmptyBoolean: { type: 'boolean', enum: [] }
+    }
+  }
+}
+
 /** A value, and whether a validator of `additionalPropertiesDocument` should accept it. */
 export type AdditionalPropertiesCase = {
   name: string

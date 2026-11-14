@@ -27,6 +27,7 @@ import type {
 import { toTsOasOperationProjectionBase } from '@skmtc/lang-typescript'
 import {
   additionalPropertiesDocument,
+  emptyEnumDocument,
   patternDocument,
   toResultTypes,
 } from '@skmtc/test-support'
@@ -166,6 +167,7 @@ type GenerateOptions = {
     | typeof fixture
     | typeof additionalPropertiesDocument
     | typeof patternDocument
+    | typeof emptyEnumDocument
   /** This generator's `_generator` scope: `defaults`. */
   generator?: EnrichmentSchema['generator']
   /** Run the query-params consumer below alongside, as a route generator would. */
@@ -439,6 +441,26 @@ Deno.test('a pattern JavaScript rejects is left out, and a comment names it', ()
     artifacts['schema-effect/account.generated.ts'],
     'name: Schema.String.check(Schema.isPattern(/^[a-z/]+$/u))',
   )
+})
+
+// The trap: an empty `enum: []` skipped `toLiterals`, so it rendered the
+// plain type and accepted any value.
+Deno.test('an empty enum accepts nothing, for every scalar type', () => {
+  const { artifacts } = generate({ document: emptyEnumDocument })
+
+  for (
+    const [file, name] of [
+      ['emptyString', 'EmptyString'],
+      ['emptyNumber', 'EmptyNumber'],
+      ['emptyInteger', 'EmptyInteger'],
+      ['emptyBoolean', 'EmptyBoolean'],
+    ]
+  ) {
+    assertStringIncludes(
+      artifacts[`schema-effect/${file}.generated.ts`],
+      `export const ${name} = Schema.Never;`,
+    )
+  }
 })
 
 Deno.test('enum and modifiers render at the leaf', () => {

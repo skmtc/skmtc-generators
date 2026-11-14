@@ -220,3 +220,81 @@ Deno.test({
     )
   }
 })
+
+/**
+ * Keys arktype reads as syntax of its own when written as they are: a
+ * trailing `?`, `[…]`, `...` and `+`, required and optional. And an empty
+ * enum.
+ */
+const keySyntaxDocument: OpenAPIV3.Document = {
+  openapi: '3.0.3',
+  info: { title: 'Key syntax fixture', version: '1.0.0' },
+  paths: {},
+  components: {
+    schemas: {
+      Syntax: {
+        type: 'object',
+        required: ['foo?', '[x]', '...', '+', 'a\\?'],
+        properties: {
+          'foo?': { type: 'string' },
+          '[x]': { type: 'string' },
+          '...': { type: 'string' },
+          '+': { type: 'string' },
+          'a\\?': { type: 'string' },
+          '[y]': { type: 'string' },
+          'b?': { type: 'string' }
+        },
+        additionalProperties: { type: 'number' }
+      },
+      Empty: { type: 'string', enum: [] }
+    }
+  }
+}
+
+const keySyntaxConsumer = `import { type } from 'arktype'
+import { syntax } from '@/types/syntax.generated.ts'
+import { empty } from '@/types/empty.generated.ts'
+
+const accepts = (t: (value: unknown) => unknown, value: unknown): boolean => !(t(value) instanceof type.errors)
+
+const required: Record<string, string> = { 'foo?': 'x', '[x]': 'x', '...': 'x', '+': 'x', 'a\\\\?': 'x' }
+const without = (key: string): Record<string, string> =>
+  Object.fromEntries(Object.entries(required).filter(([name]) => name !== key))
+
+const checks: Array<[string, boolean]> = [
+  ['the required keys are plain keys', accepts(syntax, required)],
+  ...Object.keys(required).map((key): [string, boolean] => [key + ' is required', !accepts(syntax, without(key))]),
+  ['[y] and b? are optional', accepts(syntax, { ...required, '[y]': 'x', 'b?': 'x' })],
+  ['[y] holds a string', !accepts(syntax, { ...required, '[y]': 1 })],
+  ['b? holds a string', !accepts(syntax, { ...required, 'b?': 1 })],
+  ['an extra key holds a number', accepts(syntax, { ...required, count: 1 })],
+  ['an extra key holding a string is rejected', !accepts(syntax, { ...required, count: 's' })],
+  ['an empty enum rejects a string', !accepts(empty, 'x')],
+  ['an empty enum rejects null', !accepts(empty, null)]
+]
+
+for (const [name, passed] of checks) {
+  if (!passed) {
+    throw new Error(name)
+  }
+}
+`
+
+// The trap: a key written as it is can mean something else to arktype. The
+// required key \`foo?\` became the optional key \`foo\`, and \`[x]\` became an
+// index signature that threw "'x' is unresolvable" on load. An empty enum
+// gave \`type("")\`.
+Deno.test({
+  name: 'typecheck - keys arktype reads as syntax, and an empty enum, load and check',
+  ignore: Deno.env.get('TYPECHECK') !== '1',
+  fn: async () => {
+    const { artifacts } = runE2eFixture({ id: '@skmtc/gen-arktype', entry: arktypeEntry, document: keySyntaxDocument })
+
+    assertEquals(Object.keys(artifacts).sort(), ['src/types/empty.generated.ts', 'src/types/syntax.generated.ts'])
+
+    assertEquals(
+      await checkGenerated({ artifacts: { ...artifacts, 'src/consumer.ts': keySyntaxConsumer }, imports: { arktype: ARKTYPE } }),
+      []
+    )
+  }
+})

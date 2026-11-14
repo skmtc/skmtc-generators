@@ -14,6 +14,7 @@ import {
   awkwardNamesDocument,
   checkGenerated,
   cycleDocument,
+  emptyEnumDocument,
   runE2eFixture,
   unionDocument,
 } from "@skmtc/test-support";
@@ -146,5 +147,49 @@ Deno.test({
     ]);
 
     assertEquals(await checkGenerated({ artifacts, imports: { zod: ZOD } }), []);
+  },
+});
+
+/** Loading it throws when an empty enum accepts a value of its type, or null. */
+const emptyEnumConsumer = `import { emptyString } from "@/types/emptyString.generated.ts";
+import { emptyNumber } from "@/types/emptyNumber.generated.ts";
+import { emptyInteger } from "@/types/emptyInteger.generated.ts";
+import { emptyBoolean } from "@/types/emptyBoolean.generated.ts";
+
+const cases: Array<[string, (value: unknown) => boolean, unknown]> = [
+  ["EmptyString", (value) => emptyString.safeParse(value).success, "x"],
+  ["EmptyNumber", (value) => emptyNumber.safeParse(value).success, 1],
+  ["EmptyInteger", (value) => emptyInteger.safeParse(value).success, 1],
+  ["EmptyBoolean", (value) => emptyBoolean.safeParse(value).success, true],
+];
+
+for (const [name, accepts, sample] of cases) {
+  for (const value of [sample, null]) {
+    if (accepts(value)) {
+      throw new Error(name + " accepts " + JSON.stringify(value));
+    }
+  }
+}
+`;
+
+// The trap: a number or integer enum gave `z.union([])`, which does not
+// type-check, and a boolean one gave `z.boolean()`.
+Deno.test({
+  name: "typecheck - an empty enum compiles and accepts nothing",
+  ignore: Deno.env.get("TYPECHECK") !== "1",
+  fn: async () => {
+    const { artifacts } = runE2eFixture({
+      id: "@skmtc/gen-zod",
+      entry: zodEntry,
+      document: emptyEnumDocument,
+    });
+
+    assertEquals(
+      await checkGenerated({
+        artifacts: { ...artifacts, "src/consumer.ts": emptyEnumConsumer },
+        imports: { zod: ZOD },
+      }),
+      [],
+    );
   },
 });

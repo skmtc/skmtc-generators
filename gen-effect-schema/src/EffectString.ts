@@ -92,8 +92,9 @@ export class EffectString extends TsSnippet {
   override toString(): string {
     // `format` stays a plain string, as gen-typescript types it: the
     // wire value of a `date-time` or `uri` is a string, and a decoded
-    // value the type file does not know about would not match it.
-    if (this.enums?.length) {
+    // value the type file does not know about would not match it. An
+    // empty `enum: []` goes to `toLiterals` too: it accepts nothing.
+    if (this.enums !== undefined) {
       return applyModifiers(
         toLiterals(this.enums),
         withNullMember(this.modifiers, this.enums),

@@ -8,7 +8,13 @@
  * the default test task does not grant.
  */
 import { assertEquals } from '@std/assert'
-import { additionalPropertiesDocument, awkwardNamesDocument, checkGenerated, runE2eFixture } from '@skmtc/test-support'
+import {
+  additionalPropertiesDocument,
+  awkwardNamesDocument,
+  checkGenerated,
+  emptyEnumDocument,
+  runE2eFixture
+} from '@skmtc/test-support'
 import { typescriptEntry } from '../src/mod.ts'
 
 // The trap: `{app_id: string, …} | {[key: string]: unknown}` compiles on its
@@ -80,5 +86,30 @@ Deno.test({
     ])
 
     assertEquals(await checkGenerated({ artifacts, imports: {} }), [])
+  }
+})
+
+// `number` is not compared: gen-typescript types a number enum as `number`
+// whatever it lists.
+const emptyEnumConsumer = `import type {EmptyString} from '@/types/emptyString.generated.ts'
+import type {EmptyInteger} from '@/types/emptyInteger.generated.ts'
+import type {EmptyBoolean} from '@/types/emptyBoolean.generated.ts'
+
+type Equals<X, Y> = (<T>() => T extends X ? 1 : 2) extends (<T>() => T extends Y ? 1 : 2) ? true : false
+
+export const emptyString: Equals<EmptyString, never> = true
+export const emptyInteger: Equals<EmptyInteger, never> = true
+export const emptyBoolean: Equals<EmptyBoolean, never> = true
+`
+
+// The trap: an integer `enum: []` gave `export type EmptyInteger = ;`,
+// which does not parse, and a boolean one gave `boolean`.
+Deno.test({
+  name: 'typecheck - an empty enum compiles as never',
+  ignore: Deno.env.get('TYPECHECK') !== '1',
+  fn: async () => {
+    const { artifacts } = runE2eFixture({ id: '@skmtc/gen-typescript', entry: typescriptEntry, document: emptyEnumDocument })
+
+    assertEquals(await checkGenerated({ artifacts: { ...artifacts, 'src/consumer.ts': emptyEnumConsumer }, imports: {} }), [])
   }
 })

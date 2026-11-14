@@ -102,6 +102,22 @@ Deno.test('toTsValue - enum values are escaped, and null is left to nullable', (
   assertEquals(schemaToTs(empty), 'never')
 })
 
+// The trap: an integer enum joined its `null` member as empty text, so
+// `[1, null]` gave `1 |  | null` and `enum: []` gave no type at all. Neither
+// parses. A boolean `enum: []` gave `boolean`.
+Deno.test('toTsValue - integer and boolean enums: null is left to nullable, and empty accepts nothing', () => {
+  const nullable: OpenAPIV3.SchemaObject = { type: 'integer', nullable: true, enum: [1, null] }
+  assertEquals(schemaToTs(nullable), '1 | null')
+
+  const onlyNull: OpenAPIV3.SchemaObject = { type: 'integer', nullable: true, enum: [null] }
+  assertEquals(schemaToTs(onlyNull), 'null | null')
+
+  for (const type of ['integer', 'boolean'] as const) {
+    const empty: OpenAPIV3.SchemaObject = { type, enum: [] }
+    assertEquals(schemaToTs(empty), 'never', type)
+  }
+})
+
 // ============================================================================
 // ARRAY TYPE TESTS
 // ============================================================================

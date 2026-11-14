@@ -99,6 +99,15 @@ Deno.test("toZodValue - enum values are escaped, and null is left to nullable", 
   assertEquals(schemaToZod(empty), "z.never()");
 });
 
+// The trap: a number or integer enum gave `z.union([])`, which does not
+// type-check, and a boolean one gave `z.boolean()`.
+Deno.test("toZodValue - an empty enum accepts nothing, for every scalar type", () => {
+  for (const type of ["number", "integer", "boolean"] as const) {
+    const empty: OpenAPIV3.SchemaObject = { type, enum: [] };
+    assertEquals(schemaToZod(empty), "z.never()", type);
+  }
+});
+
 // ============================================================================
 // ARRAY TYPE TESTS
 // ============================================================================

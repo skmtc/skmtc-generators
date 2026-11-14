@@ -95,6 +95,18 @@ Deno.test('toValibotValue - enum values are escaped, and null is left to nullabl
   assertEquals(schemaToValibot(empty), 'v.never()')
 })
 
+// The trap: a number, integer or boolean enum gave `v.null()`, which
+// accepts `null` where the list allows nothing.
+Deno.test('toValibotValue - an empty enum accepts nothing, for every scalar type', () => {
+  for (const type of ['number', 'integer', 'boolean'] as const) {
+    const empty: OpenAPIV3.SchemaObject = { type, enum: [] }
+    assertEquals(schemaToValibot(empty), 'v.never()', type)
+
+    const onlyNull: OpenAPIV3.SchemaObject = { type, nullable: true, enum: [null] }
+    assertEquals(schemaToValibot(onlyNull), 'v.nullable(v.null())', type)
+  }
+})
+
 // ============================================================================
 // ARRAY TYPE TESTS
 // ============================================================================
