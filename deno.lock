@@ -254,7 +254,7 @@
       "gen-effect-http": {
         "dependencies": [
           "jsr:@skmtc/core@0.40.0",
-          "jsr:@skmtc/gen-effect-schema@0.1.6",
+          "jsr:@skmtc/gen-effect-schema@0.1.7",
           "jsr:@skmtc/lang-typescript@0.13.0",
           "jsr:@std/assert@^1.0.10"
         ]
@@ -262,7 +262,7 @@
       "gen-effect-schema": {
         "dependencies": [
           "jsr:@skmtc/core@0.40.0",
-          "jsr:@skmtc/gen-typescript@0.2.15",
+          "jsr:@skmtc/gen-typescript@0.2.16",
           "jsr:@skmtc/lang-typescript@0.13.0",
           "jsr:@std/assert@^1.0.10",
           "npm:ts-pattern@^5.9.0",
@@ -272,8 +272,8 @@
       "gen-express": {
         "dependencies": [
           "jsr:@skmtc/core@0.40.0",
-          "jsr:@skmtc/gen-typescript@0.2.15",
-          "jsr:@skmtc/gen-valibot@0.2.15",
+          "jsr:@skmtc/gen-typescript@0.2.16",
+          "jsr:@skmtc/gen-valibot@0.2.16",
           "jsr:@skmtc/lang-typescript@0.13.0"
         ]
       },
@@ -312,51 +312,51 @@
       "gen-msw": {
         "dependencies": [
           "jsr:@skmtc/core@0.40.0",
-          "jsr:@skmtc/gen-typescript@0.2.15",
+          "jsr:@skmtc/gen-typescript@0.2.16",
           "jsr:@skmtc/lang-typescript@0.13.0"
         ]
       },
       "gen-shadcn-form": {
         "dependencies": [
           "jsr:@skmtc/core@0.40.0",
-          "jsr:@skmtc/gen-shadcn-select@0.3.13",
-          "jsr:@skmtc/gen-tanstack-query-supabase-zod@0.2.15",
-          "jsr:@skmtc/gen-typescript@0.2.15",
-          "jsr:@skmtc/gen-zod@0.3.0",
+          "jsr:@skmtc/gen-shadcn-select@0.3.14",
+          "jsr:@skmtc/gen-tanstack-query-supabase-zod@0.2.16",
+          "jsr:@skmtc/gen-typescript@0.2.16",
+          "jsr:@skmtc/gen-zod@0.3.1",
           "jsr:@skmtc/lang-typescript@0.13.0"
         ]
       },
       "gen-shadcn-select": {
         "dependencies": [
           "jsr:@skmtc/core@0.40.0",
-          "jsr:@skmtc/gen-tanstack-query-supabase-zod@0.2.15",
-          "jsr:@skmtc/gen-typescript@0.2.15",
-          "jsr:@skmtc/gen-zod@0.3.0",
+          "jsr:@skmtc/gen-tanstack-query-supabase-zod@0.2.16",
+          "jsr:@skmtc/gen-typescript@0.2.16",
+          "jsr:@skmtc/gen-zod@0.3.1",
           "jsr:@skmtc/lang-typescript@0.13.0"
         ]
       },
       "gen-shadcn-table": {
         "dependencies": [
           "jsr:@skmtc/core@0.40.0",
-          "jsr:@skmtc/gen-tanstack-query-supabase-zod@0.2.15",
-          "jsr:@skmtc/gen-typescript@0.2.15",
-          "jsr:@skmtc/gen-zod@0.3.0",
+          "jsr:@skmtc/gen-tanstack-query-supabase-zod@0.2.16",
+          "jsr:@skmtc/gen-typescript@0.2.16",
+          "jsr:@skmtc/gen-zod@0.3.1",
           "jsr:@skmtc/lang-typescript@0.13.0"
         ]
       },
       "gen-supabase-hono": {
         "dependencies": [
           "jsr:@skmtc/core@0.40.0",
-          "jsr:@skmtc/gen-typescript@0.2.15",
-          "jsr:@skmtc/gen-zod@0.3.0",
+          "jsr:@skmtc/gen-typescript@0.2.16",
+          "jsr:@skmtc/gen-zod@0.3.1",
           "jsr:@skmtc/lang-typescript@0.13.0"
         ]
       },
       "gen-tanstack-query-fetch-zod": {
         "dependencies": [
           "jsr:@skmtc/core@0.40.0",
-          "jsr:@skmtc/gen-typescript@0.2.15",
-          "jsr:@skmtc/gen-zod@0.3.0",
+          "jsr:@skmtc/gen-typescript@0.2.16",
+          "jsr:@skmtc/gen-zod@0.3.1",
           "jsr:@skmtc/lang-typescript@0.13.0",
           "npm:@babel/helper-validator-identifier@7.22.20",
           "npm:@types/babel__helper-validator-identifier@7.15.2"
@@ -365,8 +365,8 @@
       "gen-tanstack-query-supabase-zod": {
         "dependencies": [
           "jsr:@skmtc/core@0.40.0",
-          "jsr:@skmtc/gen-typescript@0.2.15",
-          "jsr:@skmtc/gen-zod@0.3.0",
+          "jsr:@skmtc/gen-typescript@0.2.16",
+          "jsr:@skmtc/gen-zod@0.3.1",
           "jsr:@skmtc/lang-typescript@0.13.0",
           "npm:@babel/helper-validator-identifier@7.22.20",
           "npm:@types/babel__helper-validator-identifier@7.15.2"
@@ -383,7 +383,7 @@
       "gen-valibot": {
         "dependencies": [
           "jsr:@skmtc/core@0.40.0",
-          "jsr:@skmtc/gen-typescript@0.2.15",
+          "jsr:@skmtc/gen-typescript@0.2.16",
           "jsr:@skmtc/lang-typescript@0.13.0",
           "jsr:@std/assert@1",
           "jsr:@std/log@~0.224.6"
@@ -392,7 +392,7 @@
       "gen-zod": {
         "dependencies": [
           "jsr:@skmtc/core@0.40.0",
-          "jsr:@skmtc/gen-typescript@0.2.15",
+          "jsr:@skmtc/gen-typescript@0.2.16",
           "jsr:@skmtc/lang-typescript@0.13.0",
           "jsr:@std/assert@1",
           "jsr:@std/log@~0.224.6"

@@ -28,8 +28,10 @@ export class ZodObject extends TsSnippet {
   deferred: boolean;
   /**
    * The properties holding literal values, which `z.discriminatedUnion` can
-   * switch on (see `isDiscriminable`). None for a nullable object or one
-   * with a record beside its properties: zod 4 takes neither as an option.
+   * switch on (see `isDiscriminable`). None for a nullable object, which
+   * zod 4 does not take as an option. None for one with a record beside its
+   * properties either: zod 4 takes its `.catchall` form, but no fixture
+   * covers that option yet, so such a union stays a `z.union`.
    */
   literalKeys: string[];
 
@@ -87,9 +89,12 @@ export class ZodObject extends TsSnippet {
   override toString(): string {
     const { objectProperties, recordProperties } = this;
 
+    // `additionalProperties` covers only the keys `properties` does not
+    // name, as `.catchall` does. `.and(z.record(…))` checked the record
+    // against every key, so a typed record rejected the named ones.
     if (objectProperties && recordProperties) {
       return applyModifiers(
-        `${objectProperties}.and(${recordProperties})`,
+        `${objectProperties}.catchall(${recordProperties.value})`,
         this.modifiers,
       );
     }

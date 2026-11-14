@@ -176,7 +176,7 @@ Deno.test("toZodValue - object with properties and additionalProperties", () => 
   };
   assertEquals(
     schemaToZod(schema),
-    "z.object({id: z.string()}).and(z.record(z.string(), z.number()))",
+    "z.object({id: z.string()}).catchall(z.number())",
   );
 });
 

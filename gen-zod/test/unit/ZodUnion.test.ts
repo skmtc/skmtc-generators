@@ -179,7 +179,7 @@ Deno.test("ZodUnion - a discriminator with a member holding a record renders z.u
 
   assertEquals(
     toPetUnion([withRecord, toPet({ kind: "dog" })]).toString(),
-    'z.union([z.object({type: z.literal("bag")}).and(z.record(z.string(), z.string())), z.object({type: z.literal("dog"), dog: z.boolean()})])',
+    'z.union([z.object({type: z.literal("bag")}).catchall(z.string()), z.object({type: z.literal("dog"), dog: z.boolean()})])',
   );
 });
 

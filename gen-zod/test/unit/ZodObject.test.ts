@@ -100,7 +100,7 @@ Deno.test("ZodObject - object with properties and additionalProperties", () => {
 
   assertEquals(
     zodObject.toString(),
-    "z.object({id: z.string()}).and(z.record(z.string(), z.number()))",
+    "z.object({id: z.string()}).catchall(z.number())",
   );
 });
 

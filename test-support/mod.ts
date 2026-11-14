@@ -476,4 +476,74 @@ export const unionDocument: OpenAPIV3.Document = {
   }
 }
 
+/**
+ * Objects with `properties` and `additionalProperties` together (#101).
+ * `additionalProperties` covers only the keys `properties` does not name:
+ * any value beside named keys (Upload, from Sentry's snapshot upload body),
+ * a typed record beside named keys of other types (Limits), a named key that
+ * is not a plain word (Dotted), and a model that holds itself in its record
+ * beside a named key (Tree), which a validator defers.
+ */
+export const additionalPropertiesDocument: OpenAPIV3.Document = {
+  openapi: '3.0.3',
+  info: { title: 'Additional properties fixture', version: '1.0.0' },
+  paths: {},
+  components: {
+    schemas: {
+      Upload: {
+        type: 'object',
+        required: ['app_id', 'images'],
+        properties: { app_id: { type: 'string' }, images: { type: 'array', items: { type: 'string' } } },
+        additionalProperties: true
+      },
+      Limits: {
+        type: 'object',
+        required: ['id'],
+        properties: { id: { type: 'string' }, note: { type: 'string' } },
+        additionalProperties: { type: 'number' }
+      },
+      Dotted: {
+        type: 'object',
+        required: ['a.b'],
+        properties: { 'a.b': { type: 'string' } },
+        additionalProperties: { type: 'number' }
+      },
+      Tree: {
+        type: 'object',
+        required: ['label'],
+        properties: { label: { type: 'string' } },
+        additionalProperties: { $ref: '#/components/schemas/Tree' }
+      }
+    }
+  }
+}
+
+/** A value, and whether a validator of `additionalPropertiesDocument` should accept it. */
+export type AdditionalPropertiesCase = {
+  name: string
+  model: 'Upload' | 'Limits' | 'Dotted' | 'Tree'
+  value: Record<string, unknown>
+  accept: boolean
+}
+
+/**
+ * What a validator generated from `additionalPropertiesDocument` should
+ * accept. A test writes them into a consumer of the generated files, which
+ * throws when a validator gets one wrong.
+ */
+export const additionalPropertiesCases: AdditionalPropertiesCase[] = [
+  { name: 'an extra key of any type', model: 'Upload', value: { app_id: 'x', images: [], other: { a: 1 } }, accept: true },
+  { name: 'the required keys missing', model: 'Upload', value: { other: 1 }, accept: false },
+  { name: 'a string id beside number extras', model: 'Limits', value: { id: 'x', count: 1 }, accept: true },
+  { name: 'an optional string beside number extras', model: 'Limits', value: { id: 'x', note: 'n', count: 1 }, accept: true },
+  { name: 'an extra key that is not a number', model: 'Limits', value: { id: 'x', count: 'no' }, accept: false },
+  { name: 'the required id missing', model: 'Limits', value: { count: 1 }, accept: false },
+  { name: 'a dotted key beside number extras', model: 'Dotted', value: { 'a.b': 'x', aXb: 1 }, accept: true },
+  // The trap: an unescaped `a.b` pattern matches `aXb`, which then skips the record check.
+  { name: 'an extra key that looks like the dotted key', model: 'Dotted', value: { 'a.b': 'x', aXb: 'no' }, accept: false },
+  { name: 'a nested tree as an extra key', model: 'Tree', value: { label: 'root', left: { label: 'leaf' } }, accept: true },
+  { name: 'a nested tree without its label', model: 'Tree', value: { label: 'root', left: { other: {} } }, accept: false },
+  { name: 'an extra key that is not a tree', model: 'Tree', value: { label: 'root', left: 'text' }, accept: false }
+]
+
 export { checkGenerated } from './checkGenerated.ts'

@@ -7,7 +7,7 @@
     "test:update": "UPDATE_GOLDEN=1 deno test --allow-env --allow-sys --allow-read --allow-write",
     "test:live": "LIVE=1 deno test --allow-env --allow-sys --allow-read --allow-net",
     "test:coverage": "deno test --allow-env --allow-sys --allow-read --coverage=coverage",
-    "coverage:report": "deno coverage coverage --lcov --output=coverage.lcov",
+    "coverage:report": "deno coverage coverage --lcov --output=coverage.lcov --include='/gen-md-docs/'",
     "coverage:html": "deno coverage coverage --html",
     "coverage:check": "deno coverage coverage --detailed",
     "publish": "deno publish --allow-slow-types --allow-dirty"

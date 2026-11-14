@@ -36,25 +36,34 @@ export class TsObject extends TsSnippet {
 
     const hasProperties = properties && !isEmpty(properties)
 
-    this.recordProperties = additionalProperties
+    const propertyValues = hasProperties
+      ? toPropertyValues({ context, destinationPath, properties, required, rootRef })
+      : {}
+
+    // The record builds the object's one index signature, which takes in
+    // the type of each named property beside it.
+    const record = additionalProperties
       ? new TsRecord({
           context,
           generatorKey,
           destinationPath,
           schema: additionalProperties,
+          propertyValues: Object.values(propertyValues),
           rootRef
         })
       : null
 
+    this.recordProperties = record
+
+    // With named properties too, the record goes into the same object
+    // literal as its index signature.
     this.objectProperties = hasProperties
       ? new TsObjectProperties({
           context,
           generatorKey,
-          destinationPath,
-          properties,
+          properties: propertyValues,
           required,
-          modifiers,
-          rootRef
+          indexSignature: record?.indexSignature ?? null
         })
       : null
   }
@@ -62,66 +71,74 @@ export class TsObject extends TsSnippet {
   override toString(): string {
     const { objectProperties, recordProperties } = this
 
-    if (objectProperties && recordProperties) {
-      return applyModifiers(`${objectProperties} | ${recordProperties}`, this.modifiers)
-    }
-
     return applyModifiers(
-      recordProperties?.toString() ?? objectProperties?.toString() ?? 'Record<string, never>',
+      objectProperties?.toString() ?? recordProperties?.toString() ?? 'Record<string, never>',
       this.modifiers
     )
   }
 }
 
-type TsObjectPropertiesArgs = {
+type ToPropertyValuesArgs = {
   context: GenerateContextType
-  generatorKey: GeneratorKey
   destinationPath: string
   properties: Record<string, OasSchema | OasRef<'schema'> | CustomValue>
   required: OasObject['required']
-  modifiers: Modifiers
   rootRef?: RefName
+}
+
+/** Each property's value, keyed by its rendered key. */
+const toPropertyValues = ({
+  context,
+  destinationPath,
+  properties,
+  required = [],
+  rootRef
+}: ToPropertyValuesArgs): Record<string, TypeSystemValue> =>
+  Object.fromEntries(
+    Object.entries(properties).map(([key, property]) => {
+      const value = toTsValue({
+        destinationPath,
+        schema: property,
+        required: required.includes(key),
+        context,
+        rootRef
+      })
+
+      return [handleKey(key), value]
+    })
+  )
+
+type TsObjectPropertiesArgs = {
+  context: GenerateContextType
+  generatorKey: GeneratorKey
+  properties: Record<string, TypeSystemValue>
+  required: OasObject['required']
+  indexSignature: TsIndexSignature | null
 }
 
 class TsObjectProperties extends SnippetBase {
   properties: Record<string, TypeSystemValue>
   required: string[]
+  indexSignature: TsIndexSignature | null
 
-  constructor({
-    context,
-    generatorKey,
-    destinationPath,
-    properties,
-    required = [],
-    rootRef
-  }: TsObjectPropertiesArgs) {
+  constructor({ context, generatorKey, properties, required = [], indexSignature }: TsObjectPropertiesArgs) {
     super({ context, generatorKey })
 
     this.required = required
-
-    this.properties = Object.fromEntries(
-      Object.entries(properties).map(([key, property]) => {
-        const value = toTsValue({
-          destinationPath,
-          schema: property,
-          required: required?.includes(key),
-          context,
-          rootRef
-        })
-
-        return [handleKey(key), value]
-      })
-    )
+    this.properties = properties
+    this.indexSignature = indexSignature
   }
 
   override toString(): string {
-    return `{${Object.entries(this.properties)
-      .map(([key, value]) => {
-        const optionality = 'modifiers' in value ? (value.modifiers.required ? '' : '?') : ''
+    const entries = Object.entries(this.properties).map(([key, value]) => {
+      const optionality = 'modifiers' in value ? (value.modifiers.required ? '' : '?') : ''
 
-        return `${key}${optionality}: ${value}`
-      })
-      .join(', ')}}`
+      return `${key}${optionality}: ${value}`
+    })
+
+    const indexEntries = this.indexSignature ? [`${this.indexSignature}`] : []
+
+    return `{${[...entries, ...indexEntries].join(', ')}}`
   }
 }
 
@@ -130,13 +147,16 @@ type TsRecordArgs = {
   destinationPath: string
   schema: true | OasSchema | OasRef<'schema'>
   generatorKey: GeneratorKey
+  /** The values of the named properties beside the record; none for a record alone. */
+  propertyValues: TypeSystemValue[]
   rootRef?: RefName
 }
 
 class TsRecord extends SnippetBase {
   value: TypeSystemValue | 'true'
+  indexSignature: TsIndexSignature
 
-  constructor({ context, generatorKey, destinationPath, schema, rootRef }: TsRecordArgs) {
+  constructor({ context, generatorKey, destinationPath, schema, propertyValues, rootRef }: TsRecordArgs) {
     super({ context, generatorKey })
 
     // Not ts-pattern: its type walk over `OasRef`, whose keywords include
@@ -145,12 +165,51 @@ class TsRecord extends SnippetBase {
       schema === true || isEmpty(schema)
         ? new TsUnknown({ context, generatorKey })
         : toTsValue({ destinationPath, schema, required: true, context, rootRef })
+
+    this.indexSignature = new TsIndexSignature({
+      context,
+      generatorKey,
+      value: this.value,
+      propertyValues
+    })
   }
 
+  // A record alone renders here. Beside named properties, TsObjectProperties
+  // renders this record's index signature inside its own literal.
   // An index signature, not `Record<string, …>`: TypeScript expands the
   // alias eagerly, so a model that holds itself in a record
   // (`type Bag = Record<string, Bag>`) fails with TS2456.
   override toString(): string {
-    return `{[key: string]: ${this.value}}`
+    return `{${this.indexSignature}}`
+  }
+}
+
+type TsIndexSignatureArgs = {
+  context: GenerateContextType
+  generatorKey: GeneratorKey
+  value: TypeSystemValue | 'true'
+  propertyValues: TypeSystemValue[]
+}
+
+class TsIndexSignature extends SnippetBase {
+  valueTypes: Array<TypeSystemValue | 'true'>
+
+  constructor({ context, generatorKey, value, propertyValues }: TsIndexSignatureArgs) {
+    super({ context, generatorKey })
+
+    // The value type takes in the type of each named property beside it:
+    // TypeScript rejects a property that the index type does not accept
+    // (TS2411), so `{id: string, [key: string]: number}` does not compile.
+    // `unknown` already accepts every property.
+    // A type can repeat (`number | string | string`): a repeat is valid and
+    // means the same type, and removing it would mean rendering each member
+    // to compare them before render.
+    this.valueTypes = value instanceof TsUnknown ? [value] : [value, ...propertyValues]
+  }
+
+  override toString(): string {
+    const valueType = this.valueTypes.map(valueType => `${valueType}`).join(' | ')
+
+    return `[key: string]: ${valueType}`
   }
 }

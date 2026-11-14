@@ -166,7 +166,7 @@ Deno.test('toValibotValue - object with properties and additionalProperties', ()
   }
   assertEquals(
     schemaToValibot(schema),
-    'v.intersect([v.object({id: v.string()}), v.record(v.string(), v.number())])'
+    'v.objectWithRest({id: v.string()}, v.number())'
   )
 })
 

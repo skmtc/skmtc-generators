@@ -1,18 +1,18 @@
 {
   "name": "@skmtc/gen-shadcn-select",
-  "version": "0.3.13",
+  "version": "0.3.14",
   "exports": "./mod.ts",
   "imports": {
-    "@skmtc/gen-tanstack-query-supabase-zod": "jsr:@skmtc/gen-tanstack-query-supabase-zod@0.2.15",
-    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.2.15",
-    "@skmtc/gen-zod": "jsr:@skmtc/gen-zod@0.3.0",
+    "@skmtc/gen-tanstack-query-supabase-zod": "jsr:@skmtc/gen-tanstack-query-supabase-zod@0.2.16",
+    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.2.16",
+    "@skmtc/gen-zod": "jsr:@skmtc/gen-zod@0.3.1",
     "@skmtc/core": "jsr:@skmtc/core@0.40.0",
     "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.13.0"
   },
   "tasks": {
     "test": "deno test --allow-env --allow-sys --allow-read",
     "test:coverage": "deno test --allow-env --allow-sys --allow-read --coverage=coverage",
-    "coverage:report": "deno coverage coverage --lcov --output=coverage.lcov",
+    "coverage:report": "deno coverage coverage --lcov --output=coverage.lcov --include='/gen-shadcn-select/'",
     "coverage:html": "deno coverage coverage --html",
     "coverage:check": "deno coverage coverage --detailed",
     "publish": "deno publish --allow-slow-types --allow-dirty"
