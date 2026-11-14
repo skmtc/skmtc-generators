@@ -29,7 +29,16 @@ export class ValibotBoolean extends TsSnippet {
     // `enum: [true]` is the literal `true`, as gen-typescript types it; a
     // recursive model's `v.GenericSchema<T>` annotation checks this schema
     // against that type. `enum: [true, false]` says no more than a boolean.
-    const content = this.enums?.length === 1 ? `v.literal(${this.enums[0]})` : 'v.boolean()'
+    // A `null` among the values comes with `nullable`, which
+    // `applyModifiers` renders, as in `toNumberEnum`.
+    const values = this.enums?.filter((value): value is boolean => value !== null)
+
+    const content =
+      values === undefined || values.length > 1
+        ? 'v.boolean()'
+        : values.length === 0
+          ? 'v.null()'
+          : `v.literal(${values[0]})`
 
     return applyModifiers(content, this.modifiers)
   }

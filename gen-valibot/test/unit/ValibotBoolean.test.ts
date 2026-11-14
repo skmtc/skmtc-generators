@@ -73,3 +73,27 @@ Deno.test('ValibotBoolean - both values say no more than a boolean', () => {
 
   assertEquals(valibotBoolean.toString(), 'v.boolean()')
 })
+
+Deno.test('ValibotBoolean - a null among the values leaves it to the nullable modifier', () => {
+  const valibotBoolean = new ValibotBoolean({
+    context: toGenerateContext(),
+    modifiers: { required: true, nullable: true },
+    generatorKey: toGeneratorOnlyKey({ generatorId: '@skmtc/gen-valibot' }),
+    destinationPath: '/test',
+    schema: new OasBoolean({ nullable: true, enums: [true, null] })
+  })
+
+  assertEquals(valibotBoolean.toString(), 'v.nullable(v.literal(true))')
+})
+
+Deno.test('ValibotBoolean - an enum of null alone is null', () => {
+  const valibotBoolean = new ValibotBoolean({
+    context: toGenerateContext(),
+    modifiers: { required: true, nullable: true },
+    generatorKey: toGeneratorOnlyKey({ generatorId: '@skmtc/gen-valibot' }),
+    destinationPath: '/test',
+    schema: new OasBoolean({ nullable: true, enums: [null] })
+  })
+
+  assertEquals(valibotBoolean.toString(), 'v.nullable(v.null())')
+})
