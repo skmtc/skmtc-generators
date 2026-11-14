@@ -25,7 +25,10 @@ import type {
   OasOperationProjectionConstructorArgs,
 } from '@skmtc/core'
 import { toTsOasOperationProjectionBase } from '@skmtc/lang-typescript'
-import { additionalPropertiesDocument } from '@skmtc/test-support'
+import {
+  additionalPropertiesDocument,
+  patternDocument,
+} from '@skmtc/test-support'
 import { assertEquals, assertStringIncludes } from '@std/assert'
 import effectSchemaEntry, { EffectObject } from '../mod.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
@@ -158,7 +161,10 @@ const fixture = {
 
 type GenerateOptions = {
   /** The document, when a test needs one the fixture is not. */
-  document?: typeof fixture | typeof additionalPropertiesDocument
+  document?:
+    | typeof fixture
+    | typeof additionalPropertiesDocument
+    | typeof patternDocument
   /** This generator's `_generator` scope: `defaults`. */
   generator?: EnrichmentSchema['generator']
   /** Run the query-params consumer below alongside, as a route generator would. */
@@ -384,6 +390,37 @@ Deno.test('a record beside properties checks only the keys they do not name', ()
   assertStringIncludes(
     artifacts['schema-effect/dotted.generated.ts'],
     'Schema.isPattern(/^(?!(?:a\\.b)$)/)',
+  )
+})
+
+// The trap: a pattern written for another engine, or one that ends in a
+// backslash, made the file fail to parse, and throwing on it fails the
+// whole run. Its check is left out, with a comment that names it.
+Deno.test('a pattern JavaScript rejects is left out, and a comment names it', () => {
+  const { artifacts, manifest } = generate({ document: patternDocument })
+
+  assertEquals(manifest.parseIssues, [])
+
+  assertStringIncludes(
+    artifacts['schema-effect/url.generated.ts'],
+    'export const Url = Schema.String.check(Schema.isPattern(/^https:\\/\\//));',
+  )
+  assertStringIncludes(
+    artifacts['schema-effect/code.generated.ts'],
+    "export const Code = /**\n * pattern '(?i)abc' is not a JavaScript regex, so it is not checked\n */\nSchema.String;",
+  )
+  assertStringIncludes(
+    artifacts['schema-effect/escape.generated.ts'],
+    "pattern 'abc\\\\' is not a JavaScript regex",
+  )
+  // `*/` in the pattern would end the comment early.
+  assertStringIncludes(
+    artifacts['schema-effect/account.generated.ts'],
+    "pattern '(?i)x*\\/' is not a JavaScript regex",
+  )
+  assertStringIncludes(
+    artifacts['schema-effect/account.generated.ts'],
+    'name: Schema.String.check(Schema.isPattern(/^[a-z/]+$/))',
   )
 })
 

@@ -14,6 +14,7 @@ import {
   awkwardNamesDocument,
   checkGenerated,
   cycleDocument,
+  patternDocument,
   runE2eFixture,
 } from '@skmtc/test-support'
 import { effectSchemaEntry } from '../src/mod.ts'
@@ -128,5 +129,30 @@ Deno.test({
       }),
       [],
     )
+  },
+})
+
+// The trap: a pattern ending in `\` or written for another engine made the
+// file fail to parse; a `*/` in the comment that replaces it would end the
+// comment early. Every file has to compile and load.
+Deno.test({
+  name: 'typecheck - every pattern renders as a literal or a comment, and compiles',
+  ignore: Deno.env.get('TYPECHECK') !== '1',
+  fn: async () => {
+    const { artifacts } = runE2eFixture({
+      id: '@skmtc/gen-effect-schema',
+      entry: effectSchemaEntry,
+      document: patternDocument,
+    })
+
+    assertEquals(Object.keys(artifacts).sort(), [
+      'src/schema-effect/account.generated.ts',
+      'src/schema-effect/code.generated.ts',
+      'src/schema-effect/escape.generated.ts',
+      'src/schema-effect/index.generated.ts',
+      'src/schema-effect/url.generated.ts',
+    ])
+
+    assertEquals(await checkGenerated({ artifacts, imports: { effect: EFFECT } }), [])
   },
 })

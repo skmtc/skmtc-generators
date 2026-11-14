@@ -1,5 +1,9 @@
-import { TsSnippet } from '@skmtc/lang-typescript'
-import { toRegexSource } from './toRegexSource.ts'
+import {
+  toRegExpLiteral,
+  toStringLiteral,
+  TsSnippet,
+  withDescription,
+} from '@skmtc/lang-typescript'
 import type { GenerateContextType, GeneratorKey, OasString } from '@skmtc/core'
 import {
   applyModifiers,
@@ -24,6 +28,8 @@ export class EffectString extends TsSnippet {
   format: string | undefined
   enums: string[] | (string | null)[] | undefined
   checks: EffectChecks
+  /** A `pattern` JavaScript rejects, left unchecked and named in a comment. */
+  skippedPattern: string | undefined
   modifiers: EffectModifiers
 
   constructor(
@@ -62,14 +68,15 @@ export class EffectString extends TsSnippet {
     }
 
     if (stringSchema.pattern) {
-      // A regex literal, so a `/` in the pattern must not end it early.
-      this.checks.values.push(
-        new EffectCheck({
-          context,
-          name: 'isPattern',
-          value: `/${toRegexSource(stringSchema.pattern)}/`,
-        }),
-      )
+      const literal = toPatternLiteral(stringSchema.pattern)
+
+      if (literal === undefined) {
+        this.skippedPattern = stringSchema.pattern
+      } else {
+        this.checks.values.push(
+          new EffectCheck({ context, name: 'isPattern', value: literal }),
+        )
+      }
     }
 
     this.register({
@@ -82,10 +89,39 @@ export class EffectString extends TsSnippet {
     // `format` stays a plain string, as gen-typescript types it: the
     // wire value of a `date-time` or `uri` is a string, and a decoded
     // value the type file does not know about would not match it.
-    const content = this.enums?.length
-      ? toLiterals(this.enums)
-      : `${LIB}.String${this.checks}`
+    if (this.enums?.length) {
+      return applyModifiers(
+        toLiterals(this.enums),
+        withNullMember(this.modifiers, this.enums),
+      )
+    }
 
-    return applyModifiers(content, withNullMember(this.modifiers, this.enums))
+    const content = applyModifiers(`${LIB}.String${this.checks}`, this.modifiers)
+
+    // The trap: a pattern written for another engine (`(?i)`) makes the
+    // whole file fail to parse, and throwing fails the whole run. So the
+    // check is left out, and the comment says which pattern and why.
+    return this.skippedPattern === undefined ? content : withDescription(content, {
+      description: `pattern ${
+        toStringLiteral(this.skippedPattern)
+      } is not a JavaScript regex, so it is not checked`,
+    })
+  }
+}
+
+/**
+ * The pattern as a regex literal, or `undefined` when JavaScript rejects the
+ * pattern. `toRegExpLiteral` lets the engine escape the literal and throws a
+ * `SyntaxError` on an invalid pattern.
+ */
+const toPatternLiteral = (pattern: string): string | undefined => {
+  try {
+    return toRegExpLiteral(pattern)
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      return undefined
+    }
+
+    throw error
   }
 }

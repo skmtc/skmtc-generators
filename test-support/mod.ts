@@ -546,6 +546,33 @@ export const awkwardNamesDocument: OpenAPIV3.Document = {
   }
 }
 
+/**
+ * `pattern` values a generator writes as regex literals: a slash that would
+ * end the literal (Url), a pattern written for another engine (Code, `(?i)`),
+ * one that ends in a backslash (Escape), and on one object an invalid pattern
+ * that holds `*\/` beside a valid one with a slash in a class (Account).
+ */
+export const patternDocument: OpenAPIV3.Document = {
+  openapi: '3.0.3',
+  info: { title: 'Pattern fixture', version: '1.0.0' },
+  paths: {},
+  components: {
+    schemas: {
+      Url: { type: 'string', pattern: '^https://' },
+      Code: { type: 'string', pattern: '(?i)abc' },
+      Escape: { type: 'string', pattern: 'abc\\' },
+      Account: {
+        type: 'object',
+        required: ['code', 'name'],
+        properties: {
+          code: { type: 'string', pattern: '(?i)x*/' },
+          name: { type: 'string', pattern: '^[a-z/]+$' }
+        }
+      }
+    }
+  }
+}
+
 /** A value, and whether a validator of `additionalPropertiesDocument` should accept it. */
 export type AdditionalPropertiesCase = {
   name: string
