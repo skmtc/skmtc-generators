@@ -480,8 +480,9 @@ export const unionDocument: OpenAPIV3.Document = {
  * Objects with `properties` and `additionalProperties` together (#101).
  * `additionalProperties` covers only the keys `properties` does not name:
  * any value beside named keys (Upload, from Sentry's snapshot upload body),
- * a typed record beside named keys of other types (Limits), and a named key
- * that is not a plain word (Dotted), which a key pattern must escape.
+ * a typed record beside named keys of other types (Limits), a named key that
+ * is not a plain word (Dotted), and a model that holds itself in its record
+ * beside a named key (Tree), which a validator defers.
  */
 export const additionalPropertiesDocument: OpenAPIV3.Document = {
   openapi: '3.0.3',
@@ -506,6 +507,12 @@ export const additionalPropertiesDocument: OpenAPIV3.Document = {
         required: ['a.b'],
         properties: { 'a.b': { type: 'string' } },
         additionalProperties: { type: 'number' }
+      },
+      Tree: {
+        type: 'object',
+        required: ['label'],
+        properties: { label: { type: 'string' } },
+        additionalProperties: { $ref: '#/components/schemas/Tree' }
       }
     }
   }
@@ -514,7 +521,7 @@ export const additionalPropertiesDocument: OpenAPIV3.Document = {
 /** A value, and whether a validator of `additionalPropertiesDocument` should accept it. */
 export type AdditionalPropertiesCase = {
   name: string
-  model: 'Upload' | 'Limits' | 'Dotted'
+  model: 'Upload' | 'Limits' | 'Dotted' | 'Tree'
   value: Record<string, unknown>
   accept: boolean
 }
@@ -533,7 +540,10 @@ export const additionalPropertiesCases: AdditionalPropertiesCase[] = [
   { name: 'the required id missing', model: 'Limits', value: { count: 1 }, accept: false },
   { name: 'a dotted key beside number extras', model: 'Dotted', value: { 'a.b': 'x', aXb: 1 }, accept: true },
   // The trap: an unescaped `a.b` pattern matches `aXb`, which then skips the record check.
-  { name: 'an extra key that looks like the dotted key', model: 'Dotted', value: { 'a.b': 'x', aXb: 'no' }, accept: false }
+  { name: 'an extra key that looks like the dotted key', model: 'Dotted', value: { 'a.b': 'x', aXb: 'no' }, accept: false },
+  { name: 'a nested tree as an extra key', model: 'Tree', value: { label: 'root', left: { label: 'leaf' } }, accept: true },
+  { name: 'a nested tree without its label', model: 'Tree', value: { label: 'root', left: { other: {} } }, accept: false },
+  { name: 'an extra key that is not a tree', model: 'Tree', value: { label: 'root', left: 'text' }, accept: false }
 ]
 
 export { checkGenerated } from './checkGenerated.ts'
