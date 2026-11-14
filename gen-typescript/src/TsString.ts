@@ -1,4 +1,4 @@
-import { TsSnippet } from '@skmtc/lang-typescript'
+import { toStringLiteral, TsSnippet } from '@skmtc/lang-typescript'
 import { match, P } from 'ts-pattern'
 import { applyModifiers } from './applyModifiers.ts'
 import { getCustomScalar } from './scalars.ts'
@@ -31,9 +31,12 @@ export class TsString extends TsSnippet {
       .with({ enums: P.array() }, matched => {
         // Enums always win over scalar format mapping — a string with an
         // explicit enum list has a more specific type than its format.
-        return matched.enums.length === 1
-          ? `'${matched.enums[0]}'`
-          : `${matched.enums.map(str => `'${str}'`).join(' | ')}`
+        // Core lists `null` only on a nullable schema, and the nullable
+        // modifier adds `| null`, so the union lists the strings.
+        const members: Array<string | null> = matched.enums
+        const values = members.filter((value): value is string => value !== null)
+
+        return values.length === 0 ? 'null' : values.map(toStringLiteral).join(' | ')
       })
       .with({ format: P.string }, matched => {
         // Look up the scalar map for the given format. Built-in OpenAPI

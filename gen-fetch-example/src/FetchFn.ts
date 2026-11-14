@@ -1,3 +1,4 @@
+import { toStringLiteral } from '@skmtc/lang-typescript'
 import { FetchBase } from './base.ts'
 
 export class FetchFn extends FetchBase {
@@ -7,7 +8,7 @@ export class FetchFn extends FetchBase {
     const baseUrl = subject?.baseUrl ?? generator?.baseUrl ?? ''
 
     return `async () => {
-  const res = await fetch('${baseUrl}${path}', { method: '${method.toUpperCase()}' })
+  const res = await fetch(${toStringLiteral(`${baseUrl}${path}`)}, { method: '${method.toUpperCase()}' })
 
   return res.json()
 }`

@@ -113,7 +113,7 @@ Deno.test("ZodUnion - union with discriminator", () => {
 
   assertEquals(
     zodUnion.toString(),
-    'z.discriminatedUnion("type", [z.object({type: z.literal("cat"), meow: z.boolean()}), z.object({type: z.literal("dog"), bark: z.boolean()})])',
+    "z.discriminatedUnion('type', [z.object({type: z.literal('cat'), meow: z.boolean()}), z.object({type: z.literal('dog'), bark: z.boolean()})])",
   );
 });
 
@@ -150,7 +150,7 @@ Deno.test("ZodUnion - a discriminator with a nullable member renders z.union", (
   assertEquals(
     toPetUnion([toPet({ kind: "cat", nullable: true }), toPet({ kind: "dog" })])
       .toString(),
-    'z.union([z.object({type: z.literal("cat"), cat: z.boolean()}).nullable(), z.object({type: z.literal("dog"), dog: z.boolean()})])',
+    "z.union([z.object({type: z.literal('cat'), cat: z.boolean()}).nullable(), z.object({type: z.literal('dog'), dog: z.boolean()})])",
   );
 });
 
@@ -166,7 +166,7 @@ Deno.test("ZodUnion - a discriminator whose property holds no literal renders z.
 
   assertEquals(
     toPetUnion([plain, toPet({ kind: "dog" })]).toString(),
-    'z.union([z.object({type: z.string()}), z.object({type: z.literal("dog"), dog: z.boolean()})])',
+    "z.union([z.object({type: z.string()}), z.object({type: z.literal('dog'), dog: z.boolean()})])",
   );
 });
 
@@ -179,7 +179,7 @@ Deno.test("ZodUnion - a discriminator with a member holding a record renders z.u
 
   assertEquals(
     toPetUnion([withRecord, toPet({ kind: "dog" })]).toString(),
-    'z.union([z.object({type: z.literal("bag")}).catchall(z.string()), z.object({type: z.literal("dog"), dog: z.boolean()})])',
+    "z.union([z.object({type: z.literal('bag')}).catchall(z.string()), z.object({type: z.literal('dog'), dog: z.boolean()})])",
   );
 });
 
@@ -187,6 +187,6 @@ Deno.test("ZodUnion - a discriminator over enums of several values stays discrim
   assertEquals(
     toPetUnion([toPet({ kind: "cat", kindEnums: ["cat", "kitten"] }), toPet({ kind: "dog" })])
       .toString(),
-    'z.discriminatedUnion("type", [z.object({type: z.enum(["cat", "kitten"]), cat: z.boolean()}), z.object({type: z.literal("dog"), dog: z.boolean()})])',
+    "z.discriminatedUnion('type', [z.object({type: z.enum(['cat', 'kitten']), cat: z.boolean()}), z.object({type: z.literal('dog'), dog: z.boolean()})])",
   );
 });

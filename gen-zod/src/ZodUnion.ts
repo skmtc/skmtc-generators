@@ -1,4 +1,4 @@
-import { TsSnippet } from "@skmtc/lang-typescript";
+import { toStringLiteral, TsSnippet } from "@skmtc/lang-typescript";
 import type { GenerateContextType, GeneratorKey, Modifiers, OasDiscriminator, OasRef, OasSchema, RefName, TypeSystemValue } from '@skmtc/core'
 import { toZodValue } from "./Zod.ts";
 import { applyModifiers } from "./applyModifiers.ts";
@@ -66,7 +66,7 @@ export class ZodUnion extends TsSnippet {
     const members = this.members.map((member) => `${member}`).join(", ");
 
     const content = this.discriminator
-      ? `z.discriminatedUnion("${this.discriminator}", [${members}])`
+      ? `z.discriminatedUnion(${toStringLiteral(this.discriminator)}, [${members}])`
       : `z.union([${members}])`;
 
     return applyModifiers(content, this.modifiers);

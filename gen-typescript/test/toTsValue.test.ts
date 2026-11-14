@@ -74,6 +74,23 @@ Deno.test('toTsValue - string with multiple enum values', () => {
   assertEquals(schemaToTs(schema), "'value1' | 'value2' | 'value3'")
 })
 
+// The trap: a value written into quotes by hand ends the string at its
+// own quote (`it's`), and a `null` member became the type 'null'.
+Deno.test('toTsValue - enum values are escaped, and null is left to nullable', () => {
+  const escaped: OpenAPIV3.SchemaObject = {
+    type: 'string',
+    enum: ["it's", 'a"b', 'a\\b']
+  }
+  assertEquals(schemaToTs(escaped), "'it\\'s' | 'a\"b' | 'a\\\\b'")
+
+  const nullable: OpenAPIV3.SchemaObject = {
+    type: 'string',
+    nullable: true,
+    enum: ['a', null]
+  }
+  assertEquals(schemaToTs(nullable), "'a' | null")
+})
+
 // ============================================================================
 // ARRAY TYPE TESTS
 // ============================================================================

@@ -25,7 +25,7 @@ Deno.test("ZodString - single enum value", () => {
     destinationPath: "/test",
   });
 
-  assertEquals(zodString.toString(), 'z.literal("value1")');
+  assertEquals(zodString.toString(), "z.literal('value1')");
 });
 
 Deno.test("ZodString - multiple enum values", () => {
@@ -40,7 +40,7 @@ Deno.test("ZodString - multiple enum values", () => {
     destinationPath: "/test",
   });
 
-  assertEquals(zodString.toString(), 'z.enum(["val1", "val2", "val3"])');
+  assertEquals(zodString.toString(), "z.enum(['val1', 'val2', 'val3'])");
 });
 
 Deno.test("ZodString - nullable string", () => {
@@ -160,7 +160,7 @@ Deno.test("ZodString - an enum drops its length checks, which z.enum has no meth
     destinationPath: "/test",
   });
 
-  assertEquals(zodString.toString(), 'z.enum(["block", "challenge"]).optional()');
+  assertEquals(zodString.toString(), "z.enum(['block', 'challenge']).optional()");
 });
 
 // Deno.test('ZodString - with date-time format', () => {

@@ -60,7 +60,7 @@ Deno.test("toZodValue - string with single enum value", () => {
     type: "string",
     enum: ["value1"],
   };
-  assertEquals(schemaToZod(schema), 'z.literal("value1")');
+  assertEquals(schemaToZod(schema), "z.literal('value1')");
 });
 
 Deno.test("toZodValue - string with multiple enum values", () => {
@@ -68,7 +68,24 @@ Deno.test("toZodValue - string with multiple enum values", () => {
     type: "string",
     enum: ["value1", "value2", "value3"],
   };
-  assertEquals(schemaToZod(schema), 'z.enum(["value1", "value2", "value3"])');
+  assertEquals(schemaToZod(schema), "z.enum(['value1', 'value2', 'value3'])");
+});
+
+// The trap: a value written into quotes by hand ends the string at its
+// own quote (`it's`), and a `null` member became the string 'null'.
+Deno.test("toZodValue - enum values are escaped, and null is left to nullable", () => {
+  const escaped: OpenAPIV3.SchemaObject = {
+    type: "string",
+    enum: ["it's", 'a"b', "a\\b"],
+  };
+  assertEquals(schemaToZod(escaped), "z.enum(['it\\'s', 'a\"b', 'a\\\\b'])");
+
+  const nullable: OpenAPIV3.SchemaObject = {
+    type: "string",
+    nullable: true,
+    enum: ["a", null],
+  };
+  assertEquals(schemaToZod(nullable), "z.literal('a').nullable()");
 });
 
 // ============================================================================
@@ -269,7 +286,7 @@ Deno.test("toZodValue - union with objects", () => {
   };
   assertEquals(
     schemaToZod(schema),
-    'z.union([z.object({type: z.literal("cat"), meow: z.boolean()}), z.object({type: z.literal("dog"), bark: z.boolean()})])',
+    "z.union([z.object({type: z.literal('cat'), meow: z.boolean()}), z.object({type: z.literal('dog'), bark: z.boolean()})])",
   );
 });
 
