@@ -74,6 +74,41 @@ Deno.test('e2e - additionalProperties becomes an index signature', () => {
   )
 })
 
+// The trap: arktype reads a trailing `?`, `[…]`, `...` and `+` in a key as
+// syntax, so each is escaped with `\`. The typecheck test loads the same
+// keys in arktype.
+Deno.test('e2e - keys arktype reads as syntax are escaped', () => {
+  const document: OpenAPIV3.Document = {
+    openapi: '3.0.3',
+    info: { title: 'Key syntax', version: '1.0.0' },
+    paths: {},
+    components: {
+      schemas: {
+        Syntax: {
+          type: 'object',
+          required: ['foo?', '[x]', '...', '+'],
+          properties: {
+            'foo?': { type: 'string' },
+            '[x]': { type: 'string' },
+            '...': { type: 'string' },
+            '+': { type: 'string' },
+            '[y]': { type: 'string' }
+          }
+        }
+      }
+    }
+  }
+
+  const { artifacts } = runE2eFixture({ id: '@skmtc/gen-arktype', entry: arktypeEntry, document })
+
+  assertEquals(
+    artifacts['src/types/syntax.generated.ts'],
+    `import {type} from 'arktype'\n\nexport const syntax = type(` +
+      String.raw`{ "foo\\?": "string", "\\[x]": "string", "\\...": "string", "\\+": "string", "[y]?": "string" }` +
+      `);\n`
+  )
+})
+
 // The trap: arktype removes a `\` it reads as an escape, so an optional key
 // that ends in `\` and a required key that starts with `\[` have no
 // spelling. Written as they are, arktype requires another key (`a?`,
