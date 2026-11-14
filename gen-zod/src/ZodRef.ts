@@ -20,6 +20,12 @@ export class ZodRef extends TsSnippet {
   name: string;
   /** A reference inside a cycle, which a getter or `z.lazy` above defers (see `isDeferred`). */
   deferred: boolean;
+  /**
+   * The model's `literalKeys` (see `isDiscriminable`). None when the
+   * reference is nullable, and not known yet for a reference back, whose
+   * model is still being built.
+   */
+  literalKeys: string[] | undefined;
   constructor(
     { context, refName, destinationPath, modifiers, rootRef, schema }:
       ConstructorProps,
@@ -51,6 +57,12 @@ export class ZodRef extends TsSnippet {
     this.name = ref.settings.identifier.name;
     this.modifiers = modifiers;
     this.deferred = ref.suspended || ref.inCycle;
+
+    this.literalKeys = ref.suspended
+      ? undefined
+      : modifiers.nullable
+      ? []
+      : ref.definition.value.literalKeys;
   }
 
   override toString(): string {

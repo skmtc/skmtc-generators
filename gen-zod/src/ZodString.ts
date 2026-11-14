@@ -17,6 +17,8 @@ export class ZodString extends TsSnippet {
   enums: string[] | (string | null)[] | undefined;
   constraints: List<ZodConstraint[]>;
   modifiers: Modifiers;
+  /** Renders `z.literal` or `z.enum` (see `isLiteral`). */
+  literal: boolean;
   constructor(
     { context, stringSchema, generatorKey, destinationPath, modifiers }:
       ZodStringArgs,
@@ -24,6 +26,7 @@ export class ZodString extends TsSnippet {
     super({ context, generatorKey, stackTrail: stringSchema.stackTrail.clone() });
 
     this.enums = stringSchema.enums;
+    this.literal = Array.isArray(this.enums) && this.enums.length > 0;
     this.format = stringSchema.format;
     this.constraints = new List<ZodConstraint[]>([], {
       skipEmpty: true,

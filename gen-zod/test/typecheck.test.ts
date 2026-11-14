@@ -8,7 +8,7 @@
  * the default test task does not grant.
  */
 import { assertEquals } from "@std/assert";
-import { checkGenerated, cycleDocument, runE2eFixture } from "@skmtc/test-support";
+import { checkGenerated, cycleDocument, runE2eFixture, unionDocument } from "@skmtc/test-support";
 import { zodEntry } from "../src/mod.ts";
 
 /** The zod the output is checked against: getters need zod 4. */
@@ -26,6 +26,24 @@ Deno.test({
 
     // A failed run renders no files, and nothing then fails the check.
     assertEquals(Object.keys(artifacts).length, 11);
+
+    assertEquals(await checkGenerated({ artifacts, imports: { zod: ZOD } }), []);
+  },
+});
+
+Deno.test({
+  name: "typecheck - every discriminated union compiles against zod and loads first",
+  ignore: Deno.env.get("TYPECHECK") !== "1",
+  fn: async () => {
+    const { artifacts } = runE2eFixture({
+      id: "@skmtc/gen-zod",
+      entry: zodEntry,
+      document: unionDocument,
+    });
+
+    // Each model has a schema, and the models of a z.lazy cycle a
+    // gen-typescript type each, in the same file.
+    assertEquals(Object.keys(artifacts).length, 15);
 
     assertEquals(await checkGenerated({ artifacts, imports: { zod: ZOD } }), []);
   },

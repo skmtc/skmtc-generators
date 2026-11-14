@@ -4,6 +4,7 @@ import { TsProjection } from '@skmtc/gen-typescript'
 import { toZodValue } from "./Zod.ts";
 import { ZodBase } from "./base.ts";
 import { isDeferred } from "./deferred.ts";
+import { toLiteralKeys } from "./discriminated.ts";
 import type { EnrichmentSchema } from "./enrichments.ts";
 
 type ConstructorArgs = {
@@ -18,6 +19,8 @@ export class ZodProjection extends ZodBase {
   value: TypeSystemValue;
   /** Renders `z.lazy(() => …)`: the value holds a reference inside a cycle that no getter defers. */
   lazy: boolean;
+  /** The value's `literalKeys` (see `isDiscriminable`); none for a `z.lazy` model, which zod 4 does not take as an option. */
+  literalKeys: string[];
   constructor(
     { context, refName, settings, destinationPath, rootRef }: ConstructorArgs,
   ) {
@@ -41,6 +44,7 @@ export class ZodProjection extends ZodBase {
     // `z.ZodType<T>` breaks the cycle, with T gen-typescript's type for the
     // model, imported into this file unless the two share it.
     this.lazy = isDeferred(this.value);
+    this.literalKeys = this.lazy ? [] : toLiteralKeys(this.value);
 
     if (this.lazy) {
       const type = context.insertModel(TsProjection, refName, {

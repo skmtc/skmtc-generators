@@ -23,6 +23,8 @@ export class ValibotRef extends TsSnippet {
   destinationPath: string
   rootRef?: RefName
   terminal: boolean
+  /** The model's `variantKeys` (see `isVariantOption`); none for a `v.lazy` or nullable reference. */
+  variantKeys: string[]
 
   constructor({
     context,
@@ -58,6 +60,7 @@ export class ValibotRef extends TsSnippet {
 
     this.name = ref.settings.identifier.name
     this.terminal = ref.suspended || ref.inCycle
+    this.variantKeys = ref.suspended || ref.inCycle || modifiers.nullable ? [] : ref.definition.value.variantKeys
   }
 
   override toString(): string {

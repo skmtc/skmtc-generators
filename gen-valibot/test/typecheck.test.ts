@@ -8,7 +8,7 @@
  * the default test task does not grant.
  */
 import { assertEquals } from '@std/assert'
-import { checkGenerated, cycleDocument, runE2eFixture } from '@skmtc/test-support'
+import { checkGenerated, cycleDocument, runE2eFixture, unionDocument } from '@skmtc/test-support'
 import { valibotEntry } from '../src/mod.ts'
 
 /** The valibot the output is checked against, the workspace's pin. */
@@ -26,6 +26,22 @@ Deno.test({
 
     // A failed run renders no files, and nothing then fails the check.
     assertEquals(Object.keys(artifacts).length, 11)
+
+    assertEquals(await checkGenerated({ artifacts, imports: { valibot: VALIBOT } }), [])
+  }
+})
+
+Deno.test({
+  name: 'typecheck - every discriminated union compiles against valibot and loads first',
+  ignore: Deno.env.get('TYPECHECK') !== '1',
+  fn: async () => {
+    const { artifacts } = runE2eFixture({
+      id: '@skmtc/gen-valibot',
+      entry: valibotEntry,
+      document: unionDocument
+    })
+
+    assertEquals(Object.keys(artifacts).length, 15)
 
     assertEquals(await checkGenerated({ artifacts, imports: { valibot: VALIBOT } }), [])
   }

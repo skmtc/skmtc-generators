@@ -18,7 +18,10 @@ zod 3 cannot type.
 - **Additional properties**: Record types (`z.record()`), mixed with regular
   properties using `.and()`
 - **Arrays**: Typed arrays, nested arrays, arrays of objects
-- **Unions**: Simple unions and discriminated unions (`z.discriminatedUnion()`)
+- **Unions**: Simple unions and discriminated unions (`z.discriminatedUnion()`).
+  A union with a discriminator is `z.union()` when one of its members is
+  nullable, has additional properties, is not an object, or has no literal
+  value for the discriminator property. zod 4 does not accept those members.
 - **References**: Schema references. A property that holds a reference inside
   a cycle is a getter. A model with no property on the way, such as a union
   that holds itself, is `z.lazy()`, typed with gen-typescript's type.

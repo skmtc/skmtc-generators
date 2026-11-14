@@ -5,6 +5,7 @@ import { TsProjection } from '@skmtc/gen-typescript'
 import { toValibotValue } from './Valibot.ts'
 import { ValibotBase } from './base.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
+import { toVariantKeys } from './variant.ts'
 
 type ConstructorArgs = {
   context: GenerateContextType
@@ -16,6 +17,8 @@ type ConstructorArgs = {
 
 export class ValibotProjection extends ValibotBase {
   value: TypeSystemValue
+  /** The value's `variantKeys` (see `isVariantOption`); none for a model typed `v.GenericSchema<T>`. */
+  variantKeys: string[]
   constructor({ context, refName, settings, destinationPath, rootRef }: ConstructorArgs) {
     super({ context, refName, settings })
 
@@ -36,7 +39,9 @@ export class ValibotProjection extends ValibotBase {
     // so annotating it `v.GenericSchema<T>` breaks every one, with T
     // gen-typescript's type for the model, imported into this file unless
     // the two share it.
-    if (isReferencedBack({ context, settings })) {
+    const recursive = isReferencedBack({ context, settings })
+
+    if (recursive) {
       const type = context.insertModel(TsProjection, refName, {
         variant: 'main',
         destinationPath
@@ -44,6 +49,8 @@ export class ValibotProjection extends ValibotBase {
 
       this.settings.identifier.typeName = `v.GenericSchema<${type.toName()}>`
     }
+
+    this.variantKeys = recursive ? [] : toVariantKeys(this.value)
   }
 
   static schemaToValueFn = (...args: Parameters<typeof toValibotValue>) => {

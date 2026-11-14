@@ -395,4 +395,85 @@ export const cycleDocument: OpenAPIV3.Document = {
   }
 }
 
+const toKind = (kind: string): OpenAPIV3.SchemaObject => ({ type: 'string', enum: [kind] })
+
+/**
+ * Discriminated unions whose members a validator's discriminated form may
+ * not take: members that can (Pet), a nullable member (EnvVar, from
+ * Cloudflare's `pages_env_vars`), a key with no literal value (Item, from
+ * Cloudflare's `mcn_list_item`), a union inside a cycle (Shape, Group), and
+ * a member that is recursive on its own (Tree, Branch).
+ */
+export const unionDocument: OpenAPIV3.Document = {
+  openapi: '3.0.3',
+  info: { title: 'Union fixture', version: '1.0.0' },
+  paths: {},
+  components: {
+    schemas: {
+      Pet: {
+        oneOf: [{ $ref: '#/components/schemas/Cat' }, { $ref: '#/components/schemas/Dog' }],
+        discriminator: { propertyName: 'type' }
+      },
+      Cat: { type: 'object', required: ['type'], properties: { type: toKind('cat'), meows: { type: 'boolean' } } },
+      Dog: { type: 'object', required: ['type'], properties: { type: toKind('dog'), barks: { type: 'boolean' } } },
+      EnvVar: {
+        oneOf: [{ $ref: '#/components/schemas/PlainText' }, { $ref: '#/components/schemas/SecretText' }],
+        discriminator: { propertyName: 'type' }
+      },
+      PlainText: {
+        type: 'object',
+        nullable: true,
+        required: ['type', 'value'],
+        properties: { type: toKind('plain_text'), value: { type: 'string' } }
+      },
+      SecretText: {
+        type: 'object',
+        required: ['type', 'value'],
+        properties: { type: toKind('secret_text'), value: { type: 'string' } }
+      },
+      Item: {
+        oneOf: [{ $ref: '#/components/schemas/Link' }, { $ref: '#/components/schemas/Note' }],
+        discriminator: {
+          propertyName: 'item_type',
+          mapping: { link: '#/components/schemas/Link', note: '#/components/schemas/Note' }
+        }
+      },
+      Link: {
+        type: 'object',
+        required: ['item_type', 'href'],
+        properties: { item_type: { type: 'string' }, href: { type: 'string' } }
+      },
+      Note: {
+        type: 'object',
+        required: ['item_type', 'text'],
+        properties: { item_type: { type: 'string' }, text: { type: 'string' } }
+      },
+      Shape: {
+        oneOf: [{ $ref: '#/components/schemas/Circle' }, { $ref: '#/components/schemas/Group' }],
+        discriminator: { propertyName: 'kind' }
+      },
+      Circle: {
+        type: 'object',
+        required: ['kind', 'radius'],
+        properties: { kind: toKind('circle'), radius: { type: 'number' } }
+      },
+      Group: {
+        type: 'object',
+        required: ['kind', 'children'],
+        properties: { kind: toKind('group'), children: { type: 'array', items: { $ref: '#/components/schemas/Shape' } } }
+      },
+      Tree: {
+        oneOf: [{ $ref: '#/components/schemas/Leaf' }, { $ref: '#/components/schemas/Branch' }],
+        discriminator: { propertyName: 'kind' }
+      },
+      Leaf: { type: 'object', required: ['kind'], properties: { kind: toKind('leaf'), value: { type: 'string' } } },
+      Branch: {
+        type: 'object',
+        required: ['kind', 'branches'],
+        properties: { kind: toKind('branch'), branches: { type: 'array', items: { $ref: '#/components/schemas/Branch' } } }
+      }
+    }
+  }
+}
+
 export { checkGenerated } from './checkGenerated.ts'

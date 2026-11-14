@@ -17,6 +17,8 @@ export class ZodInteger extends TsSnippet {
   format?: "int32" | "int64";
   enums?: number[] | (number | null)[];
   constraints: List<ZodConstraint[]>;
+  /** Renders `z.literal` or a union of them (see `isLiteral`). */
+  literal: boolean;
   constructor(
     { context, schema, modifiers, destinationPath, generatorKey }:
       ZodIntegerArgs,
@@ -25,6 +27,7 @@ export class ZodInteger extends TsSnippet {
 
     this.format = schema.format;
     this.enums = schema.enums;
+    this.literal = Array.isArray(this.enums) && this.enums.length > 0;
     this.modifiers = modifiers;
 
     this.constraints = new List<ZodConstraint[]>([], {

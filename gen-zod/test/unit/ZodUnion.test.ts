@@ -116,3 +116,77 @@ Deno.test("ZodUnion - union with discriminator", () => {
     'z.discriminatedUnion("type", [z.object({type: z.literal("cat"), meow: z.boolean()}), z.object({type: z.literal("dog"), bark: z.boolean()})])',
   );
 });
+
+const toPet = (
+  { kind, nullable, kindEnums }: {
+    kind: string;
+    nullable?: boolean;
+    kindEnums?: string[];
+  },
+) =>
+  new OasObject({
+    nullable,
+    properties: {
+      type: new OasString({ enums: kindEnums ?? [kind], format: undefined }),
+      [kind]: new OasBoolean(),
+    },
+    required: ["type", kind],
+    additionalProperties: undefined,
+  });
+
+const toPetUnion = (members: OasObject[]) =>
+  new ZodUnion({
+    context: toGenerateContext(),
+    members,
+    discriminator: new OasDiscriminator({ propertyName: "type" }),
+    modifiers: { required: true },
+    generatorKey: toGeneratorOnlyKey({ generatorId: "@skmtc/gen-zod" }),
+    destinationPath: "/test",
+  });
+
+// zod 4 types z.discriminatedUnion's options as objects: `.nullable()` on
+// one fails to type-check (TS2322, Cloudflare's `pages_env_vars`).
+Deno.test("ZodUnion - a discriminator with a nullable member renders z.union", () => {
+  assertEquals(
+    toPetUnion([toPet({ kind: "cat", nullable: true }), toPet({ kind: "dog" })])
+      .toString(),
+    'z.union([z.object({type: z.literal("cat"), cat: z.boolean()}).nullable(), z.object({type: z.literal("dog"), dog: z.boolean()})])',
+  );
+});
+
+// zod 4 reads each option's literal values for the key when it first
+// parses, and throws "Invalid discriminated union option" when one has none
+// (seven of Cloudflare's discriminated unions).
+Deno.test("ZodUnion - a discriminator whose property holds no literal renders z.union", () => {
+  const plain = new OasObject({
+    properties: { type: new OasString({ enums: undefined, format: undefined }) },
+    required: ["type"],
+    additionalProperties: undefined,
+  });
+
+  assertEquals(
+    toPetUnion([plain, toPet({ kind: "dog" })]).toString(),
+    'z.union([z.object({type: z.string()}), z.object({type: z.literal("dog"), dog: z.boolean()})])',
+  );
+});
+
+Deno.test("ZodUnion - a discriminator with a member holding a record renders z.union", () => {
+  const withRecord = new OasObject({
+    properties: { type: new OasString({ enums: ["bag"], format: undefined }) },
+    required: ["type"],
+    additionalProperties: new OasString({ enums: undefined, format: undefined }),
+  });
+
+  assertEquals(
+    toPetUnion([withRecord, toPet({ kind: "dog" })]).toString(),
+    'z.union([z.object({type: z.literal("bag")}).and(z.record(z.string(), z.string())), z.object({type: z.literal("dog"), dog: z.boolean()})])',
+  );
+});
+
+Deno.test("ZodUnion - a discriminator over enums of several values stays discriminated", () => {
+  assertEquals(
+    toPetUnion([toPet({ kind: "cat", kindEnums: ["cat", "kitten"] }), toPet({ kind: "dog" })])
+      .toString(),
+    'z.discriminatedUnion("type", [z.object({type: z.enum(["cat", "kitten"]), cat: z.boolean()}), z.object({type: z.literal("dog"), dog: z.boolean()})])',
+  );
+});
