@@ -87,9 +87,11 @@ jobs:
     # definition parser is type-level — so `deno check` over the emitted files
     # is what proves they are valid. gen-zod, gen-valibot and gen-effect-schema
     # compile their cycles and load each file first, which is where a cycle
-    # read too early throws. Opt-in because it needs write/run/net.
+    # read too early throws. gen-typescript type-checks a consumer that reads
+    # its open objects (properties plus additionalProperties). Opt-in because
+    # it needs write/run/net.
     - name: Typecheck generated output for ${{ matrix.generator }}
-      if: contains(fromJSON('["gen-arktype", "gen-zod", "gen-valibot", "gen-effect-schema"]'), matrix.generator)
+      if: contains(fromJSON('["gen-arktype", "gen-zod", "gen-valibot", "gen-effect-schema", "gen-typescript"]'), matrix.generator)
       working-directory: ${{ matrix.generator }}
       run: deno task test:typecheck
 

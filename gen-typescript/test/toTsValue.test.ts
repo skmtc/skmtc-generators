@@ -171,7 +171,7 @@ Deno.test('toTsValue - object with properties and additionalProperties', () => {
     required: ['id'],
     additionalProperties: { type: 'number' }
   }
-  assertEquals(schemaToTs(schema), '{id: string} | {[key: string]: number}')
+  assertEquals(schemaToTs(schema), '{id: string, [key: string]: number | string}')
 })
 
 Deno.test('toTsValue - nested object', () => {

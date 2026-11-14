@@ -77,12 +77,39 @@ Deno.test('TsObject - object with additionalProperties', () => {
   assertEquals(tsObject.toString(), '{[key: string]: string}')
 })
 
-Deno.test('TsObject - object with properties and additionalProperties', () => {
+// The trap: `{app_id: string} | {[key: string]: unknown}` compiles, but an
+// index into a union reads through both members, so `body.app_id` is
+// `unknown`. The record goes into the object as an index signature instead.
+Deno.test('TsObject - an open object keeps each named property readable as its own type', () => {
   const oasObject = new OasObject({
     properties: {
-      id: new OasString()
+      app_id: new OasString()
     },
-    required: ['id'],
+    required: ['app_id'],
+    additionalProperties: true
+  })
+
+  const tsObject = new TsObject({
+    context: toGenerateContext(),
+    destinationPath: '/test',
+    value: oasObject,
+    modifiers: { required: true },
+    generatorKey: toGeneratorOnlyKey({ generatorId: '@skmtc/gen-typescript' })
+  })
+
+  assertEquals(tsObject.toString(), '{app_id: string, [key: string]: unknown}')
+})
+
+// The trap: `{id: string, [key: string]: number}` fails with TS2411, because
+// every named property must fit the index type. Two properties of one type
+// name it once.
+Deno.test('TsObject - a typed record takes in the type of each named property', () => {
+  const oasObject = new OasObject({
+    properties: {
+      id: new OasString(),
+      name: new OasString()
+    },
+    required: ['id', 'name'],
     additionalProperties: new OasNumber()
   })
 
@@ -94,7 +121,33 @@ Deno.test('TsObject - object with properties and additionalProperties', () => {
     generatorKey: toGeneratorOnlyKey({ generatorId: '@skmtc/gen-typescript' })
   })
 
-  assertEquals(tsObject.toString(), '{id: string} | {[key: string]: number}')
+  assertEquals(tsObject.toString(), '{id: string, name: string, [key: string]: number | string}')
+})
+
+// The trap: an optional property has the type `T | undefined`, so the index
+// type must take in `undefined` too, or TS2411 fires on `age`.
+Deno.test('TsObject - a typed record takes in undefined from an optional property', () => {
+  const oasObject = new OasObject({
+    properties: {
+      id: new OasString(),
+      age: new OasNumber()
+    },
+    required: ['id'],
+    additionalProperties: new OasString()
+  })
+
+  const tsObject = new TsObject({
+    context: toGenerateContext(),
+    destinationPath: '/test',
+    value: oasObject,
+    modifiers: { required: true },
+    generatorKey: toGeneratorOnlyKey({ generatorId: '@skmtc/gen-typescript' })
+  })
+
+  assertEquals(
+    tsObject.toString(),
+    '{id: string, age?: number | undefined, [key: string]: string | number | undefined}'
+  )
 })
 
 Deno.test('TsObject - nullable object', () => {
