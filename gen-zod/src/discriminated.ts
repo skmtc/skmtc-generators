@@ -19,9 +19,8 @@ export const toLiteralKeys = (value: unknown): string[] =>
 /**
  * Whether `z.discriminatedUnion` can take a value as an option switched on
  * `key`. zod 4 takes only objects there, and reads each option's literal
- * values for the key when it first parses. A nullable object, an object
- * with a record beside its properties (`.and(…)`) and any other value fail
- * to type-check, and an object whose `key` holds no literal throws at that
+ * values for the key when it first parses. A nullable object and any other
+ * value fail to type-check, and an object whose `key` holds no literal throws at that
  * first parse. A reference back passes: its model is still being built, so
  * nothing says yet that it cannot.
  */
