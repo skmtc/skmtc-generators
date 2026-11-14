@@ -13,9 +13,6 @@ import { ArktypeUnknown } from './ArktypeUnknown.ts'
 import { applyValueModifiers } from './applyModifiers.ts'
 import { type ArktypeValue, toArktypeValue } from './Arktype.ts'
 
-/** A character that a regular expression reads as syntax. */
-const REGEX_SYNTAX = /[.*+?^${}()|[\]\\/]/g
-
 type ArktypeObjectArgs = {
   context: GenerateContextType
   objectSchema: OasObject
@@ -36,8 +33,6 @@ export class ArktypeObject extends TsSnippet {
   atomicStringSyntax = undefined
   properties: Record<string, ArktypeValue>
   additionalProperties: ArktypeValue | undefined
-  /** The index signature's key, quoted for the object literal. */
-  indexKey: string
   required: string[]
 
   constructor({
@@ -77,20 +72,6 @@ export class ArktypeObject extends TsSnippet {
           })
       : undefined
 
-    // `additionalProperties` covers only the keys `properties` does not
-    // name, but arktype checks a `[string]` index signature against every
-    // key: a typed record beside named keys of other types failed to parse
-    // ("Intersection at id of string and number results in an unsatisfiable
-    // type", #101). Beside named keys, the key is a pattern that is none of
-    // them, each escaped (`a.b` → `a\.b`).
-    const namedKeys = Object.keys(this.properties)
-
-    this.indexKey = JSON.stringify(
-      namedKeys.length === 0
-        ? '[string]'
-        : `[/^(?!(?:${namedKeys.map(key => key.replace(REGEX_SYNTAX, '\\$&')).join('|')})$)/]`
-    )
-
     // Set for the core `TypeSystemObject` contract; this generator composes
     // through `properties` / `additionalProperties` instead.
     this.recordProperties = null
@@ -111,7 +92,7 @@ export class ArktypeObject extends TsSnippet {
       // An index signature, which composes inside the same literal — unlike
       // `Record<…>`, which only exists in string syntax and so cannot hold an
       // object or a ref.
-      entries.push(`${this.indexKey}: ${this.additionalProperties}`)
+      entries.push(`"[string]": ${this.additionalProperties}`)
     }
 
     const literal = entries.length ? `{ ${entries.join(', ')} }` : '{}'

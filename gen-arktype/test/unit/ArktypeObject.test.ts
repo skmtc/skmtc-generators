@@ -90,7 +90,7 @@ Deno.test('ArktypeObject - object with properties and additionalProperties', () 
     destinationPath: '/test'
   })
 
-  assertEquals(arktypeObject.toString(), '{ name: "string", "[/^(?!(?:name)$)/]": "number" }')
+  assertEquals(arktypeObject.toString(), '{ name: "string", "[string]": "number" }')
 })
 
 Deno.test('ArktypeObject - nullable object', () => {

@@ -64,7 +64,6 @@ export class EffectObject extends TsSnippet {
         generatorKey,
         destinationPath,
         schema: additionalProperties,
-        namedKeys: hasProperties ? Object.keys(properties) : [],
         rootRef,
         coerce,
       })
@@ -95,8 +94,7 @@ export class EffectObject extends TsSnippet {
     const { objectProperties, recordProperties } = this
 
     // Properties plus additionalProperties: the struct with an index
-    // signature. The record's key leaves out the named keys (see
-    // EffectRecordKey), so it checks only the other keys.
+    // signature, which is what gen-typescript emits for the same schema.
     if (objectProperties && recordProperties) {
       return applyModifiers(
         `${LIB}.StructWithRest(${objectProperties}, [${recordProperties}])`,
@@ -190,30 +188,18 @@ type EffectRecordArgs = {
   destinationPath: string
   schema: true | OasSchema | OasRef<'schema'>
   generatorKey: GeneratorKey
-  /** The keys `properties` names beside the record, which the record must not check. */
-  namedKeys: string[]
   rootRef?: RefName
   coerce?: boolean
 }
 
 class EffectRecord extends TsSnippet {
-  key: EffectRecordKey
   value: TypeSystemValue
 
   constructor(
-    {
-      context,
-      generatorKey,
-      destinationPath,
-      schema,
-      namedKeys,
-      rootRef,
-      coerce = false,
-    }: EffectRecordArgs,
+    { context, generatorKey, destinationPath, schema, rootRef, coerce = false }:
+      EffectRecordArgs,
   ) {
     super({ context, generatorKey })
-
-    this.key = new EffectRecordKey({ context, generatorKey, namedKeys })
 
     // additionalProperties: true (or an empty schema) means untyped
     // values — route to the unknown fallback, never throw.
@@ -230,40 +216,6 @@ class EffectRecord extends TsSnippet {
   }
 
   override toString(): string {
-    return `${LIB}.Record(${this.key}, ${this.value})`
-  }
-}
-
-type EffectRecordKeyArgs = {
-  context: GenerateContextType
-  generatorKey: GeneratorKey
-  namedKeys: string[]
-}
-
-/** A character that a regular expression literal reads as syntax. */
-const REGEX_SYNTAX = /[.*+?^${}()|[\]\\/]/g
-
-/**
- * The key schema of a record. `additionalProperties` covers only the keys
- * `properties` does not name, but `Schema.Record` beside a struct checks
- * every key, so a typed record rejected the named ones (#101). Beside
- * named keys, the key is a string that is none of them.
- */
-class EffectRecordKey extends TsSnippet {
-  namedKeys: string[]
-  /** The named keys as one alternation, each escaped (`a.b` → `a\.b`). */
-  alternation: string
-
-  constructor({ context, generatorKey, namedKeys }: EffectRecordKeyArgs) {
-    super({ context, generatorKey })
-
-    this.namedKeys = namedKeys
-    this.alternation = namedKeys.map(key => key.replace(REGEX_SYNTAX, '\\$&')).join('|')
-  }
-
-  override toString(): string {
-    return this.namedKeys.length === 0
-      ? `${LIB}.String`
-      : `${LIB}.String.check(${LIB}.isPattern(/^(?!(?:${this.alternation})$)/))`
+    return `${LIB}.Record(${LIB}.String, ${this.value})`
   }
 }
