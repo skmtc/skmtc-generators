@@ -195,15 +195,15 @@ class TsIndexSignature extends SnippetBase {
     // TypeScript rejects a property that the index type does not accept
     // (TS2411), so `{id: string, [key: string]: number}` does not compile.
     // `unknown` already accepts every property.
-    const members = value instanceof TsUnknown ? [value] : [value, ...propertyValues]
-
-    // Two properties of one type would name it twice in the union.
-    this.valueTypes = members.filter(
-      (member, index) => members.findIndex(other => `${other}` === `${member}`) === index
-    )
+    // A type can repeat (`number | string | string`): a repeat is valid and
+    // means the same type, and removing it would mean rendering each member
+    // to compare them before render.
+    this.valueTypes = value instanceof TsUnknown ? [value] : [value, ...propertyValues]
   }
 
   override toString(): string {
-    return `[key: string]: ${this.valueTypes.join(' | ')}`
+    const valueType = this.valueTypes.map(valueType => `${valueType}`).join(' | ')
+
+    return `[key: string]: ${valueType}`
   }
 }

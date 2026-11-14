@@ -101,8 +101,8 @@ Deno.test('TsObject - an open object keeps each named property readable as its o
 })
 
 // The trap: `{id: string, [key: string]: number}` fails with TS2411, because
-// every named property must fit the index type. Two properties of one type
-// name it once.
+// every named property must fit the index type. A type shared by two
+// properties repeats, which TypeScript reads as the same type.
 Deno.test('TsObject - a typed record takes in the type of each named property', () => {
   const oasObject = new OasObject({
     properties: {
@@ -121,7 +121,10 @@ Deno.test('TsObject - a typed record takes in the type of each named property', 
     generatorKey: toGeneratorOnlyKey({ generatorId: '@skmtc/gen-typescript' })
   })
 
-  assertEquals(tsObject.toString(), '{id: string, name: string, [key: string]: number | string}')
+  assertEquals(
+    tsObject.toString(),
+    '{id: string, name: string, [key: string]: number | string | string}'
+  )
 })
 
 // The trap: an optional property has the type `T | undefined`, so the index
@@ -146,7 +149,7 @@ Deno.test('TsObject - a typed record takes in undefined from an optional propert
 
   assertEquals(
     tsObject.toString(),
-    '{id: string, age?: number | undefined, [key: string]: string | number | undefined}'
+    '{id: string, age?: number | undefined, [key: string]: string | string | number | undefined}'
   )
 })
 
