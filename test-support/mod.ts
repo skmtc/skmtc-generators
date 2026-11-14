@@ -549,8 +549,10 @@ export const awkwardNamesDocument: OpenAPIV3.Document = {
 /**
  * `pattern` values a generator writes as regex literals: a slash that would
  * end the literal (Url), a pattern written for another engine (Code, `(?i)`),
- * one that ends in a backslash (Escape), and on one object an invalid pattern
- * that holds `*\/` beside a valid one with a slash in a class (Account).
+ * one that ends in a backslash (Escape), one that means letters only under
+ * the `u` flag (Letters), one valid only without it (Dash), and on one object
+ * an invalid pattern that holds `*\/` beside a valid one with a slash in a
+ * class (Account).
  */
 export const patternDocument: OpenAPIV3.Document = {
   openapi: '3.0.3',
@@ -561,6 +563,8 @@ export const patternDocument: OpenAPIV3.Document = {
       Url: { type: 'string', pattern: '^https://' },
       Code: { type: 'string', pattern: '(?i)abc' },
       Escape: { type: 'string', pattern: 'abc\\' },
+      Letters: { type: 'string', pattern: '^\\p{L}+$' },
+      Dash: { type: 'string', pattern: '^a\\-b$' },
       Account: {
         type: 'object',
         required: ['code', 'name'],

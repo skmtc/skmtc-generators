@@ -96,6 +96,10 @@ Deno.test('toTsValue - enum values are escaped, and null is left to nullable', (
     enum: [null]
   }
   assertEquals(schemaToTs(onlyNull), 'null | null')
+
+  // The trap: an empty list, with no `null` in it, must not accept null.
+  const empty: OpenAPIV3.SchemaObject = { type: 'string', enum: [] }
+  assertEquals(schemaToTs(empty), 'never')
 })
 
 // ============================================================================

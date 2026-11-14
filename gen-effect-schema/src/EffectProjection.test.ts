@@ -28,6 +28,7 @@ import { toTsOasOperationProjectionBase } from '@skmtc/lang-typescript'
 import {
   additionalPropertiesDocument,
   patternDocument,
+  toResultTypes,
 } from '@skmtc/test-support'
 import { assertEquals, assertStringIncludes } from '@std/assert'
 import effectSchemaEntry, { EffectObject } from '../mod.ts'
@@ -400,10 +401,26 @@ Deno.test('a pattern JavaScript rejects is left out, and a comment names it', ()
   const { artifacts, manifest } = generate({ document: patternDocument })
 
   assertEquals(manifest.parseIssues, [])
+  // Code, Escape and Account: each skipped pattern warns, and the run goes on.
+  assertEquals(
+    toResultTypes(manifest.results).filter((result) => result === 'warning')
+      .length,
+    3,
+  )
 
   assertStringIncludes(
     artifacts['schema-effect/url.generated.ts'],
-    'export const Url = Schema.String.check(Schema.isPattern(/^https:\\/\\//));',
+    'export const Url = Schema.String.check(Schema.isPattern(/^https:\\/\\//u));',
+  )
+  // The trap: without `u`, `\p{L}` matches the text `p{L}`, not a letter.
+  assertStringIncludes(
+    artifacts['schema-effect/letters.generated.ts'],
+    'Schema.isPattern(/^\\p{L}+$/u)',
+  )
+  // Valid only without `u` (`\-` outside a class), so it falls back.
+  assertStringIncludes(
+    artifacts['schema-effect/dash.generated.ts'],
+    'Schema.isPattern(/^a\\-b$/)',
   )
   assertStringIncludes(
     artifacts['schema-effect/code.generated.ts'],
@@ -420,7 +437,7 @@ Deno.test('a pattern JavaScript rejects is left out, and a comment names it', ()
   )
   assertStringIncludes(
     artifacts['schema-effect/account.generated.ts'],
-    'name: Schema.String.check(Schema.isPattern(/^[a-z/]+$/))',
+    'name: Schema.String.check(Schema.isPattern(/^[a-z/]+$/u))',
   )
 })
 

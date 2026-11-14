@@ -202,7 +202,13 @@ type EffectRecordArgs = {
 }
 
 class EffectRecord extends TsSnippet {
-  key: EffectRecordKey
+  /**
+   * The regex literal for "any string except the named keys", or
+   * `undefined` for a plain string key. `additionalProperties` covers only
+   * the keys `properties` does not name, but `Schema.Record` beside a struct
+   * checks every key, so a typed record rejected the named ones (#101).
+   */
+  keyPattern: string | undefined
   value: TypeSystemValue
 
   constructor(
@@ -224,7 +230,9 @@ class EffectRecord extends TsSnippet {
 
     // An untyped record accepts the named keys' values too, so it needs no
     // pattern: the plain string key renders as before.
-    this.key = new EffectRecordKey({ context, generatorKey, namedKeys: untyped ? [] : namedKeys })
+    this.keyPattern = untyped || namedKeys.length === 0
+      ? undefined
+      : toRegExpLiteral(toAnyStringExceptPattern({ names: namedKeys }))
 
     this.value = untyped
       ? new EffectUnknown({ context, destinationPath, generatorKey })
@@ -239,37 +247,10 @@ class EffectRecord extends TsSnippet {
   }
 
   override toString(): string {
-    return `${LIB}.Record(${this.key}, ${this.value})`
-  }
-}
-
-type EffectRecordKeyArgs = {
-  context: GenerateContextType
-  generatorKey: GeneratorKey
-  namedKeys: string[]
-}
-
-/**
- * The key schema of a record. `additionalProperties` covers only the keys
- * `properties` does not name, but `Schema.Record` beside a struct checks
- * every key, so a typed record rejected the named ones (#101). Beside
- * named keys, the key is a string that is none of them.
- */
-class EffectRecordKey extends TsSnippet {
-  /** The regex literal for "any string except the named keys", or `undefined` with none. */
-  pattern: string | undefined
-
-  constructor({ context, generatorKey, namedKeys }: EffectRecordKeyArgs) {
-    super({ context, generatorKey })
-
-    this.pattern = namedKeys.length === 0
-      ? undefined
-      : toRegExpLiteral(toAnyStringExceptPattern({ names: namedKeys }))
-  }
-
-  override toString(): string {
-    return this.pattern === undefined
+    const key = this.keyPattern === undefined
       ? `${LIB}.String`
-      : `${LIB}.String.check(${LIB}.isPattern(${this.pattern}))`
+      : `${LIB}.String.check(${LIB}.isPattern(${this.keyPattern}))`
+
+    return `${LIB}.Record(${key}, ${this.value})`
   }
 }

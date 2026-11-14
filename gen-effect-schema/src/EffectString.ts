@@ -72,6 +72,10 @@ export class EffectString extends TsSnippet {
 
       if (literal === undefined) {
         this.skippedPattern = stringSchema.pattern
+
+        // A warning sets this model's result to 'warning', so the CLI and
+        // the manifest show it, not only the comment in the output.
+        context.logger.warn(toSkippedPatternNote(stringSchema.pattern))
       } else {
         this.checks.values.push(
           new EffectCheck({ context, name: 'isPattern', value: literal }),
@@ -102,21 +106,33 @@ export class EffectString extends TsSnippet {
     // whole file fail to parse, and throwing fails the whole run. So the
     // check is left out, and the comment says which pattern and why.
     return this.skippedPattern === undefined ? content : withDescription(content, {
-      description: `pattern ${
-        toStringLiteral(this.skippedPattern)
-      } is not a JavaScript regex, so it is not checked`,
+      description: toSkippedPatternNote(this.skippedPattern),
     })
   }
 }
 
+/** Says which pattern was left out and why, in the output and the warning. */
+const toSkippedPatternNote = (pattern: string): string =>
+  `pattern ${toStringLiteral(pattern)} is not a JavaScript regex, so it is not checked`
+
 /**
- * The pattern as a regex literal, or `undefined` when JavaScript rejects the
- * pattern. `toRegExpLiteral` lets the engine escape the literal and throws a
- * `SyntaxError` on an invalid pattern.
+ * The pattern as a regex literal, or `undefined` when JavaScript rejects it.
+ *
+ * The trap: without the `u` flag, `^\p{L}+$` is valid and matches the text
+ * `p{L}`, not a letter. JSON Schema patterns mean Unicode, so `u` comes
+ * first. A pattern valid only without it (`\-` outside a class) falls back to
+ * no flag.
  */
-const toPatternLiteral = (pattern: string): string | undefined => {
+const toPatternLiteral = (pattern: string): string | undefined =>
+  tryRegExpLiteral(pattern, 'u') ?? tryRegExpLiteral(pattern, '')
+
+/**
+ * `toRegExpLiteral` lets the engine escape the literal, and throws a
+ * `SyntaxError` on a pattern or flags it rejects.
+ */
+const tryRegExpLiteral = (pattern: string, flags: string): string | undefined => {
   try {
-    return toRegExpLiteral(pattern)
+    return toRegExpLiteral(pattern, flags)
   } catch (error) {
     if (error instanceof SyntaxError) {
       return undefined

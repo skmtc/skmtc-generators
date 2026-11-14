@@ -32,11 +32,14 @@ export class TsString extends TsSnippet {
         // Enums always win over scalar format mapping — a string with an
         // explicit enum list has a more specific type than its format.
         // Core lists `null` only on a nullable schema, and the nullable
-        // modifier adds `| null`, so the union lists the strings.
+        // modifier adds `| null`, so the union lists the strings. An empty
+        // `enum: []` accepts nothing.
         const members: Array<string | null> = matched.enums
         const values = members.filter((value): value is string => value !== null)
 
-        return values.length === 0 ? 'null' : values.map(toStringLiteral).join(' | ')
+        return match(values.length)
+          .with(0, () => (members.includes(null) ? 'null' : 'never'))
+          .otherwise(() => values.map(toStringLiteral).join(' | '))
       })
       .with({ format: P.string }, matched => {
         // Look up the scalar map for the given format. Built-in OpenAPI

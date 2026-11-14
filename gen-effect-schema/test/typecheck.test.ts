@@ -148,8 +148,10 @@ Deno.test({
     assertEquals(Object.keys(artifacts).sort(), [
       'src/schema-effect/account.generated.ts',
       'src/schema-effect/code.generated.ts',
+      'src/schema-effect/dash.generated.ts',
       'src/schema-effect/escape.generated.ts',
       'src/schema-effect/index.generated.ts',
+      'src/schema-effect/letters.generated.ts',
       'src/schema-effect/url.generated.ts',
     ])
 

@@ -24,6 +24,7 @@ import {
   checkGenerated,
   runE2eFixture
 } from '@skmtc/test-support'
+import type { OpenAPIV3 } from 'openapi-types'
 import { arktypeEntry } from '../src/mod.ts'
 import { runFixture } from './helpers/fixture.ts'
 
@@ -156,5 +157,66 @@ Deno.test({
     ])
 
     assertEquals(await checkGenerated({ artifacts, imports: { arktype: ARKTYPE } }), [])
+  }
+})
+
+/**
+ * Keys and enum values holding a quote or a backslash. arktype reads a
+ * definition string with escapes of its own, inside the TypeScript string.
+ */
+const escapingDocument: OpenAPIV3.Document = {
+  openapi: '3.0.3',
+  info: { title: 'Escaping fixture', version: '1.0.0' },
+  paths: {},
+  components: {
+    schemas: {
+      Quoted: { type: 'string', enum: ["it's", 'a"b', 'a\\b'] },
+      Keys: {
+        type: 'object',
+        required: ['a"b', 'a\\b'],
+        properties: { 'a"b': { type: 'string' }, 'a\\b': { type: 'string' } },
+        additionalProperties: { type: 'number' }
+      }
+    }
+  }
+}
+
+const escapingConsumer = `import { type } from 'arktype'
+import { quoted } from '@/types/quoted.generated.ts'
+import { keys } from '@/types/keys.generated.ts'
+
+const accepts = (t: (value: unknown) => unknown, value: unknown): boolean => !(t(value) instanceof type.errors)
+
+const checks: Array<[string, boolean]> = [
+  ["it's is an enum value", accepts(quoted, "it's")],
+  ['a"b is an enum value', accepts(quoted, 'a"b')],
+  ['a\\\\b is an enum value', accepts(quoted, 'a\\\\b')],
+  ['other is not an enum value', !accepts(quoted, 'other')],
+  ['the named keys hold strings, an extra key a number', accepts(keys, { 'a"b': 'x', 'a\\\\b': 'y', count: 1 })],
+  ['an extra key holding a string is rejected', !accepts(keys, { 'a"b': 'x', 'a\\\\b': 'y', count: 's' })]
+]
+
+for (const [name, passed] of checks) {
+  if (!passed) {
+    throw new Error(name)
+  }
+}
+`
+
+// The trap: two layers of escaping. A quote or backslash written for
+// arktype inside a hand-quoted TypeScript string ended that string, and a
+// backslash key's `\\` in the index pattern became `\` once arktype read it.
+Deno.test({
+  name: 'typecheck - keys and enum values holding a quote or backslash load and check',
+  ignore: Deno.env.get('TYPECHECK') !== '1',
+  fn: async () => {
+    const { artifacts } = runE2eFixture({ id: '@skmtc/gen-arktype', entry: arktypeEntry, document: escapingDocument })
+
+    assertEquals(Object.keys(artifacts).sort(), ['src/types/keys.generated.ts', 'src/types/quoted.generated.ts'])
+
+    assertEquals(
+      await checkGenerated({ artifacts: { ...artifacts, 'src/consumer.ts': escapingConsumer }, imports: { arktype: ARKTYPE } }),
+      []
+    )
   }
 })

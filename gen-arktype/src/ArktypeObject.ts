@@ -83,11 +83,15 @@ export class ArktypeObject extends TsSnippet {
     // keeps `[string]`.
     const namedKeys = this.additionalProperties instanceof ArktypeUnknown ? [] : Object.keys(this.properties)
 
-    // Double quotes, like every other arktype definition string.
+    // Double quotes, like every other arktype definition string. The trap:
+    // arktype reads `\\` inside a definition as one `\` (it keeps `\.` and
+    // `\/`), so a key holding a backslash, which the pattern escapes as
+    // `\\`, would become `\` and stop matching. Each `\\` is doubled once
+    // more for arktype.
     this.indexKey = JSON.stringify(
       namedKeys.length === 0
         ? '[string]'
-        : `[${toRegExpLiteral(toAnyStringExceptPattern({ names: namedKeys }))}]`
+        : `[${toRegExpLiteral(toAnyStringExceptPattern({ names: namedKeys })).replaceAll('\\\\', '\\\\\\\\')}]`
     )
 
     // Set for the core `TypeSystemObject` contract; this generator composes
@@ -100,10 +104,12 @@ export class ArktypeObject extends TsSnippet {
     const entries = Object.entries(this.properties).map(([key, value]) => {
       const name = this.required.includes(key) ? key : `${key}?`
       // Quoted unless the whole key is a bare identifier — `age?` and
-      // `user-name` both need quotes.
+      // `user-name` both need quotes. JSON.stringify escapes a `"` or `\`
+      // in the key, and arktype reads the string as the key, a trailing `?`
+      // marking it optional.
       const needsQuotes = /[^a-zA-Z0-9_$]/.test(name) || /^\d/.test(name)
 
-      return `${needsQuotes ? `"${name}"` : name}: ${value}`
+      return `${needsQuotes ? JSON.stringify(name) : name}: ${value}`
     })
 
     if (this.additionalProperties) {

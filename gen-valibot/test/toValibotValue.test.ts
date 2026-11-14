@@ -89,6 +89,10 @@ Deno.test('toValibotValue - enum values are escaped, and null is left to nullabl
     enum: [null]
   }
   assertEquals(schemaToValibot(onlyNull), 'v.nullable(v.null())')
+
+  // The trap: an empty list, with no `null` in it, must not accept null.
+  const empty: OpenAPIV3.SchemaObject = { type: 'string', enum: [] }
+  assertEquals(schemaToValibot(empty), 'v.never()')
 })
 
 // ============================================================================

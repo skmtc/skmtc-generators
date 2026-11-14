@@ -39,11 +39,12 @@ export class ValibotString extends TsSnippet {
       .with({ enums: P.array() }, matched => {
         // Core lists `null` only on a nullable schema, and the nullable
         // modifier adds `v.nullable(…)`, so the picklist lists the strings.
+        // An empty `enum: []` accepts nothing.
         const members: Array<string | null> = matched.enums
         const values = members.filter((value): value is string => value !== null)
 
         return match(values.length)
-          .with(0, () => 'v.null()')
+          .with(0, () => (members.includes(null) ? 'v.null()' : 'v.never()'))
           .with(1, () => `v.literal(${toStringLiteral(values[0])})`)
           .otherwise(() => `v.picklist([${values.map(toStringLiteral).join(', ')}])`)
       })

@@ -67,12 +67,13 @@ export class ZodString extends TsSnippet {
     // call. ZodNumber and ZodInteger drop theirs the same way.
     if (enums && Array.isArray(enums)) {
       // Core lists `null` only on a nullable schema, and the nullable
-      // modifier adds `.nullable()`, so the enum lists the strings.
+      // modifier adds `.nullable()`, so the enum lists the strings. An
+      // empty `enum: []` accepts nothing.
       const members: Array<string | null> = enums;
       const values = members.filter((value): value is string => value !== null);
 
       const content = match(values.length)
-        .with(0, () => "z.null()")
+        .with(0, () => (members.includes(null) ? "z.null()" : "z.never()"))
         .with(1, () => `z.literal(${toStringLiteral(values[0])})`)
         .otherwise(() => `z.enum([${values.map(toStringLiteral).join(", ")}])`);
 

@@ -58,6 +58,6 @@ export class ArktypeArray extends TsSnippet {
   override toString(): string {
     return this.stringSyntax === undefined
       ? applyValueModifiers(`[${this.items}, "[]"]`, this.modifiers)
-      : `"${this.stringSyntax}"`
+      : JSON.stringify(this.stringSyntax)
   }
 }
