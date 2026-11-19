@@ -1,9 +1,16 @@
-import { SnippetBase, type GenerateContextType, type OasSchema, type OasRef } from '@skmtc/core'
+import {
+  SnippetBase,
+  type GenerateContextType,
+  type OasRequestBody,
+  type OasSchema,
+  type OasRef
+} from '@skmtc/core'
 import { Schema, type Definitions } from './Schema.ts'
 import { Description } from './Description.ts'
 import { Example } from './Example.ts'
 import { toExample } from '../toExample.ts'
-import { toMediaTypeLine } from '../toContent.ts'
+import { toContent, toMediaTypeLine } from '../toContent.ts'
+import { safeResolve, UNRESOLVED_REF } from '../safeResolve.ts'
 
 type SectionArgs = {
   context: GenerateContextType
@@ -72,5 +79,72 @@ export class Section extends SnippetBase {
     ]
       .filter(part => part !== '')
       .join('\n\n')
+  }
+}
+
+type UnresolvedSectionArgs = {
+  context: GenerateContextType
+  title: string
+  /** The section's `$ref`, which names nothing. */
+  ref: string
+}
+
+/**
+ * A section whose own `$ref` names nothing, such as a request body: its
+ * heading stays, over the `$ref` marked with {@link UNRESOLVED_REF}, so a
+ * reader can tell it from an operation that documents no such section.
+ */
+export class UnresolvedSection extends SnippetBase {
+  title: string
+  ref: string
+
+  constructor({ context, title, ref }: UnresolvedSectionArgs) {
+    super({ context })
+
+    this.title = title
+    this.ref = ref
+  }
+
+  override toString(): string {
+    return `## ${this.title}\n\n- \`${this.ref}\`${UNRESOLVED_REF}`
+  }
+}
+
+type RequestBodySectionArgs = {
+  context: GenerateContextType
+  requestBody: OasRequestBody | OasRef<'requestBody'> | undefined
+  definitions?: Definitions
+}
+
+/**
+ * The request body section, chosen once: an {@link UnresolvedSection} for a
+ * body whose `$ref` names nothing, otherwise the body's {@link Section}, which
+ * renders the empty string for an operation that takes no body.
+ */
+export class RequestBodySection extends SnippetBase {
+  section: Section | UnresolvedSection
+
+  constructor({ context, requestBody, definitions }: RequestBodySectionArgs) {
+    super({ context })
+
+    const resolved = requestBody !== undefined ? safeResolve(requestBody) : undefined
+    const content = toContent(resolved?.content)
+
+    this.section =
+      requestBody?.isRef() && resolved === undefined
+        ? new UnresolvedSection({ context, title: 'Request body', ref: requestBody.$ref })
+        : new Section({
+            context,
+            title: 'Request body',
+            schema: content.schema,
+            description: resolved?.description,
+            definitions,
+            mediaTypes: content.mediaTypes,
+            required: resolved?.required
+          })
+  }
+
+  override toString(): string {
+    return `${this.section}`
   }
 }

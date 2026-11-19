@@ -3,13 +3,11 @@ import { Frontmatter } from './Frontmatter.ts'
 import { Summary } from './Summary.ts'
 import { PathMethod } from './PathMethod.ts'
 import { Security } from './Security.ts'
-import { Parameters } from './Parameters.ts'
-import { Section } from './Section.ts'
+import { OperationParameters } from './Parameters.ts'
+import { RequestBodySection } from './Section.ts'
 import { Responses } from './Responses.ts'
 import { ExternalDocs } from './ExternalDocs.ts'
 import { Definitions } from './Schema.ts'
-import { safeResolve } from '../safeResolve.ts'
-import { toContent } from '../toContent.ts'
 
 type OperationDocArgs = {
   context: GenerateContextType
@@ -36,8 +34,6 @@ export class OperationDoc extends SnippetBase {
     const definitions = new Definitions({ context })
     const document = context.document.type === 'oas' ? context.document.value : undefined
     const servers = (document?.servers ?? []).map(server => server.url)
-    const requestBody = operation.requestBody ? safeResolve(operation.requestBody) : undefined
-    const requestContent = toContent(requestBody?.content)
 
     this.parts = [
       new Frontmatter({ context, operation, servers }),
@@ -49,19 +45,8 @@ export class OperationDoc extends SnippetBase {
         security: operation.security ?? document?.security,
         securitySchemes: document?.components?.securitySchemes
       }),
-      new Parameters({ context, title: 'Path parameters', parameters: operation.toParams(['path']), definitions }),
-      new Parameters({ context, title: 'Query parameters', parameters: operation.toParams(['query']), definitions }),
-      new Parameters({ context, title: 'Headers', parameters: operation.toParams(['header']), definitions }),
-      new Parameters({ context, title: 'Cookies', parameters: operation.toParams(['cookie']), definitions }),
-      new Section({
-        context,
-        title: 'Request body',
-        schema: requestContent.schema,
-        description: requestBody?.description,
-        definitions,
-        mediaTypes: requestContent.mediaTypes,
-        required: requestBody?.required
-      }),
+      new OperationParameters({ context, operation, definitions }),
+      new RequestBodySection({ context, requestBody: operation.requestBody, definitions }),
       new Responses({ context, responses: operation.responses, definitions })
     ]
 

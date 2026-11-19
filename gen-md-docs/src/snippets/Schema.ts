@@ -8,7 +8,7 @@ import {
   type RefName
 } from '@skmtc/core'
 import { Name } from './Name.ts'
-import { TypeInfo } from './TypeInfo.ts'
+import { TypeInfo, UnresolvedTypeInfo } from './TypeInfo.ts'
 import { Description } from './Description.ts'
 import { ExternalDocs } from './ExternalDocs.ts'
 import { safeResolve } from '../safeResolve.ts'
@@ -37,7 +37,7 @@ type SchemaArgs = {
  */
 export class Schema extends SnippetBase {
   name: Name
-  typeInfo: TypeInfo
+  typeInfo: TypeInfo | UnresolvedTypeInfo
   title: string | undefined
   description: Description
   properties: Properties | undefined
@@ -57,7 +57,10 @@ export class Schema extends SnippetBase {
     const properties = toExpansion(schema, definitions)
 
     this.name = new Name({ context, name })
-    this.typeInfo = new TypeInfo({ context, schema, required })
+    this.typeInfo =
+      resolved !== undefined
+        ? new TypeInfo({ context, schema, resolved, required })
+        : new UnresolvedTypeInfo({ context, schema, required })
     this.title = resolved !== undefined && 'title' in resolved ? resolved.title : undefined
     this.description = new Description({
       context,

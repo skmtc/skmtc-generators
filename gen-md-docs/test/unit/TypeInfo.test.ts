@@ -1,12 +1,15 @@
 import { assertEquals } from '@std/assert'
-import { OasArray, OasObject, OasString } from '@skmtc/core'
+import { OasArray, OasObject, OasString, type OasSchema } from '@skmtc/core'
 import { TypeInfo } from '../../src/snippets/TypeInfo.ts'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
+
+/** An inline schema resolves to itself. */
+const inline = <S extends OasSchema>(schema: S) => ({ schema, resolved: schema })
 
 Deno.test('TypeInfo - renders a bare type as inline code', () => {
   const snippet = new TypeInfo({
     context: toGenerateContext(),
-    schema: new OasObject({}),
+    ...inline(new OasObject({})),
     required: false
   })
 
@@ -16,7 +19,7 @@ Deno.test('TypeInfo - renders a bare type as inline code', () => {
 Deno.test('TypeInfo - appends format and required modifiers in order', () => {
   const snippet = new TypeInfo({
     context: toGenerateContext(),
-    schema: new OasString({ format: 'date-time' }),
+    ...inline(new OasString({ format: 'date-time' })),
     required: true
   })
 
@@ -26,7 +29,7 @@ Deno.test('TypeInfo - appends format and required modifiers in order', () => {
 Deno.test('TypeInfo - renders format, nullable and required in source order', () => {
   const snippet = new TypeInfo({
     context: toGenerateContext(),
-    schema: new OasString({ format: 'email', nullable: true }),
+    ...inline(new OasString({ format: 'email', nullable: true })),
     required: true
   })
 
@@ -36,7 +39,7 @@ Deno.test('TypeInfo - renders format, nullable and required in source order', ()
 Deno.test('TypeInfo - composes the enum list after the modifiers', () => {
   const snippet = new TypeInfo({
     context: toGenerateContext(),
-    schema: new OasString({ enums: ['active', 'inactive'] }),
+    ...inline(new OasString({ enums: ['active', 'inactive'] })),
     required: true
   })
 
@@ -46,7 +49,7 @@ Deno.test('TypeInfo - composes the enum list after the modifiers', () => {
 Deno.test('TypeInfo - renders an array as the item type with []', () => {
   const snippet = new TypeInfo({
     context: toGenerateContext(),
-    schema: new OasArray({ items: new OasString({}) }),
+    ...inline(new OasArray({ items: new OasString({}) })),
     required: false
   })
 

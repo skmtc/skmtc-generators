@@ -1,7 +1,9 @@
 import {
   SnippetBase,
   type GenerateContextType,
+  type OasOperation,
   type OasParameter,
+  type OasParameterLocation,
   type OasSchema,
   type OasRef
 } from '@skmtc/core'
@@ -11,7 +13,65 @@ import { Description } from './Description.ts'
 import { Example } from './Example.ts'
 import { toExample } from '../toExample.ts'
 import { toContent, toMediaTypeLine } from '../toContent.ts'
-import { safeResolve } from '../safeResolve.ts'
+import { safeResolve, UNRESOLVED_REF } from '../safeResolve.ts'
+
+type OperationParametersArgs = {
+  context: GenerateContextType
+  operation: OasOperation
+  definitions?: Definitions
+}
+
+/** A group of parameters: its heading and the location it holds. */
+type ParameterGroup = {
+  title: string
+  location: OasParameterLocation
+}
+
+/** The located groups, in the order the docs show them. */
+const PARAMETER_GROUPS: ParameterGroup[] = [
+  { title: 'Path parameters', location: 'path' },
+  { title: 'Query parameters', location: 'query' },
+  { title: 'Headers', location: 'header' },
+  { title: 'Cookies', location: 'cookie' }
+]
+
+/**
+ * Renders the parameters that apply to an operation — its path item's and its
+ * own — the Markdown counterpart of the docs viewer's `OperationParams`: a
+ * {@link Parameters} group for each location that has any, then the ones whose
+ * `$ref` names nothing. Each parameter resolves by itself, so one that names
+ * nothing costs the document that parameter alone.
+ */
+export class OperationParameters extends SnippetBase {
+  /** A group for each location that has parameters. */
+  groups: Parameters[]
+  /** The parameters whose `$ref` names nothing; `undefined` when there are none. */
+  unresolved: UnresolvedParameters | undefined
+
+  constructor({ context, operation, definitions }: OperationParametersArgs) {
+    super({ context })
+
+    const parameters = operation.toEffectiveParameters()
+    const resolved = parameters.flatMap(parameter => safeResolve(parameter) ?? [])
+    const unresolvedRefs = parameters.flatMap(parameter =>
+      parameter.isRef() && safeResolve(parameter) === undefined ? [parameter.$ref] : []
+    )
+
+    this.groups = PARAMETER_GROUPS.flatMap(({ title, location }) => {
+      const located = resolved.filter(parameter => parameter.location === location)
+
+      return located.length > 0 ? [new Parameters({ context, title, parameters: located, definitions })] : []
+    })
+    this.unresolved =
+      unresolvedRefs.length > 0 ? new UnresolvedParameters({ context, refs: unresolvedRefs }) : undefined
+  }
+
+  override toString(): string {
+    const parts = this.unresolved !== undefined ? [...this.groups, this.unresolved] : this.groups
+
+    return parts.join('\n\n')
+  }
+}
 
 type ParametersArgs = {
   context: GenerateContextType
@@ -46,6 +106,33 @@ export class Parameters extends SnippetBase {
     return [`## ${this.title}`, ...this.parameters.map(parameter => parameter.toString())].join(
       '\n\n'
     )
+  }
+}
+
+type UnresolvedParametersArgs = {
+  context: GenerateContextType
+  /** The `$ref` of each parameter that names nothing. */
+  refs: string[]
+}
+
+/**
+ * The parameters whose `$ref` names nothing, each by its `$ref` marked with
+ * {@link UNRESOLVED_REF}, as `## Parameters` after the located groups: such a
+ * parameter has no location to group it under.
+ */
+class UnresolvedParameters extends SnippetBase {
+  refs: string[]
+
+  constructor({ context, refs }: UnresolvedParametersArgs) {
+    super({ context })
+
+    this.refs = refs
+  }
+
+  override toString(): string {
+    const lines = this.refs.map(ref => `- \`${ref}\`${UNRESOLVED_REF}`).join('\n')
+
+    return `## Parameters\n\n${lines}`
   }
 }
 

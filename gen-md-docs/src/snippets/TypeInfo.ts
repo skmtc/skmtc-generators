@@ -1,11 +1,13 @@
 import { camelCase, SnippetBase, type GenerateContextType, type OasSchema, type OasRef } from '@skmtc/core'
 import { List } from '@skmtc/lang-typescript'
 import { Enums } from './Enums.ts'
-import { safeResolve } from '../safeResolve.ts'
+import { safeResolve, UNRESOLVED_REF } from '../safeResolve.ts'
 
 type TypeInfoArgs = {
   context: GenerateContextType
   schema: OasSchema | OasRef<'schema'>
+  /** What `schema` resolves to. */
+  resolved: OasSchema
   required: boolean | undefined
 }
 
@@ -27,43 +29,75 @@ export class TypeInfo extends SnippetBase {
   modifiers: List
   enums: Enums
   constraints: List
+  /** The items of the array, or of its items, are a `$ref` that names nothing: the type stops there. */
+  unresolvedItems: boolean
 
-  constructor({ context, schema, required }: TypeInfoArgs) {
+  constructor({ context, schema, resolved, required }: TypeInfoArgs) {
     super({ context, stackTrail: schema.stackTrail.clone() })
 
-    const resolved = safeResolve(schema)
-    const nullable = resolved !== undefined && 'nullable' in resolved ? resolved.nullable : undefined
+    const nullable = 'nullable' in resolved ? resolved.nullable : undefined
 
     this.type = toTypeName(schema)
     this.anchor = toRefAnchor(schema)
     this.modifiers = new List(
       [
-        resolved !== undefined && 'format' in resolved ? resolved.format : undefined,
+        'format' in resolved ? resolved.format : undefined,
         nullable === true && 'nullable',
         required === true && 'required',
-        resolved !== undefined && 'deprecated' in resolved && resolved.deprecated === true && 'deprecated',
-        resolved !== undefined && 'readOnly' in resolved && resolved.readOnly === true && 'read-only',
-        resolved !== undefined && 'writeOnly' in resolved && resolved.writeOnly === true && 'write-only'
+        'deprecated' in resolved && resolved.deprecated === true && 'deprecated',
+        'readOnly' in resolved && resolved.readOnly === true && 'read-only',
+        'writeOnly' in resolved && resolved.writeOnly === true && 'write-only'
       ].filter(Boolean),
       { separator: ' ' }
     )
-    this.enums = new Enums({
-      context,
-      enums: resolved !== undefined && 'enums' in resolved ? resolved.enums : undefined
-    })
-    this.constraints = new List(resolved !== undefined ? toConstraints(resolved) : [], {
+    this.enums = new Enums({ context, enums: 'enums' in resolved ? resolved.enums : undefined })
+    this.constraints = new List(toConstraints(resolved), {
       separator: ', ',
       bookends: '()',
       skipEmpty: true
     })
+    this.unresolvedItems = resolved.type === 'array' && namesNothing(resolved.items)
   }
 
   override toString(): string {
     const type = this.anchor ? `[\`${this.type}\`](#${this.anchor})` : `\`${this.type}\``
 
-    return [type, `${this.modifiers}`, `${this.enums}`, `${this.constraints}`]
+    const info = [type, `${this.modifiers}`, `${this.enums}`, `${this.constraints}`]
       .filter(part => part !== '')
       .join(' ')
+
+    return this.unresolvedItems ? `${info}${UNRESOLVED_REF}` : info
+  }
+}
+
+type UnresolvedTypeInfoArgs = {
+  context: GenerateContextType
+  /** A `$ref` that names nothing. */
+  schema: OasSchema | OasRef<'schema'>
+  required: boolean | undefined
+}
+
+/**
+ * The type annotation of a `$ref` that names nothing: its name, `required`
+ * when it is, and {@link UNRESOLVED_REF}. With no schema behind it, it has no
+ * modifiers, values, constraints or link to show. Example:
+ * `` `Missing` required (unresolved $ref) ``.
+ */
+export class UnresolvedTypeInfo extends SnippetBase {
+  type: string
+  required: boolean
+
+  constructor({ context, schema, required }: UnresolvedTypeInfoArgs) {
+    super({ context, stackTrail: schema.stackTrail.clone() })
+
+    this.type = toTypeName(schema)
+    this.required = required === true
+  }
+
+  override toString(): string {
+    return this.required
+      ? `\`${this.type}\` required${UNRESOLVED_REF}`
+      : `\`${this.type}\`${UNRESOLVED_REF}`
   }
 }
 
@@ -93,6 +127,17 @@ const toRefAnchor = (schema: OasSchema | OasRef<'schema'>): string | undefined =
   const resolved = schema.resolve()
 
   return resolved.type === 'array' ? toRefAnchor(resolved.items) : undefined
+}
+
+/** True for a `$ref` that names nothing, or an array of one. */
+const namesNothing = (schema: OasSchema | OasRef<'schema'>): boolean => {
+  if (schema.isRef()) {
+    return safeResolve(schema) === undefined
+  }
+
+  const resolved = schema.resolve()
+
+  return resolved.type === 'array' && namesNothing(resolved.items)
 }
 
 /** The validation constraints present on a schema, in a stable order. */

@@ -3,6 +3,7 @@ import { OasArray, OasNumber, OasObject, OasString, OasUnion } from '@skmtc/core
 import { Definitions, Schema } from '../../src/snippets/Schema.ts'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
 import { toParsedDocument } from '../helpers/toParsedDocument.ts'
+import { docsSystem } from '../helpers/docsSystem.ts'
 
 Deno.test('Schema - renders a named scalar with its description', () => {
   const snippet = new Schema({
@@ -141,7 +142,8 @@ Deno.test('Schema - renders numeric range with read-only and deprecated flags', 
   assertEquals(snippet.toString(), '**age** `number` deprecated read-only (minimum: 0, maximum: 120)')
 })
 
-Deno.test('Schema - an unresolvable $ref degrades to a plain name with no definition', () => {
+Deno.test('Schema - a $ref that names nothing renders its name, marked unresolved, with no definition', () => {
+  // The docs list every ref kind in `danglingRefs`, so the parser keeps the operation.
   const parsed = toParsedDocument({
     openapi: '3.0.0',
     info: { title: 'Test', version: '1.0.0' },
@@ -155,7 +157,7 @@ Deno.test('Schema - an unresolvable $ref degrades to a plain name with no defini
         }
       }
     }
-  })
+  }, { system: docsSystem })
 
   assert(parsed.type === 'oas')
 
@@ -165,9 +167,9 @@ Deno.test('Schema - an unresolvable $ref degrades to a plain name with no defini
   const context = toGenerateContext({ oasDocument: parsed })
   const definitions = new Definitions({ context })
 
-  // No crash: the dangling ref renders as a plain name, with no anchor link.
+  // No crash: the dangling ref renders its name, marked, with no anchor link.
   const body = new Schema({ context, name: undefined, schema: bodyRef, required: false, definitions })
-  assertEquals(body.toString(), '`Missing`')
+  assertEquals(body.toString(), '`Missing` (unresolved $ref)')
 
   // And it is never registered, so no broken definition is emitted.
   definitions.build()

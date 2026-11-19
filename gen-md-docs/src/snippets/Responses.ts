@@ -11,7 +11,7 @@ import { Schema, type Definitions } from './Schema.ts'
 import { Description } from './Description.ts'
 import { Example } from './Example.ts'
 import { toExample } from '../toExample.ts'
-import { safeResolve } from '../safeResolve.ts'
+import { safeResolve, UNRESOLVED_REF } from '../safeResolve.ts'
 import { toContent, toMediaTypeLine } from '../toContent.ts'
 
 type ResponsesArgs = {
@@ -28,15 +28,18 @@ type ResponsesArgs = {
  * handling. Renders the empty string when the operation declares no responses.
  */
 export class Responses extends SnippetBase {
-  entries: ResponseEntry[]
+  entries: (ResponseEntry | UnresolvedResponseEntry)[]
 
   constructor({ context, responses, definitions }: ResponsesArgs) {
     super({ context })
 
-    this.entries = Object.entries(responses).map(
-      ([code, response]) =>
-        new ResponseEntry({ context, code, response: safeResolve(response), definitions })
-    )
+    this.entries = Object.entries(responses).map(([code, response]) => {
+      const resolved = safeResolve(response)
+
+      return resolved !== undefined
+        ? new ResponseEntry({ context, code, response: resolved, definitions })
+        : new UnresolvedResponseEntry({ context, code })
+    })
   }
 
   override toString(): string {
@@ -51,39 +54,41 @@ export class Responses extends SnippetBase {
 type ResponseEntryArgs = {
   context: GenerateContextType
   code: string
-  response: OasResponse | undefined
+  response: OasResponse
   definitions?: Definitions
 }
 
-/** One response: `### ` + status, an em-dash description, its schema, an example.
- * `response` is `undefined` when its `$ref` could not be resolved — the status
- * code still documents, without a schema. */
+/** One response: `### ` + status, an em-dash description, its schema, an example. */
 class ResponseEntry extends SnippetBase {
   code: string
   description: Description
   mediaTypeLine: string | undefined
-  headers: Header[]
-  links: Link[]
+  headers: (Header | UnresolvedEntry)[]
+  links: (Link | UnresolvedEntry)[]
   schema: Schema | undefined
   example: Example
 
   constructor({ context, code, response, definitions }: ResponseEntryArgs) {
-    const content = toContent(response?.content)
+    const content = toContent(response.content)
 
     super({ context, stackTrail: content.schema?.stackTrail.clone() })
 
     this.code = code
-    this.description = new Description({ context, description: response?.description })
+    this.description = new Description({ context, description: response.description })
     this.mediaTypeLine = toMediaTypeLine(content.mediaTypes)
-    this.headers = Object.entries(response?.headers ?? {}).flatMap(([name, header]) => {
+    this.headers = Object.entries(response.headers ?? {}).map(([name, header]) => {
       const resolved = safeResolve(header)
 
-      return resolved !== undefined ? [new Header({ context, name, header: resolved, definitions })] : []
+      return resolved !== undefined
+        ? new Header({ context, name, header: resolved, definitions })
+        : new UnresolvedEntry({ context, name })
     })
-    this.links = Object.entries(response?.links ?? {}).flatMap(([name, link]) => {
+    this.links = Object.entries(response.links ?? {}).map(([name, link]) => {
       const resolved = safeResolve(link)
 
-      return resolved !== undefined ? [new Link({ context, name, link: resolved })] : []
+      return resolved !== undefined
+        ? new Link({ context, name, link: resolved })
+        : new UnresolvedEntry({ context, name })
     })
     this.schema = content.schema
       ? new Schema({ context, name: undefined, schema: content.schema, required: undefined, definitions })
@@ -113,6 +118,53 @@ class ResponseEntry extends SnippetBase {
     ]
       .filter(part => part !== '')
       .join('\n\n')
+  }
+}
+
+type UnresolvedResponseEntryArgs = {
+  context: GenerateContextType
+  code: string
+}
+
+/**
+ * A response whose `$ref` names nothing: its status code, marked with
+ * {@link UNRESOLVED_REF}, so a reader can tell it from a code the operation
+ * does not document. It has no description, schema or example to show.
+ */
+class UnresolvedResponseEntry extends SnippetBase {
+  code: string
+
+  constructor({ context, code }: UnresolvedResponseEntryArgs) {
+    super({ context })
+
+    this.code = code
+  }
+
+  override toString(): string {
+    return `### \`${this.code}\`${UNRESOLVED_REF}`
+  }
+}
+
+type UnresolvedEntryArgs = {
+  context: GenerateContextType
+  name: string
+}
+
+/**
+ * A response header or link whose `$ref` names nothing: its name, marked
+ * with {@link UNRESOLVED_REF}. It has no schema, target or description to show.
+ */
+class UnresolvedEntry extends SnippetBase {
+  name: Name
+
+  constructor({ context, name }: UnresolvedEntryArgs) {
+    super({ context })
+
+    this.name = new Name({ context, name })
+  }
+
+  override toString(): string {
+    return `${this.name}${UNRESOLVED_REF}`
   }
 }
 

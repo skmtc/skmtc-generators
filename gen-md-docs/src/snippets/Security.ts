@@ -5,6 +5,7 @@ import {
   type OasSecurityScheme,
   type OasRef
 } from '@skmtc/core'
+import { safeResolve, UNRESOLVED_REF } from '../safeResolve.ts'
 
 type SecuritySchemes =
   | Record<string, OasSecurityScheme | OasRef<'securityScheme'>>
@@ -25,13 +26,13 @@ type SecurityArgs = {
  * operation, or a document that declares none.
  */
 export class Security extends SnippetBase {
-  requirements: string[]
+  requirements: SecurityRequirement[]
 
   constructor({ context, security, securitySchemes }: SecurityArgs) {
     super({ context })
 
-    this.requirements = (security ?? []).map(requirement =>
-      toRequirementLine(requirement, securitySchemes)
+    this.requirements = (security ?? []).map(
+      requirement => new SecurityRequirement({ context, requirement, securitySchemes })
     )
   }
 
@@ -40,43 +41,125 @@ export class Security extends SnippetBase {
       return ''
     }
 
-    const list = this.requirements.map(line => `- ${line}`).join('\n')
+    const list = this.requirements.map(requirement => `- ${requirement}`).join('\n')
 
     return `## Security\n\n${list}`
   }
 }
 
-/** One requirement: its schemes AND-ed together, or a note when it demands none. */
-const toRequirementLine = (
-  requirement: OasSecurityRequirement,
+type SecurityRequirementArgs = {
+  context: GenerateContextType
+  requirement: OasSecurityRequirement
   securitySchemes: SecuritySchemes
-): string => {
-  const schemes = Object.entries(requirement.requirement)
-
-  if (schemes.length === 0) {
-    return '_no authentication_'
-  }
-
-  return schemes
-    .map(([name, scopes]) => toSchemeText(name, scopes, securitySchemes?.[name]?.resolve()))
-    .join(' + ')
 }
 
-/** A scheme reference: its name, its kind (when resolvable), scopes and description. */
-const toSchemeText = (
-  name: string,
-  scopes: string[],
-  scheme: OasSecurityScheme | undefined
-): string => {
-  const kind = scheme !== undefined ? ` (${toSchemeKind(scheme)})` : ''
-  const scopeList =
-    scopes.length > 0 ? ` — scopes: ${scopes.map(scope => `\`${scope}\``).join(', ')}` : ''
-  const description =
-    scheme?.description !== undefined && scheme.description !== ''
-      ? ` — ${scheme.description}`
-      : ''
+/** One requirement: its schemes AND-ed together, or a note when it demands none. */
+class SecurityRequirement extends SnippetBase {
+  schemes: (SchemeUse | SchemeName)[]
 
-  return `\`${name}\`${kind}${scopeList}${description}`
+  constructor({ context, requirement, securitySchemes }: SecurityRequirementArgs) {
+    super({ context })
+
+    this.schemes = Object.entries(requirement.requirement).map(([name, scopes]) => {
+      const entry = securitySchemes?.[name]
+      const scheme = entry !== undefined ? safeResolve(entry) : undefined
+
+      return scheme !== undefined
+        ? new SchemeUse({ context, name, scopes, scheme })
+        : new SchemeName({ context, name, scopes, unresolved: entry !== undefined })
+    })
+  }
+
+  override toString(): string {
+    return this.schemes.length === 0 ? '_no authentication_' : this.schemes.join(' + ')
+  }
+}
+
+type SchemeUseArgs = {
+  context: GenerateContextType
+  name: string
+  scopes: string[]
+  scheme: OasSecurityScheme
+}
+
+/** A scheme the requirement names: its name, kind, the scopes it needs and its description. */
+class SchemeUse extends SnippetBase {
+  name: string
+  scheme: OasSecurityScheme
+  scopes: Scopes
+  description: string | undefined
+
+  constructor({ context, name, scopes, scheme }: SchemeUseArgs) {
+    super({ context })
+
+    this.name = name
+    this.scheme = scheme
+    this.scopes = new Scopes({ context, scopes })
+    this.description = scheme.description === '' ? undefined : scheme.description
+  }
+
+  override toString(): string {
+    const description = this.description !== undefined ? ` — ${this.description}` : ''
+
+    return `\`${this.name}\` (${toSchemeKind(this.scheme)})${this.scopes}${description}`
+  }
+}
+
+type SchemeNameArgs = {
+  context: GenerateContextType
+  name: string
+  scopes: string[]
+  /** The scheme is a `$ref` that names nothing, rather than a name the document does not declare. */
+  unresolved: boolean
+}
+
+/**
+ * A scheme the docs cannot describe: its name and scopes. One whose `$ref`
+ * names nothing is marked with {@link UNRESOLVED_REF}; a name the document
+ * does not declare at all is shown as it is.
+ */
+class SchemeName extends SnippetBase {
+  name: string
+  scopes: Scopes
+  unresolved: boolean
+
+  constructor({ context, name, scopes, unresolved }: SchemeNameArgs) {
+    super({ context })
+
+    this.name = name
+    this.scopes = new Scopes({ context, scopes })
+    this.unresolved = unresolved
+  }
+
+  override toString(): string {
+    return this.unresolved
+      ? `\`${this.name}\`${UNRESOLVED_REF}${this.scopes}`
+      : `\`${this.name}\`${this.scopes}`
+  }
+}
+
+type ScopesArgs = {
+  context: GenerateContextType
+  scopes: string[]
+}
+
+/** The scopes a requirement needs from a scheme, as ` — scopes: …`. Renders the empty string when it needs none. */
+class Scopes extends SnippetBase {
+  scopes: string[]
+
+  constructor({ context, scopes }: ScopesArgs) {
+    super({ context })
+
+    this.scopes = scopes
+  }
+
+  override toString(): string {
+    if (this.scopes.length === 0) {
+      return ''
+    }
+
+    return ` — scopes: ${this.scopes.map(scope => `\`${scope}\``).join(', ')}`
+  }
 }
 
 const toSchemeKind = (scheme: OasSecurityScheme): string => {
