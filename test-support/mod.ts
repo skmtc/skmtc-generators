@@ -507,6 +507,50 @@ export const unionDocument: OpenAPIV3.Document = {
 }
 
 /**
+ * Cycles whose plain rendering zod 4 or its types refuse: a recursive object
+ * with `additionalProperties` (Node), an inline object with
+ * `additionalProperties` inside a cycle (Holder's `meta`), and a model that
+ * refers to itself through a discriminated `oneOf` property (Chain).
+ */
+export const cycleEdgeDocument: OpenAPIV3.Document = {
+  openapi: '3.0.3',
+  info: { title: 'Cycle edge fixture', version: '1.0.0' },
+  paths: {},
+  components: {
+    schemas: {
+      Node: {
+        type: 'object',
+        required: ['name'],
+        properties: { name: { type: 'string' }, children: { type: 'array', items: { $ref: '#/components/schemas/Node' } } },
+        additionalProperties: { type: 'string' }
+      },
+      Holder: {
+        type: 'object',
+        properties: {
+          meta: {
+            type: 'object',
+            properties: { back: { $ref: '#/components/schemas/Holder' } },
+            additionalProperties: { type: 'string' }
+          }
+        }
+      },
+      Chain: {
+        type: 'object',
+        required: ['kind'],
+        properties: {
+          kind: toKind('chain'),
+          next: {
+            oneOf: [{ $ref: '#/components/schemas/Chain' }, { $ref: '#/components/schemas/Leaf' }],
+            discriminator: { propertyName: 'kind' }
+          }
+        }
+      },
+      Leaf: { type: 'object', required: ['kind'], properties: { kind: toKind('leaf') } }
+    }
+  }
+}
+
+/**
  * Objects with `properties` and `additionalProperties` together (#101).
  * `additionalProperties` covers only the keys `properties` does not name:
  * any value beside named keys (Upload, from Sentry's snapshot upload body),
