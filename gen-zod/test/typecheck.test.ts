@@ -30,6 +30,24 @@ const ZOD = "npm:zod@4.6.7";
  * compiles when `id` is `never` or `any`, so `Equals` compares the types
  * both ways.
  */
+// The trap: zod 4 reads a discriminated union's options at the first parse,
+// not when the file loads, so two options that allow one value (Coin) throw
+// "Duplicate discriminator value" only here.
+const unionConsumer = `import { coin } from "@/types/coin.generated.ts";
+import { box } from "@/types/box.generated.ts";
+import { node } from "@/types/node.generated.ts";
+
+const accepted: [string, boolean][] = [
+  ["Coin", coin.safeParse({ side: "face", tails: true }).success],
+  ["Box", box.safeParse({ kind: "crate", label: "x" }).success],
+  ["Node", node.safeParse({ kind: "folder", readme: { kind: "file" } }).success],
+];
+
+for (const [name, success] of accepted) {
+  if (!success) throw new Error(\`\${name} refused a value its document allows\`);
+}
+`;
+
 const additionalPropertiesConsumer = `import type { z } from "zod";
 import { upload } from "@/types/upload.generated.ts";
 import { limits } from "@/types/limits.generated.ts";
@@ -89,9 +107,15 @@ Deno.test({
 
     // Each model has a schema, and the models of a z.lazy cycle a
     // gen-typescript type each, in the same file.
-    assertEquals(Object.keys(artifacts).length, 15);
+    assertEquals(Object.keys(artifacts).length, 24);
 
-    assertEquals(await checkGenerated({ artifacts, imports: { zod: ZOD } }), []);
+    assertEquals(
+      await checkGenerated({
+        artifacts: { ...artifacts, "src/consumer.ts": unionConsumer },
+        imports: { zod: ZOD },
+      }),
+      [],
+    );
   },
 });
 

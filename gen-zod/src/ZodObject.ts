@@ -5,7 +5,6 @@ import { toZodValue } from "./Zod.ts";
 import { applyModifiers } from "./applyModifiers.ts";
 import { ZodUnknown } from "./ZodUnknown.ts";
 import { isDeferred } from "./deferred.ts";
-import { isLiteral } from "./discriminated.ts";
 
 type ZodObjectProps = {
   context: GenerateContextType;
@@ -26,14 +25,6 @@ export class ZodObject extends TsSnippet {
    * the record beside the properties has no property to do that.
    */
   deferred: boolean;
-  /**
-   * The properties holding literal values, which `z.discriminatedUnion` can
-   * switch on (see `isDiscriminable`). None for a nullable object, which
-   * zod 4 does not take as an option. None for one with a record beside its
-   * properties either: zod 4 takes its `.catchall` form, but no fixture
-   * covers that option yet, so such a union stays a `z.union`.
-   */
-  literalKeys: string[];
 
   constructor({
     context,
@@ -76,12 +67,6 @@ export class ZodObject extends TsSnippet {
     this.objectProperties = objectProperties;
 
     this.deferred = isDeferred(this.recordProperties);
-
-    this.literalKeys = this.recordProperties || modifiers.nullable || !objectProperties
-      ? []
-      : Object.entries(objectProperties.properties)
-        .filter(([, value]) => isLiteral(value))
-        .map(([key]) => key);
 
     this.register({ imports: { zod: ["z"] }, destinationPath });
   }

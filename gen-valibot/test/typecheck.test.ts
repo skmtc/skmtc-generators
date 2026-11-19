@@ -87,7 +87,7 @@ Deno.test({
       document: unionDocument
     })
 
-    assertEquals(Object.keys(artifacts).length, 15)
+    assertEquals(Object.keys(artifacts).length, 24)
 
     assertEquals(await checkGenerated({ artifacts, imports: { valibot: VALIBOT } }), [])
   }
