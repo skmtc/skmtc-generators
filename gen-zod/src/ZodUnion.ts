@@ -1,17 +1,14 @@
 import { TsSnippet } from "@skmtc/lang-typescript";
-import type { GenerateContextType, GeneratorKey, Modifiers, OasDiscriminator, OasRef, OasSchema, RefName, TypeSystemValue } from '@skmtc/core'
+import type { GenerateContextType, GeneratorKey, Modifiers, OasUnion, RefName, TypeSystemValue } from '@skmtc/core'
 import { toZodValue } from "./Zod.ts";
 import { applyModifiers } from "./applyModifiers.ts";
 import { isDeferred } from "./deferred.ts";
-import { isDiscriminable } from "./discriminated.ts";
+import { isLazyModel } from "./discriminated.ts";
 
 type ZodUnionArgs = {
   context: GenerateContextType;
   destinationPath: string;
-  members: (OasSchema | OasRef<"schema">)[];
-  /** The originating union schema node — for fine-grained attribution. */
-  schema?: OasSchema | OasRef<"schema">;
-  discriminator?: OasDiscriminator;
+  schema: OasUnion;
   modifiers: Modifiers;
   generatorKey: GeneratorKey;
   rootRef?: RefName;
@@ -30,15 +27,13 @@ export class ZodUnion extends TsSnippet {
     context,
     generatorKey,
     destinationPath,
-    members,
-    discriminator,
     modifiers,
     rootRef,
     schema,
   }: ZodUnionArgs) {
-    super({ context, generatorKey, stackTrail: schema?.stackTrail.clone() });
+    super({ context, generatorKey, stackTrail: schema.stackTrail.clone() });
 
-    this.members = members.map((member) => {
+    this.members = schema.members.map((member) => {
       return toZodValue({
         destinationPath,
         schema: member,
@@ -48,13 +43,12 @@ export class ZodUnion extends TsSnippet {
       });
     });
 
-    // See `isDiscriminable`. With a member zod 4 does not take as an option,
-    // the union renders `z.union`, which accepts the same values.
-    const key = discriminator?.propertyName;
-
-    this.discriminator = key !== undefined &&
-        this.members.every((member) => isDiscriminable(member, key))
-      ? key
+    // The parsed union says whether its discriminator alone picks the member
+    // (`isDiscriminable`). Otherwise, or with a member zod 4 does not type as
+    // an option (`isLazyModel`), it renders `z.union`, which accepts the same
+    // values.
+    this.discriminator = schema.isDiscriminable() && !this.members.some(isLazyModel)
+      ? schema.discriminator?.propertyName
       : undefined;
     this.modifiers = modifiers;
     this.deferred = this.members.some(isDeferred);

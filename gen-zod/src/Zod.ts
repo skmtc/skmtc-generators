@@ -76,8 +76,6 @@ export const toZodValue: SchemaToValueFn = ({
       return new ZodUnion({
         context,
         destinationPath,
-        members: schema.members,
-        discriminator: schema.discriminator,
         modifiers,
         generatorKey,
         rootRef,
