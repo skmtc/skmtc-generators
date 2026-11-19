@@ -3,7 +3,7 @@ import type { GenerateContextType, GeneratorKey, Modifiers, OasUnion, RefName, T
 import { toZodValue } from "./Zod.ts";
 import { applyModifiers } from "./applyModifiers.ts";
 import { isDeferred } from "./deferred.ts";
-import { isLazyModel } from "./discriminated.ts";
+import { isTypedAsOption } from "./discriminated.ts";
 
 type ZodUnionArgs = {
   context: GenerateContextType;
@@ -45,9 +45,9 @@ export class ZodUnion extends TsSnippet {
 
     // The parsed union says whether its discriminator alone picks the member
     // (`isDiscriminable`). Otherwise, or with a member zod 4 does not type as
-    // an option (`isLazyModel`), it renders `z.union`, which accepts the same
+    // an option (`isTypedAsOption`), it renders `z.union`, which accepts the same
     // values.
-    this.discriminator = schema.isDiscriminable() && !this.members.some(isLazyModel)
+    this.discriminator = schema.isDiscriminable() && this.members.every(isTypedAsOption)
       ? schema.discriminator?.propertyName
       : undefined;
     this.modifiers = modifiers;
