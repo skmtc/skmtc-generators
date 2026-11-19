@@ -52,11 +52,15 @@ for (const [name, success] of accepted) {
 const cycleEdgeConsumer = `import { node } from "@/types/node.generated.ts";
 import { holder } from "@/types/holder.generated.ts";
 import { chain } from "@/types/chain.generated.ts";
+import { link } from "@/types/link.generated.ts";
+import { knot } from "@/types/knot.generated.ts";
 
 const accepted: [string, boolean][] = [
   ["Node", node.safeParse({ name: "a", children: [{ name: "b" }], note: "x" }).success],
   ["Holder", holder.safeParse({ meta: { back: {}, note: "x" } }).success],
   ["Chain", chain.safeParse({ kind: "chain", next: { kind: "chain", next: { kind: "leaf" } } }).success],
+  ["Link", link.safeParse({ kind: "link", next: { kind: "wrap", inner: { kind: "link", next: { kind: "end" } } } }).success],
+  ["Knot", knot.safeParse({ kind: "knot", next: { kind: "loop", inner: { kind: "knot", next: { kind: "end" } } } }).success],
 ];
 
 for (const [name, success] of accepted) {
@@ -156,7 +160,7 @@ Deno.test({
       document: cycleEdgeDocument,
     });
 
-    assertEquals(Object.keys(artifacts).length, 4);
+    assertEquals(Object.keys(artifacts).length, 7);
 
     assertEquals(
       await checkGenerated({

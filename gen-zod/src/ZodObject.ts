@@ -5,6 +5,7 @@ import { toZodValue } from "./Zod.ts";
 import { applyModifiers } from "./applyModifiers.ts";
 import { ZodUnknown } from "./ZodUnknown.ts";
 import { isDeferred } from "./deferred.ts";
+import { holdsReferenceBack } from "./discriminated.ts";
 
 type ZodObjectProps = {
   context: GenerateContextType;
@@ -27,6 +28,8 @@ export class ZodObject extends TsSnippet {
    * runs a getter beside it at module load.
    */
   deferred: boolean;
+  /** See `holdsReferenceBack`. */
+  holdsReferenceBack: boolean;
 
   constructor({
     context,
@@ -71,6 +74,8 @@ export class ZodObject extends TsSnippet {
     this.deferred = isDeferred(this.recordProperties) ||
       (this.recordProperties !== null &&
         Object.values(objectProperties?.properties ?? {}).some(isDeferred));
+    this.holdsReferenceBack = holdsReferenceBack(this.recordProperties) ||
+      Object.values(objectProperties?.properties ?? {}).some(holdsReferenceBack);
 
     this.register({ imports: { zod: ["z"] }, destinationPath });
   }
@@ -167,6 +172,8 @@ class ZodRecord extends TsSnippet {
   value: TypeSystemValue | "true";
   /** See `isDeferred`. */
   deferred: boolean;
+  /** See `holdsReferenceBack`. */
+  holdsReferenceBack: boolean;
 
   constructor(
     { context, generatorKey, destinationPath, schema, rootRef }: ZodRecordArgs,
@@ -186,6 +193,7 @@ class ZodRecord extends TsSnippet {
     }
 
     this.deferred = isDeferred(this.value);
+    this.holdsReferenceBack = holdsReferenceBack(this.value);
   }
 
   override toString(): string {

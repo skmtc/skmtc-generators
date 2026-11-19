@@ -3,7 +3,7 @@ import type { GenerateContextType, GeneratorKey, Modifiers, OasUnion, RefName, T
 import { toZodValue } from "./Zod.ts";
 import { applyModifiers } from "./applyModifiers.ts";
 import { isDeferred } from "./deferred.ts";
-import { isTypedAsOption } from "./discriminated.ts";
+import { holdsReferenceBack, isTypedAsOption } from "./discriminated.ts";
 
 type ZodUnionArgs = {
   context: GenerateContextType;
@@ -22,6 +22,8 @@ export class ZodUnion extends TsSnippet {
   modifiers: Modifiers;
   /** See `isDeferred`. */
   deferred: boolean;
+  /** See `holdsReferenceBack`. */
+  holdsReferenceBack: boolean;
 
   constructor({
     context,
@@ -52,6 +54,7 @@ export class ZodUnion extends TsSnippet {
       : undefined;
     this.modifiers = modifiers;
     this.deferred = this.members.some(isDeferred);
+    this.holdsReferenceBack = this.members.some(holdsReferenceBack);
 
     this.register({ imports: { zod: ["z"] }, destinationPath });
   }

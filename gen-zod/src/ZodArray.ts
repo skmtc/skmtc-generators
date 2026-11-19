@@ -3,6 +3,7 @@ import type { GenerateContextType, GeneratorKey, Modifiers, OasRef, OasSchema, R
 import { toZodValue } from "./Zod.ts";
 import { applyModifiers } from "./applyModifiers.ts";
 import { isDeferred } from "./deferred.ts";
+import { holdsReferenceBack } from "./discriminated.ts";
 
 type ZodArrayArgs = {
   context: GenerateContextType;
@@ -21,6 +22,8 @@ export class ZodArray extends TsSnippet {
   modifiers: Modifiers;
   /** See `isDeferred`. */
   deferred: boolean;
+  /** See `holdsReferenceBack`. */
+  holdsReferenceBack: boolean;
 
   constructor(
     { context, generatorKey, destinationPath, items, modifiers, rootRef, schema }:
@@ -39,6 +42,7 @@ export class ZodArray extends TsSnippet {
     });
 
     this.deferred = isDeferred(this.items);
+    this.holdsReferenceBack = holdsReferenceBack(this.items);
 
     this.register({ imports: { zod: ["z"] }, destinationPath });
   }

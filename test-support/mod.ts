@@ -509,8 +509,10 @@ export const unionDocument: OpenAPIV3.Document = {
 /**
  * Cycles whose plain rendering zod 4 or its types refuse: a recursive object
  * with `additionalProperties` (Node), an inline object with
- * `additionalProperties` inside a cycle (Holder's `meta`), and a model that
- * refers to itself through a discriminated `oneOf` property (Chain).
+ * `additionalProperties` inside a cycle (Holder's `meta`), a model that
+ * refers to itself through a discriminated `oneOf` property (Chain), one
+ * that does so through an inline member of that `oneOf` (Link), and one that
+ * does so through a union inside that member (Knot).
  */
 export const cycleEdgeDocument: OpenAPIV3.Document = {
   openapi: '3.0.3',
@@ -545,7 +547,47 @@ export const cycleEdgeDocument: OpenAPIV3.Document = {
           }
         }
       },
-      Leaf: { type: 'object', required: ['kind'], properties: { kind: toKind('leaf') } }
+      Leaf: { type: 'object', required: ['kind'], properties: { kind: toKind('leaf') } },
+      Link: {
+        type: 'object',
+        required: ['kind'],
+        properties: {
+          kind: toKind('link'),
+          next: {
+            oneOf: [
+              {
+                type: 'object',
+                required: ['kind'],
+                properties: { kind: toKind('wrap'), inner: { $ref: '#/components/schemas/Link' } }
+              },
+              { $ref: '#/components/schemas/End' }
+            ],
+            discriminator: { propertyName: 'kind' }
+          }
+        }
+      },
+      End: { type: 'object', required: ['kind'], properties: { kind: toKind('end') } },
+      Knot: {
+        type: 'object',
+        required: ['kind'],
+        properties: {
+          kind: toKind('knot'),
+          next: {
+            oneOf: [
+              {
+                type: 'object',
+                required: ['kind'],
+                properties: {
+                  kind: toKind('loop'),
+                  inner: { oneOf: [{ $ref: '#/components/schemas/Knot' }, { type: 'string' }] }
+                }
+              },
+              { $ref: '#/components/schemas/End' }
+            ],
+            discriminator: { propertyName: 'kind' }
+          }
+        }
+      }
     }
   }
 }

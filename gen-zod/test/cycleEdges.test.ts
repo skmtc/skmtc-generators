@@ -36,3 +36,17 @@ Deno.test("cycle edges - a reference back in a discriminated union renders z.uni
     'get next() { return z.union([chain, leaf]).optional() }',
   );
 });
+
+Deno.test("cycle edges - a reference back inside an inline member renders z.union", () => {
+  assertStringIncludes(
+    artifacts["src/types/link.generated.ts"],
+    'next: z.union([z.object({kind: z.literal("wrap"), get inner() { return link.optional() }}), end]).optional()',
+  );
+});
+
+Deno.test("cycle edges - a reference back inside a union inside an inline member renders z.union", () => {
+  assertStringIncludes(
+    artifacts["src/types/knot.generated.ts"],
+    'next: z.union([z.object({kind: z.literal("loop"), get inner() { return z.union([knot, z.string()]).optional() }}), end]).optional()',
+  );
+});
