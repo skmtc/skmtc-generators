@@ -17,7 +17,7 @@ import { MediaTypes } from './MediaTypes.ts'
 import { UnresolvedMarker } from './Unresolved.ts'
 import { toExample } from '../toExample.ts'
 import { toContent } from '../toContent.ts'
-import { safeResolve } from '../safeResolve.ts'
+import { safeResolve, toSiteSchema } from '../safeResolve.ts'
 
 type OperationParametersArgs = {
   context: GenerateContextType
@@ -200,7 +200,8 @@ class Parameter extends SnippetBase {
         : undefined
     const schema = parameter.schema ?? content?.schema
     const description = parameter.description?.trim()
-    const type = schema !== undefined ? safeResolve(schema)?.type : undefined
+    const site = schema !== undefined ? toSiteSchema(schema) : undefined
+    const type = site?.type === 'schema' ? site.schema.type : undefined
     const note = new ParameterNote({
       context,
       parameter,

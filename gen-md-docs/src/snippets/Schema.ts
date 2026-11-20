@@ -2,9 +2,9 @@ import { SnippetBase, type GenerateContextType, type OasSchema, type OasRef, typ
 import { List } from '@skmtc/lang-typescript'
 import { match, P } from 'ts-pattern'
 import { Name } from './Name.ts'
-import { TypeInfo, UnresolvedTypeInfo } from './TypeInfo.ts'
+import { AliasTypeInfo, TypeInfo, UnresolvedTypeInfo } from './TypeInfo.ts'
 import { DescriptionClause } from './Description.ts'
-import { safeResolve } from '../safeResolve.ts'
+import { toSiteSchema } from '../safeResolve.ts'
 
 type SchemaArgs = {
   context: GenerateContextType
@@ -17,7 +17,7 @@ type SchemaArgs = {
 }
 
 /** One part of a schema's row. */
-type SchemaRowPart = Name | TypeInfo | UnresolvedTypeInfo | Title | DescriptionClause
+type SchemaRowPart = Name | TypeInfo | AliasTypeInfo | UnresolvedTypeInfo | Title | DescriptionClause
 
 /**
  * Renders one schema node as a Markdown row, then its children's rows in a
@@ -42,14 +42,18 @@ export class Schema extends SnippetBase {
   constructor({ context, name, schema, required, description, depth = 0 }: SchemaArgs) {
     super({ context, stackTrail: schema.stackTrail.clone() })
 
-    const resolved = safeResolve(schema)
-    const title = resolved?.title
-    const descriptionText = (description ?? resolved?.description)?.trim()
+    const site = toSiteSchema(schema)
+    // What the row reads its title and description from: the schema it shows,
+    // or, for an alias or a `$ref` that names nothing, the keywords next to the `$ref`.
+    const shown = site.type === 'schema' ? site.schema : schema
+    const title = shown.title
+    const descriptionText = (description ?? shown.description)?.trim()
     const expansion = toExpansion(schema)
-    const typeInfo =
-      resolved !== undefined
-        ? new TypeInfo({ context, schema, resolved, required })
-        : new UnresolvedTypeInfo({ context, schema, required })
+    const typeInfo = match(site)
+      .with({ type: 'schema' }, ({ schema: resolved }) => new TypeInfo({ context, schema, resolved, required }))
+      .with({ type: 'alias' }, () => new AliasTypeInfo({ context, schema, required }))
+      .with({ type: 'dangling' }, () => new UnresolvedTypeInfo({ context, schema, required }))
+      .exhaustive()
     const properties = expansion.length > 0 ? new Properties({ context, properties: expansion, depth }) : undefined
 
     this.links = [...typeInfo.links, ...(properties?.links ?? [])]

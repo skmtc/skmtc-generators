@@ -186,3 +186,71 @@ Deno.test("servers - an operation's servers replace its path item's, which repla
   assertStringIncludes(artifacts['src/docs/files-GET.md'], 'servers:\n  - "https://files.example.com"')
   assertStringIncludes(artifacts['src/docs/pets-GET.md'], 'servers:\n  - "https://api.example.com"')
 })
+
+Deno.test('aliases - a $ref chain that loops renders each alias linking to the next, and the run succeeds', () => {
+  // `resolve()` followed `A` → `B` → `A`… until it threw `Max lookups
+  // reached`, which failed the run. Each alias is a type of its own now, and
+  // `B`'s link back to `A` finds `A` already in the document.
+  const { artifacts, manifest } = run({
+    paths: { '/loop': { get: { responses: { '200': { ...ok, content: json(ref('A')) } } } } },
+    components: { schemas: { A: ref('B'), B: ref('A') } }
+  })
+  const markdown = artifacts['src/docs/loop-GET.md']
+
+  assertEquals(manifest.parseIssues.filter(issue => issue.type === 'RUN_FAILED'), [])
+  assertStringIncludes(markdown, '### `200` — ok\n\n[`A`](#type-A)')
+  assertEquals(markdown.split('## Referenced types\n\n')[1], [
+    '### <a id="type-A"></a>A\n\n[`B`](#type-B)',
+    '### <a id="type-B"></a>B\n\n[`A`](#type-A)'
+  ].join('\n\n'))
+})
+
+Deno.test('aliases - an alias shows the link to what it names, and the facets are in its definition', () => {
+  // As Cloudflare writes it: `account_id` is a `$ref` to `identifier`.
+  const { artifacts } = run({
+    paths: {
+      '/accounts/{account_id}': {
+        get: {
+          parameters: [{ name: 'account_id', in: 'path', required: true, schema: ref('account_id') }],
+          responses: { '200': ok }
+        }
+      }
+    },
+    components: {
+      schemas: {
+        account_id: ref('identifier'),
+        identifier: { type: 'string', maxLength: 32, description: 'Identifier' }
+      }
+    }
+  })
+  const markdown = artifacts['src/docs/accounts-accountId-GET.md']
+
+  assertStringIncludes(markdown, '**account_id** [`AccountId`](#type-account_id) required')
+  assertEquals(markdown.split('## Referenced types\n\n')[1], [
+    '### <a id="type-account_id"></a>AccountId\n\n[`Identifier`](#type-identifier) (max length: 32) — Identifier',
+    '### <a id="type-identifier"></a>Identifier\n\n`string` (max length: 32) — Identifier'
+  ].join('\n\n'))
+})
+
+Deno.test('aliases - the keywords next to a $ref that names a schema still apply', () => {
+  const { artifacts } = run({
+    paths: {
+      '/pets': {
+        get: {
+          responses: {
+            '200': {
+              ...ok,
+              content: json({
+                type: 'object',
+                properties: { owner: { allOf: [ref('Person')], description: 'Who owns the pet', nullable: true } }
+              })
+            }
+          }
+        }
+      }
+    },
+    components: { schemas: { Person: { type: 'object', properties: { name: { type: 'string' } } } } }
+  })
+
+  assertStringIncludes(artifacts['src/docs/pets-GET.md'], '- **owner** [`Person`](#type-Person) nullable — Who owns the pet')
+})

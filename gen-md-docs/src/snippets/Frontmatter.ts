@@ -55,7 +55,7 @@ type YamlStringArgs = {
 }
 
 /** A double-quoted YAML scalar, escaped — paths, titles and ids carry `:` `{` `#`. */
-class YamlString extends SnippetBase {
+export class YamlString extends SnippetBase {
   value: string
 
   constructor({ context, value }: YamlStringArgs) {
@@ -84,7 +84,7 @@ type YamlFieldArgs = {
 }
 
 /** One YAML field: `method: GET`, `path: "/pets/{id}"`. */
-class YamlField extends SnippetBase {
+export class YamlField extends SnippetBase {
   key: string
   value: string | YamlString
 

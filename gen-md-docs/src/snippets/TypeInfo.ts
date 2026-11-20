@@ -11,7 +11,7 @@ import {
 } from './Constraints.ts'
 import { UnresolvedMarker } from './Unresolved.ts'
 import { ComponentName } from './ComponentName.ts'
-import { safeResolve } from '../safeResolve.ts'
+import { toSiteSchema } from '../safeResolve.ts'
 
 type TypeNameArgs = {
   context: GenerateContextType
@@ -41,7 +41,7 @@ export class TypeName extends SnippetBase {
     if (schema.isRef()) {
       const refName = schema.toRefName()
       const component = new ComponentName({ context, refName })
-      const resolves = safeResolve(schema) !== undefined
+      const resolves = toSiteSchema(schema).type !== 'dangling'
 
       this.name = component.name
       this.anchor = resolves ? component.anchor : undefined
@@ -296,6 +296,38 @@ export class UnresolvedTypeInfo extends SnippetBase {
       ],
       { separator: ' ' }
     )
+  }
+
+  override toString(): string {
+    return `${this.annotation}`
+  }
+}
+
+type AliasTypeInfoArgs = {
+  context: GenerateContextType
+  /** A `$ref` to a component that is itself a `$ref`. */
+  schema: OasRef<'schema'> | OasSchema
+  required: boolean | undefined
+}
+
+/**
+ * The type annotation of a `$ref` to an alias (a component that is itself a
+ * `$ref`): the link to the alias's definition, and `required` when it is. The
+ * facets are those of what the alias names, shown in the alias's definition.
+ * Example: `` [`AccountId`](#type-account_id) required ``.
+ */
+export class AliasTypeInfo extends SnippetBase {
+  annotation: List<(TypeName | string)[], ' ', 'none'>
+  /** The component schemas the annotation links to: the alias. */
+  links: RefName[]
+
+  constructor({ context, schema, required }: AliasTypeInfoArgs) {
+    super({ context, stackTrail: schema.stackTrail.clone() })
+
+    const typeName = new TypeName({ context, schema })
+
+    this.links = typeName.links
+    this.annotation = new List([typeName, required === true ? 'required' : undefined], { separator: ' ' })
   }
 
   override toString(): string {

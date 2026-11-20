@@ -51,8 +51,13 @@ export const checkIndexIntegrity = (artifacts: Artifacts): string[] => {
   const docsPrefix = topIndexKey.slice(0, topIndexKey.length - 'index.md'.length)
   const catalogKey = `${docsPrefix}index.json`
 
+  // An expandable object's page (`docs/_types/`) is not an operation document.
   const opDocs = Object.keys(artifacts).filter(
-    path => path.startsWith(docsPrefix) && path.endsWith('.md') && !path.endsWith('/index.md')
+    path =>
+      path.startsWith(docsPrefix) &&
+      path.endsWith('.md') &&
+      !path.endsWith('/index.md') &&
+      !path.startsWith(`${docsPrefix}_types/`)
   )
 
   if (!has(catalogKey)) {
@@ -124,7 +129,10 @@ export const checkFrontmatter = (artifacts: Artifacts): string[] => {
         continue
       }
 
-      for (const key of ['type', 'method', 'path']) {
+      // An operation's document names its operation; an object's page names its schema.
+      const keys = 'type' in frontmatter && frontmatter.type === 'schema' ? ['type', 'name', 'title'] : ['type', 'method', 'path']
+
+      for (const key of keys) {
         if (!(key in frontmatter)) {
           violations.push(`${path}: frontmatter missing "${key}"`)
         }
@@ -163,8 +171,31 @@ export const checkCodeFences = (artifacts: Artifacts): string[] =>
   })
 
 /** Run every structural invariant, returning all violations (empty = pass). */
+/**
+ * Every `` [`Type`](page.md) `` link (a link to an expandable object's page)
+ * points at a page that was emitted, relative to the document it is in.
+ */
+export const checkPageLinks = (artifacts: Artifacts): string[] => {
+  const violations: string[] = []
+
+  for (const [path, content] of markdownDocs(artifacts)) {
+    const dir = path.slice(0, path.lastIndexOf('/') + 1)
+
+    for (const link of content.matchAll(/\[`[^`]+`\]\(([^)#]+\.md)\)/g)) {
+      const target = decodeURI(new URL(link[1], `file:///${dir}`).pathname).slice(1)
+
+      if (!Object.hasOwn(artifacts, target)) {
+        violations.push(`${path}: link "${link[1]}" points at a page that was not emitted`)
+      }
+    }
+  }
+
+  return violations
+}
+
 export const checkAll = (artifacts: Artifacts): string[] => [
   ...checkAnchorLinks(artifacts),
+  ...checkPageLinks(artifacts),
   ...checkIndexIntegrity(artifacts),
   ...checkFrontmatter(artifacts),
   ...checkJsonExamples(artifacts),

@@ -52,3 +52,17 @@ export const TypeDefinitionBase = toModelProjectionBase<EnrichmentSchema, Identi
     toEnrichmentSchema
   }
 )
+
+/**
+ * The base of an expandable object's page (see `isExpandable`):
+ * `@/docs/_types/<refName>.md`. The underscore keeps the folder apart from the
+ * tag folders, whose names are kebab-case. The page is a document, named by
+ * the refName.
+ */
+export const ObjectPageBase = toModelProjectionBase<EnrichmentSchema, IdentifierType>(MdSnippet, {
+  id: denoJson.name,
+  toIdentifierName: ({ refName }) => refName,
+  toIdentifierType: (): IdentifierType => ({ type: 'document' }),
+  toExportPath: ({ refName }) => `@/docs/_types/${refName}.md`,
+  toEnrichmentSchema
+})
