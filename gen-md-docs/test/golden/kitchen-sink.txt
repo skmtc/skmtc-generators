@@ -239,6 +239,18 @@ _deprecated, not exploded_
 
 ## Referenced types
 
+### Category
+
+`object` _Pet category_
+- **id** `integer`
+- **name** `string`
+
+### Error
+
+`object`
+- **code** `integer` required
+- **message** `string` required
+
 ### Pet
 
 `object`
@@ -250,18 +262,6 @@ _deprecated, not exploded_
 - **friends** [`Pet[]`](#pet)
 
 **See also:** [Pet model reference](https://docs.example.com/pets/model)
-
-### Error
-
-`object`
-- **code** `integer` required
-- **message** `string` required
-
-### Category
-
-`object` _Pet category_
-- **id** `integer`
-- **name** `string`
 
 ==== api/docs/pets/pets-POST.md ====
 
@@ -314,6 +314,18 @@ The pet to create.
 
 ## Referenced types
 
+### Category
+
+`object` _Pet category_
+- **id** `integer`
+- **name** `string`
+
+### Error
+
+`object`
+- **code** `integer` required
+- **message** `string` required
+
 ### NewPet
 
 `object`
@@ -343,18 +355,6 @@ The pet to create.
 - **errors** `object[]`
   - **field** `string`
   - **message** `string`
-
-### Error
-
-`object`
-- **code** `integer` required
-- **message** `string` required
-
-### Category
-
-`object` _Pet category_
-- **id** `integer`
-- **name** `string`
 
 ==== api/docs/pets/pets-petId-GET.md ====
 
@@ -397,6 +397,18 @@ tags:
 
 ## Referenced types
 
+### Category
+
+`object` _Pet category_
+- **id** `integer`
+- **name** `string`
+
+### Error
+
+`object`
+- **code** `integer` required
+- **message** `string` required
+
 ### Pet
 
 `object`
@@ -408,18 +420,6 @@ tags:
 - **friends** [`Pet[]`](#pet)
 
 **See also:** [Pet model reference](https://docs.example.com/pets/model)
-
-### Error
-
-`object`
-- **code** `integer` required
-- **message** `string` required
-
-### Category
-
-`object` _Pet category_
-- **id** `integer`
-- **name** `string`
 
 ==== api/docs/pets/pets-petId-photo-PUT.md ====
 

@@ -3,12 +3,16 @@ import { OasArray, OasObject, OasString, type OasSchema } from '@skmtc/core'
 import { TypeInfo } from '../../src/snippets/TypeInfo.ts'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
 
+/** The document the snippets are written in, suffixed as the engine names a projection's file. */
+const DOC = '@/docs/test.generated.md'
+
 /** An inline schema resolves to itself. */
 const inline = <S extends OasSchema>(schema: S) => ({ schema, resolved: schema })
 
 Deno.test('TypeInfo - renders a bare type as inline code', () => {
   const snippet = new TypeInfo({
     context: toGenerateContext(),
+    destinationPath: DOC,
     ...inline(new OasObject({})),
     required: false
   })
@@ -19,6 +23,7 @@ Deno.test('TypeInfo - renders a bare type as inline code', () => {
 Deno.test('TypeInfo - appends format and required modifiers in order', () => {
   const snippet = new TypeInfo({
     context: toGenerateContext(),
+    destinationPath: DOC,
     ...inline(new OasString({ format: 'date-time' })),
     required: true
   })
@@ -29,6 +34,7 @@ Deno.test('TypeInfo - appends format and required modifiers in order', () => {
 Deno.test('TypeInfo - renders format, nullable and required in source order', () => {
   const snippet = new TypeInfo({
     context: toGenerateContext(),
+    destinationPath: DOC,
     ...inline(new OasString({ format: 'email', nullable: true })),
     required: true
   })
@@ -39,6 +45,7 @@ Deno.test('TypeInfo - renders format, nullable and required in source order', ()
 Deno.test('TypeInfo - composes the enum list after the modifiers', () => {
   const snippet = new TypeInfo({
     context: toGenerateContext(),
+    destinationPath: DOC,
     ...inline(new OasString({ enums: ['active', 'inactive'] })),
     required: true
   })
@@ -49,6 +56,7 @@ Deno.test('TypeInfo - composes the enum list after the modifiers', () => {
 Deno.test('TypeInfo - renders an array as the item type with []', () => {
   const snippet = new TypeInfo({
     context: toGenerateContext(),
+    destinationPath: DOC,
     ...inline(new OasArray({ items: new OasString({}) })),
     required: false
   })

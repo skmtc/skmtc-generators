@@ -7,9 +7,3 @@ Deno.test('Name - renders a bold name', () => {
 
   assertEquals(snippet.toString(), '**id**')
 })
-
-Deno.test('Name - renders the empty string when the name is absent', () => {
-  const snippet = new Name({ context: toGenerateContext(), name: undefined })
-
-  assertEquals(snippet.toString(), '')
-})

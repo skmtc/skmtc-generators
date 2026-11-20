@@ -1,5 +1,5 @@
 import { assertEquals } from '@std/assert'
-import { Description } from '../../src/snippets/Description.ts'
+import { Description, DescriptionClause } from '../../src/snippets/Description.ts'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
 
 Deno.test('Description - renders the description verbatim', () => {
@@ -11,20 +11,8 @@ Deno.test('Description - renders the description verbatim', () => {
   assertEquals(snippet.toString(), 'Returns a single pet.')
 })
 
-Deno.test('Description - trims surrounding whitespace', () => {
-  const snippet = new Description({
-    context: toGenerateContext(),
-    description: '  Returns a single pet.\n'
-  })
+Deno.test('DescriptionClause - renders the description after an em dash, for the end of a row', () => {
+  const snippet = new DescriptionClause({ context: toGenerateContext(), description: 'The pet identifier' })
 
-  assertEquals(snippet.toString(), 'Returns a single pet.')
-})
-
-Deno.test('Description - renders the empty string when absent', () => {
-  const snippet = new Description({
-    context: toGenerateContext(),
-    description: undefined
-  })
-
-  assertEquals(snippet.toString(), '')
+  assertEquals(snippet.toString(), '— The pet identifier')
 })

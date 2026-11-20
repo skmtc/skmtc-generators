@@ -1,6 +1,5 @@
 import { assert, assertEquals, assertStringIncludes } from '@std/assert'
-import { OperationDoc } from '../../src/snippets/OperationDoc.ts'
-import { toGenerateContext } from '../helpers/toGenerateContext.ts'
+import { toOperationDocument } from '../helpers/toOperationDocument.ts'
 import { toParsedDocument } from '../helpers/toParsedDocument.ts'
 
 Deno.test('OperationDoc - composes the full operation document', () => {
@@ -42,13 +41,10 @@ Deno.test('OperationDoc - composes the full operation document', () => {
 
   assert(parsed.type === 'oas')
 
-  const snippet = new OperationDoc({
-    context: toGenerateContext({ oasDocument: parsed }),
-    operation: parsed.value.operations[0]
-  })
+  const document = toOperationDocument({ parsed, operation: parsed.value.operations[0] })
 
   assertEquals(
-    snippet.toString(),
+    document,
     [
       '---\ntype: operation\ntitle: "Get pet by ID"\nmethod: GET\npath: "/pets/{id}"\ntags:\n  - "pets"\n---',
       '# Get pet by ID',
@@ -87,13 +83,10 @@ Deno.test('OperationDoc - renders the JSON request body schema when a non-JSON m
 
   assert(parsed.type === 'oas')
 
-  const snippet = new OperationDoc({
-    context: toGenerateContext({ oasDocument: parsed }),
-    operation: parsed.value.operations[0]
-  })
+  const document = toOperationDocument({ parsed, operation: parsed.value.operations[0] })
 
   assertStringIncludes(
-    snippet.toString(),
+    document,
     '## Request body\n\nContent types: `text/plain`, `application/vnd.api+json`\n\n`object`\n- **name** `string`'
   )
 })

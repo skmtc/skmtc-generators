@@ -6,18 +6,26 @@ import {
   type OasLink,
   type OasRef
 } from '@skmtc/core'
+import { List } from '@skmtc/lang-typescript'
+import { Bullet } from './Bullet.ts'
 import { Name } from './Name.ts'
-import { Schema, type Definitions } from './Schema.ts'
-import { Description } from './Description.ts'
-import { Example } from './Example.ts'
+import { Schema } from './Schema.ts'
+import { DescriptionClause } from './Description.ts'
+import { toExampleBlock, type InlineExample, type JsonExample } from './Example.ts'
+import { Heading } from './Heading.ts'
+import { InlineCode } from './InlineCode.ts'
+import { MediaTypes } from './MediaTypes.ts'
+import { UnresolvedMarker } from './Unresolved.ts'
 import { toExample } from '../toExample.ts'
-import { safeResolve, UNRESOLVED_REF } from '../safeResolve.ts'
-import { toContent, toMediaTypeLine } from '../toContent.ts'
+import { safeResolve } from '../safeResolve.ts'
+import { toContent } from '../toContent.ts'
 
 type ResponsesArgs = {
   context: GenerateContextType
+  /** The operation's responses: at least one. */
   responses: Record<string, OasResponse | OasRef<'response'>>
-  definitions?: Definitions
+  /** The document the responses are written in. */
+  destinationPath: string
 }
 
 /**
@@ -25,29 +33,31 @@ type ResponsesArgs = {
  * code, with its description, schema and a collated example. Documenting the
  * error responses (their status codes and schemas), not just the success one,
  * is the highest-value content for an agent generating request and error
- * handling. Renders the empty string when the operation declares no responses.
+ * handling. Its owner writes it only when the operation declares a response.
  */
 export class Responses extends SnippetBase {
-  entries: (ResponseEntry | UnresolvedResponseEntry)[]
+  blocks: List<(Heading | ResponseEntry | UnresolvedResponseEntry)[], '\n\n', 'none'>
 
-  constructor({ context, responses, definitions }: ResponsesArgs) {
+  constructor({ context, responses, destinationPath }: ResponsesArgs) {
     super({ context })
 
-    this.entries = Object.entries(responses).map(([code, response]) => {
-      const resolved = safeResolve(response)
+    this.blocks = new List<(Heading | ResponseEntry | UnresolvedResponseEntry)[], '\n\n', 'none'>(
+      [
+        new Heading({ context, level: 2, text: 'Responses' }),
+        ...Object.entries(responses).map(([code, response]) => {
+          const resolved = safeResolve(response)
 
-      return resolved !== undefined
-        ? new ResponseEntry({ context, code, response: resolved, definitions })
-        : new UnresolvedResponseEntry({ context, code })
-    })
+          return resolved !== undefined
+            ? new ResponseEntry({ context, code, response: resolved, destinationPath })
+            : new UnresolvedResponseEntry({ context, code })
+        })
+      ],
+      { separator: '\n\n' }
+    )
   }
 
   override toString(): string {
-    if (this.entries.length === 0) {
-      return ''
-    }
-
-    return ['## Responses', ...this.entries.map(entry => entry.toString())].join('\n\n')
+    return `${this.blocks}`
   }
 }
 
@@ -55,69 +65,88 @@ type ResponseEntryArgs = {
   context: GenerateContextType
   code: string
   response: OasResponse
-  definitions?: Definitions
+  destinationPath: string
 }
 
-/** One response: `### ` + status, an em-dash description, its schema, an example. */
-class ResponseEntry extends SnippetBase {
-  code: string
-  description: Description
-  mediaTypeLine: string | undefined
-  headers: (Header | UnresolvedEntry)[]
-  links: (Link | UnresolvedEntry)[]
-  schema: Schema | undefined
-  example: Example
+/** One block of a {@link ResponseEntry}. */
+type ResponseBlock =
+  | Heading
+  | MediaTypes
+  | Schema
+  | LabeledList<Header | UnresolvedEntry>
+  | LabeledList<Link | UnresolvedEntry>
+  | JsonExample
+  | InlineExample
 
-  constructor({ context, code, response, definitions }: ResponseEntryArgs) {
+/**
+ * One response: `### ` + status and an em-dash description, then each block it
+ * has — its media types, its schema, its headers, its links and an example.
+ */
+class ResponseEntry extends SnippetBase {
+  blocks: List<ResponseBlock[], '\n\n', 'none'>
+
+  constructor({ context, code, response, destinationPath }: ResponseEntryArgs) {
     const content = toContent(response.content)
 
     super({ context, stackTrail: content.schema?.stackTrail.clone() })
 
-    this.code = code
-    this.description = new Description({ context, description: response.description })
-    this.mediaTypeLine = toMediaTypeLine(content.mediaTypes)
-    this.headers = Object.entries(response.headers ?? {}).map(([name, header]) => {
-      const resolved = safeResolve(header)
+    const description = response.description?.trim()
+    const headers = Object.entries(response.headers ?? {})
+    const links = Object.entries(response.links ?? {})
 
-      return resolved !== undefined
-        ? new Header({ context, name, header: resolved, definitions })
-        : new UnresolvedEntry({ context, name })
-    })
-    this.links = Object.entries(response.links ?? {}).map(([name, link]) => {
-      const resolved = safeResolve(link)
+    this.blocks = new List<ResponseBlock[], '\n\n', 'none'>(
+      [
+        new Heading({
+          context,
+          level: 3,
+          text: new List<(InlineCode | DescriptionClause)[], ' ', 'none'>(
+            [
+              new InlineCode({ context, value: code }),
+              description ? new DescriptionClause({ context, description }) : undefined
+            ],
+            { separator: ' ' }
+          )
+        }),
+        content.listedMediaTypes.length > 0
+          ? new MediaTypes({ context, mediaTypes: content.listedMediaTypes })
+          : undefined,
+        content.schema !== undefined
+          ? new Schema({ context, name: undefined, schema: content.schema, required: undefined, destinationPath })
+          : undefined,
+        headers.length > 0
+          ? new LabeledList({
+              context,
+              label: 'Headers',
+              items: headers.map(([name, header]) => {
+                const resolved = safeResolve(header)
 
-      return resolved !== undefined
-        ? new Link({ context, name, link: resolved })
-        : new UnresolvedEntry({ context, name })
-    })
-    this.schema = content.schema
-      ? new Schema({ context, name: undefined, schema: content.schema, required: undefined, definitions })
-      : undefined
-    this.example = new Example({ context, example: toExample(content.schema) })
+                return resolved !== undefined
+                  ? new Header({ context, name, header: resolved, destinationPath })
+                  : new UnresolvedEntry({ context, name })
+              })
+            })
+          : undefined,
+        links.length > 0
+          ? new LabeledList({
+              context,
+              label: 'Links',
+              items: links.map(([name, link]) => {
+                const resolved = safeResolve(link)
+
+                return resolved !== undefined
+                  ? new Link({ context, name, link: resolved })
+                  : new UnresolvedEntry({ context, name })
+              })
+            })
+          : undefined,
+        toExampleBlock({ context, example: toExample(content.schema) })
+      ],
+      { separator: '\n\n' }
+    )
   }
 
   override toString(): string {
-    const description = this.description.toString()
-    const heading = description ? `### \`${this.code}\` — ${description}` : `### \`${this.code}\``
-    const headers =
-      this.headers.length > 0
-        ? ['**Headers**', this.headers.map(header => `- ${header}`).join('\n')].join('\n\n')
-        : ''
-    const links =
-      this.links.length > 0
-        ? ['**Links**', this.links.map(link => `- ${link}`).join('\n')].join('\n\n')
-        : ''
-
-    return [
-      heading,
-      this.mediaTypeLine ?? '',
-      this.schema?.toString() ?? '',
-      headers,
-      links,
-      this.example.toString()
-    ]
-      .filter(part => part !== '')
-      .join('\n\n')
+    return `${this.blocks}`
   }
 }
 
@@ -127,21 +156,55 @@ type UnresolvedResponseEntryArgs = {
 }
 
 /**
- * A response whose `$ref` names nothing: its status code, marked with
- * {@link UNRESOLVED_REF}, so a reader can tell it from a code the operation
- * does not document. It has no description, schema or example to show.
+ * A response whose `$ref` names nothing: its status code and the unresolved
+ * marker, so a reader can tell it from a code the operation does not document.
+ * It has no description, schema or example to show.
  */
 class UnresolvedResponseEntry extends SnippetBase {
-  code: string
+  heading: Heading
 
   constructor({ context, code }: UnresolvedResponseEntryArgs) {
     super({ context })
 
-    this.code = code
+    this.heading = new Heading({
+      context,
+      level: 3,
+      text: new List<(InlineCode | UnresolvedMarker)[], ' ', 'none'>(
+        [new InlineCode({ context, value: code }), new UnresolvedMarker({ context })],
+        { separator: ' ' }
+      )
+    })
   }
 
   override toString(): string {
-    return `### \`${this.code}\`${UNRESOLVED_REF}`
+    return `${this.heading}`
+  }
+}
+
+type LabeledListArgs<Item> = {
+  context: GenerateContextType
+  label: string
+  /** The items: at least one. */
+  items: Item[]
+}
+
+/** A bold label over a bullet list: `**Headers**`, then `- …` per item. */
+class LabeledList<Item extends SnippetBase> extends SnippetBase {
+  label: string
+  items: List<Bullet<Item>[], '\n', 'none'>
+
+  constructor({ context, label, items }: LabeledListArgs<Item>) {
+    super({ context })
+
+    this.label = label
+    this.items = new List(
+      items.map(item => new Bullet({ context, item })),
+      { separator: '\n' }
+    )
+  }
+
+  override toString(): string {
+    return `**${this.label}**\n\n${this.items}`
   }
 }
 
@@ -151,20 +214,22 @@ type UnresolvedEntryArgs = {
 }
 
 /**
- * A response header or link whose `$ref` names nothing: its name, marked
- * with {@link UNRESOLVED_REF}. It has no schema, target or description to show.
+ * A response header or link whose `$ref` names nothing: its name and the
+ * unresolved marker. It has no schema, target or description to show.
  */
 class UnresolvedEntry extends SnippetBase {
   name: Name
+  marker: UnresolvedMarker
 
   constructor({ context, name }: UnresolvedEntryArgs) {
     super({ context })
 
     this.name = new Name({ context, name })
+    this.marker = new UnresolvedMarker({ context })
   }
 
   override toString(): string {
-    return `${this.name}${UNRESOLVED_REF}`
+    return `${this.name} ${this.marker}`
   }
 }
 
@@ -172,41 +237,66 @@ type HeaderArgs = {
   context: GenerateContextType
   name: string
   header: OasHeader
-  definitions?: Definitions
+  destinationPath: string
 }
 
-/** One response header — its name, schema (name/type/required/description) and deprecation. */
-class Header extends SnippetBase {
-  name: Name
-  description: Description
-  schema: Schema | undefined
-  deprecated: boolean
+/** One part of a {@link Header}. */
+type HeaderPart = Schema | List<(Name | DescriptionClause)[], ' ', 'none'> | DeprecatedNote
 
-  constructor({ context, name, header, definitions }: HeaderArgs) {
+/**
+ * One response header — its schema (name, type, required, description), or
+ * its name and description when it has no schema, then whether it is
+ * deprecated.
+ */
+class Header extends SnippetBase {
+  parts: List<HeaderPart[], ' ', 'none'>
+
+  constructor({ context, name, header, destinationPath }: HeaderArgs) {
     super({ context, stackTrail: header.schema?.stackTrail.clone() })
 
-    this.name = new Name({ context, name })
-    this.description = new Description({ context, description: header.description })
-    this.schema = header.schema
-      ? new Schema({
-          context,
-          name,
-          schema: header.schema,
-          required: header.required,
-          description: header.description,
-          definitions
-        })
-      : undefined
-    this.deprecated = header.deprecated === true
+    const description = header.description?.trim()
+
+    this.parts = new List<HeaderPart[], ' ', 'none'>(
+      [
+        header.schema !== undefined
+          ? new Schema({
+              context,
+              name,
+              schema: header.schema,
+              required: header.required,
+              description: header.description,
+              destinationPath
+            })
+          : new List<(Name | DescriptionClause)[], ' ', 'none'>(
+              [
+                new Name({ context, name }),
+                description ? new DescriptionClause({ context, description }) : undefined
+              ],
+              { separator: ' ' }
+            ),
+        header.deprecated === true ? new DeprecatedNote({ context }) : undefined
+      ],
+      { separator: ' ' }
+    )
   }
 
   override toString(): string {
-    const description = this.description.toString()
-    const base =
-      this.schema?.toString() ??
-      [`${this.name}`, description && `— ${description}`].filter(part => part !== '').join(' ')
+    return `${this.parts}`
+  }
+}
 
-    return this.deprecated ? `${base} _(deprecated)_` : base
+type DeprecatedNoteArgs = {
+  context: GenerateContextType
+}
+
+/** The note that a header is deprecated: `_(deprecated)_`. */
+class DeprecatedNote extends SnippetBase {
+  constructor({ context }: DeprecatedNoteArgs) {
+    super({ context })
+  }
+
+  override toString(): string {
+    return '_(deprecated)_'
   }
 }
 
@@ -217,31 +307,50 @@ type LinkArgs = {
 }
 
 /**
- * One response link — a design-time pointer to another operation. Renders its
- * name, the target operation (`operationId` or `operationRef`) and description.
+ * One response link — a design-time pointer to another operation: its name,
+ * the target operation (`operationId` or `operationRef`) and its description.
  */
 class Link extends SnippetBase {
-  name: Name
-  target: string | undefined
-  description: Description
+  parts: List<(Name | LinkTarget | DescriptionClause)[], ' ', 'none'>
 
   constructor({ context, name, link }: LinkArgs) {
     super({ context })
 
-    this.name = new Name({ context, name })
-    this.target = link.operationId ?? link.operationRef
-    this.description = new Description({ context, description: link.description })
+    const target = link.operationId ?? link.operationRef
+    const description = link.description?.trim()
+
+    this.parts = new List<(Name | LinkTarget | DescriptionClause)[], ' ', 'none'>(
+      [
+        new Name({ context, name }),
+        target !== undefined ? new LinkTarget({ context, target }) : undefined,
+        description ? new DescriptionClause({ context, description }) : undefined
+      ],
+      { separator: ' ' }
+    )
   }
 
   override toString(): string {
-    const description = this.description.toString()
+    return `${this.parts}`
+  }
+}
 
-    return [
-      `${this.name}`,
-      this.target !== undefined ? `→ \`${this.target}\`` : '',
-      description && `— ${description}`
-    ]
-      .filter(part => part !== '')
-      .join(' ')
+type LinkTargetArgs = {
+  context: GenerateContextType
+  /** The target's `operationId` or `operationRef`. */
+  target: string
+}
+
+/** The operation a link points to: ``→ `getPet` ``. */
+class LinkTarget extends SnippetBase {
+  target: InlineCode
+
+  constructor({ context, target }: LinkTargetArgs) {
+    super({ context })
+
+    this.target = new InlineCode({ context, value: target })
+  }
+
+  override toString(): string {
+    return `→ ${this.target}`
   }
 }

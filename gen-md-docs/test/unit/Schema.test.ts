@@ -1,13 +1,18 @@
 import { assert, assertEquals, assertExists } from '@std/assert'
 import { OasArray, OasNumber, OasObject, OasString, OasUnion } from '@skmtc/core'
-import { Definitions, Schema } from '../../src/snippets/Schema.ts'
+import { Schema } from '../../src/snippets/Schema.ts'
+import { MdFile } from '../../src/lang/MdFile.ts'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
 import { toParsedDocument } from '../helpers/toParsedDocument.ts'
 import { docsSystem } from '../helpers/docsSystem.ts'
 
+/** The document the snippets are written in, suffixed as the engine names a projection's file. */
+const DOC = '@/docs/test.generated.md'
+
 Deno.test('Schema - renders a named scalar with its description', () => {
   const snippet = new Schema({
     context: toGenerateContext(),
+    destinationPath: DOC,
     name: 'id',
     schema: new OasString({ description: 'The pet identifier' }),
     required: true
@@ -19,6 +24,7 @@ Deno.test('Schema - renders a named scalar with its description', () => {
 Deno.test('Schema - renders the format modifier from the schema', () => {
   const snippet = new Schema({
     context: toGenerateContext(),
+    destinationPath: DOC,
     name: 'createdAt',
     schema: new OasString({ format: 'date-time' }),
     required: true
@@ -30,6 +36,7 @@ Deno.test('Schema - renders the format modifier from the schema', () => {
 Deno.test('Schema - renders enum values and omits required when optional', () => {
   const snippet = new Schema({
     context: toGenerateContext(),
+    destinationPath: DOC,
     name: 'status',
     schema: new OasString({ enums: ['active', 'inactive'] }),
     required: false
@@ -41,6 +48,7 @@ Deno.test('Schema - renders enum values and omits required when optional', () =>
 Deno.test('Schema - drops the bold name for a root schema', () => {
   const snippet = new Schema({
     context: toGenerateContext(),
+    destinationPath: DOC,
     name: undefined,
     schema: new OasString({}),
     required: true
@@ -52,6 +60,7 @@ Deno.test('Schema - drops the bold name for a root schema', () => {
 Deno.test('Schema - renders object properties as a nested bullet list', () => {
   const snippet = new Schema({
     context: toGenerateContext(),
+    destinationPath: DOC,
     name: undefined,
     schema: new OasObject({
       properties: { id: new OasString({}), name: new OasString({}) },
@@ -66,6 +75,7 @@ Deno.test('Schema - renders object properties as a nested bullet list', () => {
 Deno.test('Schema - indents a nested object one level deeper', () => {
   const snippet = new Schema({
     context: toGenerateContext(),
+    destinationPath: DOC,
     name: undefined,
     schema: new OasObject({
       properties: {
@@ -81,6 +91,7 @@ Deno.test('Schema - indents a nested object one level deeper', () => {
 Deno.test('Schema - renders an array of scalars as a leaf', () => {
   const snippet = new Schema({
     context: toGenerateContext(),
+    destinationPath: DOC,
     name: 'tags',
     schema: new OasArray({ items: new OasString({}) }),
     required: false
@@ -92,6 +103,7 @@ Deno.test('Schema - renders an array of scalars as a leaf', () => {
 Deno.test('Schema - expands the item properties of an object array', () => {
   const snippet = new Schema({
     context: toGenerateContext(),
+    destinationPath: DOC,
     name: undefined,
     schema: new OasObject({
       properties: {
@@ -109,6 +121,7 @@ Deno.test('Schema - expands the item properties of an object array', () => {
 Deno.test('Schema - renders union members as bullets', () => {
   const snippet = new Schema({
     context: toGenerateContext(),
+    destinationPath: DOC,
     name: undefined,
     schema: new OasUnion({ members: [new OasString({}), new OasNumber({})] }),
     required: false
@@ -120,6 +133,7 @@ Deno.test('Schema - renders union members as bullets', () => {
 Deno.test('Schema - renders string length, pattern and default constraints', () => {
   const snippet = new Schema({
     context: toGenerateContext(),
+    destinationPath: DOC,
     name: 'username',
     schema: new OasString({ minLength: 3, maxLength: 20, pattern: '^[a-z]+$', default: 'guest' }),
     required: true
@@ -134,6 +148,7 @@ Deno.test('Schema - renders string length, pattern and default constraints', () 
 Deno.test('Schema - renders numeric range with read-only and deprecated flags', () => {
   const snippet = new Schema({
     context: toGenerateContext(),
+    destinationPath: DOC,
     name: 'age',
     schema: new OasNumber({ minimum: 0, maximum: 120, readOnly: true, deprecated: true }),
     required: false
@@ -165,18 +180,16 @@ Deno.test('Schema - a $ref that names nothing renders its name, marked unresolve
   assertExists(bodyRef)
 
   const context = toGenerateContext({ oasDocument: parsed })
-  const definitions = new Definitions({ context })
 
   // No crash: the dangling ref renders its name, marked, with no anchor link.
-  const body = new Schema({ context, name: undefined, schema: bodyRef, required: false, definitions })
+  const body = new Schema({ context, name: undefined, schema: bodyRef, required: false, destinationPath: DOC })
   assertEquals(body.toString(), '`Missing` (unresolved $ref)')
 
-  // And it is never registered, so no broken definition is emitted.
-  definitions.build()
-  assertEquals(definitions.toString(), '')
+  // And it is never inserted, so no broken definition is written.
+  assertEquals(context.getFile(DOC), undefined)
 })
 
-Deno.test('Schema - renders a $ref by name; Definitions defines it once, cycle-safe', () => {
+Deno.test('Schema - renders a $ref by name, linked to its definition in the same document, defined once and cycle-safe', () => {
   const parsed = toParsedDocument({
     openapi: '3.0.0',
     info: { title: 'Test', version: '1.0.0' },
@@ -207,16 +220,17 @@ Deno.test('Schema - renders a $ref by name; Definitions defines it once, cycle-s
   assertExists(bodyRef)
 
   const context = toGenerateContext({ oasDocument: parsed })
-  const definitions = new Definitions({ context })
 
   // In the body, the ref is a leaf — its name, linked to its definition.
-  const body = new Schema({ context, name: undefined, schema: bodyRef, required: false, definitions })
+  const body = new Schema({ context, name: undefined, schema: bodyRef, required: false, destinationPath: DOC })
   assertEquals(body.toString(), '[`Node`](#node)')
 
-  // Its type is defined once; the recursive `next` links back (no loop).
-  definitions.build()
+  // Its type is defined once, in the same document; the recursive `next` links back (no loop).
+  const file = context.getFile(DOC)
+  assert(file instanceof MdFile)
+  assertEquals(file.sections.values.map(section => section.identifier.name), ['Node'])
   assertEquals(
-    definitions.toString(),
-    '## Referenced types\n\n### Node\n\n`object`\n- **id** `string` required\n- **next** [`Node`](#node)'
+    `${file.sections}`,
+    '### Node\n\n`object`\n- **id** `string` required\n- **next** [`Node`](#node)'
   )
 })

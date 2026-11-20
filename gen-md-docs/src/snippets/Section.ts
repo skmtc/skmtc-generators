@@ -5,80 +5,80 @@ import {
   type OasSchema,
   type OasRef
 } from '@skmtc/core'
-import { Schema, type Definitions } from './Schema.ts'
+import { List } from '@skmtc/lang-typescript'
+import { Schema } from './Schema.ts'
 import { Description } from './Description.ts'
-import { Example } from './Example.ts'
+import { toExampleBlock, type InlineExample, type JsonExample } from './Example.ts'
+import { Heading } from './Heading.ts'
+import { InlineCode } from './InlineCode.ts'
+import { MediaTypes } from './MediaTypes.ts'
+import { UnresolvedMarker } from './Unresolved.ts'
 import { toExample } from '../toExample.ts'
-import { toContent, toMediaTypeLine } from '../toContent.ts'
-import { safeResolve, UNRESOLVED_REF } from '../safeResolve.ts'
+import { toContent } from '../toContent.ts'
+import { safeResolve } from '../safeResolve.ts'
 
 type SectionArgs = {
   context: GenerateContextType
   title: string
   schema: OasSchema | OasRef<'schema'> | undefined
+  /** The description, trimmed; `undefined` when there is none. */
   description: string | undefined
-  definitions?: Definitions
-  mediaTypes?: string[]
+  /** The document the section is written in. */
+  destinationPath: string
+  /** The media types to list; empty for none or for the plain single `application/json`. */
+  mediaTypes: string[]
   required?: boolean
 }
 
+/** One block of a {@link Section}. */
+type SectionBlock = Heading | RequiredNote | Description | MediaTypes | Schema | JsonExample | InlineExample
+
 /**
- * Renders a titled documentation section — a request body, payload or response
- * — the Markdown counterpart of the docs viewer's `Section`.
- *
- * A level-two heading, an optional description, a content-type annotation (only
- * when it is not the plain single `application/json`), the schema rendered as a
- * {@link Schema}, and a collated example as an {@link Example}, each separated
- * by a blank line. Renders the empty string when there is neither a schema nor
- * a description, so an operation can interpolate every section unconditionally.
+ * Renders a titled documentation section, such as a request body — the
+ * Markdown counterpart of the docs viewer's `Section`: a level-two heading,
+ * then each block the section has, separated by a blank line — whether it is
+ * required, its description, its media types, its schema as a {@link Schema},
+ * and a collated example. Its owner builds it only when it has a schema or a
+ * description.
  */
 export class Section extends SnippetBase {
-  title: string
-  required: boolean
-  description: Description
-  mediaTypeLine: string | undefined
-  schema: Schema | undefined
-  example: Example
+  blocks: List<SectionBlock[], '\n\n', 'none'>
 
-  constructor({
-    context,
-    title,
-    schema,
-    description,
-    definitions,
-    mediaTypes,
-    required
-  }: SectionArgs) {
+  constructor({ context, title, schema, description, destinationPath, mediaTypes, required }: SectionArgs) {
     super({ context, stackTrail: schema?.stackTrail.clone() })
 
-    this.title = title
-    this.required = required === true
-    this.description = new Description({ context, description })
-    this.mediaTypeLine = mediaTypes !== undefined ? toMediaTypeLine(mediaTypes) : undefined
-    this.schema = schema
-      ? new Schema({ context, name: undefined, schema, required: undefined, definitions })
-      : undefined
-    this.example = new Example({ context, example: toExample(schema) })
+    this.blocks = new List<SectionBlock[], '\n\n', 'none'>(
+      [
+        new Heading({ context, level: 2, text: title }),
+        required === true ? new RequiredNote({ context }) : undefined,
+        description ? new Description({ context, description }) : undefined,
+        mediaTypes.length > 0 ? new MediaTypes({ context, mediaTypes }) : undefined,
+        schema !== undefined
+          ? new Schema({ context, name: undefined, schema, required: undefined, destinationPath })
+          : undefined,
+        toExampleBlock({ context, example: toExample(schema) })
+      ],
+      { separator: '\n\n' }
+    )
   }
 
   override toString(): string {
-    const description = this.description.toString()
-    const schema = this.schema?.toString() ?? ''
+    return `${this.blocks}`
+  }
+}
 
-    if (schema === '' && description === '') {
-      return ''
-    }
+type RequiredNoteArgs = {
+  context: GenerateContextType
+}
 
-    return [
-      `## ${this.title}`,
-      this.required ? '**Required.**' : '',
-      description,
-      this.mediaTypeLine ?? '',
-      schema,
-      this.example.toString()
-    ]
-      .filter(part => part !== '')
-      .join('\n\n')
+/** The note that a section, such as a request body, is required: `**Required.**`. */
+class RequiredNote extends SnippetBase {
+  constructor({ context }: RequiredNoteArgs) {
+    super({ context })
+  }
+
+  override toString(): string {
+    return '**Required.**'
   }
 }
 
@@ -91,60 +91,68 @@ type UnresolvedSectionArgs = {
 
 /**
  * A section whose own `$ref` names nothing, such as a request body: its
- * heading stays, over the `$ref` marked with {@link UNRESOLVED_REF}, so a
- * reader can tell it from an operation that documents no such section.
+ * heading stays, over the `$ref` and the unresolved marker, so a reader can
+ * tell it from an operation that documents no such section.
  */
 export class UnresolvedSection extends SnippetBase {
-  title: string
-  ref: string
+  heading: Heading
+  ref: InlineCode
+  marker: UnresolvedMarker
 
   constructor({ context, title, ref }: UnresolvedSectionArgs) {
     super({ context })
 
-    this.title = title
-    this.ref = ref
+    this.heading = new Heading({ context, level: 2, text: title })
+    this.ref = new InlineCode({ context, value: ref })
+    this.marker = new UnresolvedMarker({ context })
   }
 
   override toString(): string {
-    return `## ${this.title}\n\n- \`${this.ref}\`${UNRESOLVED_REF}`
+    return `${this.heading}\n\n- ${this.ref} ${this.marker}`
   }
 }
 
-type RequestBodySectionArgs = {
+type ToRequestBodySectionArgs = {
   context: GenerateContextType
   requestBody: OasRequestBody | OasRef<'requestBody'> | undefined
-  definitions?: Definitions
+  /** The document the section is written in. */
+  destinationPath: string
 }
 
 /**
- * The request body section, chosen once: an {@link UnresolvedSection} for a
- * body whose `$ref` names nothing, otherwise the body's {@link Section}, which
- * renders the empty string for an operation that takes no body.
+ * The request body's section, chosen once: an {@link UnresolvedSection} for a
+ * body whose `$ref` names nothing, the body's {@link Section} when it has a
+ * schema or a description, and `undefined` for an operation that takes no body.
  */
-export class RequestBodySection extends SnippetBase {
-  section: Section | UnresolvedSection
-
-  constructor({ context, requestBody, definitions }: RequestBodySectionArgs) {
-    super({ context })
-
-    const resolved = requestBody !== undefined ? safeResolve(requestBody) : undefined
-    const content = toContent(resolved?.content)
-
-    this.section =
-      requestBody?.isRef() && resolved === undefined
-        ? new UnresolvedSection({ context, title: 'Request body', ref: requestBody.$ref })
-        : new Section({
-            context,
-            title: 'Request body',
-            schema: content.schema,
-            description: resolved?.description,
-            definitions,
-            mediaTypes: content.mediaTypes,
-            required: resolved?.required
-          })
+export const toRequestBodySection = ({
+  context,
+  requestBody,
+  destinationPath
+}: ToRequestBodySectionArgs): Section | UnresolvedSection | undefined => {
+  if (requestBody === undefined) {
+    return undefined
   }
 
-  override toString(): string {
-    return `${this.section}`
+  const resolved = safeResolve(requestBody)
+
+  if (resolved === undefined) {
+    return requestBody.isRef()
+      ? new UnresolvedSection({ context, title: 'Request body', ref: requestBody.$ref })
+      : undefined
   }
+
+  const content = toContent(resolved.content)
+  const description = resolved.description?.trim()
+
+  return content.schema !== undefined || description
+    ? new Section({
+        context,
+        title: 'Request body',
+        schema: content.schema,
+        description,
+        destinationPath,
+        mediaTypes: content.listedMediaTypes,
+        required: resolved.required
+      })
+    : undefined
 }

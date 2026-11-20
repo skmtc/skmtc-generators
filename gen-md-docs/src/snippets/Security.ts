@@ -5,7 +5,12 @@ import {
   type OasSecurityScheme,
   type OasRef
 } from '@skmtc/core'
-import { safeResolve, UNRESOLVED_REF } from '../safeResolve.ts'
+import { List } from '@skmtc/lang-typescript'
+import { Heading } from './Heading.ts'
+import { InlineCode } from './InlineCode.ts'
+import { toSchemeKind, type SchemeKind } from './SecuritySchemes.ts'
+import { UnresolvedMarker } from './Unresolved.ts'
+import { safeResolve } from '../safeResolve.ts'
 
 type SecuritySchemes =
   | Record<string, OasSecurityScheme | OasRef<'securityScheme'>>
@@ -13,7 +18,8 @@ type SecuritySchemes =
 
 type SecurityArgs = {
   context: GenerateContextType
-  security: OasSecurityRequirement[] | undefined
+  /** The requirements that apply: at least one. */
+  security: OasSecurityRequirement[]
   securitySchemes: SecuritySchemes
 }
 
@@ -22,56 +28,97 @@ type SecurityArgs = {
  * requirement (alternatives are OR-ed; schemes within a requirement are AND-ed),
  * each naming its scheme(s), the scheme kind and any required scopes. The
  * required scopes are among the highest-value details for an agent making an
- * authorised call. Renders the empty string when no security applies — a public
- * operation, or a document that declares none.
+ * authorised call. Its owner writes it only when a requirement applies.
  */
 export class Security extends SnippetBase {
-  requirements: SecurityRequirement[]
+  heading: Heading
+  requirements: List<RequirementLine[], '\n', 'none'>
 
   constructor({ context, security, securitySchemes }: SecurityArgs) {
     super({ context })
 
-    this.requirements = (security ?? []).map(
-      requirement => new SecurityRequirement({ context, requirement, securitySchemes })
+    this.heading = new Heading({ context, level: 2, text: 'Security' })
+    this.requirements = new List(
+      security.map(requirement => new RequirementLine({ context, requirement, securitySchemes })),
+      { separator: '\n' }
     )
   }
 
   override toString(): string {
-    if (this.requirements.length === 0) {
-      return ''
-    }
-
-    const list = this.requirements.map(requirement => `- ${requirement}`).join('\n')
-
-    return `## Security\n\n${list}`
+    return `${this.heading}\n\n${this.requirements}`
   }
 }
 
-type SecurityRequirementArgs = {
+type RequirementLineArgs = {
   context: GenerateContextType
   requirement: OasSecurityRequirement
   securitySchemes: SecuritySchemes
 }
 
-/** One requirement: its schemes AND-ed together, or a note when it demands none. */
-class SecurityRequirement extends SnippetBase {
-  schemes: (SchemeUse | SchemeName)[]
+/** One requirement's bullet: its schemes AND-ed together, or a note when it demands none. */
+class RequirementLine extends SnippetBase {
+  requirement: SchemeUses | NoAuthentication
 
-  constructor({ context, requirement, securitySchemes }: SecurityRequirementArgs) {
+  constructor({ context, requirement, securitySchemes }: RequirementLineArgs) {
     super({ context })
 
-    this.schemes = Object.entries(requirement.requirement).map(([name, scopes]) => {
-      const entry = securitySchemes?.[name]
-      const scheme = entry !== undefined ? safeResolve(entry) : undefined
+    const schemes = Object.entries(requirement.requirement)
 
-      return scheme !== undefined
-        ? new SchemeUse({ context, name, scopes, scheme })
-        : new SchemeName({ context, name, scopes, unresolved: entry !== undefined })
-    })
+    this.requirement =
+      schemes.length > 0
+        ? new SchemeUses({ context, schemes, securitySchemes })
+        : new NoAuthentication({ context })
   }
 
   override toString(): string {
-    return this.schemes.length === 0 ? '_no authentication_' : this.schemes.join(' + ')
+    return `- ${this.requirement}`
+  }
+}
+
+type NoAuthenticationArgs = {
+  context: GenerateContextType
+}
+
+/** A requirement that demands no scheme: `_no authentication_`. */
+class NoAuthentication extends SnippetBase {
+  constructor({ context }: NoAuthenticationArgs) {
+    super({ context })
+  }
+
+  override toString(): string {
+    return '_no authentication_'
+  }
+}
+
+type SchemeUsesArgs = {
+  context: GenerateContextType
+  /** Each scheme the requirement names, with the scopes it needs: at least one. */
+  schemes: [string, string[]][]
+  securitySchemes: SecuritySchemes
+}
+
+/** The schemes one requirement names, AND-ed: `` `oauth` (OAuth2) — scopes: `read` + `key` (API key in header `X`) ``. */
+class SchemeUses extends SnippetBase {
+  uses: List<(SchemeUse | SchemeName)[], ' + ', 'none'>
+
+  constructor({ context, schemes, securitySchemes }: SchemeUsesArgs) {
+    super({ context })
+
+    this.uses = new List(
+      schemes.map(([name, scopes]) => {
+        const entry = securitySchemes?.[name]
+        const scheme = entry !== undefined ? safeResolve(entry) : undefined
+
+        return scheme !== undefined
+          ? new SchemeUse({ context, name, scopes, scheme })
+          : new SchemeName({ context, name, scopes, unresolved: entry !== undefined })
+      }),
+      { separator: ' + ' }
+    )
+  }
+
+  override toString(): string {
+    return `${this.uses}`
   }
 }
 
@@ -82,26 +129,51 @@ type SchemeUseArgs = {
   scheme: OasSecurityScheme
 }
 
-/** A scheme the requirement names: its name, kind, the scopes it needs and its description. */
+/** One part of a {@link SchemeUse}. */
+type SchemeUsePart = SchemeHead | Scopes | string
+
+/** A scheme the requirement names: its name and kind, the scopes it needs, and its description. */
 class SchemeUse extends SnippetBase {
-  name: string
-  scheme: OasSecurityScheme
-  scopes: Scopes
-  description: string | undefined
+  parts: List<SchemeUsePart[], ' — ', 'none'>
 
   constructor({ context, name, scopes, scheme }: SchemeUseArgs) {
     super({ context })
 
-    this.name = name
-    this.scheme = scheme
-    this.scopes = new Scopes({ context, scopes })
-    this.description = scheme.description === '' ? undefined : scheme.description
+    this.parts = new List<SchemeUsePart[], ' — ', 'none'>(
+      [
+        new SchemeHead({ context, name, kind: toSchemeKind({ context, scheme }) }),
+        scopes.length > 0 ? new Scopes({ context, scopes }) : undefined,
+        scheme.description === '' ? undefined : scheme.description
+      ],
+      { separator: ' — ' }
+    )
   }
 
   override toString(): string {
-    const description = this.description !== undefined ? ` — ${this.description}` : ''
+    return `${this.parts}`
+  }
+}
 
-    return `\`${this.name}\` (${toSchemeKind(this.scheme)})${this.scopes}${description}`
+type SchemeHeadArgs = {
+  context: GenerateContextType
+  name: string
+  kind: SchemeKind
+}
+
+/** A scheme's name and kind: `` `oauth` (OAuth2) ``. */
+class SchemeHead extends SnippetBase {
+  name: InlineCode
+  kind: SchemeKind
+
+  constructor({ context, name, kind }: SchemeHeadArgs) {
+    super({ context })
+
+    this.name = new InlineCode({ context, value: name })
+    this.kind = kind
+  }
+
+  override toString(): string {
+    return `${this.name} (${this.kind})`
   }
 }
 
@@ -115,68 +187,52 @@ type SchemeNameArgs = {
 
 /**
  * A scheme the docs cannot describe: its name and scopes. One whose `$ref`
- * names nothing is marked with {@link UNRESOLVED_REF}; a name the document
- * does not declare at all is shown as it is.
+ * names nothing gets the unresolved marker; a name the document does not
+ * declare at all is shown as it is.
  */
 class SchemeName extends SnippetBase {
-  name: string
-  scopes: Scopes
-  unresolved: boolean
+  parts: List<(List<(InlineCode | UnresolvedMarker)[], ' ', 'none'> | Scopes)[], ' — ', 'none'>
 
   constructor({ context, name, scopes, unresolved }: SchemeNameArgs) {
     super({ context })
 
-    this.name = name
-    this.scopes = new Scopes({ context, scopes })
-    this.unresolved = unresolved
+    this.parts = new List<(List<(InlineCode | UnresolvedMarker)[], ' ', 'none'> | Scopes)[], ' — ', 'none'>(
+      [
+        new List<(InlineCode | UnresolvedMarker)[], ' ', 'none'>(
+          [new InlineCode({ context, value: name }), unresolved ? new UnresolvedMarker({ context }) : undefined],
+          { separator: ' ' }
+        ),
+        scopes.length > 0 ? new Scopes({ context, scopes }) : undefined
+      ],
+      { separator: ' — ' }
+    )
   }
 
   override toString(): string {
-    return this.unresolved
-      ? `\`${this.name}\`${UNRESOLVED_REF}${this.scopes}`
-      : `\`${this.name}\`${this.scopes}`
+    return `${this.parts}`
   }
 }
 
 type ScopesArgs = {
   context: GenerateContextType
+  /** The scopes: at least one. */
   scopes: string[]
 }
 
-/** The scopes a requirement needs from a scheme, as ` — scopes: …`. Renders the empty string when it needs none. */
+/** The scopes a requirement needs from a scheme: ``scopes: `read`, `write` ``. */
 class Scopes extends SnippetBase {
-  scopes: string[]
+  scopes: List<InlineCode[], ', ', 'none'>
 
   constructor({ context, scopes }: ScopesArgs) {
     super({ context })
 
-    this.scopes = scopes
+    this.scopes = new List(
+      scopes.map(scope => new InlineCode({ context, value: scope })),
+      { separator: ', ' }
+    )
   }
 
   override toString(): string {
-    if (this.scopes.length === 0) {
-      return ''
-    }
-
-    return ` — scopes: ${this.scopes.map(scope => `\`${scope}\``).join(', ')}`
-  }
-}
-
-const toSchemeKind = (scheme: OasSecurityScheme): string => {
-  switch (scheme.type) {
-    case 'http':
-      return scheme.bearerFormat !== undefined
-        ? `HTTP ${scheme.scheme} (${scheme.bearerFormat})`
-        : `HTTP ${scheme.scheme}`
-    case 'apiKey':
-      return `API key in ${scheme.location} \`${scheme.name}\``
-    case 'oauth2':
-      return 'OAuth2'
-    case 'openIdConnect':
-      return 'OpenID Connect'
-    default: {
-      const exhaustive: never = scheme
-      throw new Error(`Unhandled security scheme: ${JSON.stringify(exhaustive)}`)
-    }
+    return `scopes: ${this.scopes}`
   }
 }

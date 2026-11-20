@@ -8,27 +8,29 @@ export type ExternalDocsData = {
 
 type ExternalDocsArgs = {
   context: GenerateContextType
-  externalDocs: ExternalDocsData | undefined
+  externalDocs: ExternalDocsData
   label?: string
 }
 
 /**
- * A "see also" link to external documentation (`externalDocs` at the document,
- * operation or tag level), or the empty string when none is declared.
+ * A link to external documentation — the Markdown counterpart of the docs
+ * viewer's `ExternalDocs`: `**See also:** [Pet docs](https://example.com/pets)`.
+ * The link text is the description, else the URL.
  */
 export class ExternalDocs extends SnippetBase {
-  link: string
+  label: string
+  text: string
+  url: string
 
   constructor({ context, externalDocs, label = 'See also' }: ExternalDocsArgs) {
     super({ context })
 
-    this.link =
-      externalDocs !== undefined
-        ? `**${label}:** [${externalDocs.description ?? externalDocs.url}](${externalDocs.url})`
-        : ''
+    this.label = label
+    this.text = externalDocs.description ?? externalDocs.url
+    this.url = externalDocs.url
   }
 
   override toString(): string {
-    return this.link
+    return `**${this.label}:** [${this.text}](${this.url})`
   }
 }
