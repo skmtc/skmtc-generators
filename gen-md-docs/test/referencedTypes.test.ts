@@ -205,6 +205,47 @@ Deno.test('aliases - a $ref chain that loops renders each alias linking to the n
   ].join('\n\n'))
 })
 
+Deno.test('a $ref chain that loops in a request body, response, header or link is unresolved, and the run succeeds', () => {
+  // These kinds have no entry of their own to link to, so `resolve()` threw
+  // `Max lookups reached` and the run wrote no document at all, `/fine` included.
+  const loop = (kind: string, a: string, b: string) => ({
+    [a]: { $ref: `#/components/${kind}/${b}` },
+    [b]: { $ref: `#/components/${kind}/${a}` }
+  })
+  const { artifacts, manifest } = run({
+    paths: {
+      '/loop': {
+        post: {
+          requestBody: { $ref: '#/components/requestBodies/B1' },
+          responses: {
+            '200': { $ref: '#/components/responses/R1' },
+            '201': {
+              description: 'created',
+              headers: { 'X-Rate': { $ref: '#/components/headers/H1' } },
+              links: { next: { $ref: '#/components/links/L1' } }
+            }
+          }
+        }
+      },
+      '/fine': { get: { responses: { '200': ok } } }
+    },
+    components: {
+      requestBodies: loop('requestBodies', 'B1', 'B2'),
+      responses: loop('responses', 'R1', 'R2'),
+      headers: loop('headers', 'H1', 'H2'),
+      links: loop('links', 'L1', 'L2')
+    }
+  })
+  const markdown = artifacts['src/docs/loop-POST.md']
+
+  assertEquals(manifest.parseIssues.filter(issue => issue.type === 'RUN_FAILED'), [])
+  assertEquals(typeof artifacts['src/docs/fine-GET.md'], 'string')
+  assertStringIncludes(markdown, '## Request body\n\n- `#/components/requestBodies/B1` (unresolved $ref)')
+  assertStringIncludes(markdown, '### `200` (unresolved $ref)')
+  assertStringIncludes(markdown, '- **X-Rate** (unresolved $ref)')
+  assertStringIncludes(markdown, '- **next** (unresolved $ref)')
+})
+
 Deno.test('aliases - an alias shows the link to what it names, and the facets are in its definition', () => {
   // As Cloudflare writes it: `account_id` is a `$ref` to `identifier`.
   const { artifacts } = run({

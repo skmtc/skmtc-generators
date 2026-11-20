@@ -1,11 +1,12 @@
-import { assertEquals, assertThrows } from '@std/assert'
-import { DanglingRefError } from '@skmtc/core'
+import { assert, assertEquals, assertThrows } from '@std/assert'
 import { markdown } from '../../src/lang/markdown.ts'
 import { MdFile } from '../../src/lang/MdFile.ts'
 import { MdIdentifier } from '../../src/lang/MdIdentifier.ts'
 import { MdDefinition } from '../../src/lang/MdDefinition.ts'
 import { safeResolve } from '../../src/safeResolve.ts'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
+import { toParsedDocument } from '../helpers/toParsedDocument.ts'
+import { docsSystem } from '../helpers/docsSystem.ts'
 
 const context = toGenerateContext()
 
@@ -77,7 +78,38 @@ Deno.test('markdown - names a document or a section, and refuses imports', () =>
   assertThrows(() => markdown.toImport({ identifier, module: '@/docs/other.md' }), Error, 'Markdown has no imports')
 })
 
-Deno.test('safeResolve - undefined for a ref that names nothing; any other error throws', () => {
-  assertEquals(safeResolve({ resolve: () => { throw new DanglingRefError('#/components/schemas/X') } }), undefined)
-  assertThrows(() => safeResolve({ resolve: () => { throw new Error('boom') } }), Error, 'boom')
+Deno.test('safeResolve - the component a $ref names; undefined for one that names nothing or a chain that loops', () => {
+  const parsed = toParsedDocument(
+    {
+      openapi: '3.0.0',
+      info: { title: 'Test', version: '1.0.0' },
+      paths: {
+        '/x': {
+          get: {
+            responses: {
+              '200': { $ref: '#/components/responses/Ok' },
+              '404': { $ref: '#/components/responses/Missing' },
+              '500': { $ref: '#/components/responses/R1' }
+            }
+          }
+        }
+      },
+      components: {
+        responses: {
+          Ok: { description: 'ok' },
+          R1: { $ref: '#/components/responses/R2' },
+          R2: { $ref: '#/components/responses/R1' }
+        }
+      }
+    },
+    { system: docsSystem }
+  )
+
+  assert(parsed.type === 'oas')
+
+  const { responses } = parsed.value.operations[0]
+
+  assertEquals(safeResolve(responses['200'])?.description, 'ok')
+  assertEquals(safeResolve(responses['404']), undefined)
+  assertEquals(safeResolve(responses['500']), undefined)
 })
