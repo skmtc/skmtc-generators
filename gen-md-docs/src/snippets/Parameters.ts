@@ -8,6 +8,7 @@ import {
 import { List } from '@skmtc/lang-typescript'
 import { Name } from './Name.ts'
 import { Schema } from './Schema.ts'
+import { DocumentSchema } from './DocumentSchema.ts'
 import { DescriptionClause } from './Description.ts'
 import { toExampleBlock, type InlineExample, type JsonExample } from './Example.ts'
 import { Heading } from './Heading.ts'
@@ -171,7 +172,7 @@ type ParameterArgs = {
 
 /** One block of a {@link Parameter}. */
 type ParameterBlock =
-  | Schema
+  | DocumentSchema
   | List<(Name | DescriptionClause)[], ' ', 'none'>
   | MediaTypes
   | ParameterNote
@@ -209,13 +210,16 @@ class Parameter extends SnippetBase {
     this.blocks = new List<ParameterBlock[], '\n\n', 'none'>(
       [
         schema !== undefined
-          ? new Schema({
+          ? new DocumentSchema({
               context,
-              name: parameter.name,
-              schema,
-              required: parameter.required,
-              description: parameter.description,
-              destinationPath
+              schema: new Schema({
+                context,
+                name: parameter.name,
+                schema,
+                required: parameter.required,
+                description: parameter.description
+              }),
+              documentPath: destinationPath
             })
           : new List<(Name | DescriptionClause)[], ' ', 'none'>(
               [

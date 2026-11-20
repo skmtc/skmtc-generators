@@ -7,6 +7,7 @@ import {
 } from '@skmtc/core'
 import { List } from '@skmtc/lang-typescript'
 import { Schema } from './Schema.ts'
+import { DocumentSchema } from './DocumentSchema.ts'
 import { Description } from './Description.ts'
 import { toExampleBlock, type InlineExample, type JsonExample } from './Example.ts'
 import { Heading } from './Heading.ts'
@@ -31,7 +32,7 @@ type SectionArgs = {
 }
 
 /** One block of a {@link Section}. */
-type SectionBlock = Heading | RequiredNote | Description | MediaTypes | Schema | JsonExample | InlineExample
+type SectionBlock = Heading | RequiredNote | Description | MediaTypes | DocumentSchema | JsonExample | InlineExample
 
 /**
  * Renders a titled documentation section, such as a request body — the
@@ -54,7 +55,11 @@ export class Section extends SnippetBase {
         description ? new Description({ context, description }) : undefined,
         mediaTypes.length > 0 ? new MediaTypes({ context, mediaTypes }) : undefined,
         schema !== undefined
-          ? new Schema({ context, name: undefined, schema, required: undefined, destinationPath })
+          ? new DocumentSchema({
+              context,
+              schema: new Schema({ context, name: undefined, schema, required: undefined }),
+              documentPath: destinationPath
+            })
           : undefined,
         toExampleBlock({ context, example: toExample(schema) })
       ],

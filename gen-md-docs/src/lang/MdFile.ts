@@ -10,9 +10,13 @@ type MdFileArgs = {
 /**
  * One operation's Markdown document: the document itself, then the sections
  * it links to — its referenced types — under `## Referenced types`, in
- * alphabetical order, so the order does not depend on which type was reached
- * first. Each definition is keyed by its identifier's name, and the first one
- * written wins.
+ * alphabetical order of their names (ignoring case, then by case), so the
+ * order does not depend on which type was reached first. Each section is
+ * keyed by its identifier's name, and the first one written wins.
+ *
+ * A file holds one document. Each operation's document has a path of its own
+ * (`toDocumentPath`), so a second document here is an error, not a document
+ * to drop.
  *
  * Markdown has no imports: a reference inside a document is an anchor link,
  * and every type a document links to is written into that document.
@@ -22,29 +26,38 @@ export class MdFile extends CodeFileBase {
   document: DefinitionBase | undefined
   /** The sections, kept in alphabetical order. */
   sections: List<DefinitionBase[], '\n\n', 'none'>
+  /** The sections by name, for the engine's lookups. */
+  sectionsByName: Map<string, DefinitionBase>
 
   constructor({ path }: MdFileArgs) {
     super({ path })
 
     this.document = undefined
     this.sections = new List<DefinitionBase[], '\n\n', 'none'>([], { separator: '\n\n' })
+    this.sectionsByName = new Map()
   }
 
   override addDefinition(definition: DefinitionBase): void {
+    const { name } = definition.identifier
+
     if (isDocument(definition.identifier)) {
+      if (this.document !== undefined && this.document.identifier.name !== name) {
+        throw new Error(
+          `${this.path}: '${name}' has the same document path as '${this.document.identifier.name}'. A Markdown file holds one document.`
+        )
+      }
+
       this.document ??= definition
 
       return
     }
 
-    const { name } = definition.identifier
-    const index = this.sections.values.findIndex(section => section.identifier.name >= name)
-
-    if (index === -1) {
-      this.sections.values.push(definition)
-    } else if (this.sections.values[index].identifier.name !== name) {
-      this.sections.values.splice(index, 0, definition)
+    if (this.sectionsByName.has(name)) {
+      return
     }
+
+    this.sectionsByName.set(name, definition)
+    this.sections.values.splice(toSectionIndex(this.sections.values, name), 0, definition)
   }
 
   // deno-lint-ignore skmtc/method-discipline -- MdFile is a file (a CodeFileBase the engine writes into), not a producer; the rule reads `…Base` as a projection base.
@@ -61,7 +74,11 @@ export class MdFile extends CodeFileBase {
 
   // deno-lint-ignore skmtc/method-discipline -- MdFile is a file (a CodeFileBase the engine writes into), not a producer; the rule reads `…Base` as a projection base.
   override findDefinitions(query?: FindDefinitionsQuery): DefinitionBase[] | undefined {
-    const all = this.document !== undefined ? [this.document, ...this.sections.values] : this.sections.values
+    const candidates =
+      query?.name !== undefined
+        ? [this.document, this.sectionsByName.get(query.name)]
+        : [this.document, ...this.sections.values]
+    const all = candidates.filter(definition => definition !== undefined)
 
     return matchDefinitions(all, query, identifier =>
       identifier instanceof MdIdentifier ? identifier.type : undefined
@@ -82,3 +99,36 @@ export class MdFile extends CodeFileBase {
 
 const isDocument = (identifier: IdentifierBase): boolean =>
   identifier instanceof MdIdentifier && identifier.type === 'document'
+
+/** Where a section named `name` goes in `sections`, which are in {@link compareNames} order: a binary search. */
+const toSectionIndex = (sections: DefinitionBase[], name: string): number => {
+  let low = 0
+  let high = sections.length
+
+  while (low < high) {
+    const middle = (low + high) >>> 1
+
+    if (compareNames(sections[middle].identifier.name, name) < 0) {
+      low = middle + 1
+    } else {
+      high = middle
+    }
+  }
+
+  return low
+}
+
+/** Alphabetical order, ignoring case first, so `apiKey` comes before `User`; then by case, so the order is total. */
+const compareNames = (a: string, b: string): number => {
+  const folded = compareCodeUnits(a.toLowerCase(), b.toLowerCase())
+
+  return folded !== 0 ? folded : compareCodeUnits(a, b)
+}
+
+const compareCodeUnits = (a: string, b: string): number => {
+  if (a < b) {
+    return -1
+  }
+
+  return a > b ? 1 : 0
+}

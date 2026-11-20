@@ -27,6 +27,32 @@ Deno.test('MdFile - writes the document, then its sections under Referenced type
   ])
 })
 
+Deno.test('MdFile - orders sections ignoring case first, so a lower-case refName sorts among the others', () => {
+  const file = new MdFile({ path: '@/docs/pets.md' })
+
+  // Code-unit order would put every upper-case name first: `Pet`, `Zone`, `apiKey`, `pet`.
+  for (const name of ['Zone', 'pet', 'apiKey', 'Pet']) {
+    file.addDefinition(toDefinition(name, 'section', `### ${name}`))
+  }
+
+  assertEquals(file.sections.values.map(section => section.identifier.name), ['apiKey', 'Pet', 'pet', 'Zone'])
+  // The engine looks a section up by its name, which is case-sensitive.
+  assertEquals(file.findDefinitions({ name: 'pet' })?.map(definition => `${definition}`), ['### pet'])
+  assertEquals(file.findDefinitions({ name: 'Missing' }), undefined)
+})
+
+Deno.test('MdFile - a second document at the same path is an error, not a document dropped', () => {
+  const file = new MdFile({ path: '@/docs/pets-GET.md' })
+
+  file.addDefinition(toDefinition('GET /pets', 'document', '# List pets'))
+
+  assertThrows(
+    () => file.addDefinition(toDefinition('GET /pets/', 'document', '# List pets, again')),
+    Error,
+    "'GET /pets/' has the same document path as 'GET /pets'"
+  )
+})
+
 Deno.test('MdFile - writes the document alone when it references no type', () => {
   const file = new MdFile({ path: '@/docs/pets.md' })
 

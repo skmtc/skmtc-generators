@@ -10,6 +10,7 @@ import { List } from '@skmtc/lang-typescript'
 import { Bullet } from './Bullet.ts'
 import { Name } from './Name.ts'
 import { Schema } from './Schema.ts'
+import { DocumentSchema } from './DocumentSchema.ts'
 import { DescriptionClause } from './Description.ts'
 import { toExampleBlock, type InlineExample, type JsonExample } from './Example.ts'
 import { Heading } from './Heading.ts'
@@ -72,7 +73,7 @@ type ResponseEntryArgs = {
 type ResponseBlock =
   | Heading
   | MediaTypes
-  | Schema
+  | DocumentSchema
   | LabeledList<Header | UnresolvedEntry>
   | LabeledList<Link | UnresolvedEntry>
   | JsonExample
@@ -111,7 +112,11 @@ class ResponseEntry extends SnippetBase {
           ? new MediaTypes({ context, mediaTypes: content.listedMediaTypes })
           : undefined,
         content.schema !== undefined
-          ? new Schema({ context, name: undefined, schema: content.schema, required: undefined, destinationPath })
+          ? new DocumentSchema({
+              context,
+              schema: new Schema({ context, name: undefined, schema: content.schema, required: undefined }),
+              documentPath: destinationPath
+            })
           : undefined,
         headers.length > 0
           ? new LabeledList({
@@ -241,7 +246,7 @@ type HeaderArgs = {
 }
 
 /** One part of a {@link Header}. */
-type HeaderPart = Schema | List<(Name | DescriptionClause)[], ' ', 'none'> | DeprecatedNote
+type HeaderPart = DocumentSchema | List<(Name | DescriptionClause)[], ' ', 'none'> | DeprecatedNote
 
 /**
  * One response header — its schema (name, type, required, description), or
@@ -259,13 +264,16 @@ class Header extends SnippetBase {
     this.parts = new List<HeaderPart[], ' ', 'none'>(
       [
         header.schema !== undefined
-          ? new Schema({
+          ? new DocumentSchema({
               context,
-              name,
-              schema: header.schema,
-              required: header.required,
-              description: header.description,
-              destinationPath
+              schema: new Schema({
+                context,
+                name,
+                schema: header.schema,
+                required: header.required,
+                description: header.description
+              }),
+              documentPath: destinationPath
             })
           : new List<(Name | DescriptionClause)[], ' ', 'none'>(
               [

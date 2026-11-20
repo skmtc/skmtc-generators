@@ -28,7 +28,7 @@ type SecurityArgs = {
  * requirement (alternatives are OR-ed; schemes within a requirement are AND-ed),
  * each naming its scheme(s), the scheme kind and any required scopes. The
  * required scopes are among the highest-value details for an agent making an
- * authorised call. Its owner writes it only when a requirement applies.
+ * authorized call. Its owner writes it only when a requirement applies.
  */
 export class Security extends SnippetBase {
   heading: Heading

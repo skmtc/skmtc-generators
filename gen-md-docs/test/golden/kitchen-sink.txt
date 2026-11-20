@@ -226,7 +226,7 @@ _deprecated, not exploded_
 
 ### `200` — A list of pets
 
-[`Pet[]`](#pet)
+[`Pet[]`](#type-Pet)
 
 **Headers**
 
@@ -235,31 +235,31 @@ _deprecated, not exploded_
 
 ### `400` — Bad request
 
-[`Error`](#error)
+[`Error`](#type-Error)
 
 ## Referenced types
 
-### Category
+### <a id="type-Category"></a>Category
 
 `object` _Pet category_
 - **id** `integer`
 - **name** `string`
 
-### Error
+### <a id="type-Error"></a>Error
 
 `object`
 - **code** `integer` required
 - **message** `string` required
 
-### Pet
+### <a id="type-Pet"></a>Pet
 
 `object`
 - **id** `integer` int64 required read-only
 - **name** `string` required (min length: 1, max length: 50)
 - **status** `string` (`active`, `inactive`) (default: `active`)
 - **tags** `string[]`
-- **category** [`Category`](#category) _Pet category_
-- **friends** [`Pet[]`](#pet)
+- **category** [`Category`](#type-Category) _Pet category_
+- **friends** [`Pet[]`](#type-Pet)
 
 **See also:** [Pet model reference](https://docs.example.com/pets/model)
 
@@ -292,13 +292,13 @@ tags:
 
 The pet to create.
 
-[`NewPet`](#newpet)
+[`NewPet`](#type-NewPet)
 
 ## Responses
 
 ### `201` — Created
 
-[`Pet`](#pet)
+[`Pet`](#type-Pet)
 
 **Links**
 
@@ -306,50 +306,50 @@ The pet to create.
 
 ### `422` — Validation failed
 
-[`ValidationError`](#validationerror)
+[`ValidationError`](#type-ValidationError)
 
 ### `default` — Unexpected error
 
-[`Error`](#error)
+[`Error`](#type-Error)
 
 ## Referenced types
 
-### Category
+### <a id="type-Category"></a>Category
 
 `object` _Pet category_
 - **id** `integer`
 - **name** `string`
 
-### Error
+### <a id="type-Error"></a>Error
 
 `object`
 - **code** `integer` required
 - **message** `string` required
 
-### NewPet
+### <a id="type-NewPet"></a>NewPet
 
 `object`
 - **name** `string` required (min length: 1)
 - **status** `string` (`active`, `inactive`)
-- **category** [`Category`](#category) _Pet category_
+- **category** [`Category`](#type-Category) _Pet category_
 - **photoUrls** `string[]` (min items: 1)
 - **metadata** `union`
   - `string`
   - `integer`
 
-### Pet
+### <a id="type-Pet"></a>Pet
 
 `object`
 - **id** `integer` int64 required read-only
 - **name** `string` required (min length: 1, max length: 50)
 - **status** `string` (`active`, `inactive`) (default: `active`)
 - **tags** `string[]`
-- **category** [`Category`](#category) _Pet category_
-- **friends** [`Pet[]`](#pet)
+- **category** [`Category`](#type-Category) _Pet category_
+- **friends** [`Pet[]`](#type-Pet)
 
 **See also:** [Pet model reference](https://docs.example.com/pets/model)
 
-### ValidationError
+### <a id="type-ValidationError"></a>ValidationError
 
 `object`
 - **errors** `object[]`
@@ -389,35 +389,35 @@ tags:
 
 ### `200` — The pet
 
-[`Pet`](#pet)
+[`Pet`](#type-Pet)
 
 ### `404` — Not found
 
-[`Error`](#error)
+[`Error`](#type-Error)
 
 ## Referenced types
 
-### Category
+### <a id="type-Category"></a>Category
 
 `object` _Pet category_
 - **id** `integer`
 - **name** `string`
 
-### Error
+### <a id="type-Error"></a>Error
 
 `object`
 - **code** `integer` required
 - **message** `string` required
 
-### Pet
+### <a id="type-Pet"></a>Pet
 
 `object`
 - **id** `integer` int64 required read-only
 - **name** `string` required (min length: 1, max length: 50)
 - **status** `string` (`active`, `inactive`) (default: `active`)
 - **tags** `string[]`
-- **category** [`Category`](#category) _Pet category_
-- **friends** [`Pet[]`](#pet)
+- **category** [`Category`](#type-Category) _Pet category_
+- **friends** [`Pet[]`](#type-Pet)
 
 **See also:** [Pet model reference](https://docs.example.com/pets/model)
 

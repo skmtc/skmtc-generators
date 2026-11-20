@@ -1,6 +1,6 @@
 import type { OasOperationProjectionConstructorArgs } from '@skmtc/core'
 import { List } from '@skmtc/lang-typescript'
-import { OperationDocBase } from '../base.ts'
+import { OperationDocBase, type OperationDocOptions } from '../base.ts'
 import type { EnrichmentSchema } from '../enrichments.ts'
 import { Frontmatter } from './Frontmatter.ts'
 import { Summary } from './Summary.ts'
@@ -37,7 +37,7 @@ type OperationBlock =
 export class OperationDoc extends OperationDocBase {
   blocks: List<OperationBlock[], '\n\n', 'none'>
 
-  constructor(args: OasOperationProjectionConstructorArgs<EnrichmentSchema>) {
+  constructor(args: OasOperationProjectionConstructorArgs<EnrichmentSchema, OperationDocOptions>) {
     super(args)
 
     const { context, operation, settings } = args
@@ -46,11 +46,13 @@ export class OperationDoc extends OperationDocBase {
     const summary = operation.summary?.trim()
     const description = operation.description?.trim()
     const security = operation.security ?? document?.security ?? []
+    // OpenAPI: an operation's servers replace its path item's, which replace the document's.
+    const servers = operation.servers ?? operation.pathItem?.servers ?? document?.servers ?? []
     const parameters = new OperationParameters({ context, operation, destinationPath })
 
     this.blocks = new List<OperationBlock[], '\n\n', 'none'>(
       [
-        new Frontmatter({ context, operation, servers: (document?.servers ?? []).map(server => server.url) }),
+        new Frontmatter({ context, operation, servers: servers.map(server => server.url) }),
         summary || description ? new Summary({ context, summary, description }) : undefined,
         new PathMethod({ context, method: operation.method, path: operation.path }),
         operation.externalDocs !== undefined

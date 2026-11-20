@@ -1,4 +1,4 @@
-import { camelCase, SnippetBase, toModelRef, type GenerateContextType, type OasSchema, type OasRef } from '@skmtc/core'
+import { SnippetBase, type GenerateContextType, type OasSchema, type OasRef, type RefName } from '@skmtc/core'
 import { List } from '@skmtc/lang-typescript'
 import { match, P } from 'ts-pattern'
 import { Enums } from './Enums.ts'
@@ -10,23 +10,21 @@ import {
   StringConstraints
 } from './Constraints.ts'
 import { UnresolvedMarker } from './Unresolved.ts'
+import { ComponentName } from './ComponentName.ts'
 import { safeResolve } from '../safeResolve.ts'
-import { TypeDefinition } from './TypeDefinition.ts'
 
 type TypeNameArgs = {
   context: GenerateContextType
   schema: OasSchema | OasRef<'schema'>
-  /** The document the type is written in, where a `$ref` it links to is defined. */
-  destinationPath: string
 }
 
 /**
- * The display type of a schema: a `$ref`'s name, linked to its definition when
- * it names one (`` [`SimpleUser`](#simpleuser) ``); `Item[]` for an array, from
- * its items; otherwise the type, as in `` `string` ``. GitHub lower-cases a
- * heading to form its anchor, so `### SimpleUser` is reachable at `#simpleuser`.
- * The `$ref` it links to is inserted as a {@link TypeDefinition} in the same
- * document: the link and the definition come from that one insert.
+ * The display type of a schema: a `$ref`'s {@link ComponentName}, linked to
+ * its definition when it names one (`` [`SimpleUser`](#type-simple-user) ``);
+ * `Item[]` for an array, from its items; otherwise the type, as in
+ * `` `string` ``. The link lands on the definition in the same document: the
+ * `DocumentSchema` the type is written in defines each type in
+ * {@link TypeName.links} there.
  */
 export class TypeName extends SnippetBase {
   name: string
@@ -34,36 +32,33 @@ export class TypeName extends SnippetBase {
   anchor: string | undefined
   /** The `$ref` the type ends in names nothing. */
   unresolved: boolean
+  /** The component schemas the type links to: its `$ref`'s, when it names one. */
+  links: RefName[]
 
-  constructor({ context, schema, destinationPath }: TypeNameArgs) {
+  constructor({ context, schema }: TypeNameArgs) {
     super({ context, stackTrail: schema.stackTrail.clone() })
 
-    if (schema.isRef() && safeResolve(schema) !== undefined) {
-      const ref = toModelRef({
-        context,
-        refName: schema.toRefName(),
-        destinationPath,
-        projection: TypeDefinition,
-        options: { documentPath: destinationPath }
-      })
+    if (schema.isRef()) {
+      const refName = schema.toRefName()
+      const component = new ComponentName({ context, refName })
+      const resolves = safeResolve(schema) !== undefined
 
-      this.name = ref.settings.identifier.name
-      this.anchor = this.name.toLowerCase()
-      this.unresolved = false
-    } else if (schema.isRef()) {
-      this.name = camelCase(schema.toRefName(), { upperFirst: true })
-      this.anchor = undefined
-      this.unresolved = true
+      this.name = component.name
+      this.anchor = resolves ? component.anchor : undefined
+      this.unresolved = !resolves
+      this.links = resolves ? [refName] : []
     } else if (schema.type === 'array') {
-      const items = new TypeName({ context, schema: schema.items, destinationPath })
+      const items = new TypeName({ context, schema: schema.items })
 
       this.name = `${items.name}[]`
       this.anchor = items.anchor
       this.unresolved = items.unresolved
+      this.links = items.links
     } else {
       this.name = schema.type
       this.anchor = undefined
       this.unresolved = false
+      this.links = []
     }
   }
 
@@ -233,8 +228,6 @@ type TypeInfoArgs = {
   /** What `schema` resolves to. */
   resolved: OasSchema
   required: boolean | undefined
-  /** The document the type is written in. */
-  destinationPath: string
 }
 
 /**
@@ -246,12 +239,16 @@ type TypeInfoArgs = {
  */
 export class TypeInfo extends SnippetBase {
   annotation: List<(TypeName | TypeFacets | UnresolvedMarker)[], ' ', 'none'>
+  /** The component schemas the annotation links to. */
+  links: RefName[]
 
-  constructor({ context, schema, resolved, required, destinationPath }: TypeInfoArgs) {
+  constructor({ context, schema, resolved, required }: TypeInfoArgs) {
     super({ context, stackTrail: schema.stackTrail.clone() })
 
-    const typeName = new TypeName({ context, schema, destinationPath })
+    const typeName = new TypeName({ context, schema })
     const facets = toTypeFacets({ context, schema: resolved, required })
+
+    this.links = typeName.links
 
     this.annotation = new List(
       [
@@ -273,8 +270,6 @@ type UnresolvedTypeInfoArgs = {
   /** A `$ref` that names nothing. */
   schema: OasSchema | OasRef<'schema'>
   required: boolean | undefined
-  /** The document the type is written in. */
-  destinationPath: string
 }
 
 /**
@@ -284,13 +279,18 @@ type UnresolvedTypeInfoArgs = {
  */
 export class UnresolvedTypeInfo extends SnippetBase {
   annotation: List<(TypeName | string | UnresolvedMarker)[], ' ', 'none'>
+  /** The component schemas the annotation links to: none, as its `$ref` names nothing. */
+  links: RefName[]
 
-  constructor({ context, schema, required, destinationPath }: UnresolvedTypeInfoArgs) {
+  constructor({ context, schema, required }: UnresolvedTypeInfoArgs) {
     super({ context, stackTrail: schema.stackTrail.clone() })
 
+    const typeName = new TypeName({ context, schema })
+
+    this.links = typeName.links
     this.annotation = new List(
       [
-        new TypeName({ context, schema, destinationPath }),
+        typeName,
         required === true ? 'required' : undefined,
         new UnresolvedMarker({ context })
       ],

@@ -1,4 +1,4 @@
-import { SnippetBase, type GenerateContextType, type OasSchema, type OasRef, type OasObject } from '@skmtc/core'
+import { SnippetBase, type GenerateContextType, type OasSchema, type OasRef, type OasObject, type RefName } from '@skmtc/core'
 import { List } from '@skmtc/lang-typescript'
 import { match, P } from 'ts-pattern'
 import { Name } from './Name.ts'
@@ -13,8 +13,6 @@ type SchemaArgs = {
   required: boolean | undefined
   /** An external description (e.g. a parameter's), used in place of the schema's own when present. */
   description?: string
-  /** The document the schema is written in, where a `$ref` it links to is defined. */
-  destinationPath: string
   depth?: number
 }
 
@@ -28,43 +26,46 @@ type SchemaRowPart = Name | TypeInfo | UnresolvedTypeInfo | Title | DescriptionC
  * description, each only when it has one.
  *
  * A `$ref` renders as a leaf by its name, linked to its definition in the
- * "Referenced types" section of the same document. Inline (anonymous) schemas
- * have no name to reference, so they expand in place.
+ * "Referenced types" section of the document it is written in. Inline
+ * (anonymous) schemas have no name to reference, so they expand in place.
+ *
+ * The rows link to types by anchor and depend on no document, so one type's
+ * rows serve every document that defines it. A `DocumentSchema` places them in
+ * a document and defines the types they link to ({@link Schema.links}) there.
  */
 export class Schema extends SnippetBase {
   /** The row, then the children's rows when it has any. */
   lines: List<(List<SchemaRowPart[], ' ', 'none'> | Properties)[], '\n', 'none'>
+  /** The component schemas the rows link to, in order; a type linked twice is listed twice. */
+  links: RefName[]
 
-  constructor({
-    context,
-    name,
-    schema,
-    required,
-    description,
-    destinationPath,
-    depth = 0
-  }: SchemaArgs) {
+  constructor({ context, name, schema, required, description, depth = 0 }: SchemaArgs) {
     super({ context, stackTrail: schema.stackTrail.clone() })
 
     const resolved = safeResolve(schema)
     const title = resolved?.title
     const descriptionText = (description ?? resolved?.description)?.trim()
-    const properties = toExpansion(schema)
+    const expansion = toExpansion(schema)
+    const typeInfo =
+      resolved !== undefined
+        ? new TypeInfo({ context, schema, resolved, required })
+        : new UnresolvedTypeInfo({ context, schema, required })
+    const properties = expansion.length > 0 ? new Properties({ context, properties: expansion, depth }) : undefined
 
-    const row = new List<SchemaRowPart[], ' ', 'none'>(
-      [
-        name ? new Name({ context, name }) : undefined,
-        resolved !== undefined
-          ? new TypeInfo({ context, schema, resolved, required, destinationPath })
-          : new UnresolvedTypeInfo({ context, schema, required, destinationPath }),
-        title ? new Title({ context, title }) : undefined,
-        descriptionText ? new DescriptionClause({ context, description: descriptionText }) : undefined
-      ],
-      { separator: ' ' }
-    )
-
+    this.links = [...typeInfo.links, ...(properties?.links ?? [])]
     this.lines = new List(
-      [row, properties.length > 0 ? new Properties({ context, properties, destinationPath, depth }) : undefined],
+      [
+        new List<SchemaRowPart[], ' ', 'none'>(
+          [
+            name ? new Name({ context, name }) : undefined,
+            typeInfo,
+            title ? new Title({ context, title }) : undefined,
+            descriptionText ? new DescriptionClause({ context, description: descriptionText }) : undefined
+          ],
+          { separator: ' ' }
+        ),
+        properties
+      ],
       { separator: '\n' }
     )
   }
@@ -103,7 +104,6 @@ type Property = {
 type PropertiesArgs = {
   context: GenerateContextType
   properties: Property[]
-  destinationPath: string
   depth: number
 }
 
@@ -114,19 +114,17 @@ type PropertiesArgs = {
  */
 class Properties extends SnippetBase {
   rows: List<PropertyRow[], '\n', 'none'>
+  /** The component schemas the rows link to. */
+  links: RefName[]
 
-  constructor({ context, properties, destinationPath, depth }: PropertiesArgs) {
+  constructor({ context, properties, depth }: PropertiesArgs) {
     super({ context })
 
+    const schemas = properties.map(property => new Schema({ context, ...property, depth: depth + 1 }))
+
+    this.links = schemas.flatMap(schema => schema.links)
     this.rows = new List(
-      properties.map(
-        property =>
-          new PropertyRow({
-            context,
-            depth,
-            schema: new Schema({ context, ...property, destinationPath, depth: depth + 1 })
-          })
-      ),
+      schemas.map(schema => new PropertyRow({ context, depth, schema })),
       { separator: '\n' }
     )
   }

@@ -6,6 +6,7 @@ import {
   type Stringable
 } from '@skmtc/core'
 import { OperationDoc } from './snippets/OperationDoc.ts'
+import { toDocumentPath } from './paths.ts'
 import { TopIndex, TagIndex, Catalog, type IndexEntry, type Server } from './snippets/DocsIndex.ts'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
@@ -24,7 +25,12 @@ export const mdDocsEntry = toOasOperationEntry<EnrichmentSchema>({
   id: denoJson.name,
   toEnrichmentSchema,
   transform: ({ context, operation, variant }) => {
-    const document = context.insertOperation({ projection: OperationDoc, operation, variant })
+    const document = context.insertOperation({
+      projection: OperationDoc,
+      operation,
+      variant,
+      options: { documentPath: toDocumentPath({ context, operation }) }
+    })
 
     // The engine's path for the document, so the index links follow the
     // project's `generatedSuffix` (the skmtc-md-docs stack sets it to '').

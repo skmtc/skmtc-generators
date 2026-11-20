@@ -1,5 +1,6 @@
 import type { SkmtcParsedDocument, OasOperation } from '@skmtc/core'
 import { OperationDoc } from '../../src/snippets/OperationDoc.ts'
+import { toDocumentPath } from '../../src/paths.ts'
 import { toGenerateContext } from './toGenerateContext.ts'
 
 type ToOperationDocumentArgs = {
@@ -14,7 +15,11 @@ type ToOperationDocumentArgs = {
  */
 export const toOperationDocument = ({ parsed, operation }: ToOperationDocumentArgs): string => {
   const context = toGenerateContext({ oasDocument: parsed })
-  const document = context.insertOperation({ projection: OperationDoc, operation })
+  const document = context.insertOperation({
+    projection: OperationDoc,
+    operation,
+    options: { documentPath: toDocumentPath({ context, operation }) }
+  })
   const file = context.getFile(document.toExportPath())
 
   if (file === undefined) {

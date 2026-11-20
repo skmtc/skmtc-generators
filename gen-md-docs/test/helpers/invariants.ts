@@ -5,28 +5,26 @@ type Artifacts = Record<string, string>
 const markdownDocs = (artifacts: Artifacts): [string, string][] =>
   Object.entries(artifacts).filter(([path]) => path.endsWith('.md'))
 
-/** A GitHub-style heading slug: lower-cased, punctuation dropped, spaces hyphenated. */
-const toSlug = (heading: string): string =>
-  heading
-    .toLowerCase()
-    .replace(/[^a-z0-9 -]/g, '')
-    .trim()
-    .replace(/\s+/g, '-')
-
 /**
- * Every `` [`Type`](#anchor) `` link (the only links the generator emits — the
- * de-duplicated `$ref`s) resolves to a heading in the same document. Ignores
+ * Every `` [`Type`](#anchor) `` link (the only links the generator emits: the
+ * `$ref`s a document links to) lands on the `<a id>` of a heading in the same
+ * document, and no two of those anchors in a document are the same. Ignores
  * plain-text links, which may come from the spec's own descriptions.
  */
 export const checkAnchorLinks = (artifacts: Artifacts): string[] => {
   const violations: string[] = []
 
   for (const [path, content] of markdownDocs(artifacts)) {
-    const anchors = new Set([...content.matchAll(/^#{1,6} (.+)$/gm)].map(match => toSlug(match[1])))
+    const ids = [...content.matchAll(/^#{1,6} <a id="([^"]+)"><\/a>/gm)].map(match => match[1])
+    const anchors = new Set(ids)
+
+    if (anchors.size !== ids.length) {
+      violations.push(`${path}: ${ids.length - anchors.size} heading anchors are not unique`)
+    }
 
     for (const link of content.matchAll(/\[`[^`]+`\]\(#([^)]+)\)/g)) {
       if (!anchors.has(link[1])) {
-        violations.push(`${path}: link "#${link[1]}" has no matching heading`)
+        violations.push(`${path}: link "#${link[1]}" has no matching heading anchor`)
       }
     }
   }
