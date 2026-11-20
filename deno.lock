@@ -1,10 +1,10 @@
 {
   "version": "5",
   "specifiers": {
-    "jsr:@skmtc/core@0.44": "0.44.0",
-    "jsr:@skmtc/core@0.44.0": "0.44.0",
-    "jsr:@skmtc/lang-kotlin@0.11.26": "0.11.26",
-    "jsr:@skmtc/lang-typescript@0.14.4": "0.14.4",
+    "jsr:@skmtc/core@0.44.1": "0.44.1",
+    "jsr:@skmtc/core@~0.44.1": "0.44.1",
+    "jsr:@skmtc/lang-kotlin@0.11.27": "0.11.27",
+    "jsr:@skmtc/lang-typescript@0.14.5": "0.14.5",
     "jsr:@skmtc/lint-plugin@0.1.0": "0.1.0",
     "jsr:@std/assert@1": "1.0.19",
     "jsr:@std/assert@^1.0.10": "1.0.19",
@@ -34,8 +34,8 @@
     "npm:valibot@1.1.0": "1.1.0_typescript@7.0.2"
   },
   "jsr": {
-    "@skmtc/core@0.44.0": {
-      "integrity": "cab002e53fa913358c817a983e7f24e1535a226130bde0be5fc3c737fd9e88d5",
+    "@skmtc/core@0.44.1": {
+      "integrity": "6cc7e67373ead13b9bcdb80999732ca21dd2023e062f44ecce6640ce992d4386",
       "dependencies": [
         "jsr:@std/fmt@1",
         "jsr:@std/log",
@@ -48,18 +48,18 @@
         "npm:valibot"
       ]
     },
-    "@skmtc/lang-kotlin@0.11.26": {
-      "integrity": "cc84adda09199053393e1b88c90581ce2715f5ec3468bcb83e83ac8c8e2a44bc",
+    "@skmtc/lang-kotlin@0.11.27": {
+      "integrity": "5945c0f01e7208f756061e0996a2baf4ad2f9d16da1ab9438ce71c45ca358bc4",
       "dependencies": [
-        "jsr:@skmtc/core@0.44",
+        "jsr:@skmtc/core@~0.44.1",
         "jsr:@std/path@^1.0.9",
         "npm:tiny-invariant@1.3.3"
       ]
     },
-    "@skmtc/lang-typescript@0.14.4": {
-      "integrity": "dfb4f3e59bc2f1561421ed34ef60e2d50ca5efbeb6349261467e9310cbe98ef3",
+    "@skmtc/lang-typescript@0.14.5": {
+      "integrity": "0c03fe357719e8b1e313198fb4cac6a5c1df3be4bf58ae7e3270a11805303086",
       "dependencies": [
-        "jsr:@skmtc/core@0.44",
+        "jsr:@skmtc/core@~0.44.1",
         "npm:@babel/helper-validator-identifier@7.27.1",
         "npm:@types/babel__helper-validator-identifier",
         "npm:tiny-invariant@1.3.3"
@@ -302,7 +302,7 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@skmtc/core@0.44.0",
+      "jsr:@skmtc/core@0.44.1",
       "jsr:@std/assert@1",
       "jsr:@std/fmt@1",
       "jsr:@std/log@~0.224.6",
@@ -319,8 +319,8 @@
     "members": {
       "gen-arktype": {
         "dependencies": [
-          "jsr:@skmtc/core@0.44.0",
-          "jsr:@skmtc/lang-typescript@0.14.4",
+          "jsr:@skmtc/core@0.44.1",
+          "jsr:@skmtc/lang-typescript@0.14.5",
           "jsr:@std/assert@1",
           "jsr:@std/log@~0.224.6",
           "jsr:@std/path@^1.1.2"
@@ -328,17 +328,17 @@
       },
       "gen-effect-http": {
         "dependencies": [
-          "jsr:@skmtc/core@0.44.0",
-          "jsr:@skmtc/gen-effect-schema@0.1.9",
-          "jsr:@skmtc/lang-typescript@0.14.4",
+          "jsr:@skmtc/core@0.44.1",
+          "jsr:@skmtc/gen-effect-schema@0.1.10",
+          "jsr:@skmtc/lang-typescript@0.14.5",
           "jsr:@std/assert@^1.0.10"
         ]
       },
       "gen-effect-schema": {
         "dependencies": [
-          "jsr:@skmtc/core@0.44.0",
-          "jsr:@skmtc/gen-typescript@0.2.18",
-          "jsr:@skmtc/lang-typescript@0.14.4",
+          "jsr:@skmtc/core@0.44.1",
+          "jsr:@skmtc/gen-typescript@0.2.19",
+          "jsr:@skmtc/lang-typescript@0.14.5",
           "jsr:@std/assert@^1.0.10",
           "npm:ts-pattern@^5.9.0",
           "npm:valibot@1.1.0"
@@ -346,38 +346,38 @@
       },
       "gen-express": {
         "dependencies": [
-          "jsr:@skmtc/core@0.44.0",
-          "jsr:@skmtc/gen-typescript@0.2.18",
-          "jsr:@skmtc/gen-valibot@0.2.18",
-          "jsr:@skmtc/lang-typescript@0.14.4"
+          "jsr:@skmtc/core@0.44.1",
+          "jsr:@skmtc/gen-typescript@0.2.19",
+          "jsr:@skmtc/gen-valibot@0.2.19",
+          "jsr:@skmtc/lang-typescript@0.14.5"
         ]
       },
       "gen-fetch-example": {
         "dependencies": [
-          "jsr:@skmtc/core@0.44.0",
-          "jsr:@skmtc/lang-typescript@0.14.4",
+          "jsr:@skmtc/core@0.44.1",
+          "jsr:@skmtc/lang-typescript@0.14.5",
           "npm:valibot@1.1.0"
         ]
       },
       "gen-kotlin-jackson": {
         "dependencies": [
-          "jsr:@skmtc/core@0.44.0",
-          "jsr:@skmtc/lang-kotlin@0.11.26",
+          "jsr:@skmtc/core@0.44.1",
+          "jsr:@skmtc/lang-kotlin@0.11.27",
           "jsr:@std/assert@^1.0.10",
           "npm:ts-pattern@^5.9.0"
         ]
       },
       "gen-kotlin-spring": {
         "dependencies": [
-          "jsr:@skmtc/core@0.44.0",
-          "jsr:@skmtc/lang-kotlin@0.11.26",
+          "jsr:@skmtc/core@0.44.1",
+          "jsr:@skmtc/lang-kotlin@0.11.27",
           "jsr:@std/assert@^1.0.10"
         ]
       },
       "gen-md-docs": {
         "dependencies": [
-          "jsr:@skmtc/core@0.44.0",
-          "jsr:@skmtc/lang-typescript@0.14.4",
+          "jsr:@skmtc/core@0.44.1",
+          "jsr:@skmtc/lang-typescript@0.14.5",
           "jsr:@std/assert@1",
           "jsr:@std/log@~0.224.6",
           "jsr:@std/yaml@1",
@@ -387,89 +387,89 @@
       },
       "gen-msw": {
         "dependencies": [
-          "jsr:@skmtc/core@0.44.0",
-          "jsr:@skmtc/gen-typescript@0.2.18",
-          "jsr:@skmtc/lang-typescript@0.14.4"
+          "jsr:@skmtc/core@0.44.1",
+          "jsr:@skmtc/gen-typescript@0.2.19",
+          "jsr:@skmtc/lang-typescript@0.14.5"
         ]
       },
       "gen-shadcn-form": {
         "dependencies": [
-          "jsr:@skmtc/core@0.44.0",
-          "jsr:@skmtc/gen-shadcn-select@0.3.18",
-          "jsr:@skmtc/gen-tanstack-query-supabase-zod@0.2.20",
-          "jsr:@skmtc/gen-typescript@0.2.18",
-          "jsr:@skmtc/gen-zod@0.4.3",
-          "jsr:@skmtc/lang-typescript@0.14.4"
+          "jsr:@skmtc/core@0.44.1",
+          "jsr:@skmtc/gen-shadcn-select@0.3.19",
+          "jsr:@skmtc/gen-tanstack-query-supabase-zod@0.2.21",
+          "jsr:@skmtc/gen-typescript@0.2.19",
+          "jsr:@skmtc/gen-zod@0.4.4",
+          "jsr:@skmtc/lang-typescript@0.14.5"
         ]
       },
       "gen-shadcn-select": {
         "dependencies": [
-          "jsr:@skmtc/core@0.44.0",
-          "jsr:@skmtc/gen-tanstack-query-supabase-zod@0.2.20",
-          "jsr:@skmtc/gen-typescript@0.2.18",
-          "jsr:@skmtc/gen-zod@0.4.3",
-          "jsr:@skmtc/lang-typescript@0.14.4"
+          "jsr:@skmtc/core@0.44.1",
+          "jsr:@skmtc/gen-tanstack-query-supabase-zod@0.2.21",
+          "jsr:@skmtc/gen-typescript@0.2.19",
+          "jsr:@skmtc/gen-zod@0.4.4",
+          "jsr:@skmtc/lang-typescript@0.14.5"
         ]
       },
       "gen-shadcn-table": {
         "dependencies": [
-          "jsr:@skmtc/core@0.44.0",
-          "jsr:@skmtc/gen-tanstack-query-supabase-zod@0.2.20",
-          "jsr:@skmtc/gen-typescript@0.2.18",
-          "jsr:@skmtc/gen-zod@0.4.3",
-          "jsr:@skmtc/lang-typescript@0.14.4"
+          "jsr:@skmtc/core@0.44.1",
+          "jsr:@skmtc/gen-tanstack-query-supabase-zod@0.2.21",
+          "jsr:@skmtc/gen-typescript@0.2.19",
+          "jsr:@skmtc/gen-zod@0.4.4",
+          "jsr:@skmtc/lang-typescript@0.14.5"
         ]
       },
       "gen-supabase-hono": {
         "dependencies": [
-          "jsr:@skmtc/core@0.44.0",
-          "jsr:@skmtc/gen-typescript@0.2.18",
-          "jsr:@skmtc/gen-zod@0.4.3",
-          "jsr:@skmtc/lang-typescript@0.14.4"
+          "jsr:@skmtc/core@0.44.1",
+          "jsr:@skmtc/gen-typescript@0.2.19",
+          "jsr:@skmtc/gen-zod@0.4.4",
+          "jsr:@skmtc/lang-typescript@0.14.5"
         ]
       },
       "gen-tanstack-query-fetch-zod": {
         "dependencies": [
-          "jsr:@skmtc/core@0.44.0",
-          "jsr:@skmtc/gen-typescript@0.2.18",
-          "jsr:@skmtc/gen-zod@0.4.3",
-          "jsr:@skmtc/lang-typescript@0.14.4",
+          "jsr:@skmtc/core@0.44.1",
+          "jsr:@skmtc/gen-typescript@0.2.19",
+          "jsr:@skmtc/gen-zod@0.4.4",
+          "jsr:@skmtc/lang-typescript@0.14.5",
           "npm:@babel/helper-validator-identifier@7.22.20",
           "npm:@types/babel__helper-validator-identifier@7.15.2"
         ]
       },
       "gen-tanstack-query-supabase-zod": {
         "dependencies": [
-          "jsr:@skmtc/core@0.44.0",
-          "jsr:@skmtc/gen-typescript@0.2.18",
-          "jsr:@skmtc/gen-zod@0.4.3",
-          "jsr:@skmtc/lang-typescript@0.14.4",
+          "jsr:@skmtc/core@0.44.1",
+          "jsr:@skmtc/gen-typescript@0.2.19",
+          "jsr:@skmtc/gen-zod@0.4.4",
+          "jsr:@skmtc/lang-typescript@0.14.5",
           "npm:@babel/helper-validator-identifier@7.22.20",
           "npm:@types/babel__helper-validator-identifier@7.15.2"
         ]
       },
       "gen-typescript": {
         "dependencies": [
-          "jsr:@skmtc/core@0.44.0",
-          "jsr:@skmtc/lang-typescript@0.14.4",
+          "jsr:@skmtc/core@0.44.1",
+          "jsr:@skmtc/lang-typescript@0.14.5",
           "jsr:@std/assert@1",
           "jsr:@std/log@~0.224.6"
         ]
       },
       "gen-valibot": {
         "dependencies": [
-          "jsr:@skmtc/core@0.44.0",
-          "jsr:@skmtc/gen-typescript@0.2.18",
-          "jsr:@skmtc/lang-typescript@0.14.4",
+          "jsr:@skmtc/core@0.44.1",
+          "jsr:@skmtc/gen-typescript@0.2.19",
+          "jsr:@skmtc/lang-typescript@0.14.5",
           "jsr:@std/assert@1",
           "jsr:@std/log@~0.224.6"
         ]
       },
       "gen-zod": {
         "dependencies": [
-          "jsr:@skmtc/core@0.44.0",
-          "jsr:@skmtc/gen-typescript@0.2.18",
-          "jsr:@skmtc/lang-typescript@0.14.4",
+          "jsr:@skmtc/core@0.44.1",
+          "jsr:@skmtc/gen-typescript@0.2.19",
+          "jsr:@skmtc/lang-typescript@0.14.5",
           "jsr:@std/assert@1",
           "jsr:@std/log@~0.224.6"
         ]
