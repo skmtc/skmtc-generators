@@ -24,7 +24,8 @@ Deno.test('Frontmatter - emits queryable metadata for a full operation', () => {
 
   const frontmatter = new Frontmatter({
     context: toGenerateContext({ oasDocument: parsed }),
-    operation: parsed.value.operations[0]
+    operation: parsed.value.operations[0],
+    servers: []
   })
 
   assertEquals(
@@ -57,7 +58,8 @@ Deno.test('Frontmatter - omits absent fields, keeping type/method/path', () => {
 
   const frontmatter = new Frontmatter({
     context: toGenerateContext({ oasDocument: parsed }),
-    operation: parsed.value.operations[0]
+    operation: parsed.value.operations[0],
+    servers: []
   })
 
   assertEquals(
@@ -81,7 +83,8 @@ Deno.test('Frontmatter - double-quotes and escapes special characters', () => {
 
   const frontmatter = new Frontmatter({
     context: toGenerateContext({ oasDocument: parsed }),
-    operation: parsed.value.operations[0]
+    operation: parsed.value.operations[0],
+    servers: []
   })
 
   const title = frontmatter.toString().split('\n').find(line => line.startsWith('title:'))

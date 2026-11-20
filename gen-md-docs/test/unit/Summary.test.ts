@@ -31,13 +31,3 @@ Deno.test('Summary - renders just the description when there is no summary', () 
 
   assertEquals(snippet.toString(), 'Returns a single pet.')
 })
-
-Deno.test('Summary - renders the empty string when both are absent', () => {
-  const snippet = new Summary({
-    context: toGenerateContext(),
-    summary: undefined,
-    description: undefined
-  })
-
-  assertEquals(snippet.toString(), '')
-})

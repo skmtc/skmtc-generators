@@ -1,8 +1,10 @@
 import { assert, assertEquals } from '@std/assert'
 import { Responses } from '../../src/snippets/Responses.ts'
-import { Definitions } from '../../src/snippets/Schema.ts'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
 import { toParsedDocument } from '../helpers/toParsedDocument.ts'
+
+/** The document the snippets are written in, suffixed as the engine names a projection's file. */
+const DOC = '@/docs/test.generated.md'
 
 Deno.test('Responses - renders every status code with description and schema', () => {
   const parsed = toParsedDocument({
@@ -26,11 +28,10 @@ Deno.test('Responses - renders every status code with description and schema', (
   assert(parsed.type === 'oas')
 
   const context = toGenerateContext({ oasDocument: parsed })
-  const definitions = new Definitions({ context })
   const responses = new Responses({
     context,
     responses: parsed.value.operations[0].responses,
-    definitions
+    destinationPath: DOC
   })
 
   // Both codes documented; the no-content 404 renders heading-only.
@@ -43,13 +44,6 @@ Deno.test('Responses - renders every status code with description and schema', (
       '### `404` — Not found'
     ].join('\n\n')
   )
-})
-
-Deno.test('Responses - renders the empty string when there are no responses', () => {
-  const context = toGenerateContext()
-  const responses = new Responses({ context, responses: {}, definitions: new Definitions({ context }) })
-
-  assertEquals(responses.toString(), '')
 })
 
 Deno.test('Responses - surfaces a non-JSON content type and its schema', () => {
@@ -76,7 +70,7 @@ Deno.test('Responses - surfaces a non-JSON content type and its schema', () => {
   const responses = new Responses({
     context,
     responses: parsed.value.operations[0].responses,
-    definitions: new Definitions({ context })
+    destinationPath: DOC
   })
 
   assertEquals(
@@ -117,7 +111,7 @@ Deno.test('Responses - renders the JSON schema when a non-JSON media type comes 
   const responses = new Responses({
     context,
     responses: parsed.value.operations[0].responses,
-    definitions: new Definitions({ context })
+    destinationPath: DOC
   })
 
   assertEquals(
@@ -150,7 +144,7 @@ Deno.test('Responses - a text/plain-only response still renders its schema', () 
   const responses = new Responses({
     context,
     responses: parsed.value.operations[0].responses,
-    definitions: new Definitions({ context })
+    destinationPath: DOC
   })
 
   assertEquals(

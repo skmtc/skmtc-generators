@@ -1,8 +1,14 @@
 import { assert, assertEquals, assertExists } from '@std/assert'
 import { OasArray, OasNumber, OasObject, OasString, OasUnion } from '@skmtc/core'
-import { Definitions, Schema } from '../../src/snippets/Schema.ts'
+import { Schema } from '../../src/snippets/Schema.ts'
+import { DocumentSchema } from '../../src/snippets/DocumentSchema.ts'
+import { MdFile } from '../../src/lang/MdFile.ts'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
 import { toParsedDocument } from '../helpers/toParsedDocument.ts'
+import { docsSystem } from '../helpers/docsSystem.ts'
+
+/** The document the snippets are written in, suffixed as the engine names a projection's file. */
+const DOC = '@/docs/test.generated.md'
 
 Deno.test('Schema - renders a named scalar with its description', () => {
   const snippet = new Schema({
@@ -141,7 +147,8 @@ Deno.test('Schema - renders numeric range with read-only and deprecated flags', 
   assertEquals(snippet.toString(), '**age** `number` deprecated read-only (minimum: 0, maximum: 120)')
 })
 
-Deno.test('Schema - an unresolvable $ref degrades to a plain name with no definition', () => {
+Deno.test('Schema - a $ref that names nothing renders its name, marked unresolved, with no definition', () => {
+  // The docs list every ref kind in `danglingRefs`, so the parser keeps the operation.
   const parsed = toParsedDocument({
     openapi: '3.0.0',
     info: { title: 'Test', version: '1.0.0' },
@@ -155,7 +162,7 @@ Deno.test('Schema - an unresolvable $ref degrades to a plain name with no defini
         }
       }
     }
-  })
+  }, { system: docsSystem })
 
   assert(parsed.type === 'oas')
 
@@ -163,18 +170,18 @@ Deno.test('Schema - an unresolvable $ref degrades to a plain name with no defini
   assertExists(bodyRef)
 
   const context = toGenerateContext({ oasDocument: parsed })
-  const definitions = new Definitions({ context })
 
-  // No crash: the dangling ref renders as a plain name, with no anchor link.
-  const body = new Schema({ context, name: undefined, schema: bodyRef, required: false, definitions })
-  assertEquals(body.toString(), '`Missing`')
+  // No crash: the dangling ref renders its name, marked, with no anchor link.
+  const body = new Schema({ context, name: undefined, schema: bodyRef, required: false })
+  assertEquals(body.toString(), '`Missing` (unresolved $ref)')
+  assertEquals(body.links, [])
 
-  // And it is never registered, so no broken definition is emitted.
-  definitions.build()
-  assertEquals(definitions.toString(), '')
+  // And written in a document, it inserts nothing, so no broken definition is written.
+  new DocumentSchema({ context, schema: body, documentPath: DOC })
+  assertEquals(context.getFile(DOC), undefined)
 })
 
-Deno.test('Schema - renders a $ref by name; Definitions defines it once, cycle-safe', () => {
+Deno.test('Schema - renders a $ref by name, linked to its definition in the same document, defined once and cycle-safe', () => {
   const parsed = toParsedDocument({
     openapi: '3.0.0',
     info: { title: 'Test', version: '1.0.0' },
@@ -205,16 +212,19 @@ Deno.test('Schema - renders a $ref by name; Definitions defines it once, cycle-s
   assertExists(bodyRef)
 
   const context = toGenerateContext({ oasDocument: parsed })
-  const definitions = new Definitions({ context })
 
   // In the body, the ref is a leaf — its name, linked to its definition.
-  const body = new Schema({ context, name: undefined, schema: bodyRef, required: false, definitions })
-  assertEquals(body.toString(), '[`Node`](#node)')
+  const body = new Schema({ context, name: undefined, schema: bodyRef, required: false })
+  assertEquals(body.toString(), '[`Node`](#type-Node)')
+  assertEquals(body.links, ['Node'])
 
-  // Its type is defined once; the recursive `next` links back (no loop).
-  definitions.build()
+  // Written in a document, its type is defined once there; the recursive `next` links back (no loop).
+  new DocumentSchema({ context, schema: body, documentPath: DOC })
+  const file = context.getFile(DOC)
+  assert(file instanceof MdFile)
+  assertEquals(file.sections.values.map(section => section.identifier.name), ['Node'])
   assertEquals(
-    definitions.toString(),
-    '## Referenced types\n\n### Node\n\n`object`\n- **id** `string` required\n- **next** [`Node`](#node)'
+    `${file.sections}`,
+    '### <a id="type-Node"></a>Node\n\n`object`\n- **id** `string` required\n- **next** [`Node`](#type-Node)'
   )
 })

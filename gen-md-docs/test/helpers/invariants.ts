@@ -5,28 +5,26 @@ type Artifacts = Record<string, string>
 const markdownDocs = (artifacts: Artifacts): [string, string][] =>
   Object.entries(artifacts).filter(([path]) => path.endsWith('.md'))
 
-/** A GitHub-style heading slug: lower-cased, punctuation dropped, spaces hyphenated. */
-const toSlug = (heading: string): string =>
-  heading
-    .toLowerCase()
-    .replace(/[^a-z0-9 -]/g, '')
-    .trim()
-    .replace(/\s+/g, '-')
-
 /**
- * Every `` [`Type`](#anchor) `` link (the only links the generator emits — the
- * de-duplicated `$ref`s) resolves to a heading in the same document. Ignores
+ * Every `` [`Type`](#anchor) `` link (the only links the generator emits: the
+ * `$ref`s a document links to) lands on the `<a id>` of a heading in the same
+ * document, and no two of those anchors in a document are the same. Ignores
  * plain-text links, which may come from the spec's own descriptions.
  */
 export const checkAnchorLinks = (artifacts: Artifacts): string[] => {
   const violations: string[] = []
 
   for (const [path, content] of markdownDocs(artifacts)) {
-    const anchors = new Set([...content.matchAll(/^#{1,6} (.+)$/gm)].map(match => toSlug(match[1])))
+    const ids = [...content.matchAll(/^#{1,6} <a id="([^"]+)"><\/a>/gm)].map(match => match[1])
+    const anchors = new Set(ids)
+
+    if (anchors.size !== ids.length) {
+      violations.push(`${path}: ${ids.length - anchors.size} heading anchors are not unique`)
+    }
 
     for (const link of content.matchAll(/\[`[^`]+`\]\(#([^)]+)\)/g)) {
       if (!anchors.has(link[1])) {
-        violations.push(`${path}: link "#${link[1]}" has no matching heading`)
+        violations.push(`${path}: link "#${link[1]}" has no matching heading anchor`)
       }
     }
   }
@@ -53,8 +51,13 @@ export const checkIndexIntegrity = (artifacts: Artifacts): string[] => {
   const docsPrefix = topIndexKey.slice(0, topIndexKey.length - 'index.md'.length)
   const catalogKey = `${docsPrefix}index.json`
 
+  // An expandable object's page (`docs/_types/`) is not an operation document.
   const opDocs = Object.keys(artifacts).filter(
-    path => path.startsWith(docsPrefix) && path.endsWith('.md') && !path.endsWith('/index.md')
+    path =>
+      path.startsWith(docsPrefix) &&
+      path.endsWith('.md') &&
+      !path.endsWith('/index.md') &&
+      !path.startsWith(`${docsPrefix}_types/`)
   )
 
   if (!has(catalogKey)) {
@@ -126,7 +129,10 @@ export const checkFrontmatter = (artifacts: Artifacts): string[] => {
         continue
       }
 
-      for (const key of ['type', 'method', 'path']) {
+      // An operation's document names its operation; an object's page names its schema.
+      const keys = 'type' in frontmatter && frontmatter.type === 'schema' ? ['type', 'name', 'title'] : ['type', 'method', 'path']
+
+      for (const key of keys) {
         if (!(key in frontmatter)) {
           violations.push(`${path}: frontmatter missing "${key}"`)
         }
@@ -165,8 +171,31 @@ export const checkCodeFences = (artifacts: Artifacts): string[] =>
   })
 
 /** Run every structural invariant, returning all violations (empty = pass). */
+/**
+ * Every `` [`Type`](page.md) `` link (a link to an expandable object's page)
+ * points at a page that was emitted, relative to the document it is in.
+ */
+export const checkPageLinks = (artifacts: Artifacts): string[] => {
+  const violations: string[] = []
+
+  for (const [path, content] of markdownDocs(artifacts)) {
+    const dir = path.slice(0, path.lastIndexOf('/') + 1)
+
+    for (const link of content.matchAll(/\[`[^`]+`\]\(([^)#]+\.md)\)/g)) {
+      const target = decodeURI(new URL(link[1], `file:///${dir}`).pathname).slice(1)
+
+      if (!Object.hasOwn(artifacts, target)) {
+        violations.push(`${path}: link "${link[1]}" points at a page that was not emitted`)
+      }
+    }
+  }
+
+  return violations
+}
+
 export const checkAll = (artifacts: Artifacts): string[] => [
   ...checkAnchorLinks(artifacts),
+  ...checkPageLinks(artifacts),
   ...checkIndexIntegrity(artifacts),
   ...checkFrontmatter(artifacts),
   ...checkJsonExamples(artifacts),

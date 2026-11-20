@@ -1,31 +1,37 @@
 import { SnippetBase, type GenerateContextType } from '@skmtc/core'
+import { List } from '@skmtc/lang-typescript'
 import { Description } from './Description.ts'
+import { Heading } from './Heading.ts'
 
 type SummaryArgs = {
   context: GenerateContextType
+  /** The summary, trimmed; `undefined` when there is none. */
   summary: string | undefined
+  /** The description, trimmed; `undefined` when there is none. */
   description: string | undefined
 }
 
 /**
- * Renders an operation's title and description — the Markdown counterpart of the
- * docs viewer's `OperationSummary`. The summary renders as a level-one heading;
- * the description follows as a paragraph. Either may be absent.
+ * An operation's summary as its `#` heading, then its description — the
+ * Markdown counterpart of the docs viewer's `Summary`. Each block is written
+ * only when the operation has it.
  */
 export class Summary extends SnippetBase {
-  summary: string | undefined
-  description: Description
+  blocks: List<(Heading | Description)[], '\n\n', 'none'>
 
   constructor({ context, summary, description }: SummaryArgs) {
     super({ context })
 
-    this.summary = summary?.trim()
-    this.description = new Description({ context, description })
+    this.blocks = new List<(Heading | Description)[], '\n\n', 'none'>(
+      [
+        summary ? new Heading({ context, level: 1, text: summary }) : undefined,
+        description ? new Description({ context, description }) : undefined
+      ],
+      { separator: '\n\n' }
+    )
   }
 
   override toString(): string {
-    const heading = this.summary ? `# ${this.summary}` : ''
-
-    return [heading, this.description.toString()].filter(part => part !== '').join('\n\n')
+    return `${this.blocks}`
   }
 }

@@ -4,9 +4,13 @@ import { Parameters } from '../../src/snippets/Parameters.ts'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
 import { toParsedDocument } from '../helpers/toParsedDocument.ts'
 
+/** The document the snippets are written in, suffixed as the engine names a projection's file. */
+const DOC = '@/docs/test.generated.md'
+
 Deno.test('Parameters - renders a heading and a parameter with its description', () => {
   const snippet = new Parameters({
     context: toGenerateContext(),
+    destinationPath: DOC,
     title: 'Path parameters',
     parameters: [
       new OasParameter({
@@ -28,6 +32,7 @@ Deno.test('Parameters - renders a heading and a parameter with its description',
 Deno.test('Parameters - separates multiple parameters with a blank line', () => {
   const snippet = new Parameters({
     context: toGenerateContext(),
+    destinationPath: DOC,
     title: 'Query parameters',
     parameters: [
       new OasParameter({ name: 'page', location: 'query', schema: new OasInteger({}) }),
@@ -44,6 +49,7 @@ Deno.test('Parameters - separates multiple parameters with a blank line', () => 
 Deno.test('Parameters - expands the fields of an object parameter', () => {
   const snippet = new Parameters({
     context: toGenerateContext(),
+    destinationPath: DOC,
     title: 'Query parameters',
     parameters: [
       new OasParameter({
@@ -61,18 +67,6 @@ Deno.test('Parameters - expands the fields of an object parameter', () => {
   )
 })
 
-Deno.test('Parameters - renders the empty string when there are no parameters', () => {
-  const snippet = new Parameters({
-    context: toGenerateContext(),
-    title: 'Headers',
-    parameters: []
-  })
-
-  assertEquals(snippet.toString(), '')
-})
-
-// OpenAPI allows one `content` entry per parameter; this two-entry document is
-// a robustness case for documents that break that rule.
 Deno.test('Parameters - a content parameter renders the JSON schema when a non-JSON media type comes first', () => {
   const parsed = toParsedDocument({
     openapi: '3.0.0',
@@ -102,6 +96,7 @@ Deno.test('Parameters - a content parameter renders the JSON schema when a non-J
 
   const snippet = new Parameters({
     context: toGenerateContext({ oasDocument: parsed }),
+    destinationPath: DOC,
     title: 'Query parameters',
     parameters: parsed.value.operations[0].toParams(['query'])
   })

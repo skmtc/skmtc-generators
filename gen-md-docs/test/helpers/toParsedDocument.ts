@@ -1,6 +1,12 @@
-import { ParseContext, StackTrail, type SkmtcParsedDocument } from '@skmtc/core'
+import { ParseContext, StackTrail, type SkmtcParsedDocument, type SystemSettings } from '@skmtc/core'
 import type { OpenAPIV3 } from 'openapi-types'
 import * as log from '@std/log/logger'
+
+/** How the document is parsed. */
+type ToParsedDocumentOptions = {
+  /** `client.json` `settings.system`, such as the `danglingRefs` the docs list. */
+  system?: SystemSettings
+}
 
 /**
  * Parse a raw OpenAPI document through `ParseContext` into a resolved
@@ -12,11 +18,15 @@ import * as log from '@std/log/logger'
  * input's `OpenAPIV3.Document<Record<string, never>>` type, which no object
  * literal satisfies — core's own bench parses raw docs the same way.
  */
-export const toParsedDocument = (document: OpenAPIV3.Document): SkmtcParsedDocument => {
+export const toParsedDocument = (
+  document: OpenAPIV3.Document,
+  { system }: ToParsedDocumentOptions = {}
+): SkmtcParsedDocument => {
   const parseContext = new ParseContext({
     input: { type: 'oas', value: JSON.parse(JSON.stringify(document)) },
     logger: new log.Logger('test', 'ERROR'),
-    silent: true
+    silent: true,
+    system
   })
 
   return parseContext.parse(new StackTrail(['root']))

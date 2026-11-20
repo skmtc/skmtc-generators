@@ -1,0 +1,70 @@
+import { toRefName, type GenerateContextType, type OasDocument, type OasRef, type OasSchema, type RefName } from '@skmtc/core'
+import { match } from 'ts-pattern'
+
+type IsExpandableArgs = {
+  context: GenerateContextType
+  refName: RefName
+}
+
+/**
+ * Whether a field of the document can expand to the component schema
+ * `refName`, as Stripe marks it: the field lists the schema in its
+ * `x-expansionResources`, and holds either an ID or the whole object.
+ *
+ * An expandable object is defined on a page of its own (`ObjectPage`), and a
+ * document links to that page instead of writing the object out. Expandable
+ * objects link to each other, so writing each one into every document that
+ * reaches it made each Stripe document about 1 MB. A document without
+ * `x-expansionResources` has no expandable objects, so its output is as before.
+ */
+export const isExpandable = ({ context, refName }: IsExpandableArgs): boolean => {
+  if (context.document.type !== 'oas') {
+    return false
+  }
+
+  const document = context.document.value
+  const names = expandables.get(document) ?? toExpandables(document)
+
+  expandables.set(document, names)
+
+  return names.has(refName)
+}
+
+/** Each parsed document's expandable objects. */
+const expandables = new WeakMap<OasDocument, ReadonlySet<RefName>>()
+
+/** The schemas the `x-expansionResources` of the document's components name. */
+const toExpandables = (document: OasDocument): ReadonlySet<RefName> =>
+  new Set(Object.values(document.components?.schemas ?? {}).flatMap(toExpansionTargets))
+
+/** The schemas `x-expansionResources` names in `schema` and in the schemas written inside it, not through a `$ref`. */
+const toExpansionTargets = (schema: OasSchema | OasRef<'schema'>): RefName[] => [
+  ...toRefs(schema.extensionFields?.['x-expansionResources']).map(toRefName),
+  ...match(schema)
+    .with({ type: 'object' }, object => [
+      ...Object.values(object.properties ?? {}).flatMap(property =>
+        property.type === 'custom' ? [] : toExpansionTargets(property)
+      ),
+      ...(object.additionalProperties !== undefined && typeof object.additionalProperties !== 'boolean'
+        ? toExpansionTargets(object.additionalProperties)
+        : [])
+    ])
+    .with({ type: 'array' }, array => toExpansionTargets(array.items))
+    .with({ type: 'union' }, union => union.members.flatMap(toExpansionTargets))
+    .otherwise(() => [])
+]
+
+/** The `$ref`s in an extension's value, which the parser keeps as written. */
+const toRefs = (value: unknown): string[] => {
+  if (Array.isArray(value)) {
+    return value.flatMap(toRefs)
+  }
+
+  if (typeof value !== 'object' || value === null) {
+    return []
+  }
+
+  return Object.entries(value).flatMap(([key, entry]) =>
+    key === '$ref' && typeof entry === 'string' && entry.startsWith('#/components/schemas/') ? [entry] : toRefs(entry)
+  )
+}
