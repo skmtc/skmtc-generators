@@ -6,14 +6,10 @@ type Resolvable<K extends OasRefData['refType']> = OasRef<K> | ResolvedRef<K>
 /**
  * Resolve a reference, or `undefined` when it names nothing in the document:
  * a `$ref` to no component, or a chain of `$ref`s that comes back to one it
- * has passed (`R1` is a `$ref` to `R2`, and `R2` to `R1`). The parser keeps a
- * `$ref` to no component only when `system.danglingRefs` lists its kind, and
- * it keeps a loop, because each step names a component. The docs mark either
- * one with an `UnresolvedMarker` instead of failing the whole run. Any other
- * error throws.
- *
- * A loop is found before `resolve()` runs: `resolve()` throws a plain
- * `Max lookups reached` error for it.
+ * has passed (`R1` is a `$ref` to `R2`, and `R2` to `R1`). `resolve()` throws
+ * `DanglingRefError` for either one, and the parser keeps either one only
+ * when `system.danglingRefs` lists its kind. The docs mark it with an
+ * `UnresolvedMarker` instead of failing the whole run. Any other error throws.
  */
 export const safeResolve = <K extends OasRefData['refType']>(ref: Resolvable<K>): ResolvedRef<K> | undefined => {
   if (!ref.isRef()) {
@@ -21,7 +17,7 @@ export const safeResolve = <K extends OasRefData['refType']>(ref: Resolvable<K>)
   }
 
   try {
-    return loops(ref, new Set()) ? undefined : ref.resolve()
+    return ref.resolve()
   } catch (error) {
     if (DanglingRefError.is(error)) {
       return undefined
@@ -30,10 +26,6 @@ export const safeResolve = <K extends OasRefData['refType']>(ref: Resolvable<K>)
     throw error
   }
 }
-
-/** Whether following `ref` one step at a time comes back to a `$ref` in `passed`. */
-const loops = <K extends OasRefData['refType']>(ref: Resolvable<K>, passed: ReadonlySet<string>): boolean =>
-  ref.isRef() && (passed.has(ref.$ref) || loops(ref.resolveOnce(), new Set([...passed, ref.$ref])))
 
 /** What a schema site shows: see {@link toSiteSchema}. */
 export type SiteSchema =

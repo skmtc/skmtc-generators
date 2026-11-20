@@ -4,9 +4,10 @@
  * documents they are defined in, and where each document is written.
  */
 import { assertEquals, assertStringIncludes } from '@std/assert'
-import { StackTrail, toArtifacts } from '@skmtc/core'
+import { StackTrail, toArtifacts, type SystemSettings } from '@skmtc/core'
 import type { OpenAPIV3 } from 'openapi-types'
 import { mdDocsEntry } from '../src/mod.ts'
+import { docsSystem } from './helpers/docsSystem.ts'
 
 const ok = { description: 'ok' }
 const json = (schema: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject) => ({
@@ -15,13 +16,13 @@ const json = (schema: OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject) => ({
 const ref = (name: string): OpenAPIV3.ReferenceObject => ({ $ref: `#/components/schemas/${name}` })
 
 /** One run over `document`, with the documents named as the skmtc-md-docs stack names them. */
-const run = (document: Omit<OpenAPIV3.Document, 'openapi' | 'info'>) =>
+const run = (document: Omit<OpenAPIV3.Document, 'openapi' | 'info'>, system?: SystemSettings) =>
   toArtifacts({
     traceId: 'gen-md-docs-referenced-types',
     spanId: 'run',
     startAt: Date.now(),
     document: { type: 'oas', value: { openapi: '3.0.3', info: { title: 'Types', version: '1' }, ...document } },
-    settings: { basePath: './src', generatedSuffix: '' },
+    settings: { basePath: './src', generatedSuffix: '', system },
     stackTrail: new StackTrail([]),
     silent: true,
     toGeneratorConfigMap: () => ({
@@ -29,6 +30,13 @@ const run = (document: Omit<OpenAPIV3.Document, 'openapi' | 'info'>) =>
       '@skmtc/gen-md-docs': mdDocsEntry
     })
   })
+
+/**
+ * A run with the `system` settings the skmtc-md-docs stack runs with: every
+ * kind of `$ref` may name nothing. Core names a loop of `$ref`s a dangling
+ * ref, so without them the parser removes the loop and what uses it.
+ */
+const runDocs = (document: Omit<OpenAPIV3.Document, 'openapi' | 'info'>) => run(document, docsSystem)
 
 /** The `### …` headings of a document's referenced types, in order. */
 const toTypeHeadings = (markdown: string): string[] =>
@@ -191,7 +199,7 @@ Deno.test('aliases - a $ref chain that loops renders each alias linking to the n
   // `resolve()` followed `A` → `B` → `A`… until it threw `Max lookups
   // reached`, which failed the run. Each alias is a type of its own now, and
   // `B`'s link back to `A` finds `A` already in the document.
-  const { artifacts, manifest } = run({
+  const { artifacts, manifest } = runDocs({
     paths: { '/loop': { get: { responses: { '200': { ...ok, content: json(ref('A')) } } } } },
     components: { schemas: { A: ref('B'), B: ref('A') } }
   })
@@ -212,7 +220,7 @@ Deno.test('a $ref chain that loops in a request body, response, header or link i
     [a]: { $ref: `#/components/${kind}/${b}` },
     [b]: { $ref: `#/components/${kind}/${a}` }
   })
-  const { artifacts, manifest } = run({
+  const document: Omit<OpenAPIV3.Document, 'openapi' | 'info'> = {
     paths: {
       '/loop': {
         post: {
@@ -235,7 +243,8 @@ Deno.test('a $ref chain that loops in a request body, response, header or link i
       headers: loop('headers', 'H1', 'H2'),
       links: loop('links', 'L1', 'L2')
     }
-  })
+  }
+  const { artifacts, manifest } = runDocs(document)
   const markdown = artifacts['src/docs/loop-POST.md']
 
   assertEquals(manifest.parseIssues.filter(issue => issue.type === 'RUN_FAILED'), [])
@@ -244,6 +253,12 @@ Deno.test('a $ref chain that loops in a request body, response, header or link i
   assertStringIncludes(markdown, '### `200` (unresolved $ref)')
   assertStringIncludes(markdown, '- **X-Rate** (unresolved $ref)')
   assertStringIncludes(markdown, '- **next** (unresolved $ref)')
+
+  // Without `danglingRefs`, the parser removes the operation that holds a loop, and the rest stays.
+  const removed = run(document).artifacts
+
+  assertEquals(removed['src/docs/loop-POST.md'], undefined)
+  assertEquals(typeof removed['src/docs/fine-GET.md'], 'string')
 })
 
 Deno.test('aliases - an alias shows the link to what it names, and the facets are in its definition', () => {
