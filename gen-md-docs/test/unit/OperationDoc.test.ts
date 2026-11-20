@@ -90,3 +90,36 @@ Deno.test('OperationDoc - renders the JSON request body schema when a non-JSON m
     '## Request body\n\nContent types: `text/plain`, `application/vnd.api+json`\n\n`object`\n- **name** `string`'
   )
 })
+
+Deno.test("OperationDoc - notes a parameter's serialization, lists a content parameter's media type, and marks a deprecated header and a link's target", () => {
+  const parsed = toParsedDocument({
+    openapi: '3.0.3',
+    info: { title: 'Test', version: '1.0.0' },
+    paths: {
+      '/pets': {
+        get: {
+          parameters: [
+            { name: 'tags', in: 'query', explode: false, schema: { type: 'array', items: { type: 'string' } } },
+            { name: 'filter', in: 'query', content: { 'application/xml': { schema: { type: 'string' } } } }
+          ],
+          responses: {
+            '200': {
+              description: 'Pets',
+              headers: { 'X-Old': { schema: { type: 'string' }, deprecated: true } },
+              links: { next: { operationId: 'listPets', description: 'The next page' } }
+            }
+          }
+        }
+      }
+    }
+  })
+
+  assert(parsed.type === 'oas')
+
+  const document = toOperationDocument({ parsed, operation: parsed.value.operations[0] })
+
+  assertStringIncludes(document, '**tags** `string[]`\n\n_not exploded_')
+  assertStringIncludes(document, '**filter** `string`\n\nContent type: `application/xml`')
+  assertStringIncludes(document, '**Headers**\n\n- **X-Old** `string` _(deprecated)_')
+  assertStringIncludes(document, '**Links**\n\n- **next** → `listPets` — The next page')
+})

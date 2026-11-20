@@ -1,5 +1,5 @@
 import { assertEquals } from '@std/assert'
-import { OasArray, OasObject, OasString, type OasSchema } from '@skmtc/core'
+import { OasArray, OasBoolean, OasInteger, OasObject, OasString, OasUnion, OasUnknown, type OasSchema } from '@skmtc/core'
 import { TypeInfo } from '../../src/snippets/TypeInfo.ts'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
 
@@ -62,4 +62,28 @@ Deno.test('TypeInfo - renders an array as the item type with []', () => {
   })
 
   assertEquals(snippet.toString(), '`string[]`')
+})
+
+Deno.test('TypeInfo - a boolean shows its default, a nullable union its flag, an unknown only its type', () => {
+  const context = toGenerateContext()
+  const toInfo = (schema: OasSchema, required: boolean) =>
+    `${new TypeInfo({ context, destinationPath: DOC, ...inline(schema), required })}`
+
+  assertEquals(toInfo(new OasBoolean({ default: true }), true), '`boolean` required (default: `true`)')
+  assertEquals(
+    toInfo(new OasUnion({ members: [new OasString({}), new OasInteger({})], nullable: true }), false),
+    '`union` nullable'
+  )
+  assertEquals(toInfo(new OasUnknown({}), false), '`unknown`')
+})
+
+Deno.test('TypeInfo - an array shows its item counts and whether its items are unique', () => {
+  const snippet = new TypeInfo({
+    context: toGenerateContext(),
+    destinationPath: DOC,
+    ...inline(new OasArray({ items: new OasString({}), minItems: 1, uniqueItems: true })),
+    required: false
+  })
+
+  assertEquals(snippet.toString(), '`string[]` (min items: 1, unique items)')
 })
