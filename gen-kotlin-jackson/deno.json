@@ -1,6 +1,6 @@
 {
   "name": "@skmtc/gen-kotlin-jackson",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "exports": "./mod.ts",
   "fmt": {
     "semiColons": false,
@@ -15,8 +15,8 @@
     "coverage:check": "deno coverage coverage --detailed"
   },
   "imports": {
-    "@skmtc/core": "jsr:@skmtc/core@0.44.1",
-    "@skmtc/lang-kotlin": "jsr:@skmtc/lang-kotlin@0.11.27",
+    "@skmtc/core": "jsr:@skmtc/core@0.44.2",
+    "@skmtc/lang-kotlin": "jsr:@skmtc/lang-kotlin@0.11.28",
     "@std/assert": "jsr:@std/assert@^1.0.10",
     "ts-pattern": "npm:ts-pattern@^5.9.0"
   },
