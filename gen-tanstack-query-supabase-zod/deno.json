@@ -1,12 +1,12 @@
 {
   "name": "@skmtc/gen-tanstack-query-supabase-zod",
-  "version": "0.2.22",
+  "version": "0.2.23",
   "exports": "./mod.ts",
   "imports": {
-    "@skmtc/gen-zod": "jsr:@skmtc/gen-zod@0.4.5",
-    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.2.20",
-    "@skmtc/core": "jsr:@skmtc/core@0.44.1",
-    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.14.5",
+    "@skmtc/gen-zod": "jsr:@skmtc/gen-zod@0.4.6",
+    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.2.21",
+    "@skmtc/core": "jsr:@skmtc/core@0.44.2",
+    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.14.6",
     "@babel/helper-validator-identifier": "npm:@babel/helper-validator-identifier@7.22.20",
     "@types/babel__helper-validator-identifier": "npm:@types/babel__helper-validator-identifier@7.15.2"
   },
