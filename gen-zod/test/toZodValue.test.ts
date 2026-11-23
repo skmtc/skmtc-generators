@@ -60,7 +60,7 @@ Deno.test("toZodValue - string with single enum value", () => {
     type: "string",
     enum: ["value1"],
   };
-  assertEquals(schemaToZod(schema), 'z.literal("value1")');
+  assertEquals(schemaToZod(schema), "z.literal('value1')");
 });
 
 Deno.test("toZodValue - string with multiple enum values", () => {
@@ -68,7 +68,44 @@ Deno.test("toZodValue - string with multiple enum values", () => {
     type: "string",
     enum: ["value1", "value2", "value3"],
   };
-  assertEquals(schemaToZod(schema), 'z.enum(["value1", "value2", "value3"])');
+  assertEquals(schemaToZod(schema), "z.enum(['value1', 'value2', 'value3'])");
+});
+
+// The trap: a value written into quotes by hand ends the string at its
+// own quote (`it's`), and a `null` member became the string 'null'.
+Deno.test("toZodValue - enum values are escaped, and null is left to nullable", () => {
+  const escaped: OpenAPIV3.SchemaObject = {
+    type: "string",
+    enum: ["it's", 'a"b', "a\\b"],
+  };
+  assertEquals(schemaToZod(escaped), "z.enum(['it\\'s', 'a\"b', 'a\\\\b'])");
+
+  const nullable: OpenAPIV3.SchemaObject = {
+    type: "string",
+    nullable: true,
+    enum: ["a", null],
+  };
+  assertEquals(schemaToZod(nullable), "z.literal('a').nullable()");
+
+  const onlyNull: OpenAPIV3.SchemaObject = {
+    type: "string",
+    nullable: true,
+    enum: [null],
+  };
+  assertEquals(schemaToZod(onlyNull), "z.null().nullable()");
+
+  // The trap: an empty list, with no `null` in it, must not accept null.
+  const empty: OpenAPIV3.SchemaObject = { type: "string", enum: [] };
+  assertEquals(schemaToZod(empty), "z.never()");
+});
+
+// The trap: a number or integer enum gave `z.union([])`, which does not
+// type-check, and a boolean one gave `z.boolean()`.
+Deno.test("toZodValue - an empty enum accepts nothing, for every scalar type", () => {
+  for (const type of ["number", "integer", "boolean"] as const) {
+    const empty: OpenAPIV3.SchemaObject = { type, enum: [] };
+    assertEquals(schemaToZod(empty), "z.never()", type);
+  }
 });
 
 // ============================================================================
@@ -207,18 +244,21 @@ Deno.test("toZodValue - nested object", () => {
   );
 });
 
-Deno.test.ignore("toZodValue - object with special characters in keys", () => {
+// The trap: wrapping a key in quotes by hand breaks on a key that holds a
+// quote (`it's`).
+Deno.test("toZodValue - object with special characters in keys", () => {
   const schema: OpenAPIV3.SchemaObject = {
     type: "object",
     properties: {
       "special-key": { type: "string" },
       "another.key": { type: "number" },
+      "it's": { type: "boolean" },
     },
-    required: ["special-key", "another.key"],
+    required: ["special-key", "another.key", "it's"],
   };
   assertEquals(
     schemaToZod(schema),
-    'z.object({"special-key": z.string(), "another.key": z.number()})',
+    "z.object({'special-key': z.string(), 'another.key': z.number(), 'it\\'s': z.boolean()})",
   );
 });
 
@@ -266,7 +306,7 @@ Deno.test("toZodValue - union with objects", () => {
   };
   assertEquals(
     schemaToZod(schema),
-    'z.union([z.object({type: z.literal("cat"), meow: z.boolean()}), z.object({type: z.literal("dog"), bark: z.boolean()})])',
+    "z.union([z.object({type: z.literal('cat'), meow: z.boolean()}), z.object({type: z.literal('dog'), bark: z.boolean()})])",
   );
 });
 

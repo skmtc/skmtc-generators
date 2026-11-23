@@ -64,7 +64,7 @@ export class ArktypeUnion extends TsSnippet {
 
   override toString(): string {
     if (this.stringSyntax !== undefined) {
-      return `"${this.stringSyntax}"`
+      return JSON.stringify(this.stringSyntax)
     }
 
     // Arktype's union tuple is binary, so members fold left into nested pairs:

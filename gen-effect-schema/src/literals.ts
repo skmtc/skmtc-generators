@@ -8,7 +8,9 @@ type Literal = string | number | boolean
  * are `Schema.Literals([x, y])`. `Schema.Literals` takes no `null`; a
  * null member — an OpenAPI 3.1-style nullable enum — is the leaf's
  * nullable modifier instead (see `withNullMember`), so the `NullOr` is
- * applied once with the rest. Called only from a `toString()` body.
+ * applied once with the rest. An enum of only `null` is `Schema.Null`, and
+ * an empty `enum: []` is `Schema.Never`: it accepts nothing. Called only
+ * from a `toString()` body.
  *
  * Under `coerce` the members arrive as strings — `?radius=50` — so `from`
  * names the leaf's string-decoding base (`Schema.FiniteFromString`, the
@@ -22,7 +24,9 @@ export const toLiterals = (
 ): string => {
   const members = enums.filter((member): member is Literal => member !== null)
 
-  if (members.length === 0) return `${LIB}.Null`
+  if (members.length === 0) {
+    return enums.includes(null) ? `${LIB}.Null` : `${LIB}.Never`
+  }
 
   const rendered = members.map((member) => JSON.stringify(member))
 

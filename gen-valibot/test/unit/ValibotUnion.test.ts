@@ -89,7 +89,7 @@ Deno.test('ValibotUnion - union with discriminator', () => {
 
   assertEquals(
     valibotUnion.toString(),
-    'v.variant("type", [v.object({type: v.literal("cat"), meow: v.boolean()}), v.object({type: v.literal("dog"), bark: v.boolean()})])'
+    "v.variant('type', [v.object({type: v.literal('cat'), meow: v.boolean()}), v.object({type: v.literal('dog'), bark: v.boolean()})])"
   )
 })
 
@@ -119,7 +119,7 @@ const toPetUnion = (members: OasObject[]) =>
 Deno.test('ValibotUnion - a discriminator with a nullable member renders v.union', () => {
   assertEquals(
     toPetUnion([toPet({ kind: 'cat', nullable: true }), toPet({ kind: 'dog' })]).toString(),
-    'v.union([v.nullable(v.object({type: v.literal("cat"), cat: v.boolean()})), v.object({type: v.literal("dog"), dog: v.boolean()})])'
+    "v.union([v.nullable(v.object({type: v.literal('cat'), cat: v.boolean()})), v.object({type: v.literal('dog'), dog: v.boolean()})])"
   )
 })
 
@@ -132,7 +132,7 @@ Deno.test('ValibotUnion - a discriminator with a member holding a record renders
 
   assertEquals(
     toPetUnion([withRecord, toPet({ kind: 'dog' })]).toString(),
-    'v.union([v.objectWithRest({type: v.literal("bag")}, v.string()), v.object({type: v.literal("dog"), dog: v.boolean()})])'
+    "v.union([v.objectWithRest({type: v.literal('bag')}, v.string()), v.object({type: v.literal('dog'), dog: v.boolean()})])"
   )
 })
 
@@ -147,7 +147,7 @@ Deno.test('ValibotUnion - a discriminator whose property holds no literal stays 
 
   assertEquals(
     toPetUnion([plain, toPet({ kind: 'dog' })]).toString(),
-    'v.variant("type", [v.object({type: v.string()}), v.object({type: v.literal("dog"), dog: v.boolean()})])'
+    "v.variant('type', [v.object({type: v.string()}), v.object({type: v.literal('dog'), dog: v.boolean()})])"
   )
 })
 
@@ -160,6 +160,6 @@ Deno.test('ValibotUnion - a discriminator with a member missing the key renders 
 
   assertEquals(
     toPetUnion([keyless, toPet({ kind: 'dog' })]).toString(),
-    'v.union([v.object({name: v.string()}), v.object({type: v.literal("dog"), dog: v.boolean()})])'
+    "v.union([v.object({name: v.string()}), v.object({type: v.literal('dog'), dog: v.boolean()})])"
   )
 })

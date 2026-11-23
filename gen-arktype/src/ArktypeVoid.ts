@@ -19,6 +19,6 @@ export class ArktypeVoid extends TsSnippet {
   }
 
   override toString(): string {
-    return `"${this.stringSyntax}"`
+    return JSON.stringify(this.stringSyntax)
   }
 }

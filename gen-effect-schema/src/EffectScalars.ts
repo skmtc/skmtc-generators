@@ -119,7 +119,8 @@ export class EffectNumber extends TsSnippet {
     // `Schema.Number` admits NaN and the infinities — which the zod
     // schema of the same component refuses, as the agreement test found.
     const base = this.coerce ? `${LIB}.FiniteFromString` : `${LIB}.Finite`
-    const content = this.enums?.length
+    // An empty `enum: []` goes to `toLiterals` too: it accepts nothing.
+    const content = this.enums !== undefined
       ? toLiterals(this.enums, this.coerce ? base : undefined)
       : `${base}${this.checks}`
 
@@ -167,7 +168,7 @@ export class EffectInteger extends TsSnippet {
     const base = this.coerce
       ? `${LIB}.NumberFromString.check(${LIB}.isInt())`
       : `${LIB}.Int`
-    const content = this.enums?.length
+    const content = this.enums !== undefined
       ? toLiterals(this.enums, this.coerce ? base : undefined)
       : `${base}${this.checks}`
 
@@ -219,7 +220,7 @@ export class EffectBoolean extends TsSnippet {
     // A one-member enum narrows to the literal, which is what keeps a
     // union discriminated on `true` / `false` narrow at the consumer.
     const base = this.coerce ? BOOLEAN_FROM_STRING : `${LIB}.Boolean`
-    const content = this.enums?.length
+    const content = this.enums !== undefined
       ? toLiterals(this.enums, this.coerce ? base : undefined)
       : base
 

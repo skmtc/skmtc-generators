@@ -112,6 +112,20 @@ Deno.test('ArktypeString - quotes and backslashes in enum values are escaped', (
   })
 
   // An unescaped quote would end the literal early and leave arktype a
-  // definition it cannot parse.
-  assertEquals(arktypeString.toString(), '"\'it\\\'s\' | \'a\\\\b\'"')
+  // definition it cannot parse. Two layers: arktype's `\'` and `\\`, then
+  // the TypeScript string around them, which doubles each backslash.
+  assertEquals(arktypeString.toString(), String.raw`"'it\\'s' | 'a\\\\b'"`)
+})
+
+Deno.test('ArktypeString - an empty enum accepts nothing', () => {
+  const arktypeString = new ArktypeString({
+    context: toGenerateContext(),
+    stringSchema: new OasString({ enums: [], format: undefined }),
+    modifiers: { required: true },
+    generatorKey: toGeneratorOnlyKey({ generatorId: arktypeEntry.id }),
+    destinationPath: '/test'
+  })
+
+  // The trap: the members joined to `""`, which arktype cannot parse.
+  assertEquals(arktypeString.toString(), '"never"')
 })

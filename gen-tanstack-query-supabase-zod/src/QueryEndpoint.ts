@@ -1,4 +1,4 @@
-import { List, type ListArray } from '@skmtc/lang-typescript'
+import { List, type ListArray, toStringLiteral } from '@skmtc/lang-typescript'
 import type { Stringable, OasOperationProjectionConstructorArgs } from '@skmtc/core'
 import { TanstackQueryBase } from './base.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
@@ -12,7 +12,7 @@ export class QueryEndpoint extends TanstackQueryBase {
 
     this.queryFn = new QueryFn({ context, operation, settings })
 
-    const operationTags: Stringable[] = operation.tags?.map(tag => `'${tag}'`) ?? []
+    const operationTags: Stringable[] = operation.tags?.map(tag => toStringLiteral(tag)) ?? []
 
     this.queryTags = List.toArray(
       operationTags.concat(this.queryFn.parameter.toPropertyList().values)

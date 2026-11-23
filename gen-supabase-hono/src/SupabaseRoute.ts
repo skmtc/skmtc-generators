@@ -1,6 +1,6 @@
 import { camelCase, decapitalize } from '@skmtc/core'
 import type { GenerateContextType, OasOperation } from '@skmtc/core'
-import { TsSnippet, toPathParams, List, type ListObject } from '@skmtc/lang-typescript'
+import { TsSnippet, toPathParams, toStringLiteral, List, type ListObject } from '@skmtc/lang-typescript'
 import { RequestBody } from './RequestBody.ts'
 import { Response } from './Response.ts'
 import { ResponseVoid } from './ResponseVoid.ts'
@@ -96,10 +96,10 @@ export class SupabaseRoute extends TsSnippet {
   override toString(): string {
     const { method, path } = this.operation
 
-    return `app.${method}('${toPathParams(path)}', withSupabase, ${
+    return `app.${method}(${toStringLiteral(toPathParams(path))}, withSupabase, ${
       this.withBearerAuth ? 'withClaims,' : ''
     } async c => {
-  console.log('${method} ${toPathParams(path)}')
+  console.log(${toStringLiteral(`${method} ${toPathParams(path)}`)})
 
   ${this.pathParams.values.length > 0 ? `const ${this.pathParams} = c.req.param()` : ''}
   ${this.queryParams.values.length > 0 ? `const ${this.queryParams} = c.req.query()` : ''}

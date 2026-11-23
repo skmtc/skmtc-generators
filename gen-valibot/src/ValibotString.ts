@@ -1,4 +1,4 @@
-import { TsSnippet } from '@skmtc/lang-typescript'
+import { toStringLiteral, TsSnippet } from '@skmtc/lang-typescript'
 import { match, P } from 'ts-pattern'
 import { applyModifiers } from './applyModifiers.ts'
 import type { Modifiers, GeneratorKey, GenerateContextType, OasString } from '@skmtc/core'
@@ -37,9 +37,16 @@ export class ValibotString extends TsSnippet {
 
     const content = match({ enums })
       .with({ enums: P.array() }, matched => {
-        return matched.enums.length === 1
-          ? `v.literal("${matched.enums[0]}")`
-          : `v.picklist([${matched.enums.map(str => `"${str}"`).join(', ')}])`
+        // Core lists `null` only on a nullable schema, and the nullable
+        // modifier adds `v.nullable(…)`, so the picklist lists the strings.
+        // An empty `enum: []` accepts nothing.
+        const members: Array<string | null> = matched.enums
+        const values = members.filter((value): value is string => value !== null)
+
+        return match(values.length)
+          .with(0, () => (members.includes(null) ? 'v.null()' : 'v.never()'))
+          .with(1, () => `v.literal(${toStringLiteral(values[0])})`)
+          .otherwise(() => `v.picklist([${values.map(toStringLiteral).join(', ')}])`)
       })
       .otherwise(() => {
         let str = `v.string()`

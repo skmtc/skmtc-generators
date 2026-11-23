@@ -1,4 +1,4 @@
-import { TsSnippet } from '@skmtc/lang-typescript'
+import { toStringLiteral, TsSnippet } from '@skmtc/lang-typescript'
 import type { GenerateContextType, GeneratorKey, RefName, TypeSystemValue, Modifiers, OasRef, OasSchema, OasDiscriminator } from '@skmtc/core'
 import { toValibotValue } from './Valibot.ts'
 import { applyModifiers } from './applyModifiers.ts'
@@ -54,7 +54,7 @@ export class ValibotUnion extends TsSnippet {
     const members = this.members.map(member => `${member}`).join(', ')
 
     const content = this.discriminator
-      ? `v.variant("${this.discriminator}", [${members}])`
+      ? `v.variant(${toStringLiteral(this.discriminator)}, [${members}])`
       : `v.union([${members}])`
 
     return applyModifiers(content, this.modifiers)

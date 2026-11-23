@@ -29,3 +29,23 @@ Deno.test('e2e - generated imports name workspace paths with forward slashes', (
     `import {user} from '@/types/user.generated.ts'\n`
   )
 })
+
+// The trap: a tag written into quotes by hand ends the string at its own
+// quote, and the generated query key does not parse.
+Deno.test("e2e - an operation tag with a quote is escaped in the query key", () => {
+  const { paths } = operationDocument
+  const users = paths['/users']
+  const get = users?.get
+
+  if (!get) {
+    throw new Error('operationDocument has no GET /users')
+  }
+
+  const tagged = runE2eFixture({
+    id: '@skmtc/gen-tanstack-query-fetch-zod',
+    entry: tanstackQueryEntry,
+    document: { ...operationDocument, paths: { ...paths, '/users': { ...users, get: { ...get, tags: ["Partner's users"] } } } }
+  })
+
+  assertStringIncludes(tagged.artifacts['src/services/useGetApiUsers.generated.ts'], "'Partner\\'s users'")
+})

@@ -1,5 +1,5 @@
 import { decapitalize, toEndpointName, withVariant } from '@skmtc/core'
-import { toTsOasOperationProjectionBase } from '@skmtc/lang-typescript'
+import { sanitizeIdentifier, toTsOasOperationProjectionBase } from '@skmtc/lang-typescript'
 import denoJson from '../deno.json' with { type: 'json' }
 import { type EnrichmentSchema, toEnrichmentSchema } from './enrichments.ts'
 
@@ -18,7 +18,7 @@ export const EffectHttpBase = toTsOasOperationProjectionBase<EnrichmentSchema>({
   // Method + path, never operationId — core's `createApi…` convention:
   // `POST /search` is `createApiSearch`.
   toIdentifierName({ operation, variant }): string {
-    return withVariant(decapitalize(toEndpointName(operation)), variant)
+    return sanitizeIdentifier(withVariant(decapitalize(toEndpointName(operation)), variant))
   },
 
   toIdentifierType: () => ({ type: 'variable' }),

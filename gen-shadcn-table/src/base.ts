@@ -1,5 +1,5 @@
 import { camelCase } from '@skmtc/core'
-import { toTsOasOperationProjectionBase } from '@skmtc/lang-typescript'
+import { sanitizeIdentifier, toTsOasOperationProjectionBase } from '@skmtc/lang-typescript'
 import type { EnrichmentSchema } from './enrichments.ts'
 import { toEnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
@@ -12,7 +12,7 @@ export const ShadcnTableBase = toTsOasOperationProjectionBase<EnrichmentSchema>(
   toIdentifierName({ operation }): string {
     const name = `${camelCase(operation.path, { upperFirst: true })}Table`
 
-    return name
+    return sanitizeIdentifier(name)
   },
 
   toIdentifierType: () => ({ type: 'variable' }),

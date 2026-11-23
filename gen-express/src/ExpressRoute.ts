@@ -1,6 +1,6 @@
 import { camelCase, decapitalize } from '@skmtc/core'
 import type { GenerateContextType, OasOperation } from '@skmtc/core'
-import { TsSnippet, toPathParams, List, type ListObject } from '@skmtc/lang-typescript'
+import { TsSnippet, toPathParams, toStringLiteral, List, type ListObject } from '@skmtc/lang-typescript'
 import { RequestBody } from './RequestBody.ts'
 import { Response } from './Response.ts'
 import { ResponseVoid } from './ResponseVoid.ts'
@@ -99,7 +99,7 @@ export class ExpressRoute extends TsSnippet {
   override toString(): string {
     const { method, path } = this.operation
 
-    return `app.${method}('${toPathParams(path)}', ${
+    return `app.${method}(${toStringLiteral(toPathParams(path))}, ${
       this.withAuth ? 'authMiddleware,' : ''
     } async (req: Request, res: Response, next: NextFunction) => {
   try {

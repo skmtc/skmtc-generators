@@ -25,7 +25,7 @@ Deno.test('ValibotString - single enum value', () => {
     destinationPath: '/test'
   })
 
-  assertEquals(valibotString.toString(), 'v.literal("value1")')
+  assertEquals(valibotString.toString(), "v.literal('value1')")
 })
 
 Deno.test('ValibotString - multiple enum values', () => {
@@ -37,7 +37,7 @@ Deno.test('ValibotString - multiple enum values', () => {
     destinationPath: '/test'
   })
 
-  assertEquals(valibotString.toString(), 'v.picklist(["val1", "val2", "val3"])')
+  assertEquals(valibotString.toString(), "v.picklist(['val1', 'val2', 'val3'])")
 })
 
 Deno.test('ValibotString - nullable string', () => {

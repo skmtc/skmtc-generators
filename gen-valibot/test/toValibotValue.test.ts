@@ -56,7 +56,7 @@ Deno.test('toValibotValue - string with single enum value', () => {
     type: 'string',
     enum: ['value1']
   }
-  assertEquals(schemaToValibot(schema), 'v.literal("value1")')
+  assertEquals(schemaToValibot(schema), "v.literal('value1')")
 })
 
 Deno.test('toValibotValue - string with multiple enum values', () => {
@@ -64,7 +64,47 @@ Deno.test('toValibotValue - string with multiple enum values', () => {
     type: 'string',
     enum: ['value1', 'value2', 'value3']
   }
-  assertEquals(schemaToValibot(schema), 'v.picklist(["value1", "value2", "value3"])')
+  assertEquals(schemaToValibot(schema), "v.picklist(['value1', 'value2', 'value3'])")
+})
+
+// The trap: a value written into quotes by hand ends the string at its
+// own quote (`it's`), and a `null` member became the string 'null'.
+Deno.test('toValibotValue - enum values are escaped, and null is left to nullable', () => {
+  const escaped: OpenAPIV3.SchemaObject = {
+    type: 'string',
+    enum: ["it's", 'a"b', 'a\\b']
+  }
+  assertEquals(schemaToValibot(escaped), "v.picklist(['it\\'s', 'a\"b', 'a\\\\b'])")
+
+  const nullable: OpenAPIV3.SchemaObject = {
+    type: 'string',
+    nullable: true,
+    enum: ['a', null]
+  }
+  assertEquals(schemaToValibot(nullable), "v.nullable(v.literal('a'))")
+
+  const onlyNull: OpenAPIV3.SchemaObject = {
+    type: 'string',
+    nullable: true,
+    enum: [null]
+  }
+  assertEquals(schemaToValibot(onlyNull), 'v.nullable(v.null())')
+
+  // The trap: an empty list, with no `null` in it, must not accept null.
+  const empty: OpenAPIV3.SchemaObject = { type: 'string', enum: [] }
+  assertEquals(schemaToValibot(empty), 'v.never()')
+})
+
+// The trap: a number, integer or boolean enum gave `v.null()`, which
+// accepts `null` where the list allows nothing.
+Deno.test('toValibotValue - an empty enum accepts nothing, for every scalar type', () => {
+  for (const type of ['number', 'integer', 'boolean'] as const) {
+    const empty: OpenAPIV3.SchemaObject = { type, enum: [] }
+    assertEquals(schemaToValibot(empty), 'v.never()', type)
+
+    const onlyNull: OpenAPIV3.SchemaObject = { type, nullable: true, enum: [null] }
+    assertEquals(schemaToValibot(onlyNull), 'v.nullable(v.null())', type)
+  }
 })
 
 // ============================================================================
@@ -197,18 +237,21 @@ Deno.test('toValibotValue - nested object', () => {
   )
 })
 
+// The trap: wrapping a key in quotes by hand breaks on a key that holds a
+// quote (`it's`).
 Deno.test('toValibotValue - object with special characters in keys', () => {
   const schema: OpenAPIV3.SchemaObject = {
     type: 'object',
     properties: {
       'special-key': { type: 'string' },
-      'another.key': { type: 'number' }
+      'another.key': { type: 'number' },
+      "it's": { type: 'boolean' }
     },
-    required: ['special-key', 'another.key']
+    required: ['special-key', 'another.key', "it's"]
   }
   assertEquals(
     schemaToValibot(schema),
-    'v.object({"special-key": v.string(), "another.key": v.number()})'
+    "v.object({'special-key': v.string(), 'another.key': v.number(), 'it\\'s': v.boolean()})"
   )
 })
 
@@ -253,7 +296,7 @@ Deno.test('toValibotValue - union with objects', () => {
   }
   assertEquals(
     schemaToValibot(schema),
-    'v.union([v.object({type: v.literal("cat"), meow: v.boolean()}), v.object({type: v.literal("dog"), bark: v.boolean()})])'
+    "v.union([v.object({type: v.literal('cat'), meow: v.boolean()}), v.object({type: v.literal('dog'), bark: v.boolean()})])"
   )
 })
 

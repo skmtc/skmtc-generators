@@ -1,4 +1,4 @@
-import { List, type ListArray } from '@skmtc/lang-typescript'
+import { List, type ListArray, toStringLiteral } from '@skmtc/lang-typescript'
 import { OasVoid, toEndpointName, capitalize } from '@skmtc/core'
 import type { OasOperationProjectionConstructorArgs } from '@skmtc/core'
 import { MutationFn } from './MutationFn.ts'
@@ -13,7 +13,7 @@ export class MutationEndpoint extends TanstackQueryBase {
   constructor({ context, operation, settings }: OasOperationProjectionConstructorArgs<EnrichmentSchema>) {
     super({ context, operation, settings })
 
-    this.tags = List.toArray(operation.tags?.map(tag => `'${tag}'`) ?? [])
+    this.tags = List.toArray(operation.tags?.map(tag => toStringLiteral(tag)) ?? [])
 
     this.mutationFn = new MutationFn({ context, operation, settings })
 

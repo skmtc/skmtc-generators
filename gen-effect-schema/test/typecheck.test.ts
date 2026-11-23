@@ -9,14 +9,50 @@
  */
 import { assertEquals } from '@std/assert'
 import {
+  additionalPropertiesCases,
+  additionalPropertiesDocument,
+  awkwardNamesDocument,
   checkGenerated,
   cycleDocument,
+  emptyEnumDocument,
+  patternDocument,
   runE2eFixture,
 } from '@skmtc/test-support'
 import { effectSchemaEntry } from '../src/mod.ts'
 
 /** The Effect the output is checked against: `Schema.Codec` is Effect 4. */
 const EFFECT = 'npm:effect@4.1.4'
+
+/**
+ * Reads each named property as its own type, and checks every case of
+ * `additionalPropertiesCases`. Loading it throws on the first case Effect
+ * gets wrong.
+ */
+const additionalPropertiesConsumer = `import { Schema } from 'effect'
+import { Upload } from '@/schema-effect/upload.generated.ts'
+import { Limits } from '@/schema-effect/limits.generated.ts'
+import { Dotted } from '@/schema-effect/dotted.generated.ts'
+import { Tree } from '@/schema-effect/tree.generated.ts'
+
+export const readUpload = (value: typeof Upload.Type): string[] => [value.app_id, ...value.images]
+export const readLimits = (value: typeof Limits.Type): [string, string | undefined] => [value.id, value.note]
+export const readDotted = (value: typeof Dotted.Type): string => value['a.b']
+export const readTree = (value: typeof Tree.Type): string => value.label
+
+const accepts: Record<string, (value: unknown) => boolean> = {
+  Upload: Schema.is(Upload),
+  Limits: Schema.is(Limits),
+  Dotted: Schema.is(Dotted),
+  Tree: Schema.is(Tree),
+}
+
+for (const check of ${JSON.stringify(additionalPropertiesCases)}) {
+  const accepted = accepts[check.model](check.value)
+  if (accepted !== check.accept) {
+    throw new Error(\`\${check.model}, \${check.name}: accepted is \${accepted}\`)
+  }
+}
+`
 
 Deno.test({
   name: 'typecheck - every model of a cycle compiles against Effect and loads first',
@@ -35,6 +71,135 @@ Deno.test({
 
     assertEquals(
       await checkGenerated({ artifacts, imports: { effect: EFFECT } }),
+      [],
+    )
+  },
+})
+
+// The trap: `2FA` starts with a digit, and `export const 2FA = …` does not
+// parse. `capitalize` keeps `Default` and `Delete` valid.
+Deno.test({
+  name: 'typecheck - schema names that are not valid bindings are repaired',
+  ignore: Deno.env.get('TYPECHECK') !== '1',
+  fn: async () => {
+    const { artifacts } = runE2eFixture({
+      id: '@skmtc/gen-effect-schema',
+      entry: effectSchemaEntry,
+      document: awkwardNamesDocument,
+    })
+
+    assertEquals(Object.keys(artifacts).sort(), [
+      'src/schema-effect/_2FA.generated.ts',
+      'src/schema-effect/account.generated.ts',
+      'src/schema-effect/default.generated.ts',
+      'src/schema-effect/delete.generated.ts',
+      'src/schema-effect/index.generated.ts',
+    ])
+
+    assertEquals(await checkGenerated({ artifacts, imports: { effect: EFFECT } }), [])
+  },
+})
+
+// The trap: `Schema.Record(Schema.String, …)` beside a struct compiles and
+// accepts `additionalProperties: true`, but checks a typed record against
+// the named keys too, so Effect rejects `{id: 'x', count: 1}` (#101).
+Deno.test({
+  name: 'typecheck - a record beside properties checks only the other keys',
+  ignore: Deno.env.get('TYPECHECK') !== '1',
+  fn: async () => {
+    const { artifacts } = runE2eFixture({
+      id: '@skmtc/gen-effect-schema',
+      entry: effectSchemaEntry,
+      document: additionalPropertiesDocument,
+    })
+
+    assertEquals(Object.keys(artifacts).sort(), [
+      'src/schema-effect/dotted.generated.ts',
+      'src/schema-effect/index.generated.ts',
+      'src/schema-effect/limits.generated.ts',
+      'src/schema-effect/tree.generated.ts',
+      'src/schema-effect/upload.generated.ts',
+      // A model that refers to itself takes its type annotation from gen-typescript.
+      'src/types/tree.generated.ts',
+    ])
+
+    assertEquals(
+      await checkGenerated({
+        artifacts: { ...artifacts, 'src/consumer.ts': additionalPropertiesConsumer },
+        imports: { effect: EFFECT },
+      }),
+      [],
+    )
+  },
+})
+
+// The trap: a pattern ending in `\` or written for another engine made the
+// file fail to parse; a `*/` in the comment that replaces it would end the
+// comment early. Every file has to compile and load.
+Deno.test({
+  name: 'typecheck - every pattern renders as a literal or a comment, and compiles',
+  ignore: Deno.env.get('TYPECHECK') !== '1',
+  fn: async () => {
+    const { artifacts } = runE2eFixture({
+      id: '@skmtc/gen-effect-schema',
+      entry: effectSchemaEntry,
+      document: patternDocument,
+    })
+
+    assertEquals(Object.keys(artifacts).sort(), [
+      'src/schema-effect/account.generated.ts',
+      'src/schema-effect/code.generated.ts',
+      'src/schema-effect/dash.generated.ts',
+      'src/schema-effect/escape.generated.ts',
+      'src/schema-effect/index.generated.ts',
+      'src/schema-effect/letters.generated.ts',
+      'src/schema-effect/url.generated.ts',
+    ])
+
+    assertEquals(await checkGenerated({ artifacts, imports: { effect: EFFECT } }), [])
+  },
+})
+
+/** Loading it throws when an empty enum accepts a value of its type, or null. */
+const emptyEnumConsumer = `import { Schema } from 'effect'
+import { EmptyString } from '@/schema-effect/emptyString.generated.ts'
+import { EmptyNumber } from '@/schema-effect/emptyNumber.generated.ts'
+import { EmptyInteger } from '@/schema-effect/emptyInteger.generated.ts'
+import { EmptyBoolean } from '@/schema-effect/emptyBoolean.generated.ts'
+
+const cases: Array<[string, (value: unknown) => boolean, unknown]> = [
+  ['EmptyString', Schema.is(EmptyString), 'x'],
+  ['EmptyNumber', Schema.is(EmptyNumber), 1],
+  ['EmptyInteger', Schema.is(EmptyInteger), 1],
+  ['EmptyBoolean', Schema.is(EmptyBoolean), true],
+]
+
+for (const [name, accepts, sample] of cases) {
+  for (const value of [sample, null]) {
+    if (accepts(value)) {
+      throw new Error(name + ' accepts ' + JSON.stringify(value))
+    }
+  }
+}
+`
+
+// The trap: an empty `enum: []` rendered the plain type, which accepts any
+// value of it.
+Deno.test({
+  name: 'typecheck - an empty enum compiles and accepts nothing',
+  ignore: Deno.env.get('TYPECHECK') !== '1',
+  fn: async () => {
+    const { artifacts } = runE2eFixture({
+      id: '@skmtc/gen-effect-schema',
+      entry: effectSchemaEntry,
+      document: emptyEnumDocument,
+    })
+
+    assertEquals(
+      await checkGenerated({
+        artifacts: { ...artifacts, 'src/consumer.ts': emptyEnumConsumer },
+        imports: { effect: EFFECT },
+      }),
       [],
     )
   },

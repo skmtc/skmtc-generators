@@ -1,5 +1,5 @@
 import { capitalize, toEndpointName } from '@skmtc/core'
-import { toTsOasOperationProjectionBase } from '@skmtc/lang-typescript'
+import { sanitizeIdentifier, toTsOasOperationProjectionBase } from '@skmtc/lang-typescript'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
@@ -7,7 +7,7 @@ export const TanstackQueryBase = toTsOasOperationProjectionBase<EnrichmentSchema
   id: denoJson.name,
 
   toIdentifierName({ operation }): string {
-    return `use${capitalize(toEndpointName(operation))}`
+    return sanitizeIdentifier(`use${capitalize(toEndpointName(operation))}`)
   },
 
   toIdentifierType: () => ({ type: 'variable' }),
