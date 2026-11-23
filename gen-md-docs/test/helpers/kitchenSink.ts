@@ -297,7 +297,9 @@ export const runKitchenSink = () =>
     spanId: 'run',
     startAt: Date.now(),
     document: { type: 'oas', value: kitchenSinkDocument },
-    settings: { basePath: kitchenSinkBasePath },
+    // As the skmtc-md-docs stack runs: documents keep their `.md` names, which
+    // the hub's deep index uses as chunk ids.
+    settings: { basePath: kitchenSinkBasePath, generatedSuffix: '' },
     stackTrail: new StackTrail([]),
     silent: true,
     toGeneratorConfigMap: () => ({

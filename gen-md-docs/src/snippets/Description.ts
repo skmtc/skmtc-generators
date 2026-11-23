@@ -2,27 +2,36 @@ import { SnippetBase, type GenerateContextType } from '@skmtc/core'
 
 type DescriptionArgs = {
   context: GenerateContextType
-  description: string | undefined
+  /** The description's text, trimmed and not empty. */
+  description: string
 }
 
-/**
- * Renders an optional schema / operation description.
- *
- * Descriptions are already CommonMark / GFM in the source document, so this
- * passes the text through verbatim (trimmed). It renders the empty string when
- * the description is absent, so a parent can interpolate `${this.description}`
- * unconditionally without branching.
- */
+/** A description, as its own paragraph. */
 export class Description extends SnippetBase {
-  description: string | undefined
+  description: string
 
   constructor({ context, description }: DescriptionArgs) {
     super({ context })
 
-    this.description = description?.trim()
+    this.description = description
   }
 
   override toString(): string {
-    return this.description ?? ''
+    return this.description
+  }
+}
+
+/** A description at the end of a row, after an em dash: `— The pet's name`. */
+export class DescriptionClause extends SnippetBase {
+  description: string
+
+  constructor({ context, description }: DescriptionArgs) {
+    super({ context })
+
+    this.description = description
+  }
+
+  override toString(): string {
+    return `— ${this.description}`
   }
 }

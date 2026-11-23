@@ -2,7 +2,8 @@ import { toJsonContent } from '@skmtc/core'
 import type { OasSchema, OasRef, OasMediaType } from '@skmtc/core'
 
 type Content = {
-  mediaTypes: string[]
+  /** The media types worth listing: none for no content, or for the plain single `application/json`. */
+  listedMediaTypes: string[]
   schema: OasSchema | OasRef<'schema'> | undefined
 }
 
@@ -20,17 +21,7 @@ export const toContent = (content: Record<string, OasMediaType> | undefined): Co
   const schema =
     toJsonContent(content)?.schema ??
     (first !== undefined ? content?.[first]?.schema : undefined)
+  const plainJson = mediaTypes.length === 1 && first === 'application/json'
 
-  return { mediaTypes, schema }
-}
-
-/** The content-type annotation, or `undefined` for the plain single `application/json`. */
-export const toMediaTypeLine = (mediaTypes: string[]): string | undefined => {
-  if (mediaTypes.length === 0 || (mediaTypes.length === 1 && mediaTypes[0] === 'application/json')) {
-    return undefined
-  }
-
-  const label = mediaTypes.length === 1 ? 'Content type' : 'Content types'
-
-  return `${label}: ${mediaTypes.map(type => `\`${type}\``).join(', ')}`
+  return { listedMediaTypes: plainJson ? [] : mediaTypes, schema }
 }

@@ -2,17 +2,12 @@ import { SnippetBase, type GenerateContextType } from '@skmtc/core'
 
 type NameArgs = {
   context: GenerateContextType
-  name: string | undefined
+  name: string
 }
 
-/**
- * Renders a property name in bold, e.g. `**id**`.
- *
- * Renders the empty string when there is no name (a root schema), so a parent
- * can interpolate it unconditionally.
- */
+/** A property, parameter or header name in bold, e.g. `**id**`. */
 export class Name extends SnippetBase {
-  name: string | undefined
+  name: string
 
   constructor({ context, name }: NameArgs) {
     super({ context })
@@ -21,6 +16,6 @@ export class Name extends SnippetBase {
   }
 
   override toString(): string {
-    return this.name ? `**${this.name}**` : ''
+    return `**${this.name}**`
   }
 }

@@ -6,38 +6,47 @@ import {
   OasNumber,
   OasObject,
   OasString,
+  OasUnion,
 } from "@skmtc/core";
+import type { Modifiers, OasRef, OasSchema } from "@skmtc/core";
 import { toGenerateContext } from "../helpers/toGenerateContext.ts";
 import { toGeneratorOnlyKey } from "@skmtc/core";
 
-Deno.test("ZodUnion - simple union with two types", () => {
-  const zodUnion = new ZodUnion({
+const toZodUnion = ({
+  members,
+  discriminator,
+  modifiers = { required: true },
+}: {
+  members: (OasSchema | OasRef<"schema">)[];
+  discriminator?: OasDiscriminator;
+  modifiers?: Modifiers;
+}) =>
+  new ZodUnion({
     context: toGenerateContext(),
+    schema: new OasUnion({ members, discriminator }),
+    modifiers,
+    generatorKey: toGeneratorOnlyKey({ generatorId: "@skmtc/gen-zod" }),
+    destinationPath: "/test",
+  });
+
+Deno.test("ZodUnion - simple union with two types", () => {
+  const zodUnion = toZodUnion({
     members: [
       new OasString({ enums: undefined, format: undefined }),
       new OasNumber(),
     ],
-    discriminator: undefined,
-    modifiers: { required: true },
-    generatorKey: toGeneratorOnlyKey({ generatorId: "@skmtc/gen-zod" }),
-    destinationPath: "/test",
   });
 
   assertEquals(zodUnion.toString(), "z.union([z.string(), z.number()])");
 });
 
 Deno.test("ZodUnion - union with three types", () => {
-  const zodUnion = new ZodUnion({
-    context: toGenerateContext(),
+  const zodUnion = toZodUnion({
     members: [
       new OasString({ enums: undefined, format: undefined }),
       new OasNumber(),
       new OasBoolean(),
     ],
-    discriminator: undefined,
-    modifiers: { required: true },
-    generatorKey: toGeneratorOnlyKey({ generatorId: "@skmtc/gen-zod" }),
-    destinationPath: "/test",
   });
 
   assertEquals(
@@ -47,16 +56,12 @@ Deno.test("ZodUnion - union with three types", () => {
 });
 
 Deno.test("ZodUnion - nullable union", () => {
-  const zodUnion = new ZodUnion({
-    context: toGenerateContext(),
+  const zodUnion = toZodUnion({
     members: [
       new OasString({ enums: undefined, format: undefined }),
       new OasNumber(),
     ],
-    discriminator: undefined,
     modifiers: { required: true, nullable: true },
-    generatorKey: toGeneratorOnlyKey({ generatorId: "@skmtc/gen-zod" }),
-    destinationPath: "/test",
   });
 
   assertEquals(
@@ -66,16 +71,12 @@ Deno.test("ZodUnion - nullable union", () => {
 });
 
 Deno.test("ZodUnion - optional union", () => {
-  const zodUnion = new ZodUnion({
-    context: toGenerateContext(),
+  const zodUnion = toZodUnion({
     members: [
       new OasString({ enums: undefined, format: undefined }),
       new OasNumber(),
     ],
-    discriminator: undefined,
     modifiers: { required: false },
-    generatorKey: toGeneratorOnlyKey({ generatorId: "@skmtc/gen-zod" }),
-    destinationPath: "/test",
   });
 
   assertEquals(
@@ -85,8 +86,7 @@ Deno.test("ZodUnion - optional union", () => {
 });
 
 Deno.test("ZodUnion - union with discriminator", () => {
-  const zodUnion = new ZodUnion({
-    context: toGenerateContext(),
+  const zodUnion = toZodUnion({
     members: [
       new OasObject({
         properties: {
@@ -106,9 +106,6 @@ Deno.test("ZodUnion - union with discriminator", () => {
       }),
     ],
     discriminator: new OasDiscriminator({ propertyName: "type" }),
-    modifiers: { required: true },
-    generatorKey: toGeneratorOnlyKey({ generatorId: "@skmtc/gen-zod" }),
-    destinationPath: "/test",
   });
 
   assertEquals(
@@ -118,10 +115,11 @@ Deno.test("ZodUnion - union with discriminator", () => {
 });
 
 const toPet = (
-  { kind, nullable, kindEnums }: {
+  { kind, nullable, kindEnums, required }: {
     kind: string;
     nullable?: boolean;
     kindEnums?: string[];
+    required?: string[];
   },
 ) =>
   new OasObject({
@@ -130,18 +128,14 @@ const toPet = (
       type: new OasString({ enums: kindEnums ?? [kind], format: undefined }),
       [kind]: new OasBoolean(),
     },
-    required: ["type", kind],
+    required: required ?? ["type", kind],
     additionalProperties: undefined,
   });
 
 const toPetUnion = (members: OasObject[]) =>
-  new ZodUnion({
-    context: toGenerateContext(),
+  toZodUnion({
     members,
     discriminator: new OasDiscriminator({ propertyName: "type" }),
-    modifiers: { required: true },
-    generatorKey: toGeneratorOnlyKey({ generatorId: "@skmtc/gen-zod" }),
-    destinationPath: "/test",
   });
 
 // zod 4 types z.discriminatedUnion's options as objects: `.nullable()` on
@@ -170,7 +164,25 @@ Deno.test("ZodUnion - a discriminator whose property holds no literal renders z.
   );
 });
 
-Deno.test("ZodUnion - a discriminator with a member holding a record renders z.union", () => {
+// zod 4 throws "Duplicate discriminator value" at the first parse.
+Deno.test("ZodUnion - a discriminator value two members allow renders z.union", () => {
+  assertEquals(
+    toPetUnion([toPet({ kind: "cat" }), toPet({ kind: "kitten", kindEnums: ["cat"] })])
+      .toString(),
+    "z.union([z.object({type: z.literal('cat'), cat: z.boolean()}), z.object({type: z.literal('cat'), kitten: z.boolean()})])",
+  );
+});
+
+Deno.test("ZodUnion - a member that does not require the discriminator renders z.union", () => {
+  assertEquals(
+    toPetUnion([toPet({ kind: "cat", required: ["cat"] }), toPet({ kind: "dog" })])
+      .toString(),
+    "z.union([z.object({type: z.literal('cat').optional(), cat: z.boolean()}), z.object({type: z.literal('dog'), dog: z.boolean()})])",
+  );
+});
+
+// zod 4 takes the `.catchall` form as an option.
+Deno.test("ZodUnion - a discriminator with a member holding a record stays discriminated", () => {
   const withRecord = new OasObject({
     properties: { type: new OasString({ enums: ["bag"], format: undefined }) },
     required: ["type"],
@@ -179,7 +191,7 @@ Deno.test("ZodUnion - a discriminator with a member holding a record renders z.u
 
   assertEquals(
     toPetUnion([withRecord, toPet({ kind: "dog" })]).toString(),
-    "z.union([z.object({type: z.literal('bag')}).catchall(z.string()), z.object({type: z.literal('dog'), dog: z.boolean()})])",
+    "z.discriminatedUnion('type', [z.object({type: z.literal('bag')}).catchall(z.string()), z.object({type: z.literal('dog'), dog: z.boolean()})])",
   );
 });
 

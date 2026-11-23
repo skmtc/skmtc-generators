@@ -1,6 +1,5 @@
 import { assert, assertEquals, assertStringIncludes } from '@std/assert'
-import { OperationDoc } from '../../src/snippets/OperationDoc.ts'
-import { toGenerateContext } from '../helpers/toGenerateContext.ts'
+import { toOperationDocument } from '../helpers/toOperationDocument.ts'
 import { toParsedDocument } from '../helpers/toParsedDocument.ts'
 
 Deno.test('OperationDoc - composes the full operation document', () => {
@@ -42,13 +41,10 @@ Deno.test('OperationDoc - composes the full operation document', () => {
 
   assert(parsed.type === 'oas')
 
-  const snippet = new OperationDoc({
-    context: toGenerateContext({ oasDocument: parsed }),
-    operation: parsed.value.operations[0]
-  })
+  const document = toOperationDocument({ parsed, operation: parsed.value.operations[0] })
 
   assertEquals(
-    snippet.toString(),
+    document,
     [
       '---\ntype: operation\ntitle: "Get pet by ID"\nmethod: GET\npath: "/pets/{id}"\ntags:\n  - "pets"\n---',
       '# Get pet by ID',
@@ -87,13 +83,43 @@ Deno.test('OperationDoc - renders the JSON request body schema when a non-JSON m
 
   assert(parsed.type === 'oas')
 
-  const snippet = new OperationDoc({
-    context: toGenerateContext({ oasDocument: parsed }),
-    operation: parsed.value.operations[0]
-  })
+  const document = toOperationDocument({ parsed, operation: parsed.value.operations[0] })
 
   assertStringIncludes(
-    snippet.toString(),
+    document,
     '## Request body\n\nContent types: `text/plain`, `application/vnd.api+json`\n\n`object`\n- **name** `string`'
   )
+})
+
+Deno.test("OperationDoc - notes a parameter's serialization, lists a content parameter's media type, and marks a deprecated header and a link's target", () => {
+  const parsed = toParsedDocument({
+    openapi: '3.0.3',
+    info: { title: 'Test', version: '1.0.0' },
+    paths: {
+      '/pets': {
+        get: {
+          parameters: [
+            { name: 'tags', in: 'query', explode: false, schema: { type: 'array', items: { type: 'string' } } },
+            { name: 'filter', in: 'query', content: { 'application/xml': { schema: { type: 'string' } } } }
+          ],
+          responses: {
+            '200': {
+              description: 'Pets',
+              headers: { 'X-Old': { schema: { type: 'string' }, deprecated: true } },
+              links: { next: { operationId: 'listPets', description: 'The next page' } }
+            }
+          }
+        }
+      }
+    }
+  })
+
+  assert(parsed.type === 'oas')
+
+  const document = toOperationDocument({ parsed, operation: parsed.value.operations[0] })
+
+  assertStringIncludes(document, '**tags** `string[]`\n\n_not exploded_')
+  assertStringIncludes(document, '**filter** `string`\n\nContent type: `application/xml`')
+  assertStringIncludes(document, '**Headers**\n\n- **X-Old** `string` _(deprecated)_')
+  assertStringIncludes(document, '**Links**\n\n- **next** → `listPets` — The next page')
 })

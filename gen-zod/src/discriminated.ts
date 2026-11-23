@@ -1,33 +1,15 @@
 /**
- * Whether a value renders one or more literal values (`z.literal`,
- * `z.enum`), which `z.discriminatedUnion` reads to tell its options apart.
+ * Whether zod 4's types take a union member as a `z.discriminatedUnion`
+ * option. Two references do not type-check there:
+ *
+ * - a reference to a model that renders `z.lazy(...)` as a whole
+ *   (`ZodRef.lazyModel`), typed `z.ZodType<T>` (TS2322). An object member
+ *   does that only when its cycle runs through its `additionalProperties`;
+ * - a reference back to the model being built (`ZodRef.referenceBack`). Its
+ *   type is still being inferred, so the getter that returns the union
+ *   cannot be typed (TS7023).
  */
-export const isLiteral = (value: unknown): boolean =>
-  typeof value === "object" && value !== null && "literal" in value &&
-  value.literal === true;
-
-/**
- * The properties of an object value that hold literal values (see
- * `ZodObject.literalKeys`), or none for any other value.
- */
-export const toLiteralKeys = (value: unknown): string[] =>
-  typeof value === "object" && value !== null && "literalKeys" in value &&
-    Array.isArray(value.literalKeys)
-    ? value.literalKeys.filter((key): key is string => typeof key === "string")
-    : [];
-
-/**
- * Whether `z.discriminatedUnion` can take a value as an option switched on
- * `key`. zod 4 takes only objects there, and reads each option's literal
- * values for the key when it first parses. A nullable object and any other
- * value fail to type-check, and an object whose `key` holds no literal throws at that
- * first parse. A reference back passes: its model is still being built, so
- * nothing says yet that it cannot.
- */
-export const isDiscriminable = (value: unknown, key: string): boolean => {
-  if (typeof value !== "object" || value === null || !("literalKeys" in value)) {
-    return false;
-  }
-
-  return value.literalKeys === undefined || toLiteralKeys(value).includes(key);
-};
+export const isTypedAsOption = (value: unknown): boolean =>
+  typeof value !== "object" || value === null ||
+  !(("lazyModel" in value && value.lazyModel === true) ||
+    ("referenceBack" in value && value.referenceBack === true));

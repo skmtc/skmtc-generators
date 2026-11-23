@@ -20,15 +20,6 @@ Deno.test('Enums - renders non-string values via String()', () => {
   assertEquals(snippet.toString(), '(`1`, `2`, `true`)')
 })
 
-Deno.test('Enums - renders the empty string when there are no enums', () => {
-  const snippet = new Enums({
-    context: toGenerateContext(),
-    enums: undefined
-  })
-
-  assertEquals(snippet.toString(), '')
-})
-
 Deno.test('Enums - renders the empty string for an empty array', () => {
   const snippet = new Enums({
     context: toGenerateContext(),

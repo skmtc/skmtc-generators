@@ -401,8 +401,10 @@ const toKind = (kind: string): OpenAPIV3.SchemaObject => ({ type: 'string', enum
  * Discriminated unions whose members a validator's discriminated form may
  * not take: members that can (Pet), a nullable member (EnvVar, from
  * Cloudflare's `pages_env_vars`), a key with no literal value (Item, from
- * Cloudflare's `mcn_list_item`), a union inside a cycle (Shape, Group), and
- * a member that is recursive on its own (Tree, Branch).
+ * Cloudflare's `mcn_list_item`), a union inside a cycle (Shape, Group), a
+ * member that is recursive on its own (Tree, Branch), two members that allow
+ * one discriminator value (Coin), a member with a record beside its
+ * properties (Box), and a member whose cycle runs through its record (Node).
  */
 export const unionDocument: OpenAPIV3.Document = {
   openapi: '3.0.3',
@@ -471,7 +473,79 @@ export const unionDocument: OpenAPIV3.Document = {
         type: 'object',
         required: ['kind', 'branches'],
         properties: { kind: toKind('branch'), branches: { type: 'array', items: { $ref: '#/components/schemas/Branch' } } }
-      }
+      },
+      Coin: {
+        oneOf: [{ $ref: '#/components/schemas/Heads' }, { $ref: '#/components/schemas/Tails' }],
+        discriminator: { propertyName: 'side' }
+      },
+      Heads: { type: 'object', required: ['side', 'heads'], properties: { side: toKind('face'), heads: { type: 'boolean' } } },
+      Tails: { type: 'object', required: ['side', 'tails'], properties: { side: toKind('face'), tails: { type: 'boolean' } } },
+      Box: {
+        oneOf: [{ $ref: '#/components/schemas/Crate' }, { $ref: '#/components/schemas/Envelope' }],
+        discriminator: { propertyName: 'kind' }
+      },
+      Crate: {
+        type: 'object',
+        required: ['kind'],
+        properties: { kind: toKind('crate') },
+        additionalProperties: { type: 'string' }
+      },
+      Envelope: { type: 'object', required: ['kind'], properties: { kind: toKind('envelope') } },
+      Node: {
+        oneOf: [{ $ref: '#/components/schemas/Folder' }, { $ref: '#/components/schemas/File' }],
+        discriminator: { propertyName: 'kind' }
+      },
+      Folder: {
+        type: 'object',
+        required: ['kind'],
+        properties: { kind: toKind('folder') },
+        additionalProperties: { $ref: '#/components/schemas/Node' }
+      },
+      File: { type: 'object', required: ['kind'], properties: { kind: toKind('file') } }
+    }
+  }
+}
+
+/**
+ * Cycles whose plain rendering zod 4 or its types refuse: a recursive object
+ * with `additionalProperties` (Node), an inline object with
+ * `additionalProperties` inside a cycle (Holder's `meta`), and a model that
+ * refers to itself through a discriminated `oneOf` property (Chain).
+ */
+export const cycleEdgeDocument: OpenAPIV3.Document = {
+  openapi: '3.0.3',
+  info: { title: 'Cycle edge fixture', version: '1.0.0' },
+  paths: {},
+  components: {
+    schemas: {
+      Node: {
+        type: 'object',
+        required: ['name'],
+        properties: { name: { type: 'string' }, children: { type: 'array', items: { $ref: '#/components/schemas/Node' } } },
+        additionalProperties: { type: 'string' }
+      },
+      Holder: {
+        type: 'object',
+        properties: {
+          meta: {
+            type: 'object',
+            properties: { back: { $ref: '#/components/schemas/Holder' } },
+            additionalProperties: { type: 'string' }
+          }
+        }
+      },
+      Chain: {
+        type: 'object',
+        required: ['kind'],
+        properties: {
+          kind: toKind('chain'),
+          next: {
+            oneOf: [{ $ref: '#/components/schemas/Chain' }, { $ref: '#/components/schemas/Leaf' }],
+            discriminator: { propertyName: 'kind' }
+          }
+        }
+      },
+      Leaf: { type: 'object', required: ['kind'], properties: { kind: toKind('leaf') } }
     }
   }
 }

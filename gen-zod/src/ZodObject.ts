@@ -5,7 +5,6 @@ import { toZodValue } from "./Zod.ts";
 import { applyModifiers } from "./applyModifiers.ts";
 import { ZodUnknown } from "./ZodUnknown.ts";
 import { isDeferred } from "./deferred.ts";
-import { isLiteral } from "./discriminated.ts";
 
 type ZodObjectProps = {
   context: GenerateContextType;
@@ -23,17 +22,11 @@ export class ZodObject extends TsSnippet {
   modifiers: Modifiers;
   /**
    * See `isDeferred`. A property defers its own references as a getter;
-   * the record beside the properties has no property to do that.
+   * the record beside the properties has no property to do that, and
+   * `.catchall` reads the shape when it is called (zod 4.1 to 4.5), which
+   * runs a getter beside it at module load.
    */
   deferred: boolean;
-  /**
-   * The properties holding literal values, which `z.discriminatedUnion` can
-   * switch on (see `isDiscriminable`). None for a nullable object, which
-   * zod 4 does not take as an option. None for one with a record beside its
-   * properties either: zod 4 takes its `.catchall` form, but no fixture
-   * covers that option yet, so such a union stays a `z.union`.
-   */
-  literalKeys: string[];
 
   constructor({
     context,
@@ -75,13 +68,9 @@ export class ZodObject extends TsSnippet {
 
     this.objectProperties = objectProperties;
 
-    this.deferred = isDeferred(this.recordProperties);
-
-    this.literalKeys = this.recordProperties || modifiers.nullable || !objectProperties
-      ? []
-      : Object.entries(objectProperties.properties)
-        .filter(([, value]) => isLiteral(value))
-        .map(([key]) => key);
+    this.deferred = isDeferred(this.recordProperties) ||
+      (this.recordProperties !== null &&
+        Object.values(objectProperties?.properties ?? {}).some(isDeferred));
 
     this.register({ imports: { zod: ["z"] }, destinationPath });
   }
@@ -90,8 +79,7 @@ export class ZodObject extends TsSnippet {
     const { objectProperties, recordProperties } = this;
 
     // `additionalProperties` covers only the keys `properties` does not
-    // name, as `.catchall` does. `.and(z.record(…))` checked the record
-    // against every key, so a typed record rejected the named ones.
+    // name, as `.catchall` does.
     if (objectProperties && recordProperties) {
       return applyModifiers(
         `${objectProperties}.catchall(${recordProperties.value})`,

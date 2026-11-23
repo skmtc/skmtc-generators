@@ -36,7 +36,7 @@ Deno.test('Security - lists requirements with scheme kind and scopes', () => {
   const document = parsed.value
   const security = new Security({
     context: toGenerateContext({ oasDocument: parsed }),
-    security: document.operations[0].security,
+    security: document.operations[0].security ?? [],
     securitySchemes: document.components?.securitySchemes
   })
 
@@ -49,11 +49,4 @@ Deno.test('Security - lists requirements with scheme kind and scopes', () => {
       '- `bearerAuth` (HTTP bearer)'
     ].join('\n')
   )
-})
-
-Deno.test('Security - renders the empty string when no security applies', () => {
-  const context = toGenerateContext()
-  const security = new Security({ context, security: undefined, securitySchemes: undefined })
-
-  assertEquals(security.toString(), '')
 })

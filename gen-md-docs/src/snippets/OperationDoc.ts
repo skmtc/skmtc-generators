@@ -1,83 +1,77 @@
-import { SnippetBase, type GenerateContextType, type OasOperation } from '@skmtc/core'
+import type { OasOperationProjectionConstructorArgs } from '@skmtc/core'
+import { List } from '@skmtc/lang-typescript'
+import { OperationDocBase, type OperationDocOptions } from '../base.ts'
+import type { EnrichmentSchema } from '../enrichments.ts'
 import { Frontmatter } from './Frontmatter.ts'
 import { Summary } from './Summary.ts'
 import { PathMethod } from './PathMethod.ts'
 import { Security } from './Security.ts'
-import { Parameters } from './Parameters.ts'
-import { Section } from './Section.ts'
+import { OperationParameters } from './Parameters.ts'
+import { toRequestBodySection, type Section, type UnresolvedSection } from './Section.ts'
 import { Responses } from './Responses.ts'
 import { ExternalDocs } from './ExternalDocs.ts'
-import { Definitions } from './Schema.ts'
-import { safeResolve } from '../safeResolve.ts'
-import { toContent } from '../toContent.ts'
 
-type OperationDocArgs = {
-  context: GenerateContextType
-  operation: OasOperation
-}
+/** One block of an {@link OperationDoc}. */
+type OperationBlock =
+  | Frontmatter
+  | Summary
+  | PathMethod
+  | ExternalDocs
+  | Security
+  | OperationParameters
+  | Section
+  | UnresolvedSection
+  | Responses
 
 /**
- * Renders a full operation as a Markdown document — the counterpart of the docs
- * viewer's `OperationContent`. Composes the YAML frontmatter (which carries the
- * tags), summary, method/path, the four parameter groups, the request body and
- * every response, each separated by a blank line; empty sections drop out.
+ * A full operation as a Markdown document — the counterpart of the docs
+ * viewer's `OperationContent`: the YAML frontmatter (which carries the tags),
+ * then each part the operation has — summary, method and path, external docs,
+ * security, parameters, request body and responses — separated by a blank
+ * line.
  *
- * `$ref`s throughout the operation render by name and register with one shared
- * {@link Definitions} collector, which appends a "Referenced types" section — so
- * each named type is defined once per document, self-contained and lookup-free.
+ * A `$ref` renders by name, and its type is inserted as a `TypeDefinition` in
+ * this same document, which writes it once under "Referenced types": the
+ * document is self-contained and lookup-free.
  */
-export class OperationDoc extends SnippetBase {
-  parts: SnippetBase[]
-  definitions: Definitions
+export class OperationDoc extends OperationDocBase {
+  blocks: List<OperationBlock[], '\n\n', 'none'>
 
-  constructor({ context, operation }: OperationDocArgs) {
-    super({ context, stackTrail: operation.stackTrail.clone() })
+  constructor(args: OasOperationProjectionConstructorArgs<EnrichmentSchema, OperationDocOptions>) {
+    super(args)
 
-    const definitions = new Definitions({ context })
+    const { context, operation, settings } = args
+    const destinationPath = settings.exportPath
     const document = context.document.type === 'oas' ? context.document.value : undefined
-    const servers = (document?.servers ?? []).map(server => server.url)
-    const requestBody = operation.requestBody ? safeResolve(operation.requestBody) : undefined
-    const requestContent = toContent(requestBody?.content)
+    const summary = operation.summary?.trim()
+    const description = operation.description?.trim()
+    const security = operation.security ?? document?.security ?? []
+    // OpenAPI: an operation's servers replace its path item's, which replace the document's.
+    const servers = operation.servers ?? operation.pathItem?.servers ?? document?.servers ?? []
+    const parameters = new OperationParameters({ context, operation, destinationPath })
 
-    this.parts = [
-      new Frontmatter({ context, operation, servers }),
-      new Summary({ context, summary: operation.summary, description: operation.description }),
-      new PathMethod({ context, method: operation.method, path: operation.path }),
-      new ExternalDocs({ context, externalDocs: operation.externalDocs }),
-      new Security({
-        context,
-        security: operation.security ?? document?.security,
-        securitySchemes: document?.components?.securitySchemes
-      }),
-      new Parameters({ context, title: 'Path parameters', parameters: operation.toParams(['path']), definitions }),
-      new Parameters({ context, title: 'Query parameters', parameters: operation.toParams(['query']), definitions }),
-      new Parameters({ context, title: 'Headers', parameters: operation.toParams(['header']), definitions }),
-      new Parameters({ context, title: 'Cookies', parameters: operation.toParams(['cookie']), definitions }),
-      new Section({
-        context,
-        title: 'Request body',
-        schema: requestContent.schema,
-        description: requestBody?.description,
-        definitions,
-        mediaTypes: requestContent.mediaTypes,
-        required: requestBody?.required
-      }),
-      new Responses({ context, responses: operation.responses, definitions })
-    ]
-
-    // The body has registered every referenced type; render each one once.
-    definitions.build()
-    this.definitions = definitions
+    this.blocks = new List<OperationBlock[], '\n\n', 'none'>(
+      [
+        new Frontmatter({ context, operation, servers: servers.map(server => server.url) }),
+        summary || description ? new Summary({ context, summary, description }) : undefined,
+        new PathMethod({ context, method: operation.method, path: operation.path }),
+        operation.externalDocs !== undefined
+          ? new ExternalDocs({ context, externalDocs: operation.externalDocs })
+          : undefined,
+        security.length > 0
+          ? new Security({ context, security, securitySchemes: document?.components?.securitySchemes })
+          : undefined,
+        parameters.sections.values.length > 0 ? parameters : undefined,
+        toRequestBodySection({ context, requestBody: operation.requestBody, destinationPath }),
+        Object.keys(operation.responses).length > 0
+          ? new Responses({ context, responses: operation.responses, destinationPath })
+          : undefined
+      ],
+      { separator: '\n\n' }
+    )
   }
 
   override toString(): string {
-    const body = this.parts
-      .map(part => part.toString())
-      .filter(part => part !== '')
-      .join('\n\n')
-
-    const definitions = this.definitions.toString()
-
-    return definitions ? `${body}\n\n${definitions}` : body
+    return `${this.blocks}`
   }
 }

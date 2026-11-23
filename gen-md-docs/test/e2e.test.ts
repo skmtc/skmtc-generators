@@ -43,6 +43,9 @@ const documentObject: OpenAPIV3.Document = {
   }
 }
 
+// The engine's default `generatedSuffix`: each document is named
+// `….generated.md`, and the indexes and catalog link to those names. The
+// kitchen-sink golden runs with `''`, as the skmtc-md-docs stack does.
 const runFixture = () =>
   toArtifacts({
     traceId: 'gen-md-docs-e2e',
@@ -62,7 +65,7 @@ Deno.test('e2e - generates one Markdown file per operation, no parse errors', ()
   const { artifacts, manifest } = runFixture()
 
   assertEquals(Object.keys(artifacts), [
-    'src/docs/pets/pets-id-GET.md',
+    'src/docs/pets/pets-id-GET.generated.md',
     'src/docs/index.md',
     'src/docs/index.json',
     'src/docs/pets/index.md'
@@ -88,7 +91,7 @@ Deno.test('e2e - accumulates the top index, a per-tag index and the JSON catalog
   // Per-tag index: the tag's operations, linked within the folder.
   assertEquals(
     artifacts['src/docs/pets/index.md'],
-    ['# pets', '- [Get pet by ID](pets-id-GET.md) — `GET` `/pets/{id}`'].join('\n\n')
+    ['# pets', '- [Get pet by ID](pets-id-GET.generated.md) — `GET` `/pets/{id}`'].join('\n\n')
   )
 
   // Catalog: one structured record per operation.
@@ -104,7 +107,7 @@ Deno.test('e2e - accumulates the top index, a per-tag index and the JSON catalog
             path: '/pets/{id}',
             tags: ['pets'],
             summary: 'Get pet by ID',
-            file: 'pets/pets-id-GET.md'
+            file: 'pets/pets-id-GET.generated.md'
           }
         ]
       },
@@ -118,7 +121,7 @@ Deno.test('e2e - the operation document renders the composed Markdown', () => {
   const { artifacts } = runFixture()
 
   assertEquals(
-    artifacts['src/docs/pets/pets-id-GET.md'],
+    artifacts['src/docs/pets/pets-id-GET.generated.md'],
     [
       '---\ntype: operation\ntitle: "Get pet by ID"\nmethod: GET\npath: "/pets/{id}"\ntags:\n  - "pets"\n---',
       '# Get pet by ID',
