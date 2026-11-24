@@ -1,10 +1,10 @@
 {
   "name": "@skmtc/gen-express",
-  "version": "0.2.21",
+  "version": "0.2.22",
   "exports": "./mod.ts",
   "imports": {
-    "@skmtc/gen-valibot": "jsr:@skmtc/gen-valibot@0.2.21",
-    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.2.21",
+    "@skmtc/gen-valibot": "jsr:@skmtc/gen-valibot@0.2.22",
+    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.2.22",
     "@skmtc/core": "jsr:@skmtc/core@0.44.2",
     "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.14.6"
   },
@@ -25,5 +25,15 @@
         "no-slow-types"
       ]
     }
+  },
+  "publish": {
+    "exclude": [
+      "**/*.test.ts",
+      "test/",
+      "deno.lock",
+      "**/CLAUDE.md",
+      "coverage/",
+      "coverage.lcov"
+    ]
   }
 }

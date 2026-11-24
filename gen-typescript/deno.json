@@ -1,6 +1,6 @@
 {
   "name": "@skmtc/gen-typescript",
-  "version": "0.2.21",
+  "version": "0.2.22",
   "exports": "./mod.ts",
   "tasks": {
     "test": "deno test --allow-env --allow-sys --allow-read",
@@ -26,5 +26,15 @@
         "no-slow-types"
       ]
     }
+  },
+  "publish": {
+    "exclude": [
+      "**/*.test.ts",
+      "test/",
+      "deno.lock",
+      "**/CLAUDE.md",
+      "coverage/",
+      "coverage.lcov"
+    ]
   }
 }

@@ -1,10 +1,10 @@
 {
   "name": "@skmtc/gen-tanstack-query-fetch-zod",
-  "version": "0.2.24",
+  "version": "0.2.25",
   "exports": "./mod.ts",
   "imports": {
-    "@skmtc/gen-zod": "jsr:@skmtc/gen-zod@0.4.6",
-    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.2.21",
+    "@skmtc/gen-zod": "jsr:@skmtc/gen-zod@0.4.7",
+    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.2.22",
     "@skmtc/core": "jsr:@skmtc/core@0.44.2",
     "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.14.6",
     "@babel/helper-validator-identifier": "npm:@babel/helper-validator-identifier@7.22.20",
@@ -28,5 +28,15 @@
         "skmtc/single-dispatch"
       ]
     }
+  },
+  "publish": {
+    "exclude": [
+      "**/*.test.ts",
+      "test/",
+      "deno.lock",
+      "**/CLAUDE.md",
+      "coverage/",
+      "coverage.lcov"
+    ]
   }
 }
