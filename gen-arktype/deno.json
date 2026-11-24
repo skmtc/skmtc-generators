@@ -1,6 +1,6 @@
 {
   "name": "@skmtc/gen-arktype",
-  "version": "0.2.19",
+  "version": "0.2.20",
   "exports": "./mod.ts",
   "tasks": {
     "test": "deno test --allow-env --allow-sys --allow-read",
@@ -27,5 +27,14 @@
         "no-slow-types"
       ]
     }
+  },
+  "publish": {
+    "exclude": [
+      "**/*.test.ts",
+      "test/",
+      "deno.lock",
+      "**/CLAUDE.md",
+      "coverage/"
+    ]
   }
 }

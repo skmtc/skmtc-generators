@@ -1,11 +1,11 @@
 {
   "name": "@skmtc/gen-shadcn-form",
-  "version": "0.3.21",
+  "version": "0.3.22",
   "imports": {
-    "@skmtc/gen-shadcn-select": "jsr:@skmtc/gen-shadcn-select@0.3.21",
-    "@skmtc/gen-tanstack-query-supabase-zod": "jsr:@skmtc/gen-tanstack-query-supabase-zod@0.2.23",
-    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.2.21",
-    "@skmtc/gen-zod": "jsr:@skmtc/gen-zod@0.4.6",
+    "@skmtc/gen-shadcn-select": "jsr:@skmtc/gen-shadcn-select@0.3.22",
+    "@skmtc/gen-tanstack-query-supabase-zod": "jsr:@skmtc/gen-tanstack-query-supabase-zod@0.2.24",
+    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.2.22",
+    "@skmtc/gen-zod": "jsr:@skmtc/gen-zod@0.4.7",
     "@skmtc/core": "jsr:@skmtc/core@0.44.2",
     "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.14.6"
   },
@@ -28,5 +28,14 @@
         "skmtc/single-dispatch"
       ]
     }
+  },
+  "publish": {
+    "exclude": [
+      "**/*.test.ts",
+      "test/",
+      "deno.lock",
+      "**/CLAUDE.md",
+      "coverage/"
+    ]
   }
 }
