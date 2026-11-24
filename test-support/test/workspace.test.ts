@@ -95,15 +95,24 @@ Deno.test('workspace - a pin on another workspace generator names its current ve
   assertEquals(stale, [])
 })
 
+const lockedPackages = Object.keys(readJson<{ jsr?: Record<string, unknown> }>('deno.lock').jsr ?? {})
+
 Deno.test('workspace - the lockfile resolves one @skmtc/core, at the root pin', () => {
   assert(rootCorePin, 'the root import map must pin @skmtc/core')
 
-  const lock = readJson<{ jsr?: Record<string, unknown> }>('deno.lock')
-
-  const cores = Object.keys(lock.jsr ?? {}).filter(key => key.startsWith('@skmtc/core@'))
-
-  assertEquals(cores, [`@skmtc/core@${rootCorePin}`])
+  assertEquals(lockedPackages.filter(key => key.startsWith('@skmtc/core@')), [`@skmtc/core@${rootCorePin}`])
 })
+
+for (const name of ['@skmtc/lang-typescript', '@skmtc/lang-kotlin']) {
+  Deno.test(`workspace - the lockfile resolves one ${name}, at the members' pin`, () => {
+    // A second copy of a lang package brings its own core range, so the
+    // lock must hold only the version the members pin.
+    const versions = [...new Set(Object.values(toMemberPins(name)))]
+    assertEquals(versions.length, 1, `${name} pins disagree: ${JSON.stringify(versions)}`)
+
+    assertEquals(lockedPackages.filter(key => key.startsWith(`${name}@`)), [`${name}@${versions[0]}`])
+  })
+}
 
 Deno.test('workspace - no generator source imports an OS-aware path module', () => {
   // An export path is `@/` plus a forward-slash path on every host. `join`
