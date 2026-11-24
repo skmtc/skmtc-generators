@@ -38,7 +38,8 @@
       "test/",
       "deno.lock",
       "**/CLAUDE.md",
-      "coverage/"
+      "coverage/",
+      "coverage.lcov"
     ]
   }
 }
