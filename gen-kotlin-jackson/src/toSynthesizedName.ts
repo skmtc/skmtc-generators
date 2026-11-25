@@ -326,7 +326,16 @@ const toSegments = (frames: string[]): string[] | null => {
     // (`Order.properties.refund.oneOf` names `OrderRefund`). A PROPERTY
     // named `oneOf` never reaches this check: `properties` consumes its
     // key positionally above.
-    if (frame === 'oneOf' || frame === 'anyOf' || frame === 'allOf') {
+    if (frame === 'oneOf' || frame === 'anyOf') {
+      continue
+    }
+
+    // A member of an intersection too: one at most is not a reference, so its
+    // index tells nothing apart (`Pet/allOf/1/properties/kind` is `PetKind`).
+    if (frame === 'allOf') {
+      if (/^\d+$/.test(frames[index + 1] ?? '')) {
+        index++
+      }
       continue
     }
 

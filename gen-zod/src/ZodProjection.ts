@@ -3,7 +3,7 @@ import { createVariable } from '@skmtc/lang-typescript'
 import { TsProjection } from '@skmtc/gen-typescript'
 import { toZodValue } from "./Zod.ts";
 import { ZodBase } from "./base.ts";
-import { isDeferred } from "./deferred.ts";
+import { isDeferred, needsAnnotation } from "./deferred.ts";
 import type { EnrichmentSchema } from "./enrichments.ts";
 
 type ConstructorArgs = {
@@ -18,6 +18,8 @@ export class ZodProjection extends ZodBase {
   value: TypeSystemValue;
   /** Renders `z.lazy(() => …)`: the value holds a reference inside a cycle that no getter defers. */
   lazy: boolean;
+  /** Typed `z.ZodType<T>`: it renders `z.lazy(…)`, or see `needsAnnotation`. */
+  annotated: boolean;
   constructor(
     { context, ref, settings, destinationPath, rootRef }: ConstructorArgs,
   ) {
@@ -42,7 +44,9 @@ export class ZodProjection extends ZodBase {
     // model, imported into this file unless the two share it.
     this.lazy = isDeferred(this.value);
 
-    if (this.lazy) {
+    this.annotated = this.lazy || needsAnnotation(this.value);
+
+    if (this.annotated) {
       const type = context.insertModel(TsProjection, ref, {
         variant: "main",
         destinationPath,

@@ -23,10 +23,10 @@ export class ZodRef extends TsSnippet {
   /** A reference back to a model whose projection is being built (`suspended`). */
   referenceBack: boolean;
   /**
-   * Whether the model renders `z.lazy(...)` as a whole (`ZodProjection.lazy`).
+   * Whether the model is typed `z.ZodType<T>` (`ZodProjection.annotated`).
    * Not known for a reference back, whose model is still being built.
    */
-  lazyModel: boolean;
+  annotatedModel: boolean;
   constructor(
     { context, ref, destinationPath, modifiers, rootRef, schema }:
       ConstructorProps,
@@ -59,7 +59,7 @@ export class ZodRef extends TsSnippet {
     this.modifiers = modifiers;
     this.deferred = modelRef.suspended || modelRef.inCycle;
     this.referenceBack = modelRef.suspended;
-    this.lazyModel = !modelRef.suspended && modelRef.definition.value.lazy;
+    this.annotatedModel = !modelRef.suspended && modelRef.definition.value.annotated;
   }
 
   override toString(): string {

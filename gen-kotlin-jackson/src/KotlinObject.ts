@@ -52,6 +52,7 @@ type KotlinObjectArgs = {
  */
 export class KotlinObject extends KtSnippet {
   type = 'object' as const
+  /** `null` too where this position's class is declared already. */
   objectProperties: KotlinObjectProperties | null
   recordProperties: KotlinRecord | null
   modifiers: Modifiers
@@ -116,7 +117,12 @@ export class KotlinObject extends KtSnippet {
       // moment a peer generator's destination sits in another package.
       const exportPath = toModelExportPath(context, name)
 
-      this.recordProperties = additionalProperties
+      // A re-walk renders the name only. Walking the properties again would
+      // not end for a class that holds its own position: the items of
+      // `Node.children` are `allOf: [Node, …]`, so their class has `children`.
+      const declares = claim === 'declare'
+
+      this.recordProperties = additionalProperties && declares
         ? new KotlinRecord({
           context,
           generatorKey,
@@ -130,20 +136,22 @@ export class KotlinObject extends KtSnippet {
         })
         : null
 
-      this.objectProperties = new KotlinObjectProperties({
-        context,
-        generatorKey,
-        destinationPath: exportPath,
-        properties,
-        // 'required' lists which PROPERTIES are required — it is not
-        // about the object itself. Each property's optionality renders at
-        // that property's own leaf via its modifiers.
-        required,
-        rootRef,
-        additionalPropertiesRecord: this.recordProperties ?? undefined,
-      })
+      this.objectProperties = declares
+        ? new KotlinObjectProperties({
+          context,
+          generatorKey,
+          destinationPath: exportPath,
+          properties,
+          // 'required' lists which PROPERTIES are required — it is not
+          // about the object itself. Each property's optionality renders at
+          // that property's own leaf via its modifiers.
+          required,
+          rootRef,
+          additionalPropertiesRecord: this.recordProperties ?? undefined,
+        })
+        : null
 
-      if (claim === 'declare') {
+      if (this.objectProperties) {
         defineAndRegister(context, {
           identifier: createDataClass(name),
           value: this.objectProperties,

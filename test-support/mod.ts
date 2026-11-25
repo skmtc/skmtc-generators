@@ -7,7 +7,7 @@
  */
 import { assert, assertEquals } from '@std/assert'
 import { StackTrail, toArtifacts } from '@skmtc/core'
-import type { ResultsItem, ResultType } from '@skmtc/core'
+import type { ResultsItem, ResultType, SystemSettings } from '@skmtc/core'
 import type { OpenAPIV3 } from 'openapi-types'
 
 type ToArtifactsArgs = Parameters<typeof toArtifacts>[0]
@@ -316,16 +316,18 @@ type RunE2eFixtureArgs = {
   document: OpenAPIV3.Document
   /** The generator's own enrichments, by path, method and variant. */
   enrichments?: NonNullable<NonNullable<ToArtifactsArgs['settings']>['enrichments']>[string]
+  /** How the document is parsed (`client.json` `settings.system`). */
+  system?: SystemSettings
 }
 
 /** Run one generator over `document` with `basePath: './src'`. */
-export const runE2eFixture = ({ id, entry, document, enrichments }: RunE2eFixtureArgs): ReturnType<typeof toArtifacts> =>
+export const runE2eFixture = ({ id, entry, document, enrichments, system }: RunE2eFixtureArgs): ReturnType<typeof toArtifacts> =>
   toArtifacts({
     traceId: `${id}-e2e`,
     spanId: 'fixture',
     startAt: Date.now(),
     document: { type: 'oas', value: document },
-    settings: { basePath: './src', ...(enrichments ? { enrichments: { [id]: enrichments } } : {}) },
+    settings: { basePath: './src', system, ...(enrichments ? { enrichments: { [id]: enrichments } } : {}) },
     stackTrail: new StackTrail([]),
     silent: true,
     // @ts-expect-error - the map is generic over the enrichment type; one entry is not
@@ -762,5 +764,145 @@ export const additionalPropertiesCases: AdditionalPropertiesCase[] = [
   { name: 'a nested tree without its label', model: 'Tree', value: { label: 'root', left: { other: {} } }, accept: false },
   { name: 'an extra key that is not a tree', model: 'Tree', value: { label: 'root', left: 'text' }, accept: false }
 ]
+
+/**
+ * The message a failed run ends with: the `RUN_FAILED` issue's. Fails when the
+ * run did not fail, or rendered a file.
+ */
+export const toRunError = ({ artifacts, manifest }: ReturnType<typeof toArtifacts>): string => {
+  assertEquals(Object.keys(artifacts), [])
+
+  const issue = manifest.parseIssues.find(({ type }) => type === 'RUN_FAILED')
+  assert(issue, 'the run did not fail')
+
+  return issue.message
+}
+
+/** Keeps every ref of an `allOf` as a member of an intersection, not only those that close a cycle. */
+export const keepAllRefs: SystemSettings = { intersections: 'all' }
+
+export const toSchemasDocument = (
+  schemas: NonNullable<OpenAPIV3.ComponentsObject['schemas']>
+): OpenAPIV3.Document => ({
+  openapi: '3.0.3',
+  info: { title: 'Intersection fixture', version: '1.0.0' },
+  paths: {},
+  components: { schemas }
+})
+
+const toRef = (name: string): OpenAPIV3.ReferenceObject => ({ $ref: `#/components/schemas/${name}` })
+
+const name: OpenAPIV3.SchemaObject = { type: 'object', properties: { name: { type: 'string' } } }
+
+/**
+ * Intersections with `keepAllRefs`: a ref and an object (Pet), a discriminated
+ * union of them (Payment), and inline in a property and an array (Owner).
+ */
+export const intersectionDocument: OpenAPIV3.Document = toSchemasDocument({
+  Animal: { type: 'object', required: ['kind'], properties: { kind: { type: 'string' } } },
+  Pet: { allOf: [toRef('Animal'), name] },
+  Payment: { oneOf: [toRef('Card'), toRef('Bank')], discriminator: { propertyName: 'type' } },
+  Amount: { type: 'object', required: ['amount'], properties: { amount: { type: 'number' } } },
+  Card: {
+    allOf: [
+      toRef('Amount'),
+      { type: 'object', required: ['type', 'number'], properties: { type: toKind('card'), number: { type: 'string' } } }
+    ]
+  },
+  Bank: {
+    allOf: [
+      toRef('Amount'),
+      { type: 'object', required: ['type', 'iban'], properties: { type: toKind('bank'), iban: { type: 'string' } } }
+    ]
+  },
+  Owner: {
+    type: 'object',
+    properties: { pet: { nullable: true, allOf: [toRef('Animal'), name] }, pets: { type: 'array', items: { allOf: [toRef('Animal'), name] } } }
+  }
+})
+
+/** More members: a union, an object with no keys of its own, an empty model and any value. */
+export const intersectionMembersDocument: OpenAPIV3.Document = toSchemasDocument({
+  Animal: { type: 'object', properties: { kind: { type: 'string' } } },
+  Marker: { type: 'object' },
+  Tagged: {
+    allOf: [
+      toRef('Animal'),
+      {
+        oneOf: [
+          { type: 'object', required: ['a'], properties: { a: { type: 'string' } } },
+          { type: 'object', required: ['b'], properties: { b: { type: 'string' } } }
+        ]
+      }
+    ]
+  },
+  Named: { allOf: [toRef('Animal'), { type: 'object', required: ['kind'] }] },
+  Marked: { allOf: [toRef('Marker'), name] },
+  Noted: { allOf: [toRef('Animal'), { description: 'A note' }, toRef('Marker')] }
+})
+
+/**
+ * Refs that close a cycle, which a parse keeps by default: through an item of a
+ * property (Node), from a subtype to its base (Sub), and from a subtype that is
+ * closed as a whole (Closed). Pair refers to a model of a cycle from a
+ * discriminated union.
+ */
+export const intersectionCycleDocument: OpenAPIV3.Document = toSchemasDocument({
+  Node: {
+    type: 'object',
+    required: ['name', 'children'],
+    properties: {
+      name: { type: 'string' },
+      children: {
+        type: 'array',
+        items: { allOf: [toRef('Node'), { type: 'object', properties: { extra: { type: 'string' } } }] }
+      }
+    }
+  },
+  Base: {
+    type: 'object',
+    required: ['kind'],
+    properties: {
+      kind: { type: 'string' },
+      subs: { type: 'array', items: toRef('Sub') },
+      closed: toRef('Closed')
+    }
+  },
+  Sub: { allOf: [toRef('Base'), name] },
+  Closed: {
+    allOf: [toRef('Base'), { type: 'object', properties: { b: { type: 'string' } } }],
+    // Core's parser closes the member with `b` only.
+    additionalProperties: false
+  },
+  Pair: { oneOf: [toRef('Tree'), toRef('Leaf')], discriminator: { propertyName: 'kind' } },
+  Tree: {
+    type: 'object',
+    required: ['kind'],
+    properties: {
+      kind: toKind('tree'),
+      next: { allOf: [toRef('Tree'), name] }
+    }
+  },
+  Leaf: { type: 'object', required: ['kind'], properties: { kind: toKind('leaf') } }
+})
+
+/** A value that Node of `intersectionCycleDocument` allows, through its intersection. */
+export const nodeValue = { name: 'r', children: [{ name: 'c', children: [], extra: 'e' }] }
+
+/** A value that Closed of `intersectionCycleDocument` allows: a property of Base, and its own. */
+export const closedValue = { kind: 'k', b: 'x', subs: [{ kind: 's', name: 'n' }] }
+
+/** An inheritance loop: no property is between Payment and Card. */
+export const loopDocument: OpenAPIV3.Document = toSchemasDocument({
+  Payment: { oneOf: [toRef('Card'), toRef('Cash')], discriminator: { propertyName: 'type' } },
+  Card: {
+    allOf: [toRef('Payment'), { type: 'object', required: ['type'], properties: { type: toKind('card') } }]
+  },
+  Cash: { type: 'object', required: ['type'], properties: { type: toKind('cash') } }
+})
+
+/** What each generator says of `loopDocument`. */
+export const loopError =
+  '#/components/schemas/Card/allOf cannot be rendered as an intersection: its members lead back to it with no property between, through Payment → Card'
 
 export { checkGenerated } from './checkGenerated.ts'

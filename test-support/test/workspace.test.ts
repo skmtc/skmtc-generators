@@ -142,6 +142,28 @@ Deno.test('workspace - no generator source imports an OS-aware path module', () 
   assertEquals(offenders, [])
 })
 
+/** The files that several generators have a copy of, so that each can be cloned alone. */
+const copies: Record<string, string[]> = {
+  'memberLoop.ts': [
+    'gen-arktype',
+    'gen-effect-schema',
+    'gen-kotlin-jackson',
+    'gen-md-docs',
+    'gen-typescript',
+    'gen-valibot',
+    'gen-zod'
+  ],
+  'flatObject.ts': ['gen-effect-schema', 'gen-kotlin-jackson']
+}
+
+for (const [file, dirs] of Object.entries(copies)) {
+  Deno.test(`workspace - every copy of ${file} is the same`, () => {
+    const texts = dirs.map(dir => Deno.readTextFileSync(new URL(`${dir}/src/${file}`, rootUrl)))
+
+    assertEquals(dirs.filter((_, index) => texts[index] !== texts[0]), [])
+  })
+}
+
 type Mapping = Record<string, unknown>
 
 const isMapping = (value: unknown): value is Mapping =>

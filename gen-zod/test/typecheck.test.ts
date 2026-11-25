@@ -15,7 +15,13 @@ import {
   checkGenerated,
   cycleDocument,
   cycleEdgeDocument,
+  closedValue,
   emptyEnumDocument,
+  intersectionCycleDocument,
+  intersectionDocument,
+  intersectionMembersDocument,
+  keepAllRefs,
+  nodeValue,
   runE2eFixture,
   unionDocument,
 } from "@skmtc/test-support";
@@ -222,6 +228,66 @@ Deno.test({
     assertEquals(await checkGenerated({ artifacts, imports: { zod: ZOD } }), []);
   },
 });
+
+const toConsumer = (imports: string[], cases: string[]): string =>
+  `${
+    imports.map((name) => `import { ${name} } from "@/types/${name}.generated.ts";`).join("\n")
+  }
+
+const cases: [string, boolean][] = [
+${cases.join(",\n")}
+];
+
+for (const [name, passed] of cases) {
+  if (!passed) throw new Error(name);
+}
+`;
+
+const intersectionConsumer = toConsumer(["pet", "payment", "owner"], [
+  `["Pet", pet.safeParse({ kind: "dog", name: "Rex" }).success]`,
+  `["Pet without a key of Animal", !pet.safeParse({ name: "Rex" }).success]`,
+  `["Payment", payment.safeParse({ type: "bank", amount: 1, iban: "x" }).success]`,
+  `["Payment without a key of Amount", !payment.safeParse({ type: "bank", iban: "x" }).success]`,
+  `["Owner", owner.safeParse({ pet: null, pets: [{ kind: "dog" }] }).success]`,
+]);
+
+const intersectionCycleConsumer = toConsumer(["node", "closed", "pair"], [
+  `["Node", node.safeParse(${JSON.stringify(nodeValue)}).success]`,
+  `["Node without a key of the ref", !node.safeParse({ name: "r", children: [{ extra: "e" }] }).success]`,
+  `["Closed keeps the properties of Base", JSON.stringify(closed.parse(${
+    JSON.stringify(closedValue)
+  })).includes("\\"kind\\":\\"k\\"")]`,
+  `["Pair", pair.safeParse({ kind: "tree", next: { kind: "tree", name: "n" } }).success]`,
+]);
+
+for (
+  const [name, document, system, consumer, count] of [
+    ["intersections", intersectionDocument, keepAllRefs, intersectionConsumer, 7],
+    ["members of intersections", intersectionMembersDocument, keepAllRefs, "", 6],
+    ["intersections in a cycle", intersectionCycleDocument, undefined, intersectionCycleConsumer, 7],
+  ] as const
+) {
+  for (const zod of [ZOD, ZOD_4_1]) {
+    Deno.test({
+      name: `typecheck - ${name} compile, load first and parse on ${zod}`,
+      ignore: Deno.env.get("TYPECHECK") !== "1",
+      fn: async () => {
+        const { artifacts } = runE2eFixture({ id: "@skmtc/gen-zod", entry: zodEntry, document, system });
+
+        // A failed run renders no files, and nothing then fails the check.
+        assertEquals(Object.keys(artifacts).length, count);
+
+        assertEquals(
+          await checkGenerated({
+            artifacts: { ...artifacts, "src/consumer.ts": consumer },
+            imports: { zod },
+          }),
+          [],
+        );
+      },
+    });
+  }
+}
 
 /** Loading it throws when an empty enum accepts a value of its type, or null. */
 const emptyEnumConsumer = `import { emptyString } from "@/types/emptyString.generated.ts";

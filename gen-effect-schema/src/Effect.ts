@@ -15,6 +15,7 @@ import type { EffectModifiers } from './modifiers.ts'
 import { generatorSchema } from './enrichments.ts'
 import * as v from 'valibot'
 import { EffectArray } from './EffectArray.ts'
+import { EffectIntersection } from './EffectIntersection.ts'
 import { EffectObject } from './EffectObject.ts'
 import { EffectRef } from './EffectRef.ts'
 import { EffectString } from './EffectString.ts'
@@ -145,6 +146,16 @@ export const toEffectValueImpl = (
         rootRef,
         coerce,
         schema,
+      })
+    case 'intersection':
+      return new EffectIntersection({
+        context,
+        destinationPath,
+        schema,
+        modifiers,
+        generatorKey,
+        rootRef,
+        coerce,
       })
     case 'string':
       return new EffectString({

@@ -4,7 +4,7 @@ import type { CustomValue, GenerateContextType, GeneratorKey, Modifiers, OasObje
 import { toZodValue } from "./Zod.ts";
 import { applyModifiers } from "./applyModifiers.ts";
 import { ZodUnknown } from "./ZodUnknown.ts";
-import { isDeferred } from "./deferred.ts";
+import { isDeferred, needsAnnotation } from "./deferred.ts";
 
 type ZodObjectProps = {
   context: GenerateContextType;
@@ -27,6 +27,8 @@ export class ZodObject extends TsSnippet {
    * runs a getter beside it at module load.
    */
   deferred: boolean;
+  /** See `needsAnnotation`. A getter does not break that cycle. */
+  annotated: boolean;
 
   constructor({
     context,
@@ -71,6 +73,9 @@ export class ZodObject extends TsSnippet {
     this.deferred = isDeferred(this.recordProperties) ||
       (this.recordProperties !== null &&
         Object.values(objectProperties?.properties ?? {}).some(isDeferred));
+
+    this.annotated = needsAnnotation(this.recordProperties) ||
+      Object.values(objectProperties?.properties ?? {}).some(needsAnnotation);
 
     this.register({ imports: { zod: ["z"] }, destinationPath });
   }
@@ -146,7 +151,7 @@ class ZodObjectProperties extends TsSnippet {
 
           // zod 4 reads a getter's schema when it parses, not when the
           // module loads, and infers the object's type through it.
-          return isDeferred(value)
+          return isDeferred(value) || needsAnnotation(value)
             ? `get ${formattedKey}() { return ${value} }`
             : `${formattedKey}: ${value}`;
         })
@@ -167,6 +172,8 @@ class ZodRecord extends TsSnippet {
   value: TypeSystemValue | "true";
   /** See `isDeferred`. */
   deferred: boolean;
+  /** See `needsAnnotation`. */
+  annotated: boolean;
 
   constructor(
     { context, generatorKey, destinationPath, schema, rootRef }: ZodRecordArgs,
@@ -186,6 +193,7 @@ class ZodRecord extends TsSnippet {
     }
 
     this.deferred = isDeferred(this.value);
+    this.annotated = needsAnnotation(this.value);
   }
 
   override toString(): string {

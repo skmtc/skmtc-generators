@@ -2,8 +2,8 @@ import type { SchemaType } from '@skmtc/core'
 
 /**
  * Whether a schema decodes differently from a string than from JSON: a
- * number, boolean or array leaf does, an object or union does if anything
- * under it does, a string does not. A cycle reads as "no" — the leaves on
+ * number, boolean or array leaf does, an object, union or intersection does
+ * if anything under it does, a string does not. A cycle reads as "no" — the leaves on
  * the way in have answered. Decides whether a coerced `$ref` needs its
  * target's twin at all (EffectRef).
  */
@@ -34,6 +34,7 @@ export const needsCoercion = (
       )
     }
     case 'union':
+    case 'intersection':
       return schema.members.some((member) => needsCoercion(member, seen))
     case 'string':
     case 'unknown':

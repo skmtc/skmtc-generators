@@ -20,8 +20,8 @@ type TypeNameArgs = {
 /**
  * The display type of a schema: a `$ref`'s {@link ComponentName}, linked to
  * its definition when it names one (`` [`SimpleUser`](#type-simple-user) ``);
- * `Item[]` for an array, from its items; otherwise the type, as in
- * `` `string` ``. The link lands on the definition in the same document: the
+ * `Item[]` for an array, from its items; `All of` for an intersection, whose
+ * members are the rows under it; otherwise the type, as in `` `string` ``. The link lands on the definition in the same document: the
  * `DocumentSchema` the type is written in defines each type in
  * {@link TypeName.links} there.
  */
@@ -53,7 +53,7 @@ export class TypeName extends SnippetBase {
       this.unresolved = items.unresolved
       this.links = items.links
     } else {
-      this.name = schema.type
+      this.name = schema.type === 'intersection' ? 'All of' : schema.type
       this.anchor = undefined
       this.unresolved = false
       this.links = []
@@ -93,7 +93,7 @@ export class Modifiers extends List<string[], ' ', 'none'> {
 
 type TypeFacetsArgs = {
   modifiers: Modifiers
-  /** `undefined` for a type that has no allowed values: a union, an unknown. */
+  /** `undefined` for a type that has no allowed values: a union, an intersection, an unknown. */
   enums: Enums | undefined
   constraints: Constraints
 }
@@ -189,6 +189,18 @@ const toTypeFacets = ({ context, schema, required }: ToTypeFacetsArgs): TypeFace
     case 'union':
       return new TypeFacets({
         modifiers: new Modifiers({ nullable: schema.nullable, required }),
+        enums: undefined,
+        constraints: new Constraints({ context, values: [], defaultValue: schema.default })
+      })
+    case 'intersection':
+      return new TypeFacets({
+        modifiers: new Modifiers({
+          nullable: schema.nullable,
+          required,
+          deprecated: schema.deprecated,
+          readOnly: schema.readOnly,
+          writeOnly: schema.writeOnly
+        }),
         enums: undefined,
         constraints: new Constraints({ context, values: [], defaultValue: schema.default })
       })

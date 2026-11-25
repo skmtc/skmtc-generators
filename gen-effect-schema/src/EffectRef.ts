@@ -15,6 +15,7 @@ import { applyModifiers } from './modifiers.ts'
 import { EffectProjection } from './EffectProjection.ts'
 import { effectSchemaEntry } from './mod.ts'
 import { LIB, LIB_MODULE } from './lib.ts'
+import { hasFields, isBare } from './fields.ts'
 import { needsCoercion } from './coercion.ts'
 import { toOptions } from './options.ts'
 import { toTypeAlias } from './base.ts'
@@ -54,6 +55,8 @@ export class EffectRef extends TsSnippet {
    * `export const` escapes circular inference.
    */
   typeName: string | null
+  /** See `hasFields`. */
+  fieldsKnown: boolean
 
   constructor(
     {
@@ -98,6 +101,10 @@ export class EffectRef extends TsSnippet {
     })
 
     this.name = modelRef.settings.identifier.name
+
+    // A model of a cycle renders `Schema.suspend`, which has none.
+    this.fieldsKnown = !modelRef.suspended && !modelRef.inCycle &&
+      isBare(modifiers) && hasFields(modelRef.definition.value.value)
 
     if (modelRef.suspended || modelRef.inCycle) {
       // A twin's arrays are readonly (`mutable` refuses `ArrayEnsure`), so

@@ -1,6 +1,7 @@
 import type { GenerateContextType, RefParts, ContentSettings } from '@skmtc/core'
 import { createVariable } from '@skmtc/lang-typescript'
 import { type ArktypeValue, toArktypeValue } from './Arktype.ts'
+import { ArktypeIntersection } from './ArktypeIntersection.ts'
 import { ArktypeBase } from './base.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
 
@@ -14,6 +15,7 @@ type ConstructorArgs = {
 
 export class ArktypeProjection extends ArktypeBase {
   value: ArktypeValue
+  isType: boolean
 
   constructor({ context, ref, settings, destinationPath, rootRef }: ConstructorArgs) {
     super({ context, ref, settings })
@@ -28,9 +30,14 @@ export class ArktypeProjection extends ArktypeBase {
       rootRef
     })
 
+    // An intersection is a Type already: `animal.and(…)`.
+    this.isType = this.value instanceof ArktypeIntersection && this.value.isType
+
     // The `type(…)` call is what turns a definition into a Type, so it belongs
     // here, once, at the top — values below compose as plain definitions.
-    this.register({ imports: { arktype: ['type'] } })
+    if (!this.isType) {
+      this.register({ imports: { arktype: ['type'] } })
+    }
   }
 
   static schemaToValueFn = (...args: Parameters<typeof toArktypeValue>): ArktypeValue => {
@@ -40,6 +47,6 @@ export class ArktypeProjection extends ArktypeBase {
   static createIdentifier = createVariable
 
   override toString(): string {
-    return `type(${this.value})`
+    return this.isType ? `${this.value}` : `type(${this.value})`
   }
 }

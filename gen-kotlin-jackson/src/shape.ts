@@ -1,7 +1,7 @@
-import { isDefaultRefPath, isEmpty, toRefPointer } from '@skmtc/core'
+import { isDefaultRefPath, isEmpty, OasObject, toRefPointer } from '@skmtc/core'
 import type {
   GenerateContextType,
-  OasObject,
+  OasIntersection,
   OasRef,
   OasSchema,
   OasString,
@@ -9,6 +9,7 @@ import type {
   RefParts,
 } from '@skmtc/core'
 import type { KtEntityType } from '@skmtc/lang-kotlin'
+import { type FlatObject, toFlatObject } from './flatObject.ts'
 
 type ModelSchema = OasSchema | OasRef<'schema'>
 
@@ -34,10 +35,37 @@ export const peekSchema = (
     : context.document.value.toRefTarget(toRefPointer(ref))
 
   if (target?.isRef()) {
-    return target.isSchemaRef() ? target.resolveOnce() : undefined
+    return target.isSchemaRef() ? toObjectForm(target.resolveOnce()) : undefined
   }
 
-  return target?.oasType === 'schema' ? target.resolveOnce() : undefined
+  return target?.oasType === 'schema' ? toObjectForm(target.resolveOnce()) : undefined
+}
+
+/**
+ * An intersection as the one object its members make, as Kotlin has no
+ * intersection type. Any other schema as it is, and so is an intersection that
+ * is not one object: the router fails on it, and names why.
+ */
+export const toObjectForm = (schema: ModelSchema): ModelSchema => {
+  if (schema.type !== 'intersection') {
+    return schema
+  }
+
+  const result = toFlatObject(schema)
+
+  return result.type === 'flat' ? toObject(schema, result.flat) : schema
+}
+
+/** The object that stands for `intersection`, at its position. */
+export const toObject = (intersection: OasIntersection, flat: FlatObject): OasObject => {
+  const object = new OasObject({
+    ...flat,
+    description: intersection.description,
+    nullable: intersection.nullable,
+  })
+  object.stackTrail = intersection.stackTrail
+
+  return object
 }
 
 /**
@@ -89,7 +117,8 @@ export const isSealedUnion = (
   context: GenerateContextType,
   schema: ModelSchema,
 ): schema is OasUnion => {
-  if (!('members' in schema)) {
+  // An intersection has members too, but no discriminator.
+  if (!('members' in schema) || !('discriminator' in schema)) {
     return false
   }
 

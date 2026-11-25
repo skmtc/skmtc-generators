@@ -4,6 +4,7 @@ export * from "./src/ZodArray.ts";
 export * from "./src/ZodRef.ts";
 export * from "./src/ZodObject.ts";
 export * from "./src/ZodUnion.ts";
+export * from "./src/ZodIntersection.ts";
 export { ZodProjection } from "./src/ZodProjection.ts";
 export * from "./src/ZodNumber.ts";
 export * from "./src/ZodInteger.ts";

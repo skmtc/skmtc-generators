@@ -15,8 +15,11 @@ import {
   checkGenerated,
   cycleDocument,
   emptyEnumDocument,
+  intersectionDocument,
+  keepAllRefs,
   patternDocument,
   runE2eFixture,
+  toSchemasDocument,
 } from '@skmtc/test-support'
 import { effectSchemaEntry } from '../src/mod.ts'
 
@@ -182,6 +185,79 @@ for (const [name, accepts, sample] of cases) {
   }
 }
 `
+
+const closedDocument = toSchemasDocument({
+  Base: {
+    type: 'object',
+    required: ['kind'],
+    properties: { kind: { type: 'string' } },
+  },
+  Closed: {
+    allOf: [{ $ref: '#/components/schemas/Base' }, {
+      type: 'object',
+      properties: { b: { type: 'string' } },
+    }],
+    additionalProperties: false,
+  },
+})
+
+const closedConsumer = `import { Schema } from 'effect'
+import { Closed } from '@/schema-effect/closed.generated.ts'
+
+if (!Schema.is(Closed)({ kind: 'k', b: 'x' })) throw new Error('Closed refuses a property of Base')
+if (Schema.is(Closed)({ b: 'x' })) throw new Error('Closed does not need a property of Base')
+`
+
+const intersectionConsumer = `import { Schema } from 'effect'
+import { Pet } from '@/schema-effect/pet.generated.ts'
+import { Payment } from '@/schema-effect/payment.generated.ts'
+import { Owner } from '@/schema-effect/owner.generated.ts'
+
+export const readPet = (value: typeof Pet.Type): [string, string | undefined] => [value.kind, value.name]
+
+const cases: [string, boolean][] = [
+  ['Pet', Schema.is(Pet)({ kind: 'dog', name: 'Rex' })],
+  ['Pet without a key of Animal', !Schema.is(Pet)({ name: 'Rex' })],
+  ['Payment', Schema.is(Payment)({ type: 'bank', amount: 1, iban: 'x' })],
+  ['Owner', Schema.is(Owner)({ pet: null, pets: [{ kind: 'dog' }] })],
+]
+
+for (const [name, passed] of cases) {
+  if (!passed) throw new Error(name)
+}
+`
+
+for (
+  const [name, document, consumer, count] of [
+    ['intersections', intersectionDocument, intersectionConsumer, 8],
+    ['a closed intersection', closedDocument, closedConsumer, 3],
+  ] as const
+) {
+  Deno.test({
+    name: `typecheck - ${name} compile, load first and check`,
+    ignore: Deno.env.get('TYPECHECK') !== '1',
+    fn: async () => {
+      const { artifacts } = runE2eFixture({
+        id: '@skmtc/gen-effect-schema',
+        entry: effectSchemaEntry,
+        document,
+        system: keepAllRefs,
+      })
+
+      // A failed run renders no files, and nothing then fails the check. Each
+      // model has a schema, and the barrel is one more file.
+      assertEquals(Object.keys(artifacts).length, count)
+
+      assertEquals(
+        await checkGenerated({
+          artifacts: { ...artifacts, 'src/consumer.ts': consumer },
+          imports: { effect: EFFECT },
+        }),
+        [],
+      )
+    },
+  })
+}
 
 // The trap: an empty `enum: []` rendered the plain type, which accepts any
 // value of it.

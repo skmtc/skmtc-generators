@@ -12,7 +12,13 @@ import {
   additionalPropertiesDocument,
   awkwardNamesDocument,
   checkGenerated,
+  closedValue,
   emptyEnumDocument,
+  intersectionCycleDocument,
+  intersectionDocument,
+  intersectionMembersDocument,
+  keepAllRefs,
+  nodeValue,
   runE2eFixture
 } from '@skmtc/test-support'
 import { typescriptEntry } from '../src/mod.ts'
@@ -88,6 +94,56 @@ Deno.test({
     assertEquals(await checkGenerated({ artifacts, imports: {} }), [])
   }
 })
+
+const intersectionConsumer = `import type {Pet} from '@/types/pet.generated.ts'
+import type {Owner} from '@/types/owner.generated.ts'
+import type {Payment} from '@/types/payment.generated.ts'
+
+export const pet: Pet = {kind: 'dog', name: 'Rex'}
+export const owner: Owner = {pet: null, pets: [{kind: 'dog'}]}
+export const payment: Payment = {type: 'bank', amount: 1, iban: 'x'}
+
+// @ts-expect-error A key of Animal is missing.
+export const missing: Pet = {name: 'Rex'}
+`
+
+const intersectionMembersConsumer = `import type {Tagged} from '@/types/tagged.generated.ts'
+import type {Marked} from '@/types/marked.generated.ts'
+import type {Named} from '@/types/named.generated.ts'
+
+export const tagged: Tagged = {kind: 'dog', b: 'x'}
+export const marked: Marked = {name: 'Rex'}
+export const named: Named = {kind: 'dog'}
+
+// @ts-expect-error The member of the union is missing.
+export const untagged: Tagged = {kind: 'dog'}
+`
+
+const intersectionCycleConsumer = `import type {Node} from '@/types/node.generated.ts'
+import type {Closed} from '@/types/closed.generated.ts'
+
+export const node: Node = ${JSON.stringify(nodeValue)}
+export const closed: Closed = ${JSON.stringify(closedValue)}
+`
+
+for (const [name, document, system, consumer, count] of [
+  ['intersections', intersectionDocument, keepAllRefs, intersectionConsumer, 7],
+  ['members of intersections', intersectionMembersDocument, keepAllRefs, intersectionMembersConsumer, 6],
+  ['intersections in a cycle', intersectionCycleDocument, undefined, intersectionCycleConsumer, 7]
+] as const) {
+  Deno.test({
+    name: `typecheck - a consumer builds ${name}`,
+    ignore: Deno.env.get('TYPECHECK') !== '1',
+    fn: async () => {
+      const { artifacts } = runE2eFixture({ id: '@skmtc/gen-typescript', entry: typescriptEntry, document, system })
+
+      // A failed run renders no files, and nothing then fails the check.
+      assertEquals(Object.keys(artifacts).length, count)
+
+      assertEquals(await checkGenerated({ artifacts: { ...artifacts, 'src/consumer.ts': consumer }, imports: {} }), [])
+    }
+  })
+}
 
 // `number` is not compared: gen-typescript types a number enum as `number`
 // whatever it lists.

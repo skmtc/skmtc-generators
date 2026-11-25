@@ -25,6 +25,9 @@ import {
   KotlinUnknown,
   KotlinVoid,
 } from './KotlinScalars.ts'
+import { toFlatObjectOrThrow } from './flatObject.ts'
+import { assertNoMemberLoop } from './memberLoop.ts'
+import { toObject } from './shape.ts'
 
 export const toKotlinValue: SchemaToValueFn = (
   { schema: schemaNode, destinationPath, required, context, rootRef },
@@ -87,6 +90,33 @@ export const toKotlinValue: SchemaToValueFn = (
         rootRef,
         schema,
       })
+    case 'intersection': {
+      assertNoMemberLoop(schema)
+
+      // Any value (`{ description }`) adds nothing to a lone reference.
+      const [first, ...rest] = schema.members.filter((member) => member.type !== 'unknown')
+
+      if (first?.isRef() && rest.length === 0) {
+        return new KotlinRef({
+          context,
+          destinationPath,
+          ref: first,
+          modifiers: { required, nullable: schema.nullable || first.nullable },
+          rootRef,
+          schema: first,
+        })
+      }
+
+      // Kotlin has no intersection type: one class with the members' properties.
+      return new KotlinObject({
+        context,
+        destinationPath,
+        objectSchema: toObject(schema, toFlatObjectOrThrow(schema)),
+        modifiers,
+        generatorKey,
+        rootRef,
+      })
+    }
     case 'string':
       return new KotlinString({
         context,

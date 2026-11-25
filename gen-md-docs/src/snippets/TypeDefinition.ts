@@ -68,7 +68,9 @@ export class TypeContent extends List<(DocumentSchema | ExternalDocs)[], '\n\n',
     }
 
     const externalDocs =
-      component.type === 'object' || component.type === 'union' ? component.externalDocs : undefined
+      component.type === 'object' || component.type === 'union' || component.type === 'intersection'
+        ? component.externalDocs
+        : undefined
 
     super(
       [

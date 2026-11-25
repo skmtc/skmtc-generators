@@ -4,6 +4,7 @@ import { Name } from './Name.ts'
 import { AliasTypeInfo, TypeInfo, UnresolvedTypeInfo } from './TypeInfo.ts'
 import { DescriptionClause } from './Description.ts'
 import { toSiteSchema, type SiteSchema } from '../safeResolve.ts'
+import { assertNoMemberLoop } from '../memberLoop.ts'
 
 type SchemaArgs = {
   context: GenerateContextType
@@ -186,7 +187,7 @@ export const toSiteTypeInfo = ({
 
 /**
  * The child property specs of a schema node — an object's own properties, an
- * array's (flattened) item properties, a union's members. A `$ref` is a leaf
+ * array's (flattened) item properties, a union's or an intersection's members. A `$ref` is a leaf
  * and contributes no inline children; nor does a scalar.
  */
 const toExpansion = (schema: OasSchema | OasRef<'schema'>): Property[] => {
@@ -200,6 +201,10 @@ const toExpansion = (schema: OasSchema | OasRef<'schema'>): Property[] => {
     case 'array':
       return toExpansion(schema.items)
     case 'union':
+      return schema.members.map(member => ({ name: undefined, schema: member, required: undefined }))
+    case 'intersection':
+      assertNoMemberLoop(schema)
+
       return schema.members.map(member => ({ name: undefined, schema: member, required: undefined }))
     case 'string':
     case 'number':

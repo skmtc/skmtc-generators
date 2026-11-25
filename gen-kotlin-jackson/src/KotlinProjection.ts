@@ -12,7 +12,7 @@ import { KotlinEnumEntries } from './KotlinEnumEntries.ts'
 import { KotlinObjectProperties, KotlinRecord } from './KotlinObject.ts'
 import { ensureSealedParent, KotlinSealedInterface } from './KotlinSealedInterface.ts'
 import { KotlinJacksonBase } from './base.ts'
-import { isDataClassSchema, isEnumClassSchema, isSealedUnion } from './shape.ts'
+import { isDataClassSchema, isEnumClassSchema, isSealedUnion, toObjectForm } from './shape.ts'
 import { toSealedMembership } from './sealedMembership.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
 
@@ -62,7 +62,7 @@ export class KotlinProjection extends KotlinJacksonBase {
   ) {
     super({ context, ref, settings })
 
-    const schema = context.resolveSchemaRefOnce(ref)
+    const schema = toObjectForm(context.resolveSchemaRefOnce(ref))
 
     const generatorKey = toGeneratorOnlyKey({
       generatorId: KotlinJacksonBase.id,

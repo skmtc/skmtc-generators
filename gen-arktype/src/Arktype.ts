@@ -3,6 +3,7 @@ import { ArktypeArray } from './ArktypeArray.ts'
 import { ArktypeRef } from './ArktypeRef.ts'
 import { ArktypeObject } from './ArktypeObject.ts'
 import { ArktypeUnion } from './ArktypeUnion.ts'
+import { ArktypeIntersection } from './ArktypeIntersection.ts'
 import { ArktypeCustom } from './ArktypeCustom.ts'
 import type { SchemaToValueFn, SchemaType, TypeSystemArgs, Modifiers } from '@skmtc/core'
 import { ArktypeNumber } from './ArktypeNumber.ts'
@@ -26,6 +27,7 @@ export type ArktypeValue =
   | ArktypeArray
   | ArktypeObject
   | ArktypeUnion
+  | ArktypeIntersection
   | ArktypeNumber
   | ArktypeInteger
   | ArktypeBoolean
@@ -93,6 +95,8 @@ export const toArktypeValue = ({
         rootRef,
         schema
       })
+    case 'intersection':
+      return new ArktypeIntersection({ context, destinationPath, modifiers, generatorKey, rootRef, schema })
     case 'number':
       return new ArktypeNumber({ context, modifiers, destinationPath, generatorKey, schema })
     case 'integer':

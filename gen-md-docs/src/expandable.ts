@@ -56,6 +56,7 @@ const toInnerExpansionTargets = (schema: OasSchema | OasRef<'schema'>): string[]
     case 'array':
       return toExpansionTargets(schema.items)
     case 'union':
+    case 'intersection':
       return schema.members.flatMap(toExpansionTargets)
     default:
       return []

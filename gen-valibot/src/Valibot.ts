@@ -3,6 +3,7 @@ import { ValibotArray } from './ValibotArray.ts'
 import { ValibotRef } from './ValibotRef.ts'
 import { ValibotObject } from './ValibotObject.ts'
 import { ValibotUnion } from './ValibotUnion.ts'
+import { ValibotIntersection } from './ValibotIntersection.ts'
 import type { SchemaToValueFn, SchemaType, Modifiers } from '@skmtc/core'
 import { ValibotNumber } from './ValibotNumber.ts'
 import { ValibotInteger } from './ValibotInteger.ts'
@@ -75,6 +76,8 @@ export const toValibotValue: SchemaToValueFn = ({
         rootRef,
         schema
       })
+    case 'intersection':
+      return new ValibotIntersection({ context, destinationPath, modifiers, generatorKey, rootRef, schema })
     case 'number':
       return new ValibotNumber({ context, modifiers, destinationPath, generatorKey, schema })
     case 'integer':

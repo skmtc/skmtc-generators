@@ -14,7 +14,13 @@ import {
   awkwardNamesDocument,
   checkGenerated,
   cycleDocument,
+  closedValue,
   emptyEnumDocument,
+  intersectionCycleDocument,
+  intersectionDocument,
+  intersectionMembersDocument,
+  keepAllRefs,
+  nodeValue,
   runE2eFixture,
   unionDocument
 } from '@skmtc/test-support'
@@ -166,6 +172,55 @@ for (const [name, accepts, sample] of cases) {
   }
 }
 `
+
+const toConsumer = (imports: string[], cases: string[]): string => `import * as v from 'valibot'
+${imports.map(name => `import { ${name} } from '@/types/${name}.generated.ts'`).join('\n')}
+
+const cases: [string, boolean][] = [
+${cases.join(',\n')}
+]
+
+for (const [name, passed] of cases) {
+  if (!passed) throw new Error(name)
+}
+`
+
+const intersectionConsumer = toConsumer(['pet', 'payment', 'owner'], [
+  `['Pet', v.safeParse(pet, { kind: 'dog', name: 'Rex' }).success]`,
+  `['Pet without a key of Animal', !v.safeParse(pet, { name: 'Rex' }).success]`,
+  `['Payment', v.safeParse(payment, { type: 'bank', amount: 1, iban: 'x' }).success]`,
+  `['Payment without a key of Amount', !v.safeParse(payment, { type: 'bank', iban: 'x' }).success]`,
+  `['Owner', v.safeParse(owner, { pet: null, pets: [{ kind: 'dog' }] }).success]`
+])
+
+const intersectionCycleConsumer = toConsumer(['node', 'closed', 'pair'], [
+  `['Node', v.safeParse(node, ${JSON.stringify(nodeValue)}).success]`,
+  `['Node without a key of the ref', !v.safeParse(node, { name: 'r', children: [{ extra: 'e' }] }).success]`,
+  `['Closed keeps the properties of Base', JSON.stringify(v.parse(closed, ${JSON.stringify(closedValue)})).includes('"kind":"k"')]`,
+  `['Pair', v.safeParse(pair, { kind: 'tree', next: { kind: 'tree', name: 'n' } }).success]`
+])
+
+for (const [name, document, system, consumer, count] of [
+  ['intersections', intersectionDocument, keepAllRefs, intersectionConsumer, 7],
+  ['members of intersections', intersectionMembersDocument, keepAllRefs, '', 6],
+  ['intersections in a cycle', intersectionCycleDocument, undefined, intersectionCycleConsumer, 7]
+] as const) {
+  Deno.test({
+    name: `typecheck - ${name} compile, load first and parse`,
+    ignore: Deno.env.get('TYPECHECK') !== '1',
+    fn: async () => {
+      const { artifacts } = runE2eFixture({ id: '@skmtc/gen-valibot', entry: valibotEntry, document, system })
+
+      // A failed run renders no files, and nothing then fails the check.
+      assertEquals(Object.keys(artifacts).length, count)
+
+      assertEquals(
+        await checkGenerated({ artifacts: { ...artifacts, 'src/consumer.ts': consumer }, imports: { valibot: VALIBOT } }),
+        []
+      )
+    }
+  })
+}
 
 // The trap: a number, integer or boolean enum gave `v.null()`, which
 // accepts `null` where the list allows nothing.

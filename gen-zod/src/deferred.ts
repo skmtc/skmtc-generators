@@ -9,3 +9,13 @@
 export const isDeferred = (value: unknown): boolean =>
   typeof value === "object" && value !== null && "deferred" in value &&
   value.deferred === true;
+
+/**
+ * Whether a value holds an intersection with a reference inside a cycle.
+ * `.and(…)` reads the reference's type, and TypeScript cannot infer that type
+ * while it infers the model that holds it (TS7022), not even through a getter,
+ * so the model is annotated (ZodProjection).
+ */
+export const needsAnnotation = (value: unknown): boolean =>
+  typeof value === "object" && value !== null && "annotated" in value &&
+  value.annotated === true;

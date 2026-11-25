@@ -22,6 +22,7 @@ import {
   libImports,
 } from './modifiers.ts'
 import { EffectUnknown } from './EffectScalars.ts'
+import { isBare } from './fields.ts'
 import { LIB, LIB_MODULE } from './lib.ts'
 
 type EffectObjectArgs = {
@@ -39,6 +40,8 @@ export class EffectObject extends TsSnippet {
   objectProperties: EffectObjectProperties | null
   recordProperties: EffectRecord | null
   modifiers: EffectModifiers
+  /** See `hasFields`. */
+  fieldsKnown: boolean
 
   constructor(
     {
@@ -90,6 +93,8 @@ export class EffectObject extends TsSnippet {
       })
       : null
 
+    this.fieldsKnown = this.recordProperties === null && isBare(modifiers)
+
     this.register({
       imports: { [LIB_MODULE]: libImports(modifiers) },
       destinationPath,
@@ -132,8 +137,9 @@ type EffectObjectPropertiesArgs = {
   coerce?: boolean
 }
 
-class EffectObjectProperties extends TsSnippet {
+export class EffectObjectProperties extends TsSnippet {
   properties: Record<string, TypeSystemValue>
+  fields: EffectFields
   required: string[]
   /** Per-property readOnly/writeOnly. Not rendered: one variant. */
   visibility: Record<string, Visibility>
@@ -169,6 +175,12 @@ class EffectObjectProperties extends TsSnippet {
       ]),
     )
 
+    this.fields = new EffectFields({
+      context,
+      generatorKey,
+      properties: this.properties,
+    })
+
     this.visibility = Object.fromEntries(
       Object.entries(properties).map(([key, property]) => [
         key,
@@ -181,12 +193,31 @@ class EffectObjectProperties extends TsSnippet {
   }
 
   override toString(): string {
+    return `${LIB}.Struct({${this.fields}})`
+  }
+}
+
+type EffectFieldsArgs = {
+  context: GenerateContextType
+  generatorKey: GeneratorKey
+  properties: Record<string, TypeSystemValue>
+}
+
+/** The fields of a struct, without its braces: `kind: Schema.String, age: Schema.Int`. */
+class EffectFields extends TsSnippet {
+  properties: Record<string, TypeSystemValue>
+
+  constructor({ context, generatorKey, properties }: EffectFieldsArgs) {
+    super({ context, generatorKey })
+
+    this.properties = properties
+  }
+
+  override toString(): string {
     // handleKey quotes keys that aren't valid identifiers.
-    const fields = Object.entries(this.properties)
+    return Object.entries(this.properties)
       .map(([key, value]) => `${handleKey(key)}: ${value}`)
       .join(', ')
-
-    return `${LIB}.Struct({${fields}})`
   }
 }
 

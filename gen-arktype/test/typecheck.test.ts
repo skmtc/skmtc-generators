@@ -22,7 +22,11 @@ import {
   additionalPropertiesDocument,
   awkwardNamesDocument,
   checkGenerated,
-  runE2eFixture
+  intersectionDocument,
+  intersectionMembersDocument,
+  keepAllRefs,
+  runE2eFixture,
+  toSchemasDocument
 } from '@skmtc/test-support'
 import type { OpenAPIV3 } from 'openapi-types'
 import { arktypeEntry } from '../src/mod.ts'
@@ -279,6 +283,62 @@ for (const [name, passed] of checks) {
   }
 }
 `
+
+const intersectionConsumer = `import { type } from 'arktype'
+import { pet } from '@/types/pet.generated.ts'
+import { payment } from '@/types/payment.generated.ts'
+import { owner } from '@/types/owner.generated.ts'
+
+const checks: [string, boolean][] = [
+  ['Pet', !(pet({ kind: 'dog', name: 'Rex' }) instanceof type.errors)],
+  ['Pet without a key of Animal', pet({ name: 'Rex' }) instanceof type.errors],
+  ['Payment', !(payment({ type: 'bank', amount: 1, iban: 'x' }) instanceof type.errors)],
+  ['Owner', !(owner({ pet: null, pets: [{ kind: 'dog' }] }) instanceof type.errors)]
+]
+
+for (const [name, passed] of checks) {
+  if (!passed) throw new Error(name)
+}
+`
+
+// A closed one is in a cycle, which gen-arktype does not render, so here the
+// base does not lead back.
+const closedDocument = toSchemasDocument({
+  Base: { type: 'object', required: ['kind'], properties: { kind: { type: 'string' } } },
+  Closed: {
+    allOf: [{ $ref: '#/components/schemas/Base' }, { type: 'object', properties: { b: { type: 'string' } } }],
+    additionalProperties: false
+  }
+})
+
+const closedConsumer = `import { type } from 'arktype'
+import { closed } from '@/types/closed.generated.ts'
+
+const closedType: (value: unknown) => unknown = closed
+if (closedType({ kind: 'k', b: 'x' }) instanceof type.errors) throw new Error('Closed refuses a property of Base')
+`
+
+for (const [name, document, consumer, count] of [
+  ['intersections', intersectionDocument, intersectionConsumer, 7],
+  ['members of intersections', intersectionMembersDocument, '', 6],
+  ['a closed intersection', closedDocument, closedConsumer, 2]
+] as const) {
+  Deno.test({
+    name: `typecheck - ${name} compile, load first and check`,
+    ignore: Deno.env.get('TYPECHECK') !== '1',
+    fn: async () => {
+      const { artifacts } = runE2eFixture({ id: '@skmtc/gen-arktype', entry: arktypeEntry, document, system: keepAllRefs })
+
+      // A failed run renders no files, and nothing then fails the check.
+      assertEquals(Object.keys(artifacts).length, count)
+
+      assertEquals(
+        await checkGenerated({ artifacts: { ...artifacts, 'src/consumer.ts': consumer }, imports: { arktype: ARKTYPE } }),
+        []
+      )
+    }
+  })
+}
 
 // The trap: a key written as it is can mean something else to arktype. The
 // required key \`foo?\` became the optional key \`foo\`, and \`[x]\` became an
