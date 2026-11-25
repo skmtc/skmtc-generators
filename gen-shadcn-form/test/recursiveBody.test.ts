@@ -4,6 +4,7 @@
  * repeats, and keeps every other field.
  */
 import { assert, assertEquals, assertFalse, assertStringIncludes } from '@std/assert'
+import { StackTrail, toArtifacts } from '@skmtc/core'
 import { assertNoResultErrors, operationDocument, runE2eFixture } from '@skmtc/test-support'
 import type { OpenAPIV3 } from 'openapi-types'
 import { ShadcnFormEntry } from '../src/mod.ts'
@@ -154,6 +155,40 @@ Deno.test('recursive body - a model used twice side by side keeps both its field
     'future',
     'future.${index}.street'
   ])
+})
+
+// Neither reference ends at a model, so the run fails. It fails with the
+// loop's own error, not by following the loop until the stack is full.
+Deno.test('recursive body - a column that is a loop of references names the loop', () => {
+  const document: OpenAPIV3.Document = {
+    ...operationDocument,
+    components: {
+      schemas: {
+        ...operationDocument.components?.schemas,
+        NewUser: { type: 'object', properties: { rows: { type: 'array', items: toRef('Row') } } },
+        Row: { type: 'object', properties: { loop: toRef('LoopA') } },
+        LoopA: toRef('LoopB'),
+        LoopB: toRef('LoopA')
+      }
+    }
+  }
+
+  const { manifest } = toArtifacts({
+    traceId: 'gen-shadcn-form-loop',
+    spanId: 'fixture',
+    startAt: Date.now(),
+    document: { type: 'oas', value: document },
+    settings: { basePath: './src', system: { danglingRefs: ['schema'] } },
+    stackTrail: new StackTrail([]),
+    silent: true,
+    // @ts-expect-error - entry vs the generic config map (the known variance gap)
+    toGeneratorConfigMap: () => ({ '@skmtc/gen-shadcn-form': ShadcnFormEntry })
+  })
+
+  const issues = JSON.stringify(manifest.parseIssues)
+
+  assertStringIncludes(issues, 'LoopA')
+  assertFalse(issues.includes('call stack'))
 })
 
 Deno.test('recursive body - the input enrichment still renders a component for a field that repeats the body', () => {

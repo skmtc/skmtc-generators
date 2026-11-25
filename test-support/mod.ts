@@ -146,7 +146,7 @@ export const listDocument: OpenAPIV3.Document = {
   }
 }
 
-const isDocumentObject =(value: unknown): value is OpenAPIV3.Document =>
+const isDocumentObject = (value: unknown): value is OpenAPIV3.Document =>
   typeof value === 'object' && value !== null && 'openapi' in value && 'info' in value
 
 /**

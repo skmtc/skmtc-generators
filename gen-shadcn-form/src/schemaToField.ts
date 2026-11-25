@@ -58,7 +58,7 @@ export const schemaToField = ({
   }
 
   // A model inside itself has no end, and no default field would work for it
-  // (#122). After `input`, which is how a consumer gives a field for it.
+  // (#122). After `input`, which is how a consumer gives a top-level field for it.
   if (repeatsModel({ schema, openModels })) {
     return undefined
   }
