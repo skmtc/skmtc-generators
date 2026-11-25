@@ -584,3 +584,6 @@ models whose names come out the same, such as `pet` and `Pet`, or refs to
   }
 }
 ```
+
+Write a pointer with no percent escapes: `#/paths/~1x~1{id}/…`, also when the
+`$ref` in the document has `%7Bid%7D`.

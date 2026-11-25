@@ -1,4 +1,4 @@
-import { fromModelKey, toModelKey, toRefParts } from '@skmtc/core'
+import { fromModelKey, isDefaultRefPath, toModelKey, toRefParts, toRefPointer } from '@skmtc/core'
 import type {
   CustomValue,
   GenerateContextType,
@@ -73,9 +73,9 @@ export type SealedParent = {
  * `content` media-type alternative), request bodies, responses, and
  * response headers (again schema OR `content`) — because a qualifying
  * union can sit inline at any of those positions and its members still
- * need their supertype clause. Refs are never followed: every component
- * is walked from its own root, so following a ref would only
- * double-visit (or loop).
+ * need their supertype clause. A ref to a component is not followed: every
+ * component is walked from its own root, so following it would only
+ * double-visit (or loop). Any other ref's target is walked once.
  *
  * NOT covered, and not coverable here: parameters declared at the PATH
  * ITEM level rather than on the operation. Core parses those onto
@@ -108,7 +108,50 @@ export const toSealedMembership = (
   if (document.type === 'oas') {
     const seen = new Set<OasSchema>()
 
-    const visitInline = (node: OasSchema): void => {
+    const visitedTargets = new Set<string>()
+
+    // A ref that does not point at a component: its target is a model of its
+    // own, which no component's walk reaches as one (and a `$defs` entry no
+    // walk reaches at all).
+    const visitRef = (ref: OasRef<'schema'>): void => {
+      const pointer = toRefPointer(ref)
+
+      if (isDefaultRefPath({ refPath: ref.refPath, refType: 'schema' }) || visitedTargets.has(pointer)) {
+        return
+      }
+
+      visitedTargets.add(pointer)
+
+      const target = document.value.toRefTarget(pointer)
+
+      if (target?.isRef()) {
+        if (target.isSchemaRef()) {
+          visitRef(target)
+        }
+        return
+      }
+
+      if (target?.oasType !== 'schema') {
+        return
+      }
+
+      if (isSealedUnion(context, target)) {
+        collectParentClaims(
+          { type: 'component', ref: { refName: ref.refName, refPath: ref.refPath } },
+          target,
+          membership,
+        )
+      }
+
+      walkSchema(target, seen, visitInline)
+    }
+
+    const visitInline = (node: OasSchema | OasRef<'schema'>): void => {
+      if (node.isRef()) {
+        visitRef(node)
+        return
+      }
+
       // Claim only what can be NAMED: an underivable trail (a root
       // `toSynthesizedNameOrNull` does not know) is skipped, so its
       // members render without a clause and the union render site falls
@@ -124,6 +167,7 @@ export const toSealedMembership = (
 
     for (const [key, schema] of Object.entries(schemas)) {
       if (schema.isRef()) {
+        visitRef(schema)
         continue
       }
 
@@ -165,7 +209,7 @@ export const toSealedMembership = (
 const walkSchema = (
   root: OasSchema,
   seen: Set<OasSchema>,
-  visit: (node: OasSchema) => void,
+  visit: (node: OasSchema | OasRef<'schema'>) => void,
 ): void => {
   if ('members' in root) {
     for (const member of root.members) {
@@ -209,7 +253,7 @@ type RequestSurface = {
 const walkRequestSurface = (
   { parameters, requestBody, responses }: RequestSurface,
   seen: Set<OasSchema>,
-  visit: (node: OasSchema) => void,
+  visit: (node: OasSchema | OasRef<'schema'>) => void,
 ): void => {
   const walkMediaTypes = (content: Record<string, OasMediaType> | undefined): void => {
     for (const mediaType of Object.values(content ?? {})) {
@@ -258,9 +302,14 @@ const isWalkable = (
 const walkSchemaOrRef = (
   node: OasSchema | OasRef<'schema'>,
   seen: Set<OasSchema>,
-  visit: (node: OasSchema) => void,
+  visit: (node: OasSchema | OasRef<'schema'>) => void,
 ): void => {
-  if (node.isRef() || seen.has(node)) {
+  if (node.isRef()) {
+    visit(node)
+    return
+  }
+
+  if (seen.has(node)) {
     return
   }
 
@@ -307,8 +356,8 @@ const collectParentClaims = (
 
 /**
  * The wire tag for one member under one parent: the `discriminator.mapping`
- * key whose value points at the member — `#/components/schemas/Dog` and
- * bare `Dog` are both accepted — else the member's refName (the OpenAPI
+ * key whose value points at the member (`#/components/schemas/Dog`, or a
+ * value that ends in `Dog`), else the member's refName (the OpenAPI
  * default when `mapping` is absent or does not name the member).
  */
 export const toMemberTag = (
@@ -316,10 +365,14 @@ export const toMemberTag = (
   mapping: Record<string, string>,
 ): string => {
   for (const [tag, target] of Object.entries(mapping)) {
-    // A bare name is a component's, whose key is that name.
-    const targetKey = target.includes('/') ? toModelKey(toRefParts({ $ref: target })) : target
+    const targetRef = toRefParts({ $ref: target })
+    // A whole pointer is matched as one. Any other value (`Dog`, `./Dog`,
+    // `other.yaml#/components/schemas/Dog`) is matched by its last segment.
+    const matches = target.startsWith('#')
+      ? toModelKey(targetRef) === toModelKey(member)
+      : targetRef.refName === member.refName
 
-    if (targetKey === toModelKey(member)) {
+    if (matches) {
       return tag
     }
   }

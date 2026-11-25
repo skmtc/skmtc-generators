@@ -1,4 +1,4 @@
-import { toGeneratorOnlyKey, toModelKey } from '@skmtc/core'
+import { isDefaultRefPath, toGeneratorOnlyKey, toModelKey, toModelRef } from '@skmtc/core'
 import type {
   ContentSettings,
   GeneratedValue,
@@ -15,6 +15,27 @@ import { KotlinJacksonBase } from './base.ts'
 import { isDataClassSchema, isEnumClassSchema, isSealedUnion } from './shape.ts'
 import { toSealedMembership } from './sealedMembership.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
+
+type ToParentNameArgs = {
+  context: GenerateContextType
+  ref: RefParts
+  destinationPath: string
+  rootRef: RefParts | undefined
+}
+
+/**
+ * The name of a sealed parent that is a model. The model sweep builds a
+ * component. Nothing else is sure to reach any other target, so it is
+ * inserted here: a clause never names an undeclared parent.
+ */
+const toParentName = ({ context, ref, destinationPath, rootRef }: ToParentNameArgs): string => {
+  const projection = KotlinProjection
+  const variant = 'main'
+
+  return isDefaultRefPath({ refPath: ref.refPath, refType: 'schema' })
+    ? context.toModelContentSettings({ ref, projection, variant }).identifier.name
+    : toModelRef({ context, ref, destinationPath, rootRef, projection, variant }).settings.identifier.name
+}
 
 type ConstructorArgs = {
   context: GenerateContextType
@@ -74,11 +95,7 @@ export class KotlinProjection extends KotlinJacksonBase {
       // over an undeclared parent must be impossible by construction.
       const supertypes = claims.map((claim) =>
         claim.parent.type === 'component'
-          ? context.toModelContentSettings({
-            ref: claim.parent.ref,
-            projection: KotlinProjection,
-            variant: 'main',
-          }).identifier.name
+          ? toParentName({ context, ref: claim.parent.ref, destinationPath, rootRef })
           : ensureSealedParent(context, {
             generatorKey,
             unionSchema: claim.parent.union,

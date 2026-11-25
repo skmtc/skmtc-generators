@@ -1,5 +1,5 @@
 import { camelCase, fromModelKey } from '@skmtc/core'
-import type { GenerateContextType } from '@skmtc/core'
+import type { GenerateContextType, RefParts } from '@skmtc/core'
 import { toKtModelProjectionBase } from '@skmtc/lang-kotlin'
 import denoJson from '../deno.json' with { type: 'json' }
 import { type EnrichmentSchema, toEnrichmentSchema } from './enrichments.ts'
@@ -10,6 +10,14 @@ import { toModelShape } from './shape.ts'
 // construction-dependent. Kotlin declarations are PascalCase.
 const toModelClassName = (refName: string): string => {
   return camelCase(refName, { upperFirst: true })
+}
+
+/** The class name of a model: its `name` enrichment, or the name made from its `refName`. */
+export const toModelName = (context: GenerateContextType, ref: RefParts): string => {
+  const variant = 'main'
+  const enrichments = KotlinJacksonBase.toEnrichments({ ref, context, variant })
+
+  return KotlinJacksonBase.toIdentifierName({ ref, enrichments, variant, options: undefined })
 }
 
 /**
@@ -39,15 +47,7 @@ export const toComponentClassNames = (
     ? Object.keys(document.value.components?.schemas ?? {})
     : Object.keys(document.value.registry.schemas)
 
-  const variant = 'main'
-  const names = new Set(
-    refNames.map((refName) => {
-      const ref = fromModelKey(refName)
-      const enrichments = KotlinJacksonBase.toEnrichments({ ref, context, variant })
-
-      return KotlinJacksonBase.toIdentifierName({ ref, enrichments, variant, options: undefined })
-    }),
-  )
+  const names = new Set(refNames.map((refName) => toModelName(context, fromModelKey(refName))))
 
   componentClassNamesCache.set(context, names)
 

@@ -573,3 +573,10 @@ models whose names come out the same, such as `pet` and `Pet`, or refs to
   }
 }
 ```
+
+Write a pointer with no percent escapes: `#/paths/~1x~1{id}/…`, also when the
+`$ref` in the document has `%7Bid%7D`.
+
+A model that refers back to itself can also insert gen-typescript's type,
+which is named by gen-typescript. If the type's name clashes, set its `name`
+under `@skmtc/gen-typescript`, also when you do not list that generator.

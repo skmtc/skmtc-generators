@@ -1,4 +1,4 @@
-import { toModelKey, toModelProjectionBase, toOasOperationProjectionBase, type IdentifierType } from '@skmtc/core'
+import { toModelKey, toModelName, toModelProjectionBase, toOasOperationProjectionBase, type IdentifierType } from '@skmtc/core'
 import { MdSnippet } from './lang/MdSnippet.ts'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
@@ -55,14 +55,15 @@ export const TypeDefinitionBase = toModelProjectionBase<EnrichmentSchema, Identi
 
 /**
  * The base of an expandable object's page (see `isExpandable`):
- * `@/docs/_types/<refName>.md`. The underscore keeps the folder apart from the
+ * `@/docs/_types/<name>.md`, where `name` is a component's refName, or a name
+ * made from the whole pointer of any other target. The underscore keeps the folder apart from the
  * tag folders, whose names are kebab-case. The page is a document, named by
- * the refName.
+ * the model's key.
  */
 export const ObjectPageBase = toModelProjectionBase<EnrichmentSchema, IdentifierType>(MdSnippet, {
   id: denoJson.name,
-  toIdentifierName: ({ ref }) => ref.refName,
+  toIdentifierName: ({ ref }) => toModelKey(ref),
   toIdentifierType: (): IdentifierType => ({ type: 'document' }),
-  toExportPath: ({ ref }) => `@/docs/_types/${ref.refName}.md`,
+  toExportPath: ({ ref }) => `@/docs/_types/${toModelName(ref)}.md`,
   toEnrichmentSchema
 })

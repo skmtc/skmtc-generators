@@ -19,7 +19,8 @@ export const generatorSchema = v.optional(
 /**
  * Subject-scoped, at `client.json#settings.enrichments[id][model][variant]`,
  * where `model` is a component's name, or a whole pointer
- * (`#/components/schemas/A/properties/disk`):
+ * (`#/components/schemas/A/properties/disk`) with no percent escapes:
+ * `#/paths/~1x~1{id}/…`, not `#/paths/~1x~1%7Bid%7D/…`:
  *
  * - `name`: the model's identifier, in place of the one made from `refName`.
  *   Two models whose default names are the same fail the run with

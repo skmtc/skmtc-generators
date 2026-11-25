@@ -337,3 +337,29 @@ Deno.test('referenced types - two deep targets that share a refName are both def
     ['400', '422'].map(status => `### <a id="type-${encodeURIComponent(toPointer(status))}"></a>Schema`)
   )
 })
+
+Deno.test('expandable objects - two deep targets that share a refName have a page each', () => {
+  const toPointer = (owner: string) => `#/components/schemas/${owner}/properties/disk`
+  const toOwner = (property: string): OpenAPIV3.SchemaObject => ({
+    type: 'object',
+    properties: { disk: { type: 'object', properties: { [property]: { type: 'string' } } } }
+  })
+  const toField = (owner: string) => ({
+    anyOf: [{ type: 'string' as const }, { $ref: toPointer(owner) }],
+    'x-expansionResources': { oneOf: [{ $ref: toPointer(owner) }] }
+  })
+  const { artifacts } = run({
+    paths: { '/disks': { get: { responses: { '200': { ...ok, content: json(ref('Disks')) } } } } },
+    components: {
+      schemas: {
+        A: toOwner('first'),
+        B: toOwner('second'),
+        Disks: { type: 'object', properties: { a: toField('A'), b: toField('B') } }
+      }
+    }
+  })
+  const pages = Object.entries(artifacts).filter(([path]) => path.includes('/_types/'))
+
+  assertEquals(pages.length, 2)
+  assertEquals(pages.map(([, page]) => page.includes('**first**')).toSorted(), [false, true])
+})

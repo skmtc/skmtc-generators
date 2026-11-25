@@ -88,3 +88,43 @@ Deno.test('a name enrichment that is not an identifier fails the run and says so
   assertEquals(artifacts, {})
   assertStringIncludes(JSON.stringify(manifest.parseIssues), `name 'not-valid' is not a valid identifier`)
 })
+
+Deno.test('a recursive model takes a name under gen-zod, and its type one under gen-typescript', () => {
+  const toRecursive = (name: string) => ({
+    type: 'object',
+    properties: { node: { type: 'array', items: { $ref: `#/components/schemas/${name}/properties/node` } } }
+  })
+  const document = toSchemasDocument({
+    A: toRecursive('A'),
+    B: toRecursive('B'),
+    V: {
+      type: 'object',
+      properties: {
+        a: { $ref: '#/components/schemas/A/properties/node' },
+        b: { $ref: '#/components/schemas/B/properties/node' }
+      }
+    }
+  })
+  const pointer = '#/components/schemas/B/properties/node'
+
+  const { artifacts, manifest } = toArtifacts({
+    traceId: 'gen-zod-recursive-name',
+    spanId: 'run',
+    startAt: Date.now(),
+    document: { type: 'oas', value: document },
+    settings: {
+      basePath: './src',
+      enrichments: {
+        '@skmtc/gen-zod': { [pointer]: { main: { name: 'bNode' } } },
+        '@skmtc/gen-typescript': { [pointer]: { main: { name: 'BNode' } } }
+      }
+    },
+    stackTrail: new StackTrail([]),
+    silent: true,
+    // @ts-expect-error - the map is generic over the enrichment type; one entry is not
+    toGeneratorConfigMap: () => ({ '@skmtc/gen-zod': zodEntry })
+  })
+
+  assertEquals(manifest.enrichmentWarnings, [])
+  assertStringIncludes(artifacts['src/types/bNode.generated.ts'], 'z.ZodType<BNode>')
+})
