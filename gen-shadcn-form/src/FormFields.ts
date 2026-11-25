@@ -3,10 +3,15 @@ import type { OasOperationProjectionConstructorArgs, Stringable } from '@skmtc/c
 import { SnippetBase } from '@skmtc/core'
 import invariant from 'tiny-invariant'
 import { schemaToField, getLabel } from './schemaToField.ts'
+import { openModel } from './openModels.ts'
 import { toProperties, type EnrichmentSchema } from './enrichments.ts'
 
 export class FormFields extends SnippetBase {
   fields: ListLines<Stringable> | undefined
+  /** The top-level properties that have a field. */
+  keptNames: string[] = []
+  /** The top-level properties that have none, as each repeats a model. */
+  cutNames: string[] = []
   constructor({ context, operation, settings }: OasOperationProjectionConstructorArgs<EnrichmentSchema>) {
     super({ context })
 
@@ -25,19 +30,27 @@ export class FormFields extends SnippetBase {
 
       invariant(resolved.type === 'object', 'Operation must have a body with type object')
 
+      const openModels = openModel({ schema: parentSchema, openModels: new Set() })
+
       return List.fromEntries(resolved.properties ?? {}).toLines(([name, schema]) => {
         const override = overrides.get(name)
-        return schemaToField({
+        const field = schemaToField({
           context,
           name,
           schema,
           topLevelSchema: parentSchema,
+          openModels,
           skipLabel: false,
           destinationPath: settings.exportPath,
           label: override?.label ?? getLabel({ schema, name }),
           isRequired: Boolean(resolved.required?.includes(name)),
           input: override?.moduleSelect.module
         })
+
+        const names = field === undefined ? this.cutNames : this.keptNames
+        names.push(name)
+
+        return field
       })
     })
   }

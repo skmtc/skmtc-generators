@@ -83,6 +83,69 @@ export const operationDocument: OpenAPIV3.Document = {
   }
 }
 
+/**
+ * Three GET operations with an array in the response, of which only one lists
+ * objects: a list of `$ref`s to an object (`/users`), a list of strings
+ * (`/tags`), and one object that holds an array of strings (`/users/{id}`).
+ */
+export const listDocument: OpenAPIV3.Document = {
+  openapi: '3.0.0',
+  info: { title: 'Fixture API', version: '1.0.0' },
+  paths: {
+    '/users': {
+      get: {
+        responses: {
+          '200': {
+            description: 'Every user',
+            content: {
+              'application/json': {
+                schema: { type: 'array', items: { $ref: '#/components/schemas/User' } }
+              }
+            }
+          }
+        }
+      }
+    },
+    '/tags': {
+      get: {
+        responses: {
+          '200': {
+            description: 'Every tag',
+            content: { 'application/json': { schema: { type: 'array', items: { type: 'string' } } } }
+          }
+        }
+      }
+    },
+    '/users/{id}': {
+      get: {
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }],
+        responses: {
+          '200': {
+            description: 'One user',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: { tags: { type: 'array', items: { type: 'string' } } }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  components: {
+    schemas: {
+      User: {
+        type: 'object',
+        properties: { id: { type: 'string' }, name: { type: 'string' } },
+        required: ['id', 'name']
+      }
+    }
+  }
+}
+
 const isDocumentObject = (value: unknown): value is OpenAPIV3.Document =>
   typeof value === 'object' && value !== null && 'openapi' in value && 'info' in value
 
@@ -251,16 +314,18 @@ type RunE2eFixtureArgs = {
   id: string
   entry: GeneratorEntry
   document: OpenAPIV3.Document
+  /** The generator's own enrichments, by path, method and variant. */
+  enrichments?: NonNullable<NonNullable<ToArtifactsArgs['settings']>['enrichments']>[string]
 }
 
 /** Run one generator over `document` with `basePath: './src'`. */
-export const runE2eFixture = ({ id, entry, document }: RunE2eFixtureArgs): ReturnType<typeof toArtifacts> =>
+export const runE2eFixture = ({ id, entry, document, enrichments }: RunE2eFixtureArgs): ReturnType<typeof toArtifacts> =>
   toArtifacts({
     traceId: `${id}-e2e`,
     spanId: 'fixture',
     startAt: Date.now(),
     document: { type: 'oas', value: document },
-    settings: { basePath: './src' },
+    settings: { basePath: './src', ...(enrichments ? { enrichments: { [id]: enrichments } } : {}) },
     stackTrail: new StackTrail([]),
     silent: true,
     // @ts-expect-error - the map is generic over the enrichment type; one entry is not

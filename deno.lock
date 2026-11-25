@@ -390,8 +390,8 @@
       "gen-shadcn-form": {
         "dependencies": [
           "jsr:@skmtc/core@0.46.0",
-          "jsr:@skmtc/gen-shadcn-select@0.3.25",
-          "jsr:@skmtc/gen-tanstack-query-supabase-zod@0.2.27",
+          "jsr:@skmtc/gen-shadcn-select@0.3.26",
+          "jsr:@skmtc/gen-tanstack-query-supabase-zod@0.2.28",
           "jsr:@skmtc/gen-typescript@0.2.25",
           "jsr:@skmtc/gen-zod@0.4.10",
           "jsr:@skmtc/lang-typescript@0.14.8"
@@ -400,7 +400,7 @@
       "gen-shadcn-select": {
         "dependencies": [
           "jsr:@skmtc/core@0.46.0",
-          "jsr:@skmtc/gen-tanstack-query-supabase-zod@0.2.27",
+          "jsr:@skmtc/gen-tanstack-query-supabase-zod@0.2.28",
           "jsr:@skmtc/gen-typescript@0.2.25",
           "jsr:@skmtc/gen-zod@0.4.10",
           "jsr:@skmtc/lang-typescript@0.14.8"
@@ -409,7 +409,7 @@
       "gen-shadcn-table": {
         "dependencies": [
           "jsr:@skmtc/core@0.46.0",
-          "jsr:@skmtc/gen-tanstack-query-supabase-zod@0.2.27",
+          "jsr:@skmtc/gen-tanstack-query-supabase-zod@0.2.28",
           "jsr:@skmtc/gen-typescript@0.2.25",
           "jsr:@skmtc/gen-zod@0.4.10",
           "jsr:@skmtc/lang-typescript@0.14.8"

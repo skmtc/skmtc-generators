@@ -1,6 +1,7 @@
 import type { OasSchema, Stringable, OasRef, GenerateContextType } from '@skmtc/core'
 import { TsSnippet, List, type ListLines } from '@skmtc/lang-typescript'
 import { schemaToField, getLabel } from '../schemaToField.ts'
+import type { OpenModels } from '../openModels.ts'
 import invariant from 'tiny-invariant'
 import { FormLabel } from '../FormLabel.ts'
 
@@ -12,6 +13,7 @@ type ObjectInputArgs = {
   destinationPath: string
   isRequired: boolean
   topLevelSchema: OasSchema | OasRef<'schema'>
+  openModels: OpenModels
 }
 
 export class ObjectInput extends TsSnippet {
@@ -26,7 +28,8 @@ export class ObjectInput extends TsSnippet {
     label,
     destinationPath,
     schema: schema,
-    topLevelSchema
+    topLevelSchema,
+    openModels
   }: ObjectInputArgs) {
     super({ context, stackTrail: schema.stackTrail.clone() })
 
@@ -45,7 +48,8 @@ export class ObjectInput extends TsSnippet {
         skipLabel: false,
         label: getLabel({ schema: propertySchema, name }),
         isRequired: Boolean(schema.required?.includes(name)),
-        topLevelSchema
+        topLevelSchema,
+        openModels
       })
     })
   }

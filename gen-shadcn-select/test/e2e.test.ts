@@ -5,7 +5,7 @@
  * pinned here and run on both the Linux and the Windows runner.
  */
 import { assertEquals, assertStringIncludes } from '@std/assert'
-import { operationDocument, runE2eFixture } from '@skmtc/test-support'
+import { assertNoResultErrors, listDocument, operationDocument, runE2eFixture } from '@skmtc/test-support'
 import { ShadcnSelectApiEntry } from '../src/mod.ts'
 
 const { artifacts } = runE2eFixture({
@@ -26,5 +26,21 @@ Deno.test('e2e - generated imports name workspace paths with forward slashes', (
   assertStringIncludes(
     artifacts['src/inputs/UsersSelect.generated.tsx'],
     `import {useGetApiUsers} from '@/services/useGetApiUsers.generated.ts'\n`
+  )
+})
+
+// #121: a list of strings, or an object with an array of strings, failed the
+// whole run with "Expected object type". Only a list of objects gets a select.
+Deno.test('e2e - an operation whose list items are not objects is skipped', () => {
+  const { artifacts: listArtifacts, manifest } = runE2eFixture({
+    id: '@skmtc/gen-shadcn-select',
+    entry: ShadcnSelectApiEntry,
+    document: listDocument
+  })
+
+  assertNoResultErrors(manifest)
+  assertEquals(
+    Object.keys(listArtifacts).filter(path => path.startsWith('src/inputs/')),
+    ['src/inputs/UsersSelect.generated.tsx']
   )
 })

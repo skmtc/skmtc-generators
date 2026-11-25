@@ -1,4 +1,4 @@
-import { FunctionParameter } from '@skmtc/lang-typescript'
+import { FunctionParameter, handleKey, List, toStringLiteral } from '@skmtc/lang-typescript'
 import { TanstackQuery } from '@skmtc/gen-tanstack-query-supabase-zod'
 import { CustomValue, decapitalize, capitalize } from '@skmtc/core'
 import { TsProjection } from '@skmtc/gen-typescript'
@@ -15,6 +15,8 @@ export class ShadcnForm extends ShadcnFormBase {
   tsRequestBodyName: string
   zodRequestBodyName: string
   fields: FormFields
+  formValuesType: string
+  requiredMask: string
   constructor({ context, operation, settings }: OasOperationProjectionConstructorArgs<EnrichmentSchema>) {
     super({ context, operation, settings })
 
@@ -40,11 +42,20 @@ export class ShadcnForm extends ShadcnFormBase {
 
     this.zodRequestBodyName = zodRequestBody.identifier.name
 
+    const body = operation.toRequestBody(({ schema }) => schema)?.resolve()
+
+    invariant(body?.type === 'object', 'Schema must be an object')
+
+    this.fields = new FormFields({ context, operation, settings })
+
+    this.formValuesType = toFormValuesType(this.tsRequestBodyName, this.fields)
+    this.requiredMask = toRequiredMask(this.fields)
+
     const formArgsSchema = operation
       .toParametersObject()
       .addProperty({
         name: 'defaultValues',
-        schema: new CustomValue({ context, value: `Required<${this.tsRequestBodyName}>` }),
+        schema: new CustomValue({ context, value: this.formValuesType }),
         required: false
       })
       .addProperty({
@@ -52,12 +63,6 @@ export class ShadcnForm extends ShadcnFormBase {
         schema: new CustomValue({ context, value: `() => void` }),
         required: false
       })
-
-    const body = operation.toRequestBody(({ schema }) => schema)?.resolve()
-
-    invariant(body?.type === 'object', 'Schema must be an object')
-
-    this.fields = new FormFields({ context, operation, settings })
 
     const typeDefinition = this.insertNormalizedModel(TsProjection, {
       schema: formArgsSchema,
@@ -95,8 +100,8 @@ export class ShadcnForm extends ShadcnFormBase {
     const { title, description, submitLabel } = this.settings.enrichments.subject ?? {}
 
     return `(${this.parameter}) => {
-  const form = useForm<Required<${this.tsRequestBodyName}>>({
-    resolver: zodResolver(${this.zodRequestBodyName}.required()),
+  const form = useForm<${this.formValuesType}>({
+    resolver: zodResolver(${this.zodRequestBodyName}.required(${this.requiredMask})),
     defaultValues: props.defaultValues
   })
 
@@ -131,6 +136,28 @@ export class ShadcnForm extends ShadcnFormBase {
 }
 `
   }
+}
+
+/**
+ * The type of the form's values: every property of the body is required. A
+ * property with no field stays as the body has it, as no one can fill it in.
+ */
+const toFormValuesType = (bodyName: string, { keptNames, cutNames }: FormFields): string => {
+  if (cutNames.length === 0) {
+    return `Required<${bodyName}>`
+  }
+
+  // Not `Omit`, which loses the named keys of a body with an index signature
+  return keptNames.length === 0
+    ? bodyName
+    : `${bodyName} & Required<Pick<${bodyName}, ${keptNames.map(name => toStringLiteral(name)).join(' | ')}>>`
+}
+
+/** The argument of the resolver's `.required()`, which requires the same properties. */
+const toRequiredMask = ({ keptNames, cutNames }: FormFields): string => {
+  return cutNames.length === 0
+    ? ''
+    : `${List.toObject(keptNames.map(name => List.toKeyValue(handleKey(name), 'true')))}`
 }
 
 type SubtractPathFromSchemaArgs = {
