@@ -1,5 +1,4 @@
 import { toModelKey, toRefParts, type GenerateContextType, type OasDocument, type OasRef, type OasSchema, type RefParts } from '@skmtc/core'
-import { match } from 'ts-pattern'
 
 type IsExpandableArgs = {
   context: GenerateContextType
@@ -40,19 +39,28 @@ const toExpandables = (document: OasDocument): ReadonlySet<string> =>
 /** The schemas `x-expansionResources` names in `schema` and in the schemas written inside it, not through a `$ref`. */
 const toExpansionTargets = (schema: OasSchema | OasRef<'schema'>): string[] => [
   ...toRefs(schema.extensionFields?.['x-expansionResources']).map($ref => toModelKey(toRefParts({ $ref }))),
-  ...match(schema)
-    .with({ type: 'object' }, object => [
-      ...Object.values(object.properties ?? {}).flatMap(property =>
-        property.type === 'custom' ? [] : toExpansionTargets(property)
-      ),
-      ...(object.additionalProperties !== undefined && typeof object.additionalProperties !== 'boolean'
-        ? toExpansionTargets(object.additionalProperties)
-        : [])
-    ])
-    .with({ type: 'array' }, array => toExpansionTargets(array.items))
-    .with({ type: 'union' }, union => union.members.flatMap(toExpansionTargets))
-    .otherwise(() => [])
+  ...toInnerExpansionTargets(schema)
 ]
+
+const toInnerExpansionTargets = (schema: OasSchema | OasRef<'schema'>): string[] => {
+  switch (schema.type) {
+    case 'object':
+      return [
+        ...Object.values(schema.properties ?? {}).flatMap(property =>
+          property.type === 'custom' ? [] : toExpansionTargets(property)
+        ),
+        ...(schema.additionalProperties !== undefined && typeof schema.additionalProperties !== 'boolean'
+          ? toExpansionTargets(schema.additionalProperties)
+          : [])
+      ]
+    case 'array':
+      return toExpansionTargets(schema.items)
+    case 'union':
+      return schema.members.flatMap(toExpansionTargets)
+    default:
+      return []
+  }
+}
 
 /** The `$ref`s in an extension's value, which the parser keeps as written. */
 const toRefs = (value: unknown): string[] => {

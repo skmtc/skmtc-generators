@@ -1,10 +1,10 @@
 {
   "name": "@skmtc/gen-tanstack-query-fetch-zod",
-  "version": "0.2.27",
+  "version": "0.2.28",
   "exports": "./mod.ts",
   "imports": {
-    "@skmtc/gen-zod": "jsr:@skmtc/gen-zod@0.4.9",
-    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.2.24",
+    "@skmtc/gen-zod": "jsr:@skmtc/gen-zod@0.4.10",
+    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.2.25",
     "@skmtc/core": "jsr:@skmtc/core@0.46.0",
     "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.14.8",
     "@babel/helper-validator-identifier": "npm:@babel/helper-validator-identifier@7.22.20",

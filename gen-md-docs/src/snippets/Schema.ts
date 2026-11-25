@@ -1,10 +1,9 @@
 import { SnippetBase, type GenerateContextType, type OasSchema, type OasRef, type OasObject, type RefParts } from '@skmtc/core'
 import { List } from '@skmtc/lang-typescript'
-import { match, P } from 'ts-pattern'
 import { Name } from './Name.ts'
 import { AliasTypeInfo, TypeInfo, UnresolvedTypeInfo } from './TypeInfo.ts'
 import { DescriptionClause } from './Description.ts'
-import { toSiteSchema } from '../safeResolve.ts'
+import { toSiteSchema, type SiteSchema } from '../safeResolve.ts'
 
 type SchemaArgs = {
   context: GenerateContextType
@@ -49,11 +48,7 @@ export class Schema extends SnippetBase {
     const title = shown.title
     const descriptionText = (description ?? shown.description)?.trim()
     const expansion = toExpansion(schema)
-    const typeInfo = match(site)
-      .with({ type: 'schema' }, ({ schema: resolved }) => new TypeInfo({ context, schema, resolved, required }))
-      .with({ type: 'alias' }, () => new AliasTypeInfo({ context, schema, required }))
-      .with({ type: 'dangling' }, () => new UnresolvedTypeInfo({ context, schema, required }))
-      .exhaustive()
+    const typeInfo = toSiteTypeInfo({ context, schema, required, site })
     const properties = expansion.length > 0 ? new Properties({ context, properties: expansion, depth }) : undefined
 
     this.links = [...typeInfo.links, ...(properties?.links ?? [])]
@@ -161,6 +156,28 @@ class PropertyRow extends SnippetBase {
   }
 }
 
+type ToSiteTypeInfoArgs = {
+  context: GenerateContextType
+  schema: OasSchema | OasRef<'schema'>
+  required: boolean | undefined
+  site: SiteSchema
+}
+
+const toSiteTypeInfo = ({ context, schema, required, site }: ToSiteTypeInfoArgs) => {
+  switch (site.type) {
+    case 'schema':
+      return new TypeInfo({ context, schema, resolved: site.schema, required })
+    case 'alias':
+      return new AliasTypeInfo({ context, schema, required })
+    case 'dangling':
+      return new UnresolvedTypeInfo({ context, schema, required })
+    default: {
+      const _exhaustive: never = site
+      throw new Error(`Unhandled schema site type: ${_exhaustive}`)
+    }
+  }
+}
+
 /**
  * The child property specs of a schema node — an object's own properties, an
  * array's (flattened) item properties, a union's members. A `$ref` is a leaf
@@ -171,14 +188,24 @@ const toExpansion = (schema: OasSchema | OasRef<'schema'>): Property[] => {
     return []
   }
 
-  return match(schema)
-    .with({ type: 'object' }, object => [...toObjectProperties(object), ...toAdditionalProperties(object)])
-    .with({ type: 'array' }, array => toExpansion(array.items))
-    .with({ type: 'union' }, union =>
-      union.members.map(member => ({ name: undefined, schema: member, required: undefined }))
-    )
-    .with({ type: P.union('string', 'number', 'integer', 'boolean', 'unknown') }, () => [])
-    .exhaustive()
+  switch (schema.type) {
+    case 'object':
+      return [...toObjectProperties(schema), ...toAdditionalProperties(schema)]
+    case 'array':
+      return toExpansion(schema.items)
+    case 'union':
+      return schema.members.map(member => ({ name: undefined, schema: member, required: undefined }))
+    case 'string':
+    case 'number':
+    case 'integer':
+    case 'boolean':
+    case 'unknown':
+      return []
+    default: {
+      const _exhaustive: never = schema
+      throw new Error(`Unhandled schema type: ${_exhaustive}`)
+    }
+  }
 }
 
 const toObjectProperties = (object: OasObject): Property[] =>

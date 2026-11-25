@@ -159,8 +159,6 @@ class TsRecord extends SnippetBase {
   constructor({ context, generatorKey, destinationPath, schema, propertyValues, rootRef }: TsRecordArgs) {
     super({ context, generatorKey })
 
-    // Not ts-pattern: its type walk over `OasRef`, whose keywords include
-    // `additionalProperties`, circles back on itself.
     this.value =
       schema === true || isEmpty(schema)
         ? new TsUnknown({ context, generatorKey })

@@ -1,7 +1,6 @@
 import { isDefaultRefPath, toModelKey, toRefPointer } from '@skmtc/core'
 import type { GenerateContextType, ModelProjectionArgs, OasDocument, OasRef, OasSchema, RefParts } from '@skmtc/core'
 import { List } from '@skmtc/lang-typescript'
-import { match, P } from 'ts-pattern'
 import { TypeDefinitionBase, type TypeDefinitionOptions } from '../base.ts'
 import type { EnrichmentSchema } from '../enrichments.ts'
 import { isExpandable } from '../expandable.ts'
@@ -68,9 +67,8 @@ export class TypeContent extends List<(DocumentSchema | ExternalDocs)[], '\n\n',
       throw new Error(`'${toModelKey(ref)}' is not one of the document's schemas`)
     }
 
-    const externalDocs = match(component)
-      .with({ type: P.union('object', 'union') }, schema => schema.externalDocs)
-      .otherwise(() => undefined)
+    const externalDocs =
+      component.type === 'object' || component.type === 'union' ? component.externalDocs : undefined
 
     super(
       [

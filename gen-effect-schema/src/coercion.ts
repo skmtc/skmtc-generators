@@ -1,5 +1,4 @@
 import type { SchemaType } from '@skmtc/core'
-import { match } from 'ts-pattern'
 
 /**
  * Whether a schema decodes differently from a string than from JSON: a
@@ -12,34 +11,38 @@ export const needsCoercion = (
   schema: SchemaType,
   seen: Set<string> = new Set(),
 ): boolean => {
-  return match(schema)
-    .with({ type: 'ref' }, (ref) => {
-      if (seen.has(ref.$ref)) return false
+  // deno-lint-ignore skmtc/single-dispatch -- it answers a question about the schema; it decides no output, which is the router's
+  switch (schema.type) {
+    case 'ref':
+      if (seen.has(schema.$ref)) return false
 
-      seen.add(ref.$ref)
+      seen.add(schema.$ref)
 
-      return needsCoercion(ref.resolveOnce(), seen)
-    })
-    .with({ type: 'number' }, () => true)
-    .with({ type: 'integer' }, () => true)
-    .with({ type: 'boolean' }, () => true)
-    .with({ type: 'array' }, () => true)
-    .with({ type: 'object' }, (object) => {
-      const properties = Object.values(object.properties ?? {})
-      const additional = object.additionalProperties
+      return needsCoercion(schema.resolveOnce(), seen)
+    case 'number':
+    case 'integer':
+    case 'boolean':
+    case 'array':
+      return true
+    case 'object': {
+      const properties = Object.values(schema.properties ?? {})
+      const additional = schema.additionalProperties
 
       return (
         properties.some((property) => needsCoercion(property, seen)) ||
         (typeof additional === 'object' && needsCoercion(additional, seen))
       )
-    })
-    .with(
-      { type: 'union' },
-      (union) => union.members.some((member) => needsCoercion(member, seen)),
-    )
-    .with({ type: 'string' }, () => false)
-    .with({ type: 'unknown' }, () => false)
-    .with({ type: 'void' }, () => false)
-    .with({ type: 'custom' }, () => false)
-    .exhaustive()
+    }
+    case 'union':
+      return schema.members.some((member) => needsCoercion(member, seen))
+    case 'string':
+    case 'unknown':
+    case 'void':
+    case 'custom':
+      return false
+    default: {
+      const _exhaustive: never = schema
+      throw new Error(`Unhandled schema type: ${_exhaustive}`)
+    }
+  }
 }

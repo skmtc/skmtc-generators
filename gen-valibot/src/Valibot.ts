@@ -1,6 +1,5 @@
 import { ValibotString } from './ValibotString.ts'
 import { ValibotArray } from './ValibotArray.ts'
-import { match } from 'ts-pattern'
 import { ValibotRef } from './ValibotRef.ts'
 import { ValibotObject } from './ValibotObject.ts'
 import { ValibotUnion } from './ValibotUnion.ts'
@@ -14,12 +13,18 @@ import { toGeneratorOnlyKey } from '@skmtc/core'
 import { valibotEntry } from './mod.ts'
 
 export const toValibotValue: SchemaToValueFn = ({
-  schema,
+  schema: schemaNode,
   destinationPath,
   required,
   context,
   rootRef
 }) => {
+  // `schemaNode` arrives typed as the generic `Schema` parameter, and TypeScript
+  // does not narrow a type parameter by discriminant. Widening it to the
+  // `SchemaType` union lets the switch below narrow each case on its own —
+  // generator code narrows, it does not assert.
+  const schema: SchemaType = schemaNode
+
   const modifiers: Modifiers = {
     required,
     nullable: 'nullable' in schema ? schema.nullable : undefined
@@ -27,75 +32,64 @@ export const toValibotValue: SchemaToValueFn = ({
 
   const generatorKey = toGeneratorOnlyKey({ generatorId: valibotEntry.id })
 
-  return match(schema satisfies SchemaType)
-    .with({ type: 'custom' }, custom => custom)
-    .with({ type: 'ref' }, ref => {
+  switch (schema.type) {
+    case 'custom':
+      return schema
+    case 'ref':
       return new ValibotRef({
         context,
         destinationPath,
-        ref,
+        ref: schema,
         modifiers,
         generatorKey,
         rootRef,
-        schema: ref
+        schema
       })
-    })
-    .with({ type: 'array' }, arraySchema => {
+    case 'array':
       return new ValibotArray({
         context,
         destinationPath,
         modifiers,
-        items: arraySchema.items,
+        items: schema.items,
         generatorKey,
         rootRef,
-        schema: arraySchema
+        schema
       })
-    })
-    .with({ type: 'object' }, objectSchema => {
+    case 'object':
       return new ValibotObject({
         context,
         destinationPath,
-        objectSchema,
+        objectSchema: schema,
         modifiers,
         generatorKey,
         rootRef
       })
-    })
-    .with({ type: 'union' }, unionSchema => {
+    case 'union':
       return new ValibotUnion({
         context,
         destinationPath,
-        members: unionSchema.members,
-        discriminator: unionSchema.discriminator,
+        members: schema.members,
+        discriminator: schema.discriminator,
         modifiers,
         generatorKey,
         rootRef,
-        schema: unionSchema
+        schema
       })
-    })
-    .with(
-      { type: 'number' },
-      numberSchema =>
-        new ValibotNumber({ context, modifiers, destinationPath, generatorKey, schema: numberSchema })
-    )
-    .with({ type: 'integer' }, integerSchema => {
-      return new ValibotInteger({ context, integerSchema, modifiers, destinationPath, generatorKey })
-    })
-    .with(
-      { type: 'boolean' },
-      booleanSchema =>
-        new ValibotBoolean({ context, modifiers, destinationPath, generatorKey, schema: booleanSchema })
-    )
-    .with({ type: 'void' }, () => new ValibotVoid({ context, destinationPath, generatorKey }))
-    .with(
-      { type: 'string' },
-      stringSchema =>
-        new ValibotString({ context, stringSchema, modifiers, destinationPath, generatorKey })
-    )
-    .with(
-      { type: 'unknown' },
-      unknownSchema =>
-        new ValibotUnknown({ context, destinationPath, generatorKey, schema: unknownSchema })
-    )
-    .exhaustive()
+    case 'number':
+      return new ValibotNumber({ context, modifiers, destinationPath, generatorKey, schema })
+    case 'integer':
+      return new ValibotInteger({ context, integerSchema: schema, modifiers, destinationPath, generatorKey })
+    case 'boolean':
+      return new ValibotBoolean({ context, modifiers, destinationPath, generatorKey, schema })
+    case 'void':
+      return new ValibotVoid({ context, destinationPath, generatorKey })
+    case 'string':
+      return new ValibotString({ context, stringSchema: schema, modifiers, destinationPath, generatorKey })
+    case 'unknown':
+      return new ValibotUnknown({ context, destinationPath, generatorKey, schema })
+    default: {
+      const _exhaustive: never = schema
+      throw new Error(`Unhandled schema type: ${_exhaustive}`)
+    }
+  }
 }

@@ -67,7 +67,7 @@ Each generator follows a consistent pattern:
 ### Core Dependencies
 
 - `@skmtc/core` - Core framework providing `toModelEntry`, schema types, and transformation context
-- Uses pattern matching (`ts-pattern`) for type mapping
+- Each router maps a schema to its snippet with a `switch` on `schema.type`; its `default` assigns to `never`, so a new schema type is a compile error
 - Each generator has its own `deno.json` with name, version, and publish task
 
 ### Development Workflow
