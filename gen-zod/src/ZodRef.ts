@@ -1,6 +1,6 @@
 import { toModelGeneratorKey, toModelRef } from '@skmtc/core'
 import { TsSnippet } from "@skmtc/lang-typescript";
-import type { GenerateContextType, Modifiers, OasRef, OasSchema, RefName } from '@skmtc/core'
+import type { GenerateContextType, Modifiers, OasRef, OasSchema, RefParts } from '@skmtc/core'
 import { applyModifiers } from "./applyModifiers.ts";
 import { ZodProjection } from "./ZodProjection.ts";
 import { zodEntry } from "./mod.ts";
@@ -8,8 +8,8 @@ type ConstructorProps = {
   context: GenerateContextType;
   destinationPath: string;
   modifiers: Modifiers;
-  refName: RefName;
-  rootRef?: RefName;
+  ref: RefParts;
+  rootRef?: RefParts;
   /** The originating ref schema node — for fine-grained attribution. */
   schema?: OasSchema | OasRef<"schema">;
 };
@@ -28,14 +28,14 @@ export class ZodRef extends TsSnippet {
    */
   lazyModel: boolean;
   constructor(
-    { context, refName, destinationPath, modifiers, rootRef, schema }:
+    { context, ref, destinationPath, modifiers, rootRef, schema }:
       ConstructorProps,
   ) {
     super({
       context,
       generatorKey: toModelGeneratorKey({
         generatorId: zodEntry.id,
-        refName,
+        ref,
         variant: "main",
       }),
       stackTrail: schema?.stackTrail.clone(),
@@ -46,20 +46,20 @@ export class ZodRef extends TsSnippet {
     // `inCycle`. Both are deferred, because any model of a cycle can be the
     // first one loaded. `toModelRef` constructs or reuses every other model,
     // and stitches the import, the reference back's included.
-    const ref = toModelRef({
+    const modelRef = toModelRef({
       context,
-      refName,
+      ref,
       destinationPath,
       rootRef,
       projection: ZodProjection,
       variant: "main",
     });
 
-    this.name = ref.settings.identifier.name;
+    this.name = modelRef.settings.identifier.name;
     this.modifiers = modifiers;
-    this.deferred = ref.suspended || ref.inCycle;
-    this.referenceBack = ref.suspended;
-    this.lazyModel = !ref.suspended && ref.definition.value.lazy;
+    this.deferred = modelRef.suspended || modelRef.inCycle;
+    this.referenceBack = modelRef.suspended;
+    this.lazyModel = !modelRef.suspended && modelRef.definition.value.lazy;
   }
 
   override toString(): string {

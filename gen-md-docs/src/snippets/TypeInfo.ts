@@ -1,4 +1,4 @@
-import { SnippetBase, type GenerateContextType, type OasSchema, type OasRef, type RefName } from '@skmtc/core'
+import { SnippetBase, type GenerateContextType, type OasSchema, type OasRef, type RefParts } from '@skmtc/core'
 import { List } from '@skmtc/lang-typescript'
 import { match, P } from 'ts-pattern'
 import { Enums } from './Enums.ts'
@@ -33,20 +33,19 @@ export class TypeName extends SnippetBase {
   /** The `$ref` the type ends in names nothing. */
   unresolved: boolean
   /** The component schemas the type links to: its `$ref`'s, when it names one. */
-  links: RefName[]
+  links: RefParts[]
 
   constructor({ context, schema }: TypeNameArgs) {
     super({ context, stackTrail: schema.stackTrail.clone() })
 
     if (schema.isRef()) {
-      const refName = schema.toRefName()
-      const component = new ComponentName({ context, refName })
+      const component = new ComponentName({ context, ref: schema })
       const resolves = toSiteSchema(schema).type !== 'dangling'
 
       this.name = component.name
       this.anchor = resolves ? component.anchor : undefined
       this.unresolved = !resolves
-      this.links = resolves ? [refName] : []
+      this.links = resolves ? [schema] : []
     } else if (schema.type === 'array') {
       const items = new TypeName({ context, schema: schema.items })
 
@@ -240,7 +239,7 @@ type TypeInfoArgs = {
 export class TypeInfo extends SnippetBase {
   annotation: List<(TypeName | TypeFacets | UnresolvedMarker)[], ' ', 'none'>
   /** The component schemas the annotation links to. */
-  links: RefName[]
+  links: RefParts[]
 
   constructor({ context, schema, resolved, required }: TypeInfoArgs) {
     super({ context, stackTrail: schema.stackTrail.clone() })
@@ -280,7 +279,7 @@ type UnresolvedTypeInfoArgs = {
 export class UnresolvedTypeInfo extends SnippetBase {
   annotation: List<(TypeName | string | UnresolvedMarker)[], ' ', 'none'>
   /** The component schemas the annotation links to: none, as its `$ref` names nothing. */
-  links: RefName[]
+  links: RefParts[]
 
   constructor({ context, schema, required }: UnresolvedTypeInfoArgs) {
     super({ context, stackTrail: schema.stackTrail.clone() })
@@ -319,7 +318,7 @@ type AliasTypeInfoArgs = {
 export class AliasTypeInfo extends SnippetBase {
   annotation: List<(TypeName | string)[], ' ', 'none'>
   /** The component schemas the annotation links to: the alias. */
-  links: RefName[]
+  links: RefParts[]
 
   constructor({ context, schema, required }: AliasTypeInfoArgs) {
     super({ context, stackTrail: schema.stackTrail.clone() })

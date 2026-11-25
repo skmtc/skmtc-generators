@@ -1,4 +1,4 @@
-import { toModelProjectionBase, toOasOperationProjectionBase, type IdentifierType } from '@skmtc/core'
+import { toModelKey, toModelProjectionBase, toOasOperationProjectionBase, type IdentifierType } from '@skmtc/core'
 import { MdSnippet } from './lang/MdSnippet.ts'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
@@ -37,8 +37,8 @@ export const OperationDocBase = toOasOperationProjectionBase<EnrichmentSchema, I
  * self-contained, so a type is written once per document that uses it: the
  * document's path is part of the type's identity.
  *
- * The section is named by the refName itself, which is unique in the
- * document's components. The name it is shown by (`SimpleUser`) can be the
+ * The section is named by the model's key (`toModelKey`): a component's
+ * refName, or the whole pointer of any other target, whose refName can repeat. The name it is shown by (`SimpleUser`) can be the
  * same for two refNames (`pet` and `Pet`), so it is derived apart, with the
  * anchor, by `ComponentName`.
  */
@@ -46,7 +46,7 @@ export const TypeDefinitionBase = toModelProjectionBase<EnrichmentSchema, Identi
   MdSnippet,
   {
     id: denoJson.name,
-    toIdentifierName: ({ refName }) => refName,
+    toIdentifierName: ({ ref }) => toModelKey(ref),
     toIdentifierType: (): IdentifierType => ({ type: 'section' }),
     toExportPath: ({ options }) => options.documentPath,
     toEnrichmentSchema
@@ -61,8 +61,8 @@ export const TypeDefinitionBase = toModelProjectionBase<EnrichmentSchema, Identi
  */
 export const ObjectPageBase = toModelProjectionBase<EnrichmentSchema, IdentifierType>(MdSnippet, {
   id: denoJson.name,
-  toIdentifierName: ({ refName }) => refName,
+  toIdentifierName: ({ ref }) => ref.refName,
   toIdentifierType: (): IdentifierType => ({ type: 'document' }),
-  toExportPath: ({ refName }) => `@/docs/_types/${refName}.md`,
+  toExportPath: ({ ref }) => `@/docs/_types/${ref.refName}.md`,
   toEnrichmentSchema
 })

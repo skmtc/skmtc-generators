@@ -1,6 +1,6 @@
 import { SnippetBase, isEmpty } from '@skmtc/core'
 import { handleKey, TsSnippet } from '@skmtc/lang-typescript'
-import type { GenerateContextType, GeneratorKey, OasRef, OasSchema, OasObject, CustomValue, RefName, TypeSystemObjectProperties, TypeSystemRecord, TypeSystemValue, Modifiers } from '@skmtc/core'
+import type { GenerateContextType, GeneratorKey, OasRef, OasSchema, OasObject, CustomValue, RefParts, TypeSystemObjectProperties, TypeSystemRecord, TypeSystemValue, Modifiers } from '@skmtc/core'
 import { toValibotValue } from './Valibot.ts'
 import { applyModifiers } from './applyModifiers.ts'
 import { ValibotUnknown } from './ValibotUnknown.ts'
@@ -11,7 +11,7 @@ type ValibotObjectProps = {
   objectSchema: OasObject
   modifiers: Modifiers
   generatorKey: GeneratorKey
-  rootRef?: RefName
+  rootRef?: RefParts
 }
 
 export class ValibotObject extends TsSnippet {
@@ -95,7 +95,7 @@ type ValibotObjectPropertiesArgs = {
   generatorKey: GeneratorKey
   /** The value of `additionalProperties`, which the keys not named here must match. */
   rest: TypeSystemValue | 'true' | undefined
-  rootRef?: RefName
+  rootRef?: RefParts
 }
 
 class ValibotObjectProperties extends SnippetBase {
@@ -151,7 +151,7 @@ type ValibotRecordArgs = {
   destinationPath: string
   schema: true | OasSchema | OasRef<'schema'>
   generatorKey: GeneratorKey
-  rootRef?: RefName
+  rootRef?: RefParts
 }
 
 class ValibotRecord extends SnippetBase {

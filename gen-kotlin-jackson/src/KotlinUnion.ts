@@ -6,7 +6,7 @@ import type {
   OasDiscriminator,
   OasRef,
   OasSchema,
-  RefName,
+  RefParts,
   TypeSystemValue,
 } from '@skmtc/core'
 import { toKotlinValue } from './Kotlin.ts'
@@ -25,7 +25,7 @@ type KotlinUnionArgs = {
   discriminator?: OasDiscriminator
   modifiers: Modifiers
   generatorKey: GeneratorKey
-  rootRef?: RefName
+  rootRef?: RefParts
 }
 
 export class KotlinUnion extends KtSnippet {

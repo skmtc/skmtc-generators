@@ -4,16 +4,16 @@ import { TsSnippet } from '@skmtc/lang-typescript'
 import { applyValueModifiers } from './applyModifiers.ts'
 import { ArktypeProjection } from './ArktypeProjection.ts'
 import { arktypeEntry } from './mod.ts'
-import type { GenerateContextType, RefName, Modifiers } from '@skmtc/core'
+import type { GenerateContextType, RefParts, Modifiers } from '@skmtc/core'
 
 type ArktypeRefArgs = {
   /** Originating schema node — for fine-grained attribution. */
   schema?: OasSchema | OasRef<'schema'>
   context: GenerateContextType
   destinationPath: string
-  refName: RefName
+  ref: RefParts
   modifiers: Modifiers
-  rootRef?: RefName
+  rootRef?: RefParts
 }
 
 export class ArktypeRef extends TsSnippet {
@@ -26,12 +26,12 @@ export class ArktypeRef extends TsSnippet {
   modifiers: Modifiers
   name: string
 
-  constructor({ context, refName, destinationPath, modifiers, rootRef, schema }: ArktypeRefArgs) {
+  constructor({ context, ref, destinationPath, modifiers, rootRef, schema }: ArktypeRefArgs) {
     super({
       context,
       generatorKey: toModelGeneratorKey({
         generatorId: arktypeEntry.id,
-        refName,
+        ref,
         variant: 'main'
       }),
       stackTrail: schema?.stackTrail.clone()
@@ -39,9 +39,9 @@ export class ArktypeRef extends TsSnippet {
 
     // A reference back to a model whose projection is being constructed
     // comes back `suspended`; `toModelRef` stitches the import in every case.
-    const ref = toModelRef({
+    const modelRef = toModelRef({
       context,
-      refName,
+      ref,
       destinationPath,
       rootRef,
       projection: ArktypeProjection,
@@ -52,13 +52,13 @@ export class ArktypeRef extends TsSnippet {
     // a thunk while it parses, so no spelling defers a reference back. A
     // cycle needs its models in one `scope`, which this generator does not
     // render.
-    if (ref.suspended) {
+    if (modelRef.suspended) {
       throw new Error(
-        `${refName} is recursive, which gen-arktype cannot render: each model is a lone type(…), and a reference back to ${refName} fails when the module loads. Remove the cycle from the schema to generate it with gen-arktype.`
+        `${ref.refName} is recursive, which gen-arktype cannot render: each model is a lone type(…), and a reference back to ${ref.refName} fails when the module loads. Remove the cycle from the schema to generate it with gen-arktype.`
       )
     }
 
-    this.name = ref.settings.identifier.name
+    this.name = modelRef.settings.identifier.name
     this.modifiers = modifiers
   }
 

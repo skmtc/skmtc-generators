@@ -10,7 +10,7 @@ import { ValibotInteger } from './ValibotInteger.ts'
 import { ValibotBoolean } from './ValibotBoolean.ts'
 import { ValibotVoid } from './ValibotVoid.ts'
 import { ValibotUnknown } from './ValibotUnknown.ts'
-import { toGeneratorOnlyKey, toRefName } from '@skmtc/core'
+import { toGeneratorOnlyKey } from '@skmtc/core'
 import { valibotEntry } from './mod.ts'
 
 export const toValibotValue: SchemaToValueFn = ({
@@ -33,7 +33,7 @@ export const toValibotValue: SchemaToValueFn = ({
       return new ValibotRef({
         context,
         destinationPath,
-        refName: toRefName(ref.$ref),
+        ref,
         modifiers,
         generatorKey,
         rootRef,

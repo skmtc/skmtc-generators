@@ -9,7 +9,7 @@ import type {
   GenerateContextType,
   Modifiers,
   OasRef,
-  RefName,
+  RefParts,
 } from '@skmtc/core'
 import { applyModifiers } from './modifiers.ts'
 import { EffectProjection } from './EffectProjection.ts'
@@ -23,8 +23,8 @@ type EffectRefArgs = {
   context: GenerateContextType
   destinationPath: string
   modifiers: Modifiers
-  refName: RefName
-  rootRef?: RefName
+  ref: RefParts
+  rootRef?: RefParts
   /** The ref node — attribution, and whether the target needs a twin. */
   schema: OasRef<'schema'>
   /** Query-string mode, as the enclosing parameter object passes it down. */
@@ -58,7 +58,7 @@ export class EffectRef extends TsSnippet {
   constructor(
     {
       context,
-      refName,
+      ref,
       destinationPath,
       modifiers,
       rootRef,
@@ -70,7 +70,7 @@ export class EffectRef extends TsSnippet {
       context,
       generatorKey: toModelGeneratorKey({
         generatorId: effectSchemaEntry.id,
-        refName,
+        ref,
         variant: 'main',
       }),
       stackTrail: schema.stackTrail.clone(),
@@ -87,9 +87,9 @@ export class EffectRef extends TsSnippet {
     // `toModelRef` constructs or reuses every other model, and stitches the
     // model's import in every case. The options are part of the identity: a
     // coerced reference names the FromString twin.
-    const ref = toModelRef({
+    const modelRef = toModelRef({
       context,
-      refName,
+      ref,
       destinationPath,
       rootRef,
       projection: EffectProjection,
@@ -97,26 +97,26 @@ export class EffectRef extends TsSnippet {
       options: toOptions(coerced),
     })
 
-    this.name = ref.settings.identifier.name
+    this.name = modelRef.settings.identifier.name
 
-    if (ref.suspended || ref.inCycle) {
+    if (modelRef.suspended || modelRef.inCycle) {
       // A twin's arrays are readonly (`mutable` refuses `ArrayEnsure`), so
       // no annotation on its suspend holds against the model's type.
       if (coerced) {
         throw new Error(
-          `${refName} is recursive and referenced from a path or query parameter, which its FromString twin cannot express — inline the parameter's schema instead`,
+          `${ref.refName} is recursive and referenced from a path or query parameter, which its FromString twin cannot express — inline the parameter's schema instead`,
         )
       }
 
       // Rendered below as `Schema.suspend`. Never coerced — that case threw
       // above — so it is the JSON reading it names.
-      const settings = ref.settings
+      const settings = modelRef.settings
 
       // Identity only, before anything is inserted: a clone that points both
       // generators at one folder would put the type in the schema's own
       // file, and the engine's report of that names neither.
       const tsSettings = context.toModelContentSettings({
-        refName,
+        ref,
         projection: TsProjection,
         variant: 'main',
       })
@@ -127,13 +127,13 @@ export class EffectRef extends TsSnippet {
           normalizeWorkspacePath(settings.exportPath)
       ) {
         throw new Error(
-          `${refName} is recursive, and gen-typescript would write its type into ${settings.exportPath}, the file gen-effect-schema writes its schema to — give the two generators' toExportPath different folders`,
+          `${ref.refName} is recursive, and gen-typescript would write its type into ${settings.exportPath}, the file gen-effect-schema writes its schema to — give the two generators' toExportPath different folders`,
         )
       }
 
       // Inserted with no destination so the engine stitches no import: the
       // type is imported under its alias (base.ts).
-      const tsType = context.insertModel(TsProjection, refName, {
+      const tsType = context.insertModel(TsProjection, ref, {
         variant: 'main',
       })
 

@@ -1,6 +1,6 @@
 import { assert, assertEquals } from "@std/assert";
 import { ZodProjection } from "../../src/ZodProjection.ts";
-import { type RefName, StackTrail } from "@skmtc/core";
+import { type RefName, toSchemaComponentRef, StackTrail } from "@skmtc/core";
 import { toGenerateContext } from "../helpers/toGenerateContext.ts";
 import { toParseContext } from "../helpers/toParseContext.ts";
 
@@ -21,7 +21,7 @@ Deno.test("ZodProjection - simple object type", () => {
   const oasDocument = parseContext.parse(stackTrail);
   const context = toGenerateContext({ oasDocument });
 
-  const zodProjection = context.insertModel(ZodProjection, "User" as RefName);
+  const zodProjection = context.insertModel(ZodProjection, toSchemaComponentRef("User" as RefName));
 
   // Should generate an object with required properties
   assertEquals(
@@ -50,7 +50,7 @@ Deno.test("ZodProjection - object with optional properties", () => {
 
   const zodProjection = context.insertModel(
     ZodProjection,
-    "Product" as RefName,
+    toSchemaComponentRef("Product" as RefName),
   );
 
   assertEquals(
@@ -71,7 +71,7 @@ Deno.test("ZodProjection - primitive string type", () => {
   const oasDocument = parseContext.parse(stackTrail);
   const context = toGenerateContext({ oasDocument });
 
-  const zodProjection = context.insertModel(ZodProjection, "UserId" as RefName);
+  const zodProjection = context.insertModel(ZodProjection, toSchemaComponentRef("UserId" as RefName));
 
   assertEquals(`${zodProjection.toValue()}`, "z.string()");
 });
@@ -93,7 +93,7 @@ Deno.test("ZodProjection - array type", () => {
 
   const zodProjection = context.insertModel(
     ZodProjection,
-    "UserList" as RefName,
+    toSchemaComponentRef("UserList" as RefName),
   );
 
   assertEquals(`${zodProjection.toValue()}`, "z.array(z.string())");
@@ -113,7 +113,7 @@ Deno.test("ZodProjection - union type", () => {
 
   const zodProjection = context.insertModel(
     ZodProjection,
-    "StringOrNumber" as RefName,
+    toSchemaComponentRef("StringOrNumber" as RefName),
   );
 
   assertEquals(
@@ -142,7 +142,7 @@ Deno.test("ZodProjection - a model that refers to itself reads the reference in 
   const oasDocument = parseContext.parse(stackTrail);
   const context = toGenerateContext({ oasDocument });
 
-  const inserted = context.insertModel(ZodProjection, "TreeNode" as RefName);
+  const inserted = context.insertModel(ZodProjection, toSchemaComponentRef("TreeNode" as RefName));
 
   // zod 4 reads a getter when it parses and infers the type through it, so
   // the export needs no annotation and keeps its full object type.
@@ -170,7 +170,7 @@ Deno.test("ZodProjection - non-recursive model carries no type annotation", () =
   const oasDocument = parseContext.parse(stackTrail);
   const context = toGenerateContext({ oasDocument });
 
-  const inserted = context.insertModel(ZodProjection, "User" as RefName);
+  const inserted = context.insertModel(ZodProjection, toSchemaComponentRef("User" as RefName));
 
   assertEquals(inserted.toIdentifier().typeName, undefined);
 });
@@ -202,8 +202,8 @@ Deno.test("ZodProjection - every property holding a reference in a cycle of two 
   const oasDocument = parseContext.parse(stackTrail);
   const context = toGenerateContext({ oasDocument });
 
-  const employee = context.insertModel(ZodProjection, "Employee" as RefName);
-  const team = context.insertModel(ZodProjection, "Team" as RefName);
+  const employee = context.insertModel(ZodProjection, toSchemaComponentRef("Employee" as RefName));
+  const team = context.insertModel(ZodProjection, toSchemaComponentRef("Team" as RefName));
 
   // The trap: a plain `team` in employee's file reads Team before its module
   // has run when team's file loads first. Any model of a cycle can be first.
@@ -237,7 +237,7 @@ Deno.test("ZodProjection - a union that refers to itself with no property on the
   const oasDocument = parseContext.parse(stackTrail);
   const context = toGenerateContext({ oasDocument });
 
-  const inserted = context.insertModel(ZodProjection, "JsonValue" as RefName);
+  const inserted = context.insertModel(ZodProjection, toSchemaComponentRef("JsonValue" as RefName));
 
   // A getter needs an object property; a union has none, so the whole model
   // is deferred, and TypeScript needs the type spelled out to infer it.

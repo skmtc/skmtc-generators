@@ -1,6 +1,6 @@
 import { assert, assertEquals } from '@std/assert'
 import { ValibotProjection } from '../../src/ValibotProjection.ts'
-import { type RefName, StackTrail } from '@skmtc/core'
+import { type RefName, toSchemaComponentRef, StackTrail } from '@skmtc/core'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
 import { toParseContext } from '../helpers/toParseContext.ts'
 
@@ -21,7 +21,7 @@ Deno.test('ValibotProjection - simple object type', () => {
   const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
-  const valibotProjection = context.insertModel(ValibotProjection, 'User' as RefName)
+  const valibotProjection = context.insertModel(ValibotProjection, toSchemaComponentRef('User' as RefName))
 
   // Should generate an object with required properties
   assertEquals(`${valibotProjection.toValue()}`, 'v.object({id: v.string(), name: v.string()})')
@@ -45,7 +45,7 @@ Deno.test('ValibotProjection - object with optional properties', () => {
   const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
-  const valibotProjection = context.insertModel(ValibotProjection, 'Product' as RefName)
+  const valibotProjection = context.insertModel(ValibotProjection, toSchemaComponentRef('Product' as RefName))
 
   assertEquals(
     `${valibotProjection.toValue()}`,
@@ -65,7 +65,7 @@ Deno.test('ValibotProjection - primitive string type', () => {
   const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
-  const valibotProjection = context.insertModel(ValibotProjection, 'UserId' as RefName)
+  const valibotProjection = context.insertModel(ValibotProjection, toSchemaComponentRef('UserId' as RefName))
 
   assertEquals(`${valibotProjection.toValue()}`, 'v.string()')
 })
@@ -85,7 +85,7 @@ Deno.test('ValibotProjection - array type', () => {
   const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
-  const valibotProjection = context.insertModel(ValibotProjection, 'UserList' as RefName)
+  const valibotProjection = context.insertModel(ValibotProjection, toSchemaComponentRef('UserList' as RefName))
 
   assertEquals(`${valibotProjection.toValue()}`, 'v.array(v.string())')
 })
@@ -102,7 +102,7 @@ Deno.test('ValibotProjection - union type', () => {
   const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
-  const valibotProjection = context.insertModel(ValibotProjection, 'StringOrNumber' as RefName)
+  const valibotProjection = context.insertModel(ValibotProjection, toSchemaComponentRef('StringOrNumber' as RefName))
 
   assertEquals(`${valibotProjection.toValue()}`, 'v.union([v.string(), v.number()])')
 })
@@ -131,8 +131,8 @@ Deno.test('ValibotProjection - every reference in a cycle of two models is lazy;
   const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
-  const employee = context.insertModel(ValibotProjection, 'Employee' as RefName)
-  const team = context.insertModel(ValibotProjection, 'Team' as RefName)
+  const employee = context.insertModel(ValibotProjection, toSchemaComponentRef('Employee' as RefName))
+  const team = context.insertModel(ValibotProjection, toSchemaComponentRef('Team' as RefName))
 
   // The trap: a plain `team` in employee's file reads Team before its module
   // has run when team's file loads first. Any model of a cycle can be first.

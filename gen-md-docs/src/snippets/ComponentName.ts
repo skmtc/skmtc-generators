@@ -1,9 +1,9 @@
-import { camelCase, SnippetBase, type GenerateContextType } from '@skmtc/core'
+import { camelCase, SnippetBase, toModelKey, type GenerateContextType, type RefParts } from '@skmtc/core'
 
 type ComponentNameArgs = {
   context: GenerateContextType
-  /** The component schema's name, as its `$ref` gives it. */
-  refName: string
+  /** The type's ref, as its `$ref` gives it. */
+  ref: RefParts
 }
 
 /**
@@ -13,8 +13,8 @@ type ComponentNameArgs = {
  *
  * The name is the refName in PascalCase, as the docs viewer shows it, or the
  * refName as written when PascalCase leaves nothing (a name with no Latin
- * letters or digits, such as `用户`). The anchor comes from the refName
- * itself, so two refNames that show alike (`pet` and `Pet`) still link to
+ * letters or digits, such as `用户`). The anchor comes from the model's
+ * key (`toModelKey`), so two refNames that show alike (`pet` and `Pet`) still link to
  * their own definitions, and the `type-` prefix keeps it apart from the
  * anchors of the page's own headings (`## Headers` is `#headers`). It is
  * percent-encoded, so it is the same in an `id` and in a link.
@@ -23,11 +23,11 @@ export class ComponentName extends SnippetBase {
   name: string
   anchor: string
 
-  constructor({ context, refName }: ComponentNameArgs) {
+  constructor({ context, ref }: ComponentNameArgs) {
     super({ context })
 
-    this.name = camelCase(refName, { upperFirst: true }) || refName
-    this.anchor = `type-${encodeURIComponent(refName).replace(/[!'()*]/g, char => `%${char.charCodeAt(0).toString(16).toUpperCase()}`)}`
+    this.name = camelCase(ref.refName, { upperFirst: true }) || ref.refName
+    this.anchor = `type-${encodeURIComponent(toModelKey(ref)).replace(/[!'()*]/g, char => `%${char.charCodeAt(0).toString(16).toUpperCase()}`)}`
   }
 
   override toString(): string {
@@ -37,7 +37,7 @@ export class ComponentName extends SnippetBase {
 
 type TypeTitleArgs = {
   context: GenerateContextType
-  refName: string
+  ref: RefParts
 }
 
 /**
@@ -47,10 +47,10 @@ type TypeTitleArgs = {
 export class TypeTitle extends SnippetBase {
   component: ComponentName
 
-  constructor({ context, refName }: TypeTitleArgs) {
+  constructor({ context, ref }: TypeTitleArgs) {
     super({ context })
 
-    this.component = new ComponentName({ context, refName })
+    this.component = new ComponentName({ context, ref })
   }
 
   override toString(): string {

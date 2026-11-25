@@ -1,6 +1,6 @@
 import { assertEquals } from "@std/assert";
 import { ZodRef } from "../../src/ZodRef.ts";
-import { type RefName, StackTrail } from "@skmtc/core";
+import { type RefName, toSchemaComponentRef, StackTrail } from "@skmtc/core";
 import { toGenerateContext } from "../helpers/toGenerateContext.ts";
 import { toParseContext } from "../helpers/toParseContext.ts";
 
@@ -22,7 +22,7 @@ Deno.test("ZodRef - basic reference", () => {
 
   const zodRef = new ZodRef({
     context,
-    refName: "User" as RefName,
+    ref: toSchemaComponentRef("User" as RefName),
     modifiers: { required: true },
     destinationPath: "/test",
   });
@@ -49,7 +49,7 @@ Deno.test("ZodRef - nullable reference", () => {
 
   const zodRef = new ZodRef({
     context,
-    refName: "Product" as RefName,
+    ref: toSchemaComponentRef("Product" as RefName),
     modifiers: { required: true, nullable: true },
     destinationPath: "/test",
   });
@@ -76,7 +76,7 @@ Deno.test("ZodRef - optional reference", () => {
 
   const zodRef = new ZodRef({
     context,
-    refName: "Category" as RefName,
+    ref: toSchemaComponentRef("Category" as RefName),
     modifiers: { required: false },
     destinationPath: "/test",
   });
@@ -107,7 +107,7 @@ Deno.test("ZodRef - recursive reference", () => {
 
   const zodRef = new ZodRef({
     context,
-    refName: "TreeNode" as RefName,
+    ref: toSchemaComponentRef("TreeNode" as RefName),
     modifiers: { required: true },
     destinationPath: "/test",
   });
@@ -134,7 +134,7 @@ Deno.test("ZodRef - camelCase reference name transformation", () => {
 
   const zodRef = new ZodRef({
     context,
-    refName: "user-profile" as RefName,
+    ref: toSchemaComponentRef("user-profile" as RefName),
     modifiers: { required: true },
     destinationPath: "/test",
   });

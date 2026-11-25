@@ -1,6 +1,6 @@
 import { assertEquals } from '@std/assert'
 import { ValibotRef } from '../../src/ValibotRef.ts'
-import { type RefName, toGeneratorOnlyKey, StackTrail } from '@skmtc/core'
+import { type RefName, toSchemaComponentRef, toGeneratorOnlyKey, StackTrail } from '@skmtc/core'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
 import { toParseContext } from '../helpers/toParseContext.ts'
 import { valibotEntry } from '../../src/mod.ts'
@@ -23,7 +23,7 @@ Deno.test('ValibotRef - basic reference', () => {
 
   const valibotRef = new ValibotRef({
     context,
-    refName: 'User' as RefName,
+    ref: toSchemaComponentRef('User' as RefName),
     modifiers: { required: true },
     destinationPath: '/test',
     generatorKey: toGeneratorOnlyKey({ generatorId: valibotEntry.id })
@@ -51,7 +51,7 @@ Deno.test('ValibotRef - nullable reference', () => {
 
   const valibotRef = new ValibotRef({
     context,
-    refName: 'Product' as RefName,
+    ref: toSchemaComponentRef('Product' as RefName),
     modifiers: { required: true, nullable: true },
     destinationPath: '/test',
     generatorKey: toGeneratorOnlyKey({ generatorId: valibotEntry.id })
@@ -79,7 +79,7 @@ Deno.test('ValibotRef - optional reference', () => {
 
   const valibotRef = new ValibotRef({
     context,
-    refName: 'Category' as RefName,
+    ref: toSchemaComponentRef('Category' as RefName),
     modifiers: { required: false },
     destinationPath: '/test',
     generatorKey: toGeneratorOnlyKey({ generatorId: valibotEntry.id })
@@ -111,7 +111,7 @@ Deno.test('ValibotRef - recursive reference', () => {
 
   const valibotRef = new ValibotRef({
     context,
-    refName: 'TreeNode' as RefName,
+    ref: toSchemaComponentRef('TreeNode' as RefName),
     modifiers: { required: true },
     destinationPath: '/test',
     generatorKey: toGeneratorOnlyKey({ generatorId: valibotEntry.id })
@@ -139,7 +139,7 @@ Deno.test('ValibotRef - camelCase reference name transformation', () => {
 
   const valibotRef = new ValibotRef({
     context,
-    refName: 'user-profile' as RefName,
+    ref: toSchemaComponentRef('user-profile' as RefName),
     modifiers: { required: true },
     destinationPath: '/test',
     generatorKey: toGeneratorOnlyKey({ generatorId: valibotEntry.id })

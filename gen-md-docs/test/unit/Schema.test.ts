@@ -216,7 +216,7 @@ Deno.test('Schema - renders a $ref by name, linked to its definition in the same
   // In the body, the ref is a leaf — its name, linked to its definition.
   const body = new Schema({ context, name: undefined, schema: bodyRef, required: false })
   assertEquals(body.toString(), '[`Node`](#type-Node)')
-  assertEquals(body.links, ['Node'])
+  assertEquals(body.links.map(ref => ref.refName), ['Node'])
 
   // Written in a document, its type is defined once there; the recursive `next` links back (no loop).
   new DocumentSchema({ context, schema: body, documentPath: DOC })

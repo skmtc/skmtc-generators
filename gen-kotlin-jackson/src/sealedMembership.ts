@@ -1,4 +1,4 @@
-import { toRefName } from '@skmtc/core'
+import { fromModelKey, toModelKey, toRefParts } from '@skmtc/core'
 import type {
   CustomValue,
   GenerateContextType,
@@ -9,7 +9,7 @@ import type {
   OasSchema,
   OasRef,
   OasUnion,
-  RefName,
+  RefParts,
 } from '@skmtc/core'
 import { isSealedUnion } from './shape.ts'
 import { toSynthesizedNameOrNull } from './toSynthesizedName.ts'
@@ -35,7 +35,7 @@ import { toSynthesizedNameOrNull } from './toSynthesizedName.ts'
  * lazily, and identity inside the scan keys on the TRAIL.
  */
 export type SealedParentIdentity =
-  | { type: 'component'; refName: RefName }
+  | { type: 'component'; ref: RefParts }
   | { type: 'synthesized'; union: OasUnion }
 
 /**
@@ -89,11 +89,12 @@ export type SealedParent = {
  * precedent). Skipping a qualifying parent while generating its members
  * leaves a dangling `: Pet` that fails the consumer compile loudly.
  */
-const membershipCache = new WeakMap<object, Map<RefName, SealedParent[]>>()
+/** Claims by the member's `toModelKey`, so two targets that share a `refName` stay apart. */
+const membershipCache = new WeakMap<object, Map<string, SealedParent[]>>()
 
 export const toSealedMembership = (
   context: GenerateContextType,
-): Map<RefName, SealedParent[]> => {
+): Map<string, SealedParent[]> => {
   const { document } = context
 
   const cached = membershipCache.get(document.value)
@@ -102,7 +103,7 @@ export const toSealedMembership = (
     return cached
   }
 
-  const membership = new Map<RefName, SealedParent[]>()
+  const membership = new Map<string, SealedParent[]>()
 
   if (document.type === 'oas') {
     const seen = new Set<OasSchema>()
@@ -129,7 +130,7 @@ export const toSealedMembership = (
       if (isSealedUnion(context, schema)) {
         // The key IS a real component refName — parsed, not fabricated.
         collectParentClaims(
-          { type: 'component', refName: toRefName(key) },
+          { type: 'component', ref: fromModelKey(key) },
           schema,
           membership,
         )
@@ -270,14 +271,14 @@ const walkSchemaOrRef = (
 
 const toParentKey = (parent: SealedParentIdentity): string => {
   return parent.type === 'component'
-    ? `component:${parent.refName}`
+    ? `component:${toModelKey(parent.ref)}`
     : `synthesized:${parent.union.stackTrail.stackTrail.join('/')}`
 }
 
 const collectParentClaims = (
   parent: SealedParentIdentity,
   union: OasUnion,
-  membership: Map<RefName, SealedParent[]>,
+  membership: Map<string, SealedParent[]>,
 ): void => {
   // isSealedUnion guarantees a discriminator and all-ref members; the
   // destructure narrows rather than asserts.
@@ -292,15 +293,15 @@ const collectParentClaims = (
       continue
     }
 
-    const memberRefName = member.toRefName()
-    const claims = membership.get(memberRefName) ?? []
+    const memberKey = toModelKey(member)
+    const claims = membership.get(memberKey) ?? []
 
     if (claims.some((claim) => toParentKey(claim.parent) === toParentKey(parent))) {
       continue
     }
 
     claims.push({ parent, discriminatorPropertyName: propertyName })
-    membership.set(memberRefName, claims)
+    membership.set(memberKey, claims)
   }
 }
 
@@ -311,16 +312,17 @@ const collectParentClaims = (
  * default when `mapping` is absent or does not name the member).
  */
 export const toMemberTag = (
-  memberRefName: RefName,
+  member: RefParts,
   mapping: Record<string, string>,
 ): string => {
   for (const [tag, target] of Object.entries(mapping)) {
-    const targetRefName = target.includes('/') ? toRefName(target) : target
+    // A bare name is a component's, whose key is that name.
+    const targetKey = target.includes('/') ? toModelKey(toRefParts({ $ref: target })) : target
 
-    if (targetRefName === memberRefName) {
+    if (targetKey === toModelKey(member)) {
       return tag
     }
   }
 
-  return memberRefName
+  return member.refName
 }

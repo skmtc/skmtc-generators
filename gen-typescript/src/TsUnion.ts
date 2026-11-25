@@ -1,5 +1,5 @@
 import { TsSnippet } from '@skmtc/lang-typescript'
-import type { GenerateContextType, GeneratorKey, OasDiscriminator, OasSchema, OasRef, Modifiers, TypeSystemValue, RefName } from '@skmtc/core'
+import type { GenerateContextType, GeneratorKey, OasDiscriminator, OasSchema, OasRef, Modifiers, TypeSystemValue, RefParts } from '@skmtc/core'
 import { toTsValue } from './Ts.ts'
 import { applyModifiers } from './applyModifiers.ts'
 
@@ -12,7 +12,7 @@ type TsUnionArgs = {
   discriminator?: OasDiscriminator
   modifiers: Modifiers
   generatorKey: GeneratorKey
-  rootRef?: RefName
+  rootRef?: RefParts
 }
 
 export class TsUnion extends TsSnippet {

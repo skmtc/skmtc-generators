@@ -11,7 +11,7 @@ import { ArktypeInteger } from './ArktypeInteger.ts'
 import { ArktypeBoolean } from './ArktypeBoolean.ts'
 import { ArktypeVoid } from './ArktypeVoid.ts'
 import { ArktypeUnknown } from './ArktypeUnknown.ts'
-import { toGeneratorOnlyKey, toRefName } from '@skmtc/core'
+import { toGeneratorOnlyKey } from '@skmtc/core'
 import { arktypeEntry } from './mod.ts'
 
 /**
@@ -58,7 +58,7 @@ export const toArktypeValue = ({
       return new ArktypeRef({
         context,
         destinationPath,
-        refName: toRefName(ref.$ref),
+        ref,
         modifiers,
         rootRef,
         schema: ref

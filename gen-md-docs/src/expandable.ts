@@ -1,14 +1,14 @@
-import { toRefName, type GenerateContextType, type OasDocument, type OasRef, type OasSchema, type RefName } from '@skmtc/core'
+import { toModelKey, toRefParts, type GenerateContextType, type OasDocument, type OasRef, type OasSchema, type RefParts } from '@skmtc/core'
 import { match } from 'ts-pattern'
 
 type IsExpandableArgs = {
   context: GenerateContextType
-  refName: RefName
+  ref: RefParts
 }
 
 /**
  * Whether a field of the document can expand to the component schema
- * `refName`, as Stripe marks it: the field lists the schema in its
+ * `ref` names, as Stripe marks it: the field lists the schema in its
  * `x-expansionResources`, and holds either an ID or the whole object.
  *
  * An expandable object is defined on a page of its own (`ObjectPage`), and a
@@ -17,7 +17,7 @@ type IsExpandableArgs = {
  * reaches it made each Stripe document about 1 MB. A document without
  * `x-expansionResources` has no expandable objects, so its output is as before.
  */
-export const isExpandable = ({ context, refName }: IsExpandableArgs): boolean => {
+export const isExpandable = ({ context, ref }: IsExpandableArgs): boolean => {
   if (context.document.type !== 'oas') {
     return false
   }
@@ -27,19 +27,19 @@ export const isExpandable = ({ context, refName }: IsExpandableArgs): boolean =>
 
   expandables.set(document, names)
 
-  return names.has(refName)
+  return names.has(toModelKey(ref))
 }
 
 /** Each parsed document's expandable objects. */
-const expandables = new WeakMap<OasDocument, ReadonlySet<RefName>>()
+const expandables = new WeakMap<OasDocument, ReadonlySet<string>>()
 
 /** The schemas the `x-expansionResources` of the document's components name. */
-const toExpandables = (document: OasDocument): ReadonlySet<RefName> =>
+const toExpandables = (document: OasDocument): ReadonlySet<string> =>
   new Set(Object.values(document.components?.schemas ?? {}).flatMap(toExpansionTargets))
 
 /** The schemas `x-expansionResources` names in `schema` and in the schemas written inside it, not through a `$ref`. */
-const toExpansionTargets = (schema: OasSchema | OasRef<'schema'>): RefName[] => [
-  ...toRefs(schema.extensionFields?.['x-expansionResources']).map(toRefName),
+const toExpansionTargets = (schema: OasSchema | OasRef<'schema'>): string[] => [
+  ...toRefs(schema.extensionFields?.['x-expansionResources']).map($ref => toModelKey(toRefParts({ $ref }))),
   ...match(schema)
     .with({ type: 'object' }, object => [
       ...Object.values(object.properties ?? {}).flatMap(property =>

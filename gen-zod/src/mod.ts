@@ -6,7 +6,7 @@ import denoJson from "../deno.json" with { type: "json" };
 export const zodEntry = toModelEntry<EnrichmentSchema>({
   id: denoJson.name,
   toEnrichmentSchema,
-  transform({ context, refName }) {
-    context.insertModel(ZodProjection, refName);
+  transform({ context, ref }) {
+    context.insertModel(ZodProjection, ref);
   },
 });

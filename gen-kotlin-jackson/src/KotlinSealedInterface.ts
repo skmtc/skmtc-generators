@@ -3,7 +3,7 @@ import type {
   GenerateContextType,
   GeneratorKey,
   OasUnion,
-  RefName,
+  RefParts,
   StackTrail,
   TypeSystemValue,
 } from '@skmtc/core'
@@ -18,13 +18,13 @@ type KotlinSealedInterfaceArgs = {
   destinationPath: string
   unionSchema: OasUnion
   generatorKey: GeneratorKey
-  rootRef?: RefName
+  rootRef?: RefParts
 }
 
 type EnsureSealedParentArgs = {
   generatorKey: GeneratorKey
   unionSchema: OasUnion
-  rootRef?: RefName
+  rootRef?: RefParts
 }
 
 /**
@@ -165,7 +165,7 @@ export class KotlinSealedInterface extends KtSnippet {
         generatorKey,
         stackTrail: member.stackTrail.clone(),
         member: value,
-        tag: toMemberTag(member.toRefName(), mapping),
+        tag: toMemberTag(member, mapping),
       })
     })
 

@@ -3,7 +3,7 @@ import type {
   GenerateContextType,
   GeneratorKey,
   OasArray,
-  RefName,
+  RefParts,
   TypeSystemValue,
 } from '@skmtc/core'
 import { toEffectValueImpl } from './Effect.ts'
@@ -21,7 +21,7 @@ type EffectArrayArgs = {
   arraySchema: OasArray
   modifiers: EffectModifiers
   generatorKey: GeneratorKey
-  rootRef?: RefName
+  rootRef?: RefParts
   coerce?: boolean
 }
 

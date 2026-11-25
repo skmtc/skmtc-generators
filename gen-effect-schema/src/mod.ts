@@ -6,8 +6,8 @@ import { EffectProjection } from './EffectProjection.ts'
 export const effectSchemaEntry = toModelEntry<EnrichmentSchema>({
   id: denoJson.name,
   toEnrichmentSchema,
-  transform({ context, refName, variant }) {
+  transform({ context, ref, variant }) {
     // The projection registers itself into the barrel; see EffectProjection.
-    context.insertModel(EffectProjection, refName, { variant })
+    context.insertModel(EffectProjection, ref, { variant })
   },
 })

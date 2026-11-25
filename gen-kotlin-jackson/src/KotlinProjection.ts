@@ -1,9 +1,9 @@
-import { toGeneratorOnlyKey } from '@skmtc/core'
+import { toGeneratorOnlyKey, toModelKey } from '@skmtc/core'
 import type {
   ContentSettings,
   GeneratedValue,
   GenerateContextType,
-  RefName,
+  RefParts,
 } from '@skmtc/core'
 import { createDataClass } from '@skmtc/lang-kotlin'
 import type { KtAnnotation } from '@skmtc/lang-kotlin'
@@ -19,9 +19,9 @@ import type { EnrichmentSchema } from './enrichments.ts'
 type ConstructorArgs = {
   context: GenerateContextType
   destinationPath: string
-  refName: RefName
+  ref: RefParts
   settings: ContentSettings<EnrichmentSchema>
-  rootRef?: RefName
+  rootRef?: RefParts
 }
 
 export class KotlinProjection extends KotlinJacksonBase {
@@ -37,11 +37,11 @@ export class KotlinProjection extends KotlinJacksonBase {
   description: string | undefined
 
   constructor(
-    { context, refName, settings, destinationPath, rootRef }: ConstructorArgs,
+    { context, ref, settings, destinationPath, rootRef }: ConstructorArgs,
   ) {
-    super({ context, refName, settings })
+    super({ context, ref, settings })
 
-    const schema = context.resolveSchemaRefOnce(refName)
+    const schema = context.resolveSchemaRefOnce(ref)
 
     const generatorKey = toGeneratorOnlyKey({
       generatorId: KotlinJacksonBase.id,
@@ -65,7 +65,7 @@ export class KotlinProjection extends KotlinJacksonBase {
       // scan (computed before ANY construction — memoization makes build
       // order arbitrary); the parent's display name comes through the
       // sanctioned identity door, not a naming-policy copy.
-      const claims = toSealedMembership(context).get(refName) ?? []
+      const claims = toSealedMembership(context).get(toModelKey(ref)) ?? []
 
       // A component parent's display name comes through the sanctioned
       // identity door. A synthesized parent (an INLINE union) is
@@ -75,7 +75,7 @@ export class KotlinProjection extends KotlinJacksonBase {
       const supertypes = claims.map((claim) =>
         claim.parent.type === 'component'
           ? context.toModelContentSettings({
-            refName: claim.parent.refName,
+            ref: claim.parent.ref,
             projection: KotlinProjection,
             variant: 'main',
           }).identifier.name

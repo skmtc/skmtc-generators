@@ -1,4 +1,4 @@
-import { SnippetBase, type GenerateContextType, type OasSchema, type OasRef, type OasObject, type RefName } from '@skmtc/core'
+import { SnippetBase, type GenerateContextType, type OasSchema, type OasRef, type OasObject, type RefParts } from '@skmtc/core'
 import { List } from '@skmtc/lang-typescript'
 import { match, P } from 'ts-pattern'
 import { Name } from './Name.ts'
@@ -37,7 +37,7 @@ export class Schema extends SnippetBase {
   /** The row, then the children's rows when it has any. */
   lines: List<(List<SchemaRowPart[], ' ', 'none'> | Properties)[], '\n', 'none'>
   /** The component schemas the rows link to, in order; a type linked twice is listed twice. */
-  links: RefName[]
+  links: RefParts[]
 
   constructor({ context, name, schema, required, description, depth = 0 }: SchemaArgs) {
     super({ context, stackTrail: schema.stackTrail.clone() })
@@ -119,7 +119,7 @@ type PropertiesArgs = {
 class Properties extends SnippetBase {
   rows: List<PropertyRow[], '\n', 'none'>
   /** The component schemas the rows link to. */
-  links: RefName[]
+  links: RefParts[]
 
   constructor({ context, properties, depth }: PropertiesArgs) {
     super({ context })

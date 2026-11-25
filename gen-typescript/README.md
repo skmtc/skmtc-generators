@@ -563,3 +563,24 @@ deno task coverage:html
 ## License
 
 [MIT](LICENSE).
+
+## Naming a model
+
+A model is named from its `refName` (the last segment of its `$ref`). Two
+models whose names come out the same, such as `pet` and `Pet`, or refs to
+`…/A/properties/disk` and `…/B/properties/disk`, fail the run with
+`Registered definition mismatch`. Set `name` on one of them in `client.json`:
+
+```jsonc
+{
+  "settings": {
+    "enrichments": {
+      "@skmtc/gen-typescript": {
+        // A component is keyed by its name, any other target by its whole pointer.
+        "Pet": { "main": { "name": "upperPet" } },
+        "#/components/schemas/B/properties/disk": { "main": { "name": "webServiceDisk" } }
+      }
+    }
+  }
+}
+```

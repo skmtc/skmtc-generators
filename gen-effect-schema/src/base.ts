@@ -32,10 +32,12 @@ export const EffectBase = toTsModelProjectionBase<
   // The coerced reading is a definition of its own, so its name says so:
   // definitions are cached by name and export path. Which is also why no
   // component may carry the suffix itself.
-  toIdentifierName({ refName, options }): string {
-    const name = sanitizeIdentifier(capitalize(camelCase(refName)))
+  // The model's `name` enrichment, or a name from `refName`. `ref.refPath` is
+  // passed too and is not read by default.
+  toIdentifierName({ ref, enrichments, options }): string {
+    const name = enrichments.subject?.name ?? sanitizeIdentifier(capitalize(camelCase(ref.refName)))
 
-    assertNotReserved(name, refName)
+    assertNotReserved(name, enrichments.subject?.name ?? ref.refName)
 
     return `${name}${coerceSuffix(options)}`
   },
@@ -45,9 +47,9 @@ export const EffectBase = toTsModelProjectionBase<
   // One file per model under SCHEMA_ROOT. `this` is this base's config, so
   // the file follows the base's own name. A projection that overrides
   // toIdentifierName keeps this file unless it overrides toExportPath too.
-  toExportPath({ refName, enrichments, variant, options }): string {
+  toExportPath({ ref, enrichments, variant, options }): string {
     const name = this.toIdentifierName({
-      refName,
+      ref,
       enrichments,
       variant,
       options,

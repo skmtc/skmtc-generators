@@ -1,10 +1,10 @@
-import { SnippetBase, toModelRef, type GenerateContextType, type RefName } from '@skmtc/core'
+import { SnippetBase, toModelRef, type GenerateContextType, type RefParts } from '@skmtc/core'
 import { ComponentName } from './ComponentName.ts'
 import { ObjectPage } from './ObjectPage.ts'
 
 type PageLinkArgs = {
   context: GenerateContextType
-  refName: RefName
+  ref: RefParts
   /** The document the link is written in. */
   documentPath: string
 }
@@ -19,11 +19,11 @@ export class PageLink extends SnippetBase {
   /** The page, relative to the document. */
   href: string
 
-  constructor({ context, refName, documentPath }: PageLinkArgs) {
+  constructor({ context, ref, documentPath }: PageLinkArgs) {
     super({ context })
 
     // No `destinationPath`: Markdown has no imports to stitch into the document.
-    const page = toModelRef({ context, refName, projection: ObjectPage })
+    const page = toModelRef({ context, ref, projection: ObjectPage })
 
     // Both are `@/` workspace paths, with forward slashes on every host: up
     // from the document's folder to the folder they share, then down to the page.
@@ -32,7 +32,7 @@ export class PageLink extends SnippetBase {
     const differs = from.findIndex((segment, index) => segment !== to[index])
     const shared = differs === -1 ? from.length : differs
 
-    this.component = new ComponentName({ context, refName })
+    this.component = new ComponentName({ context, ref })
     this.href = encodeURI([...from.slice(shared).map(() => '..'), ...to.slice(shared)].join('/')).replace(
       /[()]/g,
       char => `%${char.charCodeAt(0).toString(16).toUpperCase()}`

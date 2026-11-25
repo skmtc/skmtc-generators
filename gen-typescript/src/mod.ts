@@ -44,8 +44,8 @@ export const toTypescriptEntry = (options: TypescriptEntryOptions = {}) => {
   return toModelEntry<EnrichmentSchema>({
     id: denoJson.name,
     toEnrichmentSchema,
-    transform({ context, refName }) {
-      context.insertModel(TsProjection, refName)
+    transform({ context, ref }) {
+      context.insertModel(TsProjection, ref)
     }
   })
 }
