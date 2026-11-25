@@ -1,9 +1,10 @@
-import { assertThrows } from '@std/assert'
-import { GenerateContext, OasDocument, OasString } from '@skmtc/core'
+import { assertInstanceOf, assertStrictEquals, assertThrows } from '@std/assert'
+import { CustomValue, GenerateContext, OasDocument, OasString, OasVoid } from '@skmtc/core'
 import * as log from '@std/log/logger'
 import { toEffectValue } from './Effect.ts'
 import { needsCoercion } from './coercion.ts'
 import { effectSchemaEntry } from './mod.ts'
+import { EffectVoid } from './EffectScalars.ts'
 
 const toContext = () =>
   new GenerateContext({
@@ -34,4 +35,22 @@ Deno.test('toEffectValue - a schema type it has no case for fails and names the 
 
 Deno.test('needsCoercion - a schema type it has no case for fails and names the type', () => {
   assertThrows(() => needsCoercion(tuple()), Error, 'Unhandled schema type: tuple')
+})
+
+Deno.test('toEffectValue - a custom value passes through', () => {
+  const context = toContext()
+  const custom = new CustomValue({ context, value: 'Custom' })
+
+  assertStrictEquals(toEffectValue({ context, destinationPath: '@/a.generated.ts', schema: custom, required: true }), custom)
+})
+
+Deno.test('toEffectValue - void has its own snippet', () => {
+  const value = toEffectValue({
+    context: toContext(),
+    destinationPath: '@/a.generated.ts',
+    schema: OasVoid.empty(),
+    required: true,
+  })
+
+  assertInstanceOf(value, EffectVoid)
 })

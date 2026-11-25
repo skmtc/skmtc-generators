@@ -1,8 +1,9 @@
-import { assertThrows } from '@std/assert'
-import { GenerateContext, OasDocument, OasString } from '@skmtc/core'
+import { assertInstanceOf, assertStrictEquals, assertThrows } from '@std/assert'
+import { CustomValue, GenerateContext, OasDocument, OasString, OasVoid } from '@skmtc/core'
 import * as log from '@std/log/logger'
 import { toKotlinValue } from '../src/Kotlin.ts'
 import { kotlinJacksonEntry } from '../src/mod.ts'
+import { KotlinVoid } from '../src/KotlinScalars.ts'
 
 const toContext = () =>
   new GenerateContext({
@@ -23,4 +24,22 @@ Deno.test('toKotlinValue - a schema type it has no case for fails and names the 
     Error,
     'Unhandled schema type: tuple',
   )
+})
+
+Deno.test('toKotlinValue - a custom value passes through', () => {
+  const context = toContext()
+  const custom = new CustomValue({ context, value: 'Custom' })
+
+  assertStrictEquals(toKotlinValue({ context, destinationPath: '@/A.generated.kt', schema: custom, required: true }), custom)
+})
+
+Deno.test('toKotlinValue - void has its own snippet', () => {
+  const value = toKotlinValue({
+    context: toContext(),
+    destinationPath: '@/A.generated.kt',
+    schema: OasVoid.empty(),
+    required: true,
+  })
+
+  assertInstanceOf(value, KotlinVoid)
 })
