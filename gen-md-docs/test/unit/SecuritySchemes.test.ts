@@ -1,6 +1,8 @@
-import { assert, assertEquals, assertStringIncludes } from '@std/assert'
+import { assert, assertEquals, assertStringIncludes, assertThrows } from '@std/assert'
+import { OasApiKeySecurityScheme } from '@skmtc/core'
 import { Security } from '../../src/snippets/Security.ts'
 import { TopIndex } from '../../src/snippets/DocsIndex.ts'
+import { toSchemeDetail, toSchemeKind } from '../../src/snippets/SecuritySchemes.ts'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
 import { toParsedDocument } from '../helpers/toParsedDocument.ts'
 
@@ -90,5 +92,25 @@ Deno.test("TopIndex - the Authentication list gives each OAuth2 flow's URLs and 
         'password (token `https://auth.example.com/token`); scopes: `read` (Read pets), `admin`, `write` (Change pets)',
       '- `oidc` — OpenID Connect (`https://auth.example.com/.well-known/openid-configuration`)'
     ].join('\n')
+  )
+})
+
+// As if core had added a type after these were written.
+const unknownScheme = () =>
+  Object.assign(new OasApiKeySecurityScheme({ name: 'key', in: 'header' }), { type: 'mutualTLS' })
+
+Deno.test('toSchemeKind - a security scheme type it has no case for fails and names the type', () => {
+  assertThrows(
+    () => toSchemeKind({ context: toGenerateContext(), scheme: unknownScheme() }),
+    Error,
+    'Unhandled security scheme type: mutualTLS'
+  )
+})
+
+Deno.test('toSchemeDetail - a security scheme type it has no case for fails and names the type', () => {
+  assertThrows(
+    () => toSchemeDetail({ context: toGenerateContext(), scheme: unknownScheme() }),
+    Error,
+    'Unhandled security scheme type: mutualTLS'
   )
 })

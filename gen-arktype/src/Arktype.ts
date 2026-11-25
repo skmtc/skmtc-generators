@@ -1,6 +1,5 @@
 import { ArktypeString } from './ArktypeString.ts'
 import { ArktypeArray } from './ArktypeArray.ts'
-import { match } from 'ts-pattern'
 import { ArktypeRef } from './ArktypeRef.ts'
 import { ArktypeObject } from './ArktypeObject.ts'
 import { ArktypeUnion } from './ArktypeUnion.ts'
@@ -52,82 +51,71 @@ export const toArktypeValue = ({
 
   const generatorKey = toGeneratorOnlyKey({ generatorId: arktypeEntry.id })
 
-  return match(schema satisfies SchemaType)
-    .with({ type: 'custom' }, custom => new ArktypeCustom({ context, custom, generatorKey }))
-    .with({ type: 'ref' }, ref => {
+  switch (schema.type) {
+    case 'custom':
+      return new ArktypeCustom({ context, custom: schema, generatorKey })
+    case 'ref':
       return new ArktypeRef({
         context,
         destinationPath,
-        ref,
+        ref: schema,
         modifiers,
         rootRef,
-        schema: ref
+        schema
       })
-    })
-    .with({ type: 'array' }, arraySchema => {
+    case 'array':
       return new ArktypeArray({
         context,
         destinationPath,
         modifiers,
-        items: arraySchema.items,
+        items: schema.items,
         generatorKey,
         rootRef,
-        schema: arraySchema
+        schema
       })
-    })
-    .with({ type: 'object' }, objectSchema => {
+    case 'object':
       return new ArktypeObject({
         context,
         destinationPath,
-        objectSchema,
+        objectSchema: schema,
         modifiers,
         generatorKey,
         rootRef
       })
-    })
-    .with({ type: 'union' }, unionSchema => {
+    case 'union':
       return new ArktypeUnion({
         context,
         destinationPath,
-        members: unionSchema.members,
-        discriminator: unionSchema.discriminator,
+        members: schema.members,
+        discriminator: schema.discriminator,
         modifiers,
         generatorKey,
         rootRef,
-        schema: unionSchema
+        schema
       })
-    })
-    .with(
-      { type: 'number' },
-      numberSchema =>
-        new ArktypeNumber({ context, modifiers, destinationPath, generatorKey, schema: numberSchema })
-    )
-    .with({ type: 'integer' }, integerSchema => {
-      return new ArktypeInteger({ context, integerSchema, modifiers, destinationPath, generatorKey })
-    })
-    .with(
-      { type: 'boolean' },
-      booleanSchema =>
-        new ArktypeBoolean({
-          context,
-          modifiers,
-          destinationPath,
-          generatorKey,
-          schema: booleanSchema
-        })
-    )
-    .with({ type: 'void' }, () => new ArktypeVoid({ context, destinationPath, generatorKey }))
-    .with(
-      { type: 'string' },
-      stringSchema =>
-        new ArktypeString({ context, stringSchema, modifiers, destinationPath, generatorKey })
-    )
-    .with(
-      { type: 'unknown' },
-      unknownSchema =>
-        new ArktypeUnknown({ context, destinationPath, generatorKey, schema: unknownSchema })
-    )
-    .exhaustive()
+    case 'number':
+      return new ArktypeNumber({ context, modifiers, destinationPath, generatorKey, schema })
+    case 'integer':
+      return new ArktypeInteger({ context, integerSchema: schema, modifiers, destinationPath, generatorKey })
+    case 'boolean':
+      return new ArktypeBoolean({
+        context,
+        modifiers,
+        destinationPath,
+        generatorKey,
+        schema
+      })
+    case 'void':
+      return new ArktypeVoid({ context, destinationPath, generatorKey })
+    case 'string':
+      return new ArktypeString({ context, stringSchema: schema, modifiers, destinationPath, generatorKey })
+    case 'unknown':
+      return new ArktypeUnknown({ context, destinationPath, generatorKey, schema })
+    default: {
+      const _exhaustive: never = schema
+      throw new Error(`Unhandled schema type: ${Reflect.get(_exhaustive, 'type')}`)
+    }
+  }
 }
 
 toArktypeValue satisfies SchemaToValueFn

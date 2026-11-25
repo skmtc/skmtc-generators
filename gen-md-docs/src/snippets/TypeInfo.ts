@@ -1,6 +1,5 @@
 import { SnippetBase, type GenerateContextType, type OasSchema, type OasRef, type RefParts } from '@skmtc/core'
 import { List } from '@skmtc/lang-typescript'
-import { match, P } from 'ts-pattern'
 import { Enums } from './Enums.ts'
 import {
   ArrayConstraints,
@@ -122,104 +121,89 @@ type ToTypeFacetsArgs = {
  * The facets of a resolved schema, from its own type's fields: one dispatch on
  * the type, so each type reads only the fields it has.
  */
-const toTypeFacets = ({ context, schema, required }: ToTypeFacetsArgs): TypeFacets =>
-  match(schema)
-    .with(
-      { type: 'string' },
-      string =>
-        new TypeFacets({
-          modifiers: new Modifiers({
-            format: string.format,
-            nullable: string.nullable,
-            required,
-            deprecated: string.deprecated,
-            readOnly: string.readOnly,
-            writeOnly: string.writeOnly
-          }),
-          enums: new Enums({ context, enums: string.enums ?? [] }),
-          constraints: new StringConstraints({ context, schema: string })
-        })
-    )
-    .with(
-      { type: P.union('number', 'integer') },
-      number =>
-        new TypeFacets({
-          modifiers: new Modifiers({
-            format: number.format,
-            nullable: number.nullable,
-            required,
-            deprecated: number.deprecated,
-            readOnly: number.readOnly,
-            writeOnly: number.writeOnly
-          }),
-          enums: new Enums({ context, enums: number.enums ?? [] }),
-          constraints: new NumberConstraints({ context, schema: number })
-        })
-    )
-    .with(
-      { type: 'array' },
-      array =>
-        new TypeFacets({
-          modifiers: new Modifiers({
-            nullable: array.nullable,
-            required,
-            deprecated: array.deprecated,
-            readOnly: array.readOnly,
-            writeOnly: array.writeOnly
-          }),
-          enums: new Enums({ context, enums: array.enums ?? [] }),
-          constraints: new ArrayConstraints({ context, schema: array })
-        })
-    )
-    .with(
-      { type: 'object' },
-      object =>
-        new TypeFacets({
-          modifiers: new Modifiers({
-            nullable: object.nullable,
-            required,
-            deprecated: object.deprecated,
-            readOnly: object.readOnly,
-            writeOnly: object.writeOnly
-          }),
-          enums: new Enums({ context, enums: object.enums ?? [] }),
-          constraints: new ObjectConstraints({ context, schema: object })
-        })
-    )
-    .with(
-      { type: 'boolean' },
-      boolean =>
-        new TypeFacets({
-          modifiers: new Modifiers({
-            nullable: boolean.nullable,
-            required,
-            deprecated: boolean.deprecated,
-            readOnly: boolean.readOnly,
-            writeOnly: boolean.writeOnly
-          }),
-          enums: new Enums({ context, enums: boolean.enums ?? [] }),
-          constraints: new Constraints({ context, values: [], defaultValue: boolean.default })
-        })
-    )
-    .with(
-      { type: 'union' },
-      union =>
-        new TypeFacets({
-          modifiers: new Modifiers({ nullable: union.nullable, required }),
-          enums: undefined,
-          constraints: new Constraints({ context, values: [], defaultValue: union.default })
-        })
-    )
-    .with(
-      { type: 'unknown' },
-      unknown =>
-        new TypeFacets({
-          modifiers: new Modifiers({ nullable: unknown.nullable, required }),
-          enums: undefined,
-          constraints: new Constraints({ context, values: [], defaultValue: undefined })
-        })
-    )
-    .exhaustive()
+const toTypeFacets = ({ context, schema, required }: ToTypeFacetsArgs): TypeFacets => {
+  switch (schema.type) {
+    case 'string':
+      return new TypeFacets({
+        modifiers: new Modifiers({
+          format: schema.format,
+          nullable: schema.nullable,
+          required,
+          deprecated: schema.deprecated,
+          readOnly: schema.readOnly,
+          writeOnly: schema.writeOnly
+        }),
+        enums: new Enums({ context, enums: schema.enums ?? [] }),
+        constraints: new StringConstraints({ context, schema })
+      })
+    case 'number':
+    case 'integer':
+      return new TypeFacets({
+        modifiers: new Modifiers({
+          format: schema.format,
+          nullable: schema.nullable,
+          required,
+          deprecated: schema.deprecated,
+          readOnly: schema.readOnly,
+          writeOnly: schema.writeOnly
+        }),
+        enums: new Enums({ context, enums: schema.enums ?? [] }),
+        constraints: new NumberConstraints({ context, schema })
+      })
+    case 'array':
+      return new TypeFacets({
+        modifiers: new Modifiers({
+          nullable: schema.nullable,
+          required,
+          deprecated: schema.deprecated,
+          readOnly: schema.readOnly,
+          writeOnly: schema.writeOnly
+        }),
+        enums: new Enums({ context, enums: schema.enums ?? [] }),
+        constraints: new ArrayConstraints({ context, schema })
+      })
+    case 'object':
+      return new TypeFacets({
+        modifiers: new Modifiers({
+          nullable: schema.nullable,
+          required,
+          deprecated: schema.deprecated,
+          readOnly: schema.readOnly,
+          writeOnly: schema.writeOnly
+        }),
+        enums: new Enums({ context, enums: schema.enums ?? [] }),
+        constraints: new ObjectConstraints({ context, schema })
+      })
+    case 'boolean':
+      return new TypeFacets({
+        modifiers: new Modifiers({
+          nullable: schema.nullable,
+          required,
+          deprecated: schema.deprecated,
+          readOnly: schema.readOnly,
+          writeOnly: schema.writeOnly
+        }),
+        enums: new Enums({ context, enums: schema.enums ?? [] }),
+        constraints: new Constraints({ context, values: [], defaultValue: schema.default })
+      })
+    case 'union':
+      return new TypeFacets({
+        modifiers: new Modifiers({ nullable: schema.nullable, required }),
+        enums: undefined,
+        constraints: new Constraints({ context, values: [], defaultValue: schema.default })
+      })
+    case 'unknown':
+      return new TypeFacets({
+        modifiers: new Modifiers({ nullable: schema.nullable, required }),
+        enums: undefined,
+        constraints: new Constraints({ context, values: [], defaultValue: undefined })
+      })
+    default: {
+      const _exhaustive: never = schema
+      throw new Error(`Unhandled schema type: ${Reflect.get(_exhaustive, 'type')}`)
+    }
+  }
+}
 
 type TypeInfoArgs = {
   context: GenerateContextType

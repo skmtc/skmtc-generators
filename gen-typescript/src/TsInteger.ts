@@ -1,7 +1,6 @@
 import { TsSnippet } from '@skmtc/lang-typescript'
 import { applyModifiers } from './applyModifiers.ts'
 import type { OasInteger, GeneratorKey, Modifiers, GenerateContextType } from '@skmtc/core'
-import { match, P } from 'ts-pattern'
 
 type TsIntegerArgs = {
   context: GenerateContextType
@@ -25,23 +24,26 @@ export class TsInteger extends TsSnippet {
   }
 
   override toString(): string {
-    const { enums } = this
-
-    // As in TsString: the nullable modifier adds `| null`, so the union
-    // lists the numbers. Joined with the `null`, `[1, null]` gave
-    // `1 |  | null`, and an empty `enum: []` gave no type at all. Neither
-    // parses. An empty list accepts nothing.
-    const content = match({ enums })
-      .with({ enums: P.array() }, ({ enums }) => {
-        const members: Array<number | null> = enums
-        const values = members.filter((value): value is number => value !== null)
-
-        return match(values.length)
-          .with(0, () => (members.includes(null) ? 'null' : 'never'))
-          .otherwise(() => values.join(' | '))
-      })
-      .otherwise(() => `number`)
-
-    return applyModifiers(content, this.modifiers)
+    return applyModifiers(toContent(this), this.modifiers)
   }
+
+}
+
+const toContent = ({ enums }: Pick<TsInteger, 'enums'>): string => {
+  if (!Array.isArray(enums)) {
+    return 'number'
+  }
+
+  // As in TsString: the nullable modifier adds `| null`, so the union
+  // lists the numbers. Joined with the `null`, `[1, null]` gave
+  // `1 |  | null`, and an empty `enum: []` gave no type at all. Neither
+  // parses. An empty list accepts nothing.
+  const members: Array<number | null> = enums
+  const values = members.filter((value): value is number => value !== null)
+
+  if (values.length === 0) {
+    return members.includes(null) ? 'null' : 'never'
+  }
+
+  return values.join(' | ')
 }

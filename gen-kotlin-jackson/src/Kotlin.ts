@@ -12,7 +12,6 @@
  */
 import { toGeneratorOnlyKey } from '@skmtc/core'
 import type { Modifiers, SchemaToValueFn, SchemaType } from '@skmtc/core'
-import { match } from 'ts-pattern'
 import { kotlinJacksonEntry } from './mod.ts'
 import { KotlinArray } from './KotlinArray.ts'
 import { KotlinObject } from './KotlinObject.ts'
@@ -32,7 +31,7 @@ export const toKotlinValue: SchemaToValueFn = (
 ) => {
   // `schemaNode` arrives typed as the generic `Schema` parameter, and
   // TypeScript does not narrow a type parameter by discriminant. Widening
-  // it to the `SchemaType` union lets the match below narrow each case on
+  // it to the `SchemaType` union lets the switch below narrow each case on
   // its own — generator code narrows, it does not assert.
   const schema: SchemaType = schemaNode
 
@@ -45,62 +44,58 @@ export const toKotlinValue: SchemaToValueFn = (
     generatorId: kotlinJacksonEntry.id,
   })
 
-  return match(schema)
+  switch (schema.type) {
     // Custom values pass through untouched — they are already Stringable.
-    .with({ type: 'custom' }, (custom) => custom)
-    .with({ type: 'ref' }, (ref) => {
+    case 'custom':
+      return schema
+    case 'ref':
       return new KotlinRef({
         context,
         destinationPath,
-        ref,
+        ref: schema,
         modifiers,
         rootRef,
-        schema: ref,
+        schema,
       })
-    })
-    .with({ type: 'array' }, (arraySchema) => {
+    case 'array':
       return new KotlinArray({
         context,
         destinationPath,
         modifiers,
-        items: arraySchema.items,
+        items: schema.items,
         generatorKey,
         rootRef,
-        schema: arraySchema,
+        schema,
       })
-    })
-    .with({ type: 'object' }, (objectSchema) => {
+    case 'object':
       return new KotlinObject({
         context,
         destinationPath,
-        objectSchema,
+        objectSchema: schema,
         modifiers,
         generatorKey,
         rootRef,
       })
-    })
-    .with({ type: 'union' }, (unionSchema) => {
+    case 'union':
       return new KotlinUnion({
         context,
         destinationPath,
-        members: unionSchema.members,
-        discriminator: unionSchema.discriminator,
+        members: schema.members,
+        discriminator: schema.discriminator,
         modifiers,
         generatorKey,
         rootRef,
-        schema: unionSchema,
+        schema,
       })
-    })
-    .with({ type: 'string' }, (stringSchema) => {
+    case 'string':
       return new KotlinString({
         context,
-        stringSchema,
+        stringSchema: schema,
         modifiers,
         destinationPath,
         generatorKey,
       })
-    })
-    .with({ type: 'number' }, (schema) => {
+    case 'number':
       return new KotlinNumber({
         context,
         schema,
@@ -108,8 +103,7 @@ export const toKotlinValue: SchemaToValueFn = (
         destinationPath,
         generatorKey,
       })
-    })
-    .with({ type: 'integer' }, (schema) => {
+    case 'integer':
       return new KotlinInteger({
         context,
         schema,
@@ -117,8 +111,7 @@ export const toKotlinValue: SchemaToValueFn = (
         destinationPath,
         generatorKey,
       })
-    })
-    .with({ type: 'boolean' }, (schema) => {
+    case 'boolean':
       return new KotlinBoolean({
         context,
         schema,
@@ -126,12 +119,9 @@ export const toKotlinValue: SchemaToValueFn = (
         destinationPath,
         generatorKey,
       })
-    })
-    .with(
-      { type: 'void' },
-      () => new KotlinVoid({ context, destinationPath, generatorKey }),
-    )
-    .with({ type: 'unknown' }, (schema) => {
+    case 'void':
+      return new KotlinVoid({ context, destinationPath, generatorKey })
+    case 'unknown':
       return new KotlinUnknown({
         context,
         destinationPath,
@@ -139,6 +129,9 @@ export const toKotlinValue: SchemaToValueFn = (
         modifiers,
         schema,
       })
-    })
-    .exhaustive()
+    default: {
+      const _exhaustive: never = schema
+      throw new Error(`Unhandled schema type: ${Reflect.get(_exhaustive, 'type')}`)
+    }
+  }
 }

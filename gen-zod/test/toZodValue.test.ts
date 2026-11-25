@@ -1,6 +1,18 @@
-import { assertEquals } from "@std/assert";
-import { StackTrail, toSchemaV3 } from "@skmtc/core";
+import {
+  assertEquals,
+  assertInstanceOf,
+  assertStrictEquals,
+  assertThrows,
+} from "@std/assert";
+import {
+  CustomValue,
+  OasString,
+  OasVoid,
+  StackTrail,
+  toSchemaV3,
+} from "@skmtc/core";
 import { toZodValue } from "../src/Zod.ts";
+import { ZodVoid } from "../src/ZodVoid.ts";
 import type { OpenAPIV3 } from "openapi-types";
 import { toParseContext } from "./helpers/toParseContext.ts";
 import { toGenerateContext } from "./helpers/toGenerateContext.ts";
@@ -498,4 +510,46 @@ Deno.test("toZodValue - union with nullable member", () => {
     schemaToZod(schema),
     "z.union([z.string(), z.number().nullable()])",
   );
+});
+
+// ============================================================================
+// ROUTER CASES A PARSED SCHEMA DOES NOT REACH
+// ============================================================================
+
+Deno.test("toZodValue - a schema type it has no case for fails and names the type", () => {
+  // As if core had added a type after this router was written.
+  const schema = Object.assign(new OasString({}), { type: "tuple" });
+
+  assertThrows(
+    () =>
+      toZodValue({
+        context: toGenerateContext(),
+        destinationPath: "/test",
+        schema,
+        required: true,
+      }),
+    Error,
+    "Unhandled schema type: tuple",
+  );
+});
+
+Deno.test("toZodValue - a custom value passes through", () => {
+  const context = toGenerateContext();
+  const custom = new CustomValue({ context, value: "Custom" });
+
+  assertStrictEquals(
+    toZodValue({ context, destinationPath: "/test", schema: custom, required: true }),
+    custom,
+  );
+});
+
+Deno.test("toZodValue - void has its own snippet", () => {
+  const value = toZodValue({
+    context: toGenerateContext(),
+    destinationPath: "/test",
+    schema: OasVoid.empty(),
+    required: true,
+  });
+
+  assertInstanceOf(value, ZodVoid);
 });

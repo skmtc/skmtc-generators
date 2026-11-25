@@ -1,6 +1,5 @@
 import { SnippetBase, type GenerateContextType, type OasSecurityScheme } from '@skmtc/core'
 import { List } from '@skmtc/lang-typescript'
-import { match } from 'ts-pattern'
 import { InlineCode } from './InlineCode.ts'
 
 /** A security scheme of one type, by the `type` it declares. */
@@ -87,13 +86,22 @@ type ToSchemeArgs = {
 }
 
 /** The kind of a security scheme, by its type: one dispatch, so each type reads only its own fields. */
-export const toSchemeKind = ({ context, scheme }: ToSchemeArgs): SchemeKind =>
-  match(scheme)
-    .with({ type: 'http' }, http => new HttpScheme({ context, scheme: http }))
-    .with({ type: 'apiKey' }, apiKey => new ApiKeyScheme({ context, scheme: apiKey }))
-    .with({ type: 'oauth2' }, () => new OAuth2Scheme({ context }))
-    .with({ type: 'openIdConnect' }, () => new OpenIdConnectScheme({ context }))
-    .exhaustive()
+export const toSchemeKind = ({ context, scheme }: ToSchemeArgs): SchemeKind => {
+  switch (scheme.type) {
+    case 'http':
+      return new HttpScheme({ context, scheme })
+    case 'apiKey':
+      return new ApiKeyScheme({ context, scheme })
+    case 'oauth2':
+      return new OAuth2Scheme({ context })
+    case 'openIdConnect':
+      return new OpenIdConnectScheme({ context })
+    default: {
+      const _exhaustive: never = scheme
+      throw new Error(`Unhandled security scheme type: ${Reflect.get(_exhaustive, 'type')}`)
+    }
+  }
+}
 
 type UrlFlowArgs = {
   context: GenerateContextType
@@ -297,10 +305,19 @@ export type SchemeDetail = HttpScheme | ApiKeyScheme | OAuth2Detail | OpenIdConn
  * HTTP or API key scheme, and the details only the index shows for OAuth2
  * (flows and scopes) and OpenID Connect (its URL).
  */
-export const toSchemeDetail = ({ context, scheme }: ToSchemeArgs): SchemeDetail =>
-  match(scheme)
-    .with({ type: 'http' }, http => new HttpScheme({ context, scheme: http }))
-    .with({ type: 'apiKey' }, apiKey => new ApiKeyScheme({ context, scheme: apiKey }))
-    .with({ type: 'oauth2' }, oauth2 => new OAuth2Detail({ context, scheme: oauth2 }))
-    .with({ type: 'openIdConnect' }, openIdConnect => new OpenIdConnectDetail({ context, scheme: openIdConnect }))
-    .exhaustive()
+export const toSchemeDetail = ({ context, scheme }: ToSchemeArgs): SchemeDetail => {
+  switch (scheme.type) {
+    case 'http':
+      return new HttpScheme({ context, scheme })
+    case 'apiKey':
+      return new ApiKeyScheme({ context, scheme })
+    case 'oauth2':
+      return new OAuth2Detail({ context, scheme })
+    case 'openIdConnect':
+      return new OpenIdConnectDetail({ context, scheme })
+    default: {
+      const _exhaustive: never = scheme
+      throw new Error(`Unhandled security scheme type: ${Reflect.get(_exhaustive, 'type')}`)
+    }
+  }
+}

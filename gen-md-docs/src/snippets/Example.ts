@@ -1,5 +1,4 @@
 import { SnippetBase, type GenerateContextType } from '@skmtc/core'
-import { match, P } from 'ts-pattern'
 
 type JsonExampleArgs = {
   context: GenerateContextType
@@ -54,11 +53,12 @@ type ToExampleBlockArgs = {
  * viewer's `Example`: a {@link JsonExample} for an object or array, an
  * {@link InlineExample} for a scalar, and `undefined` when there is no example.
  */
-export const toExampleBlock = ({ context, example }: ToExampleBlockArgs): JsonExample | InlineExample | undefined =>
-  match(example)
-    .with(P.nullish, () => undefined)
-    .when(
-      value => typeof value === 'object',
-      value => new JsonExample({ context, example: value })
-    )
-    .otherwise(value => new InlineExample({ context, example: value }))
+export const toExampleBlock = ({ context, example }: ToExampleBlockArgs): JsonExample | InlineExample | undefined => {
+  if (example === null || example === undefined) {
+    return undefined
+  }
+
+  return typeof example === 'object'
+    ? new JsonExample({ context, example })
+    : new InlineExample({ context, example })
+}

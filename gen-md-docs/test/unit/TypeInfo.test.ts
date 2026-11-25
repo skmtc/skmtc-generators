@@ -1,4 +1,4 @@
-import { assertEquals } from '@std/assert'
+import { assertEquals, assertThrows } from '@std/assert'
 import { OasArray, OasBoolean, OasInteger, OasObject, OasString, OasUnion, OasUnknown, type OasSchema } from '@skmtc/core'
 import { TypeInfo } from '../../src/snippets/TypeInfo.ts'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
@@ -77,4 +77,15 @@ Deno.test('TypeInfo - an array shows its item counts and whether its items are u
   })
 
   assertEquals(snippet.toString(), '`string[]` (min items: 1, unique items)')
+})
+
+Deno.test('TypeInfo - a schema type it has no case for fails and names the type', () => {
+  // As if core had added a type after this snippet was written.
+  const schema = Object.assign(new OasString({}), { type: 'tuple' })
+
+  assertThrows(
+    () => new TypeInfo({ context: toGenerateContext(), ...inline(schema), required: true }),
+    Error,
+    'Unhandled schema type: tuple'
+  )
 })

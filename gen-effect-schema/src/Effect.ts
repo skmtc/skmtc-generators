@@ -10,7 +10,6 @@ import type {
   SchemaToValueFn,
   SchemaType,
 } from '@skmtc/core'
-import { match } from 'ts-pattern'
 import { effectSchemaEntry } from './mod.ts'
 import type { EffectModifiers } from './modifiers.ts'
 import { generatorSchema } from './enrichments.ts'
@@ -88,7 +87,7 @@ export const toEffectValueImpl = (
 ) => {
   // `schemaNode` arrives typed as the generic `Schema` parameter, and
   // TypeScript does not narrow a type parameter by discriminant.
-  // Widening it to the `SchemaType` union lets the match below narrow
+  // Widening it to the `SchemaType` union lets the switch below narrow
   // each case on its own.
   const schema: SchemaType = schemaNode
 
@@ -100,65 +99,62 @@ export const toEffectValueImpl = (
 
   const generatorKey = toGeneratorOnlyKey({ generatorId: effectSchemaEntry.id })
 
-  return match(schema)
+  // deno-lint-ignore skmtc/single-dispatch -- this is the router: `toEffectValue` is this function with `coerce` off. The rule knows a router by the name `to<X>Value`.
+  switch (schema.type) {
     // Custom values pass through untouched — they are already Stringable.
-    .with({ type: 'custom' }, (custom) => custom)
-    .with({ type: 'ref' }, (ref) => {
+    case 'custom':
+      return schema
+    case 'ref':
       return new EffectRef({
         context,
         destinationPath,
-        ref,
+        ref: schema,
         modifiers,
         rootRef,
-        schema: ref,
+        schema,
         coerce,
       })
-    })
-    .with({ type: 'array' }, (arraySchema) => {
+    case 'array':
       return new EffectArray({
         context,
         destinationPath,
-        arraySchema,
+        arraySchema: schema,
         modifiers,
         generatorKey,
         rootRef,
         coerce,
       })
-    })
-    .with({ type: 'object' }, (objectSchema) => {
+    case 'object':
       return new EffectObject({
         context,
         destinationPath,
-        objectSchema,
+        objectSchema: schema,
         modifiers,
         generatorKey,
         rootRef,
         coerce,
       })
-    })
-    .with({ type: 'union' }, (unionSchema) => {
+    case 'union':
       return new EffectUnion({
         context,
         destinationPath,
-        members: unionSchema.members,
-        discriminator: unionSchema.discriminator,
+        members: schema.members,
+        discriminator: schema.discriminator,
         modifiers,
         generatorKey,
         rootRef,
         coerce,
-        schema: unionSchema,
+        schema,
       })
-    })
-    .with({ type: 'string' }, (stringSchema) => {
+    case 'string':
       return new EffectString({
         context,
-        stringSchema,
+        stringSchema: schema,
         modifiers,
         destinationPath,
         generatorKey,
       })
-    })
-    .with({ type: 'number' }, (schema) => {
+    case 'number':
       return new EffectNumber({
         context,
         schema,
@@ -167,8 +163,7 @@ export const toEffectValueImpl = (
         generatorKey,
         coerce,
       })
-    })
-    .with({ type: 'integer' }, (schema) => {
+    case 'integer':
       return new EffectInteger({
         context,
         schema,
@@ -177,8 +172,7 @@ export const toEffectValueImpl = (
         generatorKey,
         coerce,
       })
-    })
-    .with({ type: 'boolean' }, (schema) => {
+    case 'boolean':
       return new EffectBoolean({
         context,
         schema,
@@ -187,20 +181,20 @@ export const toEffectValueImpl = (
         generatorKey,
         coerce,
       })
-    })
-    .with(
-      { type: 'void' },
-      () => new EffectVoid({ context, destinationPath, generatorKey }),
-    )
-    .with({ type: 'unknown' }, (schema) => {
+    case 'void':
+      return new EffectVoid({ context, destinationPath, generatorKey })
+    case 'unknown':
       return new EffectUnknown({
         context,
         destinationPath,
         generatorKey,
         schema,
       })
-    })
-    .exhaustive()
+    default: {
+      const _exhaustive: never = schema
+      throw new Error(`Unhandled schema type: ${Reflect.get(_exhaustive, 'type')}`)
+    }
+  }
 }
 
 /** The framework entry: the same router, with `coerce` off. */

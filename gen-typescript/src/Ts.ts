@@ -1,6 +1,5 @@
 import { TsString } from './TsString.ts'
 import { TsArray } from './TsArray.ts'
-import { match } from 'ts-pattern'
 import { TsRef } from './TsRef.ts'
 import { TsObject } from './TsObject.ts'
 import { TsUnion } from './TsUnion.ts'
@@ -23,12 +22,18 @@ import { typescriptEntry } from './mod.ts'
  * `void` takes none — `OasVoid` is not part of the `OasSchema` union.
  */
 export const toTsValue: SchemaToValueFn = ({
-  schema,
+  schema: schemaNode,
   destinationPath,
   required,
   context,
   rootRef
 }) => {
+  // `schemaNode` arrives typed as the generic `Schema` parameter, and TypeScript
+  // does not narrow a type parameter by discriminant. Widening it to the
+  // `SchemaType` union lets the switch below narrow each case on its own —
+  // generator code narrows, it does not assert.
+  const schema: SchemaType = schemaNode
+
   const modifiers: Modifiers = {
     required,
     // description: 'description' in schema ? schema.description : undefined,
@@ -37,71 +42,63 @@ export const toTsValue: SchemaToValueFn = ({
 
   const generatorKey = toGeneratorOnlyKey({ generatorId: typescriptEntry.id })
 
-  return match(schema satisfies SchemaType)
-    .with({ type: 'custom' }, custom => custom)
-    .with({ type: 'ref' }, ref => {
+  switch (schema.type) {
+    case 'custom':
+      return schema
+    case 'ref':
       return new TsRef({
         context,
         destinationPath,
-        ref,
+        ref: schema,
         modifiers,
         rootRef,
-        schema: ref
+        schema
       })
-    })
-    .with({ type: 'array' }, arraySchema => {
+    case 'array':
       return new TsArray({
         context,
         destinationPath,
         modifiers,
-        items: arraySchema.items,
+        items: schema.items,
         generatorKey,
         rootRef,
-        schema: arraySchema
+        schema
       })
-    })
-    .with({ type: 'object' }, matched => {
+    case 'object':
       return new TsObject({
         context,
         destinationPath,
-        value: matched,
+        value: schema,
         modifiers,
         generatorKey,
         rootRef
       })
-    })
-    .with({ type: 'union' }, unionSchema => {
+    case 'union':
       return new TsUnion({
         context,
         destinationPath,
-        members: unionSchema.members,
-        discriminator: unionSchema.discriminator,
+        members: schema.members,
+        discriminator: schema.discriminator,
         modifiers,
         generatorKey,
         rootRef,
-        schema: unionSchema
+        schema
       })
-    })
-    .with(
-      { type: 'number' },
-      numberSchema => new TsNumber({ context, modifiers, generatorKey, schema: numberSchema })
-    )
-    .with(
-      { type: 'integer' },
-      integerSchema => new TsInteger({ context, integerSchema, modifiers, generatorKey })
-    )
-    .with(
-      { type: 'boolean' },
-      booleanSchema => new TsBoolean({ context, booleanSchema, modifiers, generatorKey })
-    )
-    .with({ type: 'void' }, () => new TsVoid({ context, generatorKey }))
-    .with(
-      { type: 'string' },
-      stringSchema => new TsString({ context, stringSchema, modifiers, generatorKey })
-    )
-    .with(
-      { type: 'unknown' },
-      unknownSchema => new TsUnknown({ context, generatorKey, schema: unknownSchema })
-    )
-    .exhaustive()
+    case 'number':
+      return new TsNumber({ context, modifiers, generatorKey, schema })
+    case 'integer':
+      return new TsInteger({ context, integerSchema: schema, modifiers, generatorKey })
+    case 'boolean':
+      return new TsBoolean({ context, booleanSchema: schema, modifiers, generatorKey })
+    case 'void':
+      return new TsVoid({ context, generatorKey })
+    case 'string':
+      return new TsString({ context, stringSchema: schema, modifiers, generatorKey })
+    case 'unknown':
+      return new TsUnknown({ context, generatorKey, schema })
+    default: {
+      const _exhaustive: never = schema
+      throw new Error(`Unhandled schema type: ${Reflect.get(_exhaustive, 'type')}`)
+    }
+  }
 }

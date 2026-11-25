@@ -1,5 +1,4 @@
 import { TsSnippet } from '@skmtc/lang-typescript'
-import { match, P } from 'ts-pattern'
 import { applyModifiers } from './applyModifiers.ts'
 import { toAtomicSyntax } from './toAtomicSyntax.ts'
 import type { Modifiers, GeneratorKey, GenerateContextType, OasString } from '@skmtc/core'
@@ -28,20 +27,23 @@ export class ArktypeString extends TsSnippet {
     this.format = stringSchema.format
     this.enums = stringSchema.enums
 
-    // An empty `enum: []` accepts nothing. Joined, it gave `type("")`,
-    // which arktype cannot parse.
-    const content = match({ enums: stringSchema.enums })
-      .with({ enums: [] }, () => 'never')
-      .with({ enums: P.array() }, matched => matched.enums.map(toEnumMember).join(' | '))
-      .otherwise(() => 'string')
-
-    this.stringSyntax = applyModifiers(content, modifiers)
+    this.stringSyntax = applyModifiers(toContent(stringSchema.enums), modifiers)
     this.atomicStringSyntax = toAtomicSyntax(this.stringSyntax)
   }
 
   override toString(): string {
     return JSON.stringify(this.stringSyntax)
   }
+}
+
+const toContent = (enums: OasString['enums']): string => {
+  if (!Array.isArray(enums)) {
+    return 'string'
+  }
+
+  // An empty `enum: []` accepts nothing. Joined, it gave `type("")`,
+  // which arktype cannot parse.
+  return enums.length === 0 ? 'never' : enums.map(toEnumMember).join(' | ')
 }
 
 /**

@@ -27,7 +27,6 @@
     "@std/path": "jsr:@std/path@^1.1.2",
     "openapi-types": "npm:openapi-types@^12.1.3",
     "tiny-invariant": "npm:tiny-invariant@^1.3.3",
-    "ts-pattern": "npm:ts-pattern@^5.8.0",
     "valibot": "npm:valibot@1.5.0",
     "@skmtc/gen-kotlin-jackson": "./gen-kotlin-jackson/mod.ts",
     "@skmtc/gen-effect-schema": "./gen-effect-schema/mod.ts",

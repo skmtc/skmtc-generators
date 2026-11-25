@@ -160,8 +160,6 @@ class ValibotRecord extends SnippetBase {
   constructor({ context, generatorKey, destinationPath, schema, rootRef }: ValibotRecordArgs) {
     super({ context, generatorKey })
 
-    // Not ts-pattern: its type walk over `OasRef`, whose keywords include
-    // `additionalProperties`, circles back on itself.
     this.value =
       schema === true || isEmpty(schema)
         ? new ValibotUnknown({ context, destinationPath, generatorKey })

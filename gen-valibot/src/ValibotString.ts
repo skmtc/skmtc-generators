@@ -1,5 +1,4 @@
 import { toStringLiteral, TsSnippet } from '@skmtc/lang-typescript'
-import { match, P } from 'ts-pattern'
 import { applyModifiers } from './applyModifiers.ts'
 import type { Modifiers, GeneratorKey, GenerateContextType, OasString } from '@skmtc/core'
 
@@ -33,29 +32,29 @@ export class ValibotString extends TsSnippet {
   }
 
   override toString(): string {
-    const { enums, format } = this
-
-    const content = match({ enums })
-      .with({ enums: P.array() }, matched => {
-        // Core lists `null` only on a nullable schema, and the nullable
-        // modifier adds `v.nullable(…)`, so the picklist lists the strings.
-        // An empty `enum: []` accepts nothing.
-        const members: Array<string | null> = matched.enums
-        const values = members.filter((value): value is string => value !== null)
-
-        return match(values.length)
-          .with(0, () => (members.includes(null) ? 'v.null()' : 'v.never()'))
-          .with(1, () => `v.literal(${toStringLiteral(values[0])})`)
-          .otherwise(() => `v.picklist([${values.map(toStringLiteral).join(', ')}])`)
-      })
-      .otherwise(() => {
-        let str = `v.string()`
-        if (format === 'date-time') {
-          str = `v.pipe(v.string(), v.isoDateTime())`
-        }
-        return str
-      })
-
-    return applyModifiers(content, this.modifiers)
+    return applyModifiers(toContent(this), this.modifiers)
   }
+
+}
+
+const toContent = ({ enums, format }: Pick<ValibotString, 'enums' | 'format'>): string => {
+  if (!Array.isArray(enums)) {
+    return format === 'date-time' ? `v.pipe(v.string(), v.isoDateTime())` : `v.string()`
+  }
+
+  // Core lists `null` only on a nullable schema, and the nullable
+  // modifier adds `v.nullable(…)`, so the picklist lists the strings.
+  // An empty `enum: []` accepts nothing.
+  const members: Array<string | null> = enums
+  const values = members.filter((value): value is string => value !== null)
+
+  if (values.length === 0) {
+    return members.includes(null) ? 'v.null()' : 'v.never()'
+  }
+
+  if (values.length === 1) {
+    return `v.literal(${toStringLiteral(values[0])})`
+  }
+
+  return `v.picklist([${values.map(toStringLiteral).join(', ')}])`
 }

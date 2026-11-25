@@ -1,5 +1,4 @@
 import { List, toStringLiteral, TsSnippet } from '@skmtc/lang-typescript'
-import { match } from 'ts-pattern'
 import { applyModifiers } from "./applyModifiers.ts";
 import type { GenerateContextType, GeneratorKey, Modifiers, OasString } from '@skmtc/core'
 import { ZodConstraint } from "./ZodConstraints.ts";
@@ -41,7 +40,7 @@ export class ZodString extends TsSnippet {
       );
     }
 
-    if (stringSchema.maxLength) {
+    if (stringSchema.maxLength !== undefined) {
       this.constraints.values.push(
         new ZodConstraint({
           context,
@@ -69,12 +68,15 @@ export class ZodString extends TsSnippet {
       const members: Array<string | null> = enums;
       const values = members.filter((value): value is string => value !== null);
 
-      const content = match(values.length)
-        .with(0, () => (members.includes(null) ? "z.null()" : "z.never()"))
-        .with(1, () => `z.literal(${toStringLiteral(values[0])})`)
-        .otherwise(() => `z.enum([${values.map(toStringLiteral).join(", ")}])`);
+      if (values.length === 0) {
+        return applyModifiers(members.includes(null) ? "z.null()" : "z.never()", this.modifiers);
+      }
 
-      return applyModifiers(content, this.modifiers);
+      if (values.length === 1) {
+        return applyModifiers(`z.literal(${toStringLiteral(values[0])})`, this.modifiers);
+      }
+
+      return applyModifiers(`z.enum([${values.map(toStringLiteral).join(", ")}])`, this.modifiers);
     }
 
     return applyModifiers(`z.string()${this.constraints}`, this.modifiers);
