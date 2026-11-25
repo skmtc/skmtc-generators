@@ -7,6 +7,8 @@ import {
   keepAllRefs,
   loopDocument,
   loopError,
+  requiredLoopDocument,
+  requiredLoopError,
   runE2eFixture,
   toRunError
 } from '@skmtc/test-support'
@@ -34,8 +36,18 @@ Deno.test('intersection - a union member is in parentheses, as & binds tighter t
 // The trap: an object with no keys renders `Record<string, never>`, which
 // refuses the keys of the other members.
 Deno.test('intersection - a member with no keys of its own renders {}', () => {
-  assertStringIncludes(members['src/types/named.generated.ts'], 'export type Named = Animal & {};')
+  assertStringIncludes(members['src/types/filled.generated.ts'], 'export type Filled = Animal & {};')
+  assertStringIncludes(members['src/types/either.generated.ts'], 'export type Either = Animal & ({} | {});')
   assertStringIncludes(members['src/types/marked.generated.ts'], 'export type Marked = {} & {name?: string | undefined};')
+})
+
+Deno.test('intersection - a key that one member requires and another declares is required', () => {
+  assertStringIncludes(members['src/types/named.generated.ts'], 'export type Named = Animal & {kind: string};')
+})
+
+// Without the check, the stack overflows.
+Deno.test('intersection - a required property that holds the intersection fails and is named', () => {
+  assertStringIncludes(toRunError(runE2eFixture({ id, entry, document: requiredLoopDocument })), requiredLoopError)
 })
 
 Deno.test('intersection - a member that is any value', () => {

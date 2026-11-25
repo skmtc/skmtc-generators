@@ -110,10 +110,17 @@ export const missing: Pet = {name: 'Rex'}
 const intersectionMembersConsumer = `import type {Tagged} from '@/types/tagged.generated.ts'
 import type {Marked} from '@/types/marked.generated.ts'
 import type {Named} from '@/types/named.generated.ts'
+import type {Filled} from '@/types/filled.generated.ts'
+import type {Either} from '@/types/either.generated.ts'
 
 export const tagged: Tagged = {kind: 'dog', b: 'x'}
 export const marked: Marked = {name: 'Rex'}
 export const named: Named = {kind: 'dog'}
+export const filled: Filled = {kind: 'dog'}
+export const either: Either = {kind: 'dog'}
+
+// @ts-expect-error The key that Named requires is missing.
+export const unnamed: Named = {}
 
 // @ts-expect-error The member of the union is missing.
 export const untagged: Tagged = {kind: 'dog'}
@@ -128,7 +135,7 @@ export const closed: Closed = ${JSON.stringify(closedValue)}
 
 for (const [name, document, system, consumer, count] of [
   ['intersections', intersectionDocument, keepAllRefs, intersectionConsumer, 7],
-  ['members of intersections', intersectionMembersDocument, keepAllRefs, intersectionMembersConsumer, 6],
+  ['members of intersections', intersectionMembersDocument, keepAllRefs, intersectionMembersConsumer, 8],
   ['intersections in a cycle', intersectionCycleDocument, undefined, intersectionCycleConsumer, 7]
 ] as const) {
   Deno.test({

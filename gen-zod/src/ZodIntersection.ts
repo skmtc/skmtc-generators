@@ -4,7 +4,7 @@ import { toZodValue } from "./Zod.ts";
 import { ZodRef } from "./ZodRef.ts";
 import { applyModifiers } from "./applyModifiers.ts";
 import { isDeferred, needsAnnotation } from "./deferred.ts";
-import { assertNoMemberLoop } from "./memberLoop.ts";
+import { buildMembers } from "./intersectionMembers.ts";
 
 type ZodIntersectionArgs = {
   context: GenerateContextType;
@@ -31,9 +31,7 @@ export class ZodIntersection extends TsSnippet {
   ) {
     super({ context, generatorKey, stackTrail: schema.stackTrail.clone() });
 
-    assertNoMemberLoop(schema);
-
-    this.members = schema.members.map((member) =>
+    this.members = buildMembers(schema, (member) =>
       toZodValue({
         destinationPath,
         schema: member,

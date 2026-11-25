@@ -154,7 +154,9 @@ const toOwnKeys = ({ schema, flat }: ToOwnKeysArgs): string[] => {
   )
 
   return Object.keys(flat.properties).filter((key) => {
-    const owners = models.filter(({ properties }) => key in properties)
+    const owners = models.filter(({ properties }) =>
+      Object.hasOwn(properties, key)
+    )
 
     return inlineKeys.includes(key) || owners.length !== 1 ||
       (flat.required.includes(key) && !owners[0].required.includes(key))

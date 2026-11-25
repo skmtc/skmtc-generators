@@ -93,6 +93,53 @@ Deno.test('intersection - of a string and its enum, the enum', () => {
   )
 })
 
+Deno.test('intersection - of an enum and some of its values, the fewer', () => {
+  const kind = (values: string[]): OpenAPIV3.SchemaObject => ({
+    type: 'object',
+    properties: { kind: { type: 'string', enum: values } },
+  })
+
+  assertEquals(
+    runPet(kind(['a']), kind(['a', 'b'])).artifacts[pathOf('PetKind')].includes('@JsonProperty("b")'),
+    false,
+  )
+
+  assertStringIncludes(toRunError(runPet(kind(['a', 'c']), kind(['a', 'b']))), "two members have a property 'kind'")
+})
+
+Deno.test('intersection - two schemas of one property that differ in annotations only are the same', () => {
+  const tags = (description: string): OpenAPIV3.SchemaObject => ({
+    type: 'object',
+    properties: {
+      tags: {
+        type: 'array',
+        readOnly: description === 'One',
+        items: { type: 'object', properties: { title: { type: 'string', description } } },
+      },
+    },
+  })
+
+  assertStringIncludes(runPet(tags('One'), tags('Two')).artifacts[pathOf('Pet')], 'val tags: List<PetTagsItem>? = null')
+
+  // `title` is a property here, not an annotation.
+  const other: OpenAPIV3.SchemaObject = {
+    type: 'object',
+    properties: { tags: { type: 'array', items: { type: 'object', properties: { label: { type: 'string' } } } } },
+  }
+
+  assertStringIncludes(toRunError(runPet(other, tags('Two'))), "two members have a property 'tags'")
+})
+
+// The trap: `'constructor' in {}` is true.
+Deno.test('intersection - a property named as a member of every JavaScript object', () => {
+  const text: OpenAPIV3.SchemaObject = { type: 'string' }
+
+  assertStringIncludes(
+    runPet({ type: 'object', properties: { constructor: text } }).artifacts[pathOf('Pet')],
+    'val constructor: String? = null',
+  )
+})
+
 Deno.test('intersection - any value beside a ref adds nothing to it', () => {
   const { artifacts } = run(
     toSchemasDocument({

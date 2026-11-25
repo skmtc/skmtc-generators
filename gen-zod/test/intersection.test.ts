@@ -7,6 +7,8 @@ import {
   keepAllRefs,
   loopDocument,
   loopError,
+  requiredLoopDocument,
+  requiredLoopError,
   runE2eFixture,
   toRunError,
 } from "@skmtc/test-support";
@@ -42,6 +44,18 @@ Deno.test("intersection - more than two members", () => {
     members["src/types/noted.generated.ts"],
     "export const noted = animal.and(z.unknown()).and(marker);",
   );
+});
+
+Deno.test("intersection - a key that one member requires and another declares is required", () => {
+  assertStringIncludes(
+    members["src/types/named.generated.ts"],
+    "export const named = animal.and(z.object({kind: z.string()}));",
+  );
+});
+
+// Without the check, the stack overflows.
+Deno.test("intersection - a required property that holds the intersection fails and is named", () => {
+  assertStringIncludes(toRunError(runE2eFixture({ id, entry, document: requiredLoopDocument })), requiredLoopError);
 });
 
 // The trap: `.and` reads the type of `node`, which a getter does not defer

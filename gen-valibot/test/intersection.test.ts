@@ -3,9 +3,12 @@ import { assertStringIncludes } from '@std/assert'
 import {
   intersectionCycleDocument,
   intersectionDocument,
+  intersectionMembersDocument,
   keepAllRefs,
   loopDocument,
   loopError,
+  requiredLoopDocument,
+  requiredLoopError,
   runE2eFixture,
   toRunError
 } from '@skmtc/test-support'
@@ -47,6 +50,20 @@ Deno.test('intersection - additionalProperties: false is left out', () => {
     cycles['src/types/closed.generated.ts'],
     'export const closed = v.intersect([v.lazy(() => base), v.object({b: v.optional(v.string())})]);'
   )
+})
+
+Deno.test('intersection - a key that one member requires and another declares is required', () => {
+  const { artifacts } = runE2eFixture({ id, entry, document: intersectionMembersDocument, system: keepAllRefs })
+
+  assertStringIncludes(
+    artifacts['src/types/named.generated.ts'],
+    'export const named = v.intersect([animal, v.object({kind: v.string()})]);'
+  )
+})
+
+// Without the check, the stack overflows.
+Deno.test('intersection - a required property that holds the intersection fails and is named', () => {
+  assertStringIncludes(toRunError(runE2eFixture({ id, entry, document: requiredLoopDocument })), requiredLoopError)
 })
 
 Deno.test('intersection - an inheritance loop fails and is named', () => {

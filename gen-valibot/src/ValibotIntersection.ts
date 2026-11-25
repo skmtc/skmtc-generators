@@ -2,7 +2,7 @@ import { TsSnippet } from '@skmtc/lang-typescript'
 import type { GenerateContextType, GeneratorKey, Modifiers, OasIntersection, RefParts, TypeSystemValue } from '@skmtc/core'
 import { toValibotValue } from './Valibot.ts'
 import { applyModifiers } from './applyModifiers.ts'
-import { assertNoMemberLoop } from './memberLoop.ts'
+import { buildMembers } from './intersectionMembers.ts'
 
 type ValibotIntersectionArgs = {
   context: GenerateContextType
@@ -27,9 +27,7 @@ export class ValibotIntersection extends TsSnippet {
   constructor({ context, generatorKey, destinationPath, modifiers, rootRef, schema }: ValibotIntersectionArgs) {
     super({ context, generatorKey, stackTrail: schema.stackTrail.clone() })
 
-    assertNoMemberLoop(schema)
-
-    this.members = schema.members.map(member =>
+    this.members = buildMembers(schema, member =>
       toValibotValue({ destinationPath, schema: member, required: true, context, rootRef })
     )
     this.modifiers = modifiers

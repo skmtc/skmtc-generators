@@ -3,7 +3,7 @@ import { TsSnippet } from '@skmtc/lang-typescript'
 import { applyValueModifiers } from './applyModifiers.ts'
 import { type ArktypeValue, toArktypeValue } from './Arktype.ts'
 import { ArktypeRef } from './ArktypeRef.ts'
-import { assertNoMemberLoop } from './memberLoop.ts'
+import { buildMembers } from './intersectionMembers.ts'
 
 type ArktypeIntersectionArgs = {
   context: GenerateContextType
@@ -30,11 +30,9 @@ export class ArktypeIntersection extends TsSnippet {
   constructor({ context, schema, modifiers, destinationPath, generatorKey, rootRef }: ArktypeIntersectionArgs) {
     super({ context, generatorKey, stackTrail: schema.stackTrail.clone() })
 
-    assertNoMemberLoop(schema)
-
     this.modifiers = modifiers
 
-    this.members = schema.members.map(member =>
+    this.members = buildMembers(schema, member =>
       toArktypeValue({ schema: member, required: true, destinationPath, context, rootRef })
     )
 

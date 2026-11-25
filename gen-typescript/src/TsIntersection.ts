@@ -13,9 +13,10 @@ import type {
 import { toTsValue } from './Ts.ts'
 import { TsObject } from './TsObject.ts'
 import { TsRef } from './TsRef.ts'
+import { TsUnion } from './TsUnion.ts'
 import { TsUnknown } from './TsUnknown.ts'
 import { applyModifiers } from './applyModifiers.ts'
-import { assertNoMemberLoop } from './memberLoop.ts'
+import { buildMembers } from './intersectionMembers.ts'
 
 type TsIntersectionArgs = {
   context: GenerateContextType
@@ -35,13 +36,25 @@ export class TsIntersection extends TsSnippet {
   constructor({ context, generatorKey, destinationPath, modifiers, rootRef, schema }: TsIntersectionArgs) {
     super({ context, generatorKey, stackTrail: schema.stackTrail.clone() })
 
-    assertNoMemberLoop(schema)
+    const toAnyKeys = (member: OasSchema | OasRef<'schema'>): TsAnyKeys =>
+      new TsAnyKeys({ context, generatorKey, stackTrail: member.stackTrail.clone() })
 
-    this.members = schema.members.map(member =>
-      hasNoKeys(member)
-        ? new TsAnyKeys({ context, generatorKey, stackTrail: member.stackTrail.clone() })
-        : toTsValue({ destinationPath, schema: member, required: true, context, rootRef })
-    )
+    this.members = buildMembers(schema, member => {
+      if (hasNoKeys(member)) {
+        return toAnyKeys(member)
+      }
+
+      const value = toTsValue({ destinationPath, schema: member, required: true, context, rootRef })
+
+      // `anyOf: [{ required: ['a'] }, { required: ['b'] }]`
+      if (value instanceof TsUnion && 'members' in member) {
+        value.members = value.members.map((branch, index) =>
+          hasNoKeys(member.members[index]) ? toAnyKeys(member.members[index]) : branch
+        )
+      }
+
+      return value
+    })
     this.modifiers = modifiers
   }
 
@@ -51,8 +64,8 @@ export class TsIntersection extends TsSnippet {
 }
 
 /**
- * A member that is an object with no keys of its own (`{ required: ['id'] }`).
- * An object like that renders `Record<string, never>` elsewhere, which would
+ * A member, or a branch of one that is a union, that is an object with no keys
+ * of its own (`{ minProperties: 1 }`). An object like that renders `Record<string, never>` elsewhere, which would
  * refuse the keys of the other members.
  */
 class TsAnyKeys extends TsSnippet {

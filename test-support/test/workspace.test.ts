@@ -153,6 +153,7 @@ const copies: Record<string, string[]> = {
     'gen-valibot',
     'gen-zod'
   ],
+  'intersectionMembers.ts': ['gen-arktype', 'gen-typescript', 'gen-valibot', 'gen-zod'],
   'flatObject.ts': ['gen-effect-schema', 'gen-kotlin-jackson']
 }
 

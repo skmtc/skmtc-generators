@@ -251,6 +251,11 @@ const intersectionConsumer = toConsumer(["pet", "payment", "owner"], [
   `["Owner", owner.safeParse({ pet: null, pets: [{ kind: "dog" }] }).success]`,
 ]);
 
+const intersectionMembersConsumer = toConsumer(["named"], [
+  `["Named", named.safeParse({ kind: "dog" }).success]`,
+  `["Named without the key it requires", !named.safeParse({}).success]`,
+]);
+
 const intersectionCycleConsumer = toConsumer(["node", "closed", "pair"], [
   `["Node", node.safeParse(${JSON.stringify(nodeValue)}).success]`,
   `["Node without a key of the ref", !node.safeParse({ name: "r", children: [{ extra: "e" }] }).success]`,
@@ -263,7 +268,7 @@ const intersectionCycleConsumer = toConsumer(["node", "closed", "pair"], [
 for (
   const [name, document, system, consumer, count] of [
     ["intersections", intersectionDocument, keepAllRefs, intersectionConsumer, 7],
-    ["members of intersections", intersectionMembersDocument, keepAllRefs, "", 6],
+    ["members of intersections", intersectionMembersDocument, keepAllRefs, intersectionMembersConsumer, 8],
     ["intersections in a cycle", intersectionCycleDocument, undefined, intersectionCycleConsumer, 7],
   ] as const
 ) {

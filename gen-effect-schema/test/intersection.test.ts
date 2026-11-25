@@ -84,6 +84,19 @@ Deno.test('intersection - a spread later in the list does not undo a narrower pr
   )
 })
 
+// The trap: `'constructor' in {}` is true.
+Deno.test('intersection - a property of a model named as a member of every JavaScript object', () => {
+  const text: OpenAPIV3.SchemaObject = { type: 'string' }
+
+  assertStringIncludes(
+    runPet([{ type: 'object', properties: { name: text } }], {
+      type: 'object',
+      properties: { constructor: text },
+    }).artifacts[petPath],
+    'Schema.Struct({...Animal.fields, name: Schema.optional(Schema.String)})',
+  )
+})
+
 Deno.test('intersection - any value adds no field', () => {
   assertStringIncludes(
     run(toSchemasDocument({

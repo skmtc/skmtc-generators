@@ -821,7 +821,12 @@ export const intersectionDocument: OpenAPIV3.Document = toSchemasDocument({
   }
 })
 
-/** More members: a union, an object with no keys of its own, an empty model and any value. */
+/**
+ * More members: a union (Tagged), an object that only requires a key of
+ * another member (Named), an empty model (Marked), any value (Noted), and
+ * objects with no keys of their own, as a member (Filled) and as the branches
+ * of a union (Either).
+ */
 export const intersectionMembersDocument: OpenAPIV3.Document = toSchemasDocument({
   Animal: { type: 'object', properties: { kind: { type: 'string' } } },
   Marker: { type: 'object' },
@@ -838,8 +843,24 @@ export const intersectionMembersDocument: OpenAPIV3.Document = toSchemasDocument
   },
   Named: { allOf: [toRef('Animal'), { type: 'object', required: ['kind'] }] },
   Marked: { allOf: [toRef('Marker'), name] },
-  Noted: { allOf: [toRef('Animal'), { description: 'A note' }, toRef('Marker')] }
+  Noted: { allOf: [toRef('Animal'), { description: 'A note' }, toRef('Marker')] },
+  Filled: { allOf: [toRef('Animal'), { type: 'object', minProperties: 1 }] },
+  Either: { allOf: [toRef('Animal'), { anyOf: [{ type: 'object', minProperties: 1 }, { type: 'object', required: ['kind'] }] }] }
 })
+
+/** An intersection whose one member requires the property that holds the intersection. */
+export const requiredLoopDocument: OpenAPIV3.Document = toSchemasDocument({
+  Node: {
+    type: 'object',
+    properties: {
+      children: { type: 'array', items: { allOf: [toRef('Node'), { type: 'object', required: ['children'] }] } }
+    }
+  }
+})
+
+/** What a generator that renders `requiredLoopDocument` member by member says of it. */
+export const requiredLoopError =
+  '#/components/schemas/Node/properties/children/items/allOf cannot be rendered as an intersection: it requires a property of another member that holds the intersection itself'
 
 /**
  * Refs that close a cycle, which a parse keeps by default: through an item of a

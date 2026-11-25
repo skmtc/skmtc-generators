@@ -320,7 +320,7 @@ if (closedType({ kind: 'k', b: 'x' }) instanceof type.errors) throw new Error('C
 
 for (const [name, document, consumer, count] of [
   ['intersections', intersectionDocument, intersectionConsumer, 7],
-  ['members of intersections', intersectionMembersDocument, '', 6],
+  ['members of intersections', intersectionMembersDocument, '', 8],
   ['a closed intersection', closedDocument, closedConsumer, 2]
 ] as const) {
   Deno.test({

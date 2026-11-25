@@ -103,7 +103,7 @@ const mergeFlat = (first: FlatObject, second: FlatObject): FlatResult => {
   const properties: Record<string, PropertySchema> = { ...first.properties }
 
   for (const [key, schema] of Object.entries(second.properties)) {
-    const merged = key in properties ? toNarrower(properties[key], schema) : schema
+    const merged = Object.hasOwn(properties, key) ?toNarrower(properties[key], schema) : schema
 
     if (merged === undefined) {
       return { type: 'failed', reason: `two members have a property '${key}', of two different schemas` }
@@ -155,30 +155,50 @@ const toNarrower = (first: PropertySchema, second: PropertySchema): PropertySche
   return isStringEnumOf(second, first) ? second : undefined
 }
 
-/** Whether `schema` lists the values of a string, and `base` is any string. */
-const isStringEnumOf = (schema: PropertySchema, base: PropertySchema): boolean =>
-  schema.type === 'string' &&
-  base.type === 'string' &&
-  schema.enums !== undefined &&
-  base.enums === undefined &&
-  (!schema.nullable || base.nullable === true)
+/** Whether `schema` lists the values of a string, and `base` is any string or lists them too. */
+const isStringEnumOf = (schema: PropertySchema, base: PropertySchema): boolean => {
+  if (schema.type !== 'string' || base.type !== 'string' || schema.enums === undefined) {
+    return false
+  }
+
+  const values: (string | null)[] | undefined = base.enums
+
+  return (
+    (!schema.nullable || base.nullable === true) &&
+    (values === undefined || schema.enums.every(value => values.includes(value)))
+  )
+}
 
 const isSame = (first: PropertySchema, second: PropertySchema): boolean =>
   first === second ||
   (first.type !== 'custom' &&
     second.type !== 'custom' &&
-    JSON.stringify(toRules(first)) === JSON.stringify(toRules(second)))
+    JSON.stringify(toRules(schemaToJson(first))) === JSON.stringify(toRules(schemaToJson(second))))
 
-/** A schema as JSON, without the keywords that only describe it. */
-const toRules = (schema: OasSchema | OasRef<'schema'>): Record<string, unknown> => {
-  const {
-    title: _title,
-    description: _description,
-    example: _example,
-    default: _default,
-    deprecated: _deprecated,
-    ...rules
-  }: Record<string, unknown> = { ...schema.toJsonSchema({ resolve: false }) }
+const schemaToJson = (schema: OasSchema | OasRef<'schema'>): unknown => schema.toJsonSchema({ resolve: false })
 
-  return rules
+/** The keywords that only describe a value. */
+const ANNOTATIONS = ['title', 'description', 'example', 'default', 'deprecated', 'readOnly', 'writeOnly', 'externalDocs']
+
+/** A JSON schema without its annotations, at every level. The keys of `properties` are names, not keywords. */
+const toRules = (value: unknown): unknown => {
+  if (Array.isArray(value)) {
+    return value.map(toRules)
+  }
+
+  if (typeof value !== 'object' || value === null) {
+    return value
+  }
+
+  return Object.fromEntries(
+    Object.entries(value).flatMap(([key, entry]) => {
+      if (ANNOTATIONS.includes(key)) {
+        return []
+      }
+
+      return key === 'properties' && typeof entry === 'object' && entry !== null
+        ? [[key, Object.entries(entry).map(([name, schema]) => [name, toRules(schema)])]]
+        : [[key, toRules(entry)]]
+    })
+  )
 }
