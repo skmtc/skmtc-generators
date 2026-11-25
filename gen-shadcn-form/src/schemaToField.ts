@@ -14,6 +14,7 @@ import { SelectInput } from './fields/SelectInput.ts'
 import { NumberInput } from './fields/NumberInput.ts'
 import { IntegerInput } from './fields/IntegerInput.ts'
 import { CheckboxInput } from './fields/CheckboxInput.ts'
+import { openModel, repeatsModel, type OpenModels } from './openModels.ts'
 
 type SchemaToFieldArgs = {
   name: string
@@ -24,6 +25,7 @@ type SchemaToFieldArgs = {
   context: GenerateContextType
   destinationPath: string
   topLevelSchema: OasSchema | OasRef<'schema'>
+  openModels: OpenModels
   /** Consumer-assigned input component for this field (the `input` enrichment).
    *  When present it wins over schema-type routing — the field renders the named
    *  component, type-matched in the hub to accept the field's `lens`. */
@@ -39,8 +41,9 @@ export const schemaToField = ({
   label,
   skipLabel,
   topLevelSchema,
+  openModels,
   input
-}: SchemaToFieldArgs): Stringable => {
+}: SchemaToFieldArgs): Stringable | undefined => {
   // A consumer-assigned input component overrides schema-type routing entirely:
   // render it directly (only `lens` is emitted — the prop the hub matcher
   // verified). Checked first so it applies regardless of the field's shape.
@@ -52,6 +55,12 @@ export const schemaToField = ({
       input,
       schema: schema.type === 'custom' ? undefined : schema
     })
+  }
+
+  // A model inside itself has no end, and no default field would work for it
+  // (#122). After `input`, which is how a consumer gives a field for it.
+  if (repeatsModel({ schema, openModels })) {
+    return undefined
   }
 
   // OpenAPI refs cannot have extensions and as a workaround
@@ -69,7 +78,8 @@ export const schemaToField = ({
       name,
       skipLabel,
       label: getLabel({ schema, name }),
-      topLevelSchema
+      topLevelSchema,
+      openModels
     })
   }
 
@@ -86,7 +96,8 @@ export const schemaToField = ({
       name,
       skipLabel,
       label: label ?? getLabel({ schema, name }),
-      topLevelSchema
+      topLevelSchema,
+      openModels: openModel({ schema, openModels })
     })
   }
 
@@ -98,7 +109,8 @@ export const schemaToField = ({
       label: label ?? getLabel({ schema, name }),
       destinationPath,
       isRequired,
-      topLevelSchema
+      topLevelSchema,
+      openModels
     })
   }
 
@@ -110,7 +122,8 @@ export const schemaToField = ({
       label: label ?? getLabel({ schema, name }),
       destinationPath,
       isRequired,
-      topLevelSchema
+      topLevelSchema,
+      openModels
     })
   }
 

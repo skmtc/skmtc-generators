@@ -1,7 +1,8 @@
-import { TsSnippet, List, toStringLiteral, type EntryList, type ListArray, type ListLines } from '@skmtc/lang-typescript'
+import { TsSnippet, List, toStringLiteral, EntryList, type ListArray, type ListLines } from '@skmtc/lang-typescript'
 import type { CustomValue, GenerateContextType, OasRef, OasSchema, Stringable, TypeSystemValue } from '@skmtc/core'
 import { OasObject } from '@skmtc/core'
 import { getLabel, schemaToField } from '../schemaToField.ts'
+import { openModel, repeatsModel, type OpenModels } from '../openModels.ts'
 import { toTsValue } from '@skmtc/gen-typescript'
 
 type TableArgs = {
@@ -12,6 +13,7 @@ type TableArgs = {
   destinationPath: string
   isRequired: boolean
   topLevelSchema: OasSchema | OasRef<'schema'>
+  openModels: OpenModels
 }
 
 export class Table extends TsSnippet {
@@ -22,11 +24,14 @@ export class Table extends TsSnippet {
     name,
     isRequired,
     destinationPath,
-    topLevelSchema
+    topLevelSchema,
+    openModels
   }: TableArgs) {
     super({ context, stackTrail: schema.stackTrail.clone() })
 
     const resolvedSchema = schema.resolve()
+
+    const rowModels = openModel({ schema, openModels })
 
     return resolvedSchema.type === 'object'
       ? new ObjectTable({
@@ -36,7 +41,8 @@ export class Table extends TsSnippet {
           label,
           destinationPath,
           isRequired,
-          topLevelSchema
+          topLevelSchema,
+          openModels: rowModels
         })
       : new SimpleTable({
           context,
@@ -45,7 +51,8 @@ export class Table extends TsSnippet {
           label,
           destinationPath,
           isRequired,
-          topLevelSchema
+          topLevelSchema,
+          openModels: rowModels
         })
   }
 }
@@ -58,6 +65,7 @@ type SimpleTableArgs = {
   destinationPath: string
   isRequired: boolean
   topLevelSchema: OasSchema | OasRef<'schema'>
+  openModels: OpenModels
 }
 
 export class SimpleTable extends TsSnippet {
@@ -73,7 +81,8 @@ export class SimpleTable extends TsSnippet {
     name,
     isRequired,
     destinationPath,
-    topLevelSchema
+    topLevelSchema,
+    openModels
   }: SimpleTableArgs) {
     super({ context })
 
@@ -91,7 +100,8 @@ export class SimpleTable extends TsSnippet {
       destinationPath,
       parentSchema,
       isRequired,
-      topLevelSchema
+      topLevelSchema,
+      openModels
     })
 
     this.register({
@@ -121,6 +131,7 @@ type ObjectTableArgs = {
   destinationPath: string
   isRequired: boolean
   topLevelSchema: OasSchema | OasRef<'schema'>
+  openModels: OpenModels
 }
 
 export class ObjectTable extends TsSnippet {
@@ -136,7 +147,8 @@ export class ObjectTable extends TsSnippet {
     name,
     isRequired,
     destinationPath,
-    topLevelSchema
+    topLevelSchema,
+    openModels
   }: ObjectTableArgs) {
     super({ context })
 
@@ -151,7 +163,13 @@ export class ObjectTable extends TsSnippet {
             }
           })
 
-    const items = List.fromEntries(parentSchema.properties ?? {})
+    // The headers and the cells both come from `items`, so a column that would
+    // repeat a model is left out of both.
+    const items = new EntryList(
+      Object.entries(parentSchema.properties ?? {}).filter(
+        ([, schema]) => !repeatsModel({ schema, openModels })
+      )
+    )
 
     this.label = label ?? getLabel({ schema: parentSchema, name: 'table' })
 
@@ -166,7 +184,8 @@ export class ObjectTable extends TsSnippet {
       parentSchema,
       items,
       isRequired,
-      topLevelSchema
+      topLevelSchema,
+      openModels
     })
 
     this.register({
@@ -195,6 +214,7 @@ type SimpleTableRowRenderArgs = {
   destinationPath: string
   isRequired: boolean
   topLevelSchema: OasSchema | OasRef<'schema'>
+  openModels: OpenModels
 }
 
 class SimpleTableRowRender extends TsSnippet {
@@ -207,7 +227,8 @@ class SimpleTableRowRender extends TsSnippet {
     destinationPath,
     parentSchema,
     isRequired,
-    topLevelSchema
+    topLevelSchema,
+    openModels
   }: SimpleTableRowRenderArgs) {
     super({ context })
 
@@ -229,7 +250,8 @@ class SimpleTableRowRender extends TsSnippet {
         label: getLabel({ schema: parentSchema, name }),
         destinationPath,
         isRequired,
-        topLevelSchema
+        topLevelSchema,
+        openModels
       })}</TableCell>`
     ])
 
@@ -262,6 +284,7 @@ type TableObjectRowRenderArgs = {
   destinationPath: string
   isRequired: boolean
   topLevelSchema: OasSchema | OasRef<'schema'>
+  openModels: OpenModels
 }
 
 class TableObjectRowRender extends TsSnippet {
@@ -275,7 +298,8 @@ class TableObjectRowRender extends TsSnippet {
     parentSchema,
     items,
     isRequired,
-    topLevelSchema
+    topLevelSchema,
+    openModels
   }: TableObjectRowRenderArgs) {
     super({ context })
 
@@ -297,7 +321,8 @@ class TableObjectRowRender extends TsSnippet {
         label: getLabel({ schema, name }),
         destinationPath,
         isRequired: Boolean(parentSchema.required?.includes(name)),
-        topLevelSchema
+        topLevelSchema,
+        openModels
       })}</TableCell>`
     })
 

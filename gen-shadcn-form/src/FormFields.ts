@@ -3,6 +3,7 @@ import type { OasOperationProjectionConstructorArgs, Stringable } from '@skmtc/c
 import { SnippetBase } from '@skmtc/core'
 import invariant from 'tiny-invariant'
 import { schemaToField, getLabel } from './schemaToField.ts'
+import { openModel } from './openModels.ts'
 import { toProperties, type EnrichmentSchema } from './enrichments.ts'
 
 export class FormFields extends SnippetBase {
@@ -25,6 +26,8 @@ export class FormFields extends SnippetBase {
 
       invariant(resolved.type === 'object', 'Operation must have a body with type object')
 
+      const openModels = openModel({ schema: parentSchema, openModels: new Set() })
+
       return List.fromEntries(resolved.properties ?? {}).toLines(([name, schema]) => {
         const override = overrides.get(name)
         return schemaToField({
@@ -32,6 +35,7 @@ export class FormFields extends SnippetBase {
           name,
           schema,
           topLevelSchema: parentSchema,
+          openModels,
           skipLabel: false,
           destinationPath: settings.exportPath,
           label: override?.label ?? getLabel({ schema, name }),
