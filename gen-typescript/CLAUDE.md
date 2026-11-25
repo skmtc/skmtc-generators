@@ -43,7 +43,8 @@ The generator has two layers: one **Projection** class (`TsProjection`, extendin
 
 ### Type Mapping
 
-The `toTsValue` function in `src/Ts.ts` uses pattern matching to convert schema types to their TypeScript equivalents:
+The `toTsValue` function in `src/Ts.ts` converts schema types to their TypeScript equivalents with a `switch` on `schema.type`. Its `default` assigns to `never`, so a new schema type is a compile error, and fails the run with the type's name:
+- `custom` → the value itself, unchanged
 - `ref` → `TsRef`
 - `array` → `TsArray`
 - `object` → `TsObject`

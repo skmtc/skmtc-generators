@@ -163,7 +163,8 @@ type ToSiteTypeInfoArgs = {
   site: SiteSchema
 }
 
-const toSiteTypeInfo = ({
+/** The type of a row, by what its site shows. Exported for its test. */
+export const toSiteTypeInfo = ({
   context,
   schema,
   required,
@@ -176,6 +177,10 @@ const toSiteTypeInfo = ({
       return new AliasTypeInfo({ context, schema, required })
     case 'dangling':
       return new UnresolvedTypeInfo({ context, schema, required })
+    default: {
+      const _exhaustive: never = site
+      throw new Error(`Unhandled schema site type: ${Reflect.get(_exhaustive, 'type')}`)
+    }
   }
 }
 

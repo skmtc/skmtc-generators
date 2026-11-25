@@ -1,6 +1,6 @@
 import { assert, assertEquals, assertExists, assertThrows } from '@std/assert'
 import { OasArray, OasNumber, OasObject, OasString, OasUnion } from '@skmtc/core'
-import { Schema } from '../../src/snippets/Schema.ts'
+import { Schema, toSiteTypeInfo } from '../../src/snippets/Schema.ts'
 import { DocumentSchema } from '../../src/snippets/DocumentSchema.ts'
 import { MdFile } from '../../src/lang/MdFile.ts'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
@@ -237,5 +237,16 @@ Deno.test('Schema - a schema type it has no case for fails and names the type', 
     () => new Schema({ context: toGenerateContext(), name: 'id', schema, required: true }),
     Error,
     'Unhandled schema type: tuple'
+  )
+})
+
+Deno.test('toSiteTypeInfo - a site it has no case for fails and names its type', () => {
+  // As if `toSiteSchema` had added a kind of site after this was written.
+  const site = Object.assign({ type: 'alias' as const }, { type: 'inline' })
+
+  assertThrows(
+    () => toSiteTypeInfo({ context: toGenerateContext(), schema: new OasString({}), required: true, site }),
+    Error,
+    'Unhandled schema site type: inline'
   )
 })
