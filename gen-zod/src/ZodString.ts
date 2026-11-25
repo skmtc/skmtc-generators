@@ -40,7 +40,7 @@ export class ZodString extends TsSnippet {
       );
     }
 
-    if (stringSchema.maxLength) {
+    if (stringSchema.maxLength !== undefined) {
       this.constraints.values.push(
         new ZodConstraint({
           context,

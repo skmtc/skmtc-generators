@@ -111,6 +111,19 @@ Deno.test("ZodString - with maxLength", () => {
   assertEquals(zodString.toString(), "z.string().max(100)");
 });
 
+Deno.test("ZodString - maxLength 0 keeps its check", () => {
+  // The trap: 0 is falsy, and a schema with it accepts only the empty string.
+  const zodString = new ZodString({
+    context: toGenerateContext(),
+    stringSchema: new OasString({ maxLength: 0 }),
+    modifiers: { required: true },
+    generatorKey: toGeneratorOnlyKey({ generatorId: "@skmtc/gen-zod" }),
+    destinationPath: "/test",
+  });
+
+  assertEquals(zodString.toString(), "z.string().max(0)");
+});
+
 Deno.test("ZodString - with minLength and maxLength", () => {
   const zodString = new ZodString({
     context: toGenerateContext(),
