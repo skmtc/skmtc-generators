@@ -913,6 +913,81 @@ export const nodeValue = { name: 'r', children: [{ name: 'c', children: [], extr
 /** A value that Closed of `intersectionCycleDocument` allows: a property of Base, and its own. */
 export const closedValue = { kind: 'k', b: 'x', subs: [{ kind: 's', name: 'n' }] }
 
+const person: OpenAPIV3.SchemaObject = {
+  type: 'object',
+  properties: {
+    name: { type: 'string' },
+    manager: { allOf: [toRef('Employee'), { title: 'Manager', description: 'Who they report to' }] }
+  }
+}
+
+const employee: OpenAPIV3.SchemaObject = {
+  allOf: [toRef('Person'), { type: 'object', required: ['manager'], properties: { id: { type: 'string' } } }]
+}
+
+/**
+ * A required property that holds an intersection of another model, in both
+ * orders: which model is built first must not change what renders.
+ */
+export const requiredThroughModelDocuments: Record<string, OpenAPIV3.Document> = {
+  'the base first': toSchemasDocument({ Person: person, Employee: employee }),
+  'the subtype first': toSchemasDocument({ Employee: employee, Person: person })
+}
+
+/** Keys required by a base (Sub), by one of two references (Both) and of a union (Narrowed). */
+export const requiredKeysDocument: OpenAPIV3.Document = toSchemasDocument({
+  Base: { type: 'object', required: ['kind'], properties: { subs: { type: 'array', items: toRef('Sub') } } },
+  Sub: { allOf: [toRef('Base'), { type: 'object', properties: { kind: toKind('a') } }] },
+  NeedsId: { type: 'object', required: ['id'], properties: { both: toRef('Both') } },
+  HasId: { type: 'object', properties: { id: { type: 'string' }, both: toRef('Both') } },
+  Both: { allOf: [toRef('NeedsId'), toRef('HasId')] },
+  Choice: {
+    oneOf: [
+      { type: 'object', properties: { id: { type: 'string' }, next: toRef('Narrowed') } },
+      { type: 'object', properties: { id: { type: 'string' }, b: { type: 'string' } } }
+    ]
+  },
+  Narrowed: { allOf: [toRef('Choice'), { type: 'object', required: ['id'] }] }
+})
+
+/** A required key that the branches of a union declare as two schemas. */
+export const requiredBranchesDocument: OpenAPIV3.Document = toSchemasDocument({
+  Choice: {
+    oneOf: [
+      { type: 'object', properties: { id: { type: 'string' }, next: toRef('Narrowed') } },
+      { type: 'object', properties: { id: { type: 'number' } } }
+    ]
+  },
+  Narrowed: { allOf: [toRef('Choice'), { type: 'object', required: ['id'] }] }
+})
+
+/** What a generator that renders `requiredBranchesDocument` member by member says of it. */
+export const requiredBranchesError =
+  "#/components/schemas/Narrowed/allOf cannot be rendered as an intersection: it requires 'id', which the branches of a union declare differently"
+
+const toListPath = (schema: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject):OpenAPIV3.PathItemObject => ({
+  get: { responses: { '200': { description: 'A list', content: { 'application/json': { schema } } } } }
+})
+
+const subs: OpenAPIV3.SchemaObject = { type: 'array', items: toRef('Sub') }
+
+/** Lists whose items, and whose wrapper (`/pages`), are an `allOf` in a cycle. */
+export const intersectionListDocument: OpenAPIV3.Document = {
+  openapi: '3.0.3',
+  info: { title: 'Intersection list fixture', version: '1.0.0' },
+  paths: {
+    '/subs': toListPath(subs),
+    '/pages': toListPath(toRef('Page'))
+  },
+  components: {
+    schemas: {
+      Base: { type: 'object', properties: { id: { type: 'string' }, page: toRef('Page'), subs } },
+      Sub: { allOf: [toRef('Base'), name] },
+      Page: { allOf: [toRef('Base'), { type: 'object', properties: { items: subs } }] }
+    }
+  }
+}
+
 /** An inheritance loop: no property is between Payment and Card. */
 export const loopDocument: OpenAPIV3.Document = toSchemasDocument({
   Payment: { oneOf: [toRef('Card'), toRef('Cash')], discriminator: { propertyName: 'type' } },

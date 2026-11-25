@@ -6,6 +6,7 @@ import type {
   OasSchema,
   Stringable
 } from '@skmtc/core'
+import { toObjectSchema } from '@skmtc/gen-tanstack-query-supabase-zod'
 import { StringInput } from './fields/StringInput.ts'
 import { CustomInput } from './fields/CustomInput.ts'
 import { Table } from './fields/Table.ts'
@@ -88,8 +89,10 @@ export const schemaToField = ({
     // we look up its value and call schemaToField recursively
     // to handle the resolved schema
 
+    const target = schema.resolve()
+
     return schemaToField({
-      schema: schema.resolve(),
+      schema: toObjectSchema(target) ?? target,
       isRequired,
       context,
       destinationPath,
@@ -99,6 +102,25 @@ export const schemaToField = ({
       topLevelSchema,
       openModels: openModel({ schema, openModels })
     })
+  }
+
+  // An inline intersection of objects has the fields of its members
+  if (schema.type === 'intersection') {
+    const object = toObjectSchema(schema)
+
+    if (object) {
+      return schemaToField({
+        schema: object,
+        isRequired,
+        context,
+        destinationPath,
+        name,
+        skipLabel,
+        label,
+        topLevelSchema,
+        openModels: openModel({ schema, openModels })
+      })
+    }
   }
 
   if (schema.type === 'object') {

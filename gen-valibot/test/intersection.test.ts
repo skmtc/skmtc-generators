@@ -7,8 +7,12 @@ import {
   keepAllRefs,
   loopDocument,
   loopError,
+  requiredBranchesDocument,
+  requiredBranchesError,
+  requiredKeysDocument,
   requiredLoopDocument,
   requiredLoopError,
+  requiredThroughModelDocuments,
   runE2eFixture,
   toRunError
 } from '@skmtc/test-support'
@@ -65,6 +69,24 @@ Deno.test('intersection - a key that one member requires and another declares is
 Deno.test('intersection - a required property that holds the intersection fails and is named', () => {
   assertStringIncludes(toRunError(runE2eFixture({ id, entry, document: requiredLoopDocument })), requiredLoopError)
 })
+
+Deno.test('intersection - a key required by a reference, or declared by a union, is required', () => {
+  const { artifacts } = runE2eFixture({ id, entry, document: requiredKeysDocument })
+
+  assertStringIncludes(artifacts['src/types/sub.generated.ts'], "v.object({kind: v.literal('a')})]);")
+  assertStringIncludes(artifacts['src/types/both.generated.ts'], 'v.object({id: v.string()})]);')
+  assertStringIncludes(artifacts['src/types/narrowed.generated.ts'], 'v.object({id: v.string()})]);')
+  assertStringIncludes(toRunError(runE2eFixture({ id, entry, document: requiredBranchesDocument })), requiredBranchesError)
+})
+
+for (const [order, document] of Object.entries(requiredThroughModelDocuments)) {
+  Deno.test(`intersection - a required property that holds one of another model renders, ${order}`, () => {
+    assertStringIncludes(
+      runE2eFixture({ id, entry, document }).artifacts['src/types/employee.generated.ts'],
+      'v.object({id: v.optional(v.string()), manager: v.intersect('
+    )
+  })
+}
 
 Deno.test('intersection - an inheritance loop fails and is named', () => {
   assertStringIncludes(toRunError(runE2eFixture({ id, entry, document: loopDocument })), loopError)

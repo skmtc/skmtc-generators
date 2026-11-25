@@ -330,8 +330,8 @@ const toSegments = (frames: string[]): string[] | null => {
       continue
     }
 
-    // A member of an intersection too: one at most is not a reference, so its
-    // index tells nothing apart (`Pet/allOf/1/properties/kind` is `PetKind`).
+    // Skips the index too: at most one member of an intersection is not a
+    // reference (`Pet/allOf/1/properties/kind` is `PetKind`).
     if (frame === 'allOf') {
       if (/^\d+$/.test(frames[index + 1] ?? '')) {
         index++

@@ -1,9 +1,10 @@
-import { SnippetBase, type GenerateContextType, type OasSchema, type OasRef, type OasObject, type RefParts } from '@skmtc/core'
+import { SnippetBase, type GenerateContextType, type OasSchema, type OasRef, type OasIntersection, type OasObject, type RefParts } from '@skmtc/core'
 import { List } from '@skmtc/lang-typescript'
 import { Name } from './Name.ts'
 import { AliasTypeInfo, TypeInfo, UnresolvedTypeInfo } from './TypeInfo.ts'
 import { DescriptionClause } from './Description.ts'
 import { toSiteSchema, type SiteSchema } from '../safeResolve.ts'
+import { toUnmetKeys } from '../intersectionMembers.ts'
 import { assertNoMemberLoop } from '../memberLoop.ts'
 
 type SchemaArgs = {
@@ -99,6 +100,8 @@ type Property = {
   name: string | undefined
   schema: OasSchema | OasRef<'schema'>
   required: boolean | undefined
+  /** Used in place of the schema's own. */
+  description?: string
 }
 
 type PropertiesArgs = {
@@ -205,7 +208,7 @@ const toExpansion = (schema: OasSchema | OasRef<'schema'>): Property[] => {
     case 'intersection':
       assertNoMemberLoop(schema)
 
-      return schema.members.map(member => ({ name: undefined, schema: member, required: undefined }))
+      return toIntersectionMembers(schema)
     case 'string':
     case 'number':
     case 'integer':
@@ -217,6 +220,24 @@ const toExpansion = (schema: OasSchema | OasRef<'schema'>): Property[] => {
       throw new Error(`Unhandled schema type: ${Reflect.get(_exhaustive, 'type')}`)
     }
   }
+}
+
+/**
+ * A row for each member. A key that one member requires and another declares
+ * has no row that says it is required, so the last inline member's row names
+ * it, or the last member's: `` `object` — Requires `kind`. ``
+ */
+const toIntersectionMembers = (intersection: OasIntersection): Property[] => {
+  const { members } = intersection
+  const keys = toUnmetKeys(intersection)
+  const noted = members.findLast(member => !member.isRef()) ?? members.at(-1)
+
+  return members.map(member => {
+    const note = member === noted && keys.length > 0 ? `Requires ${keys.map(key => `\`${key}\``).join(', ')}.` : undefined
+    const description = note ? [member.description?.trim(), note].filter(text => text).join(' ') : undefined
+
+    return { name: undefined, schema: member, required: undefined, description }
+  })
 }
 
 const toObjectProperties = (object: OasObject): Property[] =>

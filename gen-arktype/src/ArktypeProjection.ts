@@ -3,6 +3,7 @@ import { createVariable } from '@skmtc/lang-typescript'
 import { type ArktypeValue, toArktypeValue } from './Arktype.ts'
 import { ArktypeIntersection } from './ArktypeIntersection.ts'
 import { ArktypeBase } from './base.ts'
+import { buildModel } from './intersectionMembers.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
 
 type ConstructorArgs = {
@@ -22,13 +23,15 @@ export class ArktypeProjection extends ArktypeBase {
 
     const schema = context.resolveSchemaRefOnce(ref)
 
-    this.value = toArktypeValue({
-      schema,
-      required: true,
-      destinationPath,
-      context,
-      rootRef
-    })
+    this.value = buildModel(() =>
+      toArktypeValue({
+        schema,
+        required: true,
+        destinationPath,
+        context,
+        rootRef
+      })
+    )
 
     // An intersection is a Type already: `animal.and(…)`.
     this.isType = this.value instanceof ArktypeIntersection && this.value.isType

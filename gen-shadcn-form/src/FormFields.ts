@@ -1,6 +1,7 @@
 import { List, type ListLines } from '@skmtc/lang-typescript'
 import type { OasOperationProjectionConstructorArgs, Stringable } from '@skmtc/core'
 import { SnippetBase } from '@skmtc/core'
+import { toObjectSchema } from '@skmtc/gen-tanstack-query-supabase-zod'
 import invariant from 'tiny-invariant'
 import { schemaToField, getLabel } from './schemaToField.ts'
 import { openModel } from './openModels.ts'
@@ -26,9 +27,9 @@ export class FormFields extends SnippetBase {
     )
 
     this.fields = operation.toRequestBody(({ schema: parentSchema }) => {
-      const resolved = parentSchema.resolve()
+      const resolved = toObjectSchema(parentSchema)
 
-      invariant(resolved.type === 'object', 'Operation must have a body with type object')
+      invariant(resolved, 'Operation must have a body with type object')
 
       const openModels = openModel({ schema: parentSchema, openModels: new Set() })
 

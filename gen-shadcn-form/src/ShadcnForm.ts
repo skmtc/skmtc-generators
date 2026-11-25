@@ -1,5 +1,5 @@
 import { FunctionParameter, handleKey, List, toStringLiteral } from '@skmtc/lang-typescript'
-import { TanstackQuery } from '@skmtc/gen-tanstack-query-supabase-zod'
+import { TanstackQuery, toObjectSchema } from '@skmtc/gen-tanstack-query-supabase-zod'
 import { CustomValue, decapitalize, capitalize } from '@skmtc/core'
 import { TsProjection } from '@skmtc/gen-typescript'
 import { ShadcnFormBase } from './base.ts'
@@ -16,7 +16,8 @@ export class ShadcnForm extends ShadcnFormBase {
   zodRequestBodyName: string
   fields: FormFields
   formValuesType: string
-  requiredMask: string
+  /** The call that requires the properties with a field, or nothing. */
+  required: string
   constructor({ context, operation, settings }: OasOperationProjectionConstructorArgs<EnrichmentSchema>) {
     super({ context, operation, settings })
 
@@ -42,14 +43,17 @@ export class ShadcnForm extends ShadcnFormBase {
 
     this.zodRequestBodyName = zodRequestBody.identifier.name
 
-    const body = operation.toRequestBody(({ schema }) => schema)?.resolve()
-
-    invariant(body?.type === 'object', 'Schema must be an object')
+    invariant(toObjectSchema(requestBody), 'Schema must be an object')
 
     this.fields = new FormFields({ context, operation, settings })
 
-    this.formValuesType = toFormValuesType(this.tsRequestBodyName, this.fields)
-    this.requiredMask = toRequiredMask(this.fields)
+    // Only a zod object has `.required`
+    const isZodObject = requestBody.resolve().type === 'object' && !isAnnotated(zodRequestBody.value)
+
+    this.formValuesType = isZodObject
+      ? toFormValuesType(this.tsRequestBodyName, this.fields)
+      : this.tsRequestBodyName
+    this.required = isZodObject ? `.required(${toRequiredMask(this.fields)})` : ''
 
     const formArgsSchema = operation
       .toParametersObject()
@@ -101,7 +105,7 @@ export class ShadcnForm extends ShadcnFormBase {
 
     return `(${this.parameter}) => {
   const form = useForm<${this.formValuesType}>({
-    resolver: zodResolver(${this.zodRequestBodyName}.required(${this.requiredMask})),
+    resolver: zodResolver(${this.zodRequestBodyName}${this.required}),
     defaultValues: props.defaultValues
   })
 
@@ -152,6 +156,15 @@ const toFormValuesType = (bodyName: string, { keptNames, cutNames }: FormFields)
     ? bodyName
     : `${bodyName} & Required<Pick<${bodyName}, ${keptNames.map(name => toStringLiteral(name)).join(' | ')}>>`
 }
+
+/**
+ * Whether gen-zod types the body's model `z.ZodType<T>` (`ZodProjection.annotated`),
+ * or the model that it is an alias of (`ZodRef.annotatedModel`). An inline body
+ * has no type of its own.
+ */
+const isAnnotated = (value: unknown): boolean =>
+  value instanceof ZodProjection &&
+  (value.annotated || ('annotatedModel' in value.value && value.value.annotatedModel === true))
 
 /** The argument of the resolver's `.required()`, which requires the same properties. */
 const toRequiredMask = ({ keptNames, cutNames }: FormFields): string => {
@@ -207,9 +220,9 @@ export const subtractPathFromSchema = ({
   path,
   schema
 }: SubtractPathFromSchemaArgs): PropertyOption | null => {
-  const resolved = schema.resolve()
+  const resolved = toObjectSchema(schema)
 
-  invariant(resolved.type === 'object', 'Schema must be an object')
+  invariant(resolved, 'Schema must be an object')
 
   const pathItemSchema = resolved.properties?.[path]
 

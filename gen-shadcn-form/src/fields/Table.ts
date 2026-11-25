@@ -1,6 +1,7 @@
 import { TsSnippet, List, toStringLiteral, EntryList, type ListArray, type ListLines } from '@skmtc/lang-typescript'
 import type { CustomValue, GenerateContextType, OasRef, OasSchema, Stringable, TypeSystemValue } from '@skmtc/core'
 import { OasObject } from '@skmtc/core'
+import { toObjectSchema } from '@skmtc/gen-tanstack-query-supabase-zod'
 import { getLabel, schemaToField } from '../schemaToField.ts'
 import { openModel, repeatsModel, type OpenModels } from '../openModels.ts'
 import { toTsValue } from '@skmtc/gen-typescript'
@@ -33,7 +34,7 @@ export class Table extends TsSnippet {
 
     const rowModels = openModel({ schema, openModels })
 
-    return resolvedSchema.type === 'object'
+    return toObjectSchema(schema)
       ? new ObjectTable({
           context,
           schema,
@@ -152,16 +153,13 @@ export class ObjectTable extends TsSnippet {
   }: ObjectTableArgs) {
     super({ context })
 
-    const resolvedSchema = schema.resolve()
-
     const parentSchema =
-      resolvedSchema.type === 'object'
-        ? resolvedSchema
-        : new OasObject({
-            properties: {
-              name: resolvedSchema
-            }
-          })
+      toObjectSchema(schema) ??
+      new OasObject({
+        properties: {
+          name: schema.resolve()
+        }
+      })
 
     // The headers and the cells both come from `items`, so a column that would
     // repeat a model is left out of both.

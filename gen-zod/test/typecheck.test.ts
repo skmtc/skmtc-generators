@@ -22,6 +22,8 @@ import {
   intersectionMembersDocument,
   keepAllRefs,
   nodeValue,
+  requiredKeysDocument,
+  requiredThroughModelDocuments,
   runE2eFixture,
   unionDocument,
 } from "@skmtc/test-support";
@@ -251,9 +253,27 @@ const intersectionConsumer = toConsumer(["pet", "payment", "owner"], [
   `["Owner", owner.safeParse({ pet: null, pets: [{ kind: "dog" }] }).success]`,
 ]);
 
-const intersectionMembersConsumer = toConsumer(["named"], [
-  `["Named", named.safeParse({ kind: "dog" }).success]`,
+const intersectionMembersConsumer = `import type { z } from "zod";
+${
+  ["filled", "marked", "either"].map((name) =>
+    `import { ${name} } from "@/types/${name}.generated.ts";`
+  ).join("\n")
+}
+
+export const filledValue: z.infer<typeof filled> = { kind: "dog" };
+export const markedValue: z.infer<typeof marked> = { name: "Rex" };
+export const eitherValue: z.infer<typeof either> = { kind: "dog" };
+` + toConsumer(["named"], [
+  `["Filled", filled.safeParse({ kind: "dog" }).success]`,
+  `["Filled is an object", !filled.safeParse("dog").success]`,
+  `["Named",named.safeParse({ kind: "dog" }).success]`,
   `["Named without the key it requires", !named.safeParse({}).success]`,
+]);
+
+const requiredKeysConsumer = toConsumer(["sub", "both", "narrowed"], [
+  `["Sub", sub.safeParse({ kind: "a" }).success && !sub.safeParse({}).success]`,
+  `["Both", both.safeParse({ id: "x" }).success && !both.safeParse({}).success]`,
+  `["Narrowed", narrowed.safeParse({ id: "x" }).success && !narrowed.safeParse({}).success]`,
 ]);
 
 const intersectionCycleConsumer = toConsumer(["node", "closed", "pair"], [
@@ -269,6 +289,9 @@ for (
   const [name, document, system, consumer, count] of [
     ["intersections", intersectionDocument, keepAllRefs, intersectionConsumer, 7],
     ["members of intersections", intersectionMembersDocument, keepAllRefs, intersectionMembersConsumer, 8],
+    ["required keys", requiredKeysDocument, undefined, requiredKeysConsumer, 7],
+    ["a base and its subtype", requiredThroughModelDocuments["the base first"], undefined, "", 2],
+    ["a subtype and its base", requiredThroughModelDocuments["the subtype first"], undefined, "", 2],
     ["intersections in a cycle", intersectionCycleDocument, undefined, intersectionCycleConsumer, 7],
   ] as const
 ) {

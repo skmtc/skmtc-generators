@@ -1,7 +1,7 @@
 import { FunctionParameter, createVariable } from '@skmtc/lang-typescript'
 import invariant from 'tiny-invariant'
 import type { OasOperationProjectionConstructorArgs } from '@skmtc/core'
-import { TanstackQuery, toListKeyAndItem } from '@skmtc/gen-tanstack-query-supabase-zod'
+import { TanstackQuery, toListKeyAndItem, toObjectSchema } from '@skmtc/gen-tanstack-query-supabase-zod'
 import { ShadcnSelectApiBase } from './base.ts'
 import { toProperties, type EnrichmentSchema } from './enrichments.ts'
 import { PathParams } from './PathParams.ts'
@@ -24,9 +24,7 @@ export class ShadcnSelectInput extends ShadcnSelectApiBase {
     // @TODO: This should use safe path keys. IE ensure invalid names are escaped and arrays are handled properly
     this.listKey = key.join('.')
 
-    const listItem = schema.resolve()
-
-    invariant(listItem.type === 'object', 'Expected object type')
+    invariant(toObjectSchema(schema), 'Expected object type')
 
     this.clientName = this.insertOperation(TanstackQuery, operation).toName()
 

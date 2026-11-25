@@ -205,7 +205,7 @@ class Parameter extends SnippetBase {
     const note = new ParameterNote({
       context,
       parameter,
-      serializes: content === undefined && (type === 'array' || type === 'object')
+      serializes: content === undefined && (type === 'array' || type === 'object' || type === 'intersection')
     })
 
     this.blocks = new List<ParameterBlock[], '\n\n', 'none'>(

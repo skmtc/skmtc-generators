@@ -4,6 +4,7 @@ import { TsProjection } from '@skmtc/gen-typescript'
 import { toZodValue } from "./Zod.ts";
 import { ZodBase } from "./base.ts";
 import { isDeferred, needsAnnotation } from "./deferred.ts";
+import { buildModel } from "./intersectionMembers.ts";
 import type { EnrichmentSchema } from "./enrichments.ts";
 
 type ConstructorArgs = {
@@ -27,13 +28,15 @@ export class ZodProjection extends ZodBase {
 
     const schema = context.resolveSchemaRefOnce(ref);
 
-    this.value = toZodValue({
-      schema,
-      required: true,
-      destinationPath,
-      context,
-      rootRef,
-    });
+    this.value = buildModel(() =>
+      toZodValue({
+        schema,
+        required: true,
+        destinationPath,
+        context,
+        rootRef,
+      })
+    );
 
     // A reference inside a cycle is deferred by the nearest object property,
     // as a getter (see ZodObject). A union, array or record of the model's

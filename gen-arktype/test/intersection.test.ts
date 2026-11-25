@@ -7,7 +7,8 @@ import {
   loopDocument,
   loopError,
   runE2eFixture,
-  toRunError
+  toRunError,
+  toSchemasDocument
 } from '@skmtc/test-support'
 import { arktypeEntry } from '../src/mod.ts'
 
@@ -34,6 +35,21 @@ Deno.test('intersection - a key that one member requires and another declares is
   const { artifacts } = runE2eFixture({ id, entry, document: intersectionMembersDocument, system: keepAllRefs })
 
   assertStringIncludes(artifacts['src/types/named.generated.ts'], 'export const named = animal.and({ kind: "string" });')
+})
+
+Deno.test('intersection - a key that one reference requires and another declares is required', () => {
+  const { artifacts } = runE2eFixture({
+    id,
+    entry,
+    document: toSchemasDocument({
+      NeedsId: { type: 'object', required: ['id'], properties: {} },
+      HasId: { type: 'object', properties: { id: { type: 'string' } } },
+      Both: { allOf: [{ $ref: '#/components/schemas/NeedsId' }, { $ref: '#/components/schemas/HasId' }] }
+    }),
+    system: keepAllRefs
+  })
+
+  assertStringIncludes(artifacts['src/types/both.generated.ts'], 'needsId.and(hasId).and({ id: "string" });')
 })
 
 Deno.test('intersection - an inheritance loop fails and is named', () => {

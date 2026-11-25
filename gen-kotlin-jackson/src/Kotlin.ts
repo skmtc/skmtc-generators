@@ -25,8 +25,9 @@ import {
   KotlinUnknown,
   KotlinVoid,
 } from './KotlinScalars.ts'
-import { toFlatObjectOrThrow } from './flatObject.ts'
+import { toFlatObjectOrThrow, toLoneRef } from './flatObject.ts'
 import { assertNoMemberLoop } from './memberLoop.ts'
+import { isNullable } from './nullable.ts'
 import { toObject } from './shape.ts'
 
 export const toKotlinValue: SchemaToValueFn = (
@@ -40,7 +41,7 @@ export const toKotlinValue: SchemaToValueFn = (
 
   const modifiers: Modifiers = {
     required,
-    nullable: 'nullable' in schema ? schema.nullable : undefined,
+    nullable: isNullable(schema),
   }
 
   const generatorKey = toGeneratorOnlyKey({
@@ -93,17 +94,16 @@ export const toKotlinValue: SchemaToValueFn = (
     case 'intersection': {
       assertNoMemberLoop(schema)
 
-      // Any value (`{ description }`) adds nothing to a lone reference.
-      const [first, ...rest] = schema.members.filter((member) => member.type !== 'unknown')
+      const loneRef = toLoneRef(schema)
 
-      if (first?.isRef() && rest.length === 0) {
+      if (loneRef) {
         return new KotlinRef({
           context,
           destinationPath,
-          ref: first,
-          modifiers: { required, nullable: schema.nullable || first.nullable },
+          ref: loneRef,
+          modifiers,
           rootRef,
-          schema: first,
+          schema: loneRef,
         })
       }
 

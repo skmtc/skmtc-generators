@@ -14,11 +14,10 @@ import { EffectUnknown } from './EffectScalars.ts'
 import { hasFields, isBare } from './fields.ts'
 import {
   type FlatObject,
-  toFlatMember,
+  toFlatModel,
   toFlatObjectOrThrow,
 } from './flatObject.ts'
 import { LIB, LIB_MODULE } from './lib.ts'
-import { assertNoMemberLoop } from './memberLoop.ts'
 import {
   applyModifiers,
   type EffectModifiers,
@@ -63,8 +62,6 @@ export class EffectIntersection extends TsSnippet {
   ) {
     super({ context, generatorKey, stackTrail: schema.stackTrail.clone() })
 
-    assertNoMemberLoop(schema)
-
     const flat = toFlatObjectOrThrow(schema)
 
     this.members = schema.members.map((member) => {
@@ -88,6 +85,13 @@ export class EffectIntersection extends TsSnippet {
 
       return value
     })
+
+    // Next to a reference: no member above has any.
+    if (flat.additionalProperties !== undefined) {
+      throw new Error(
+        `${schema.stackTrail.toSchemaPointer()} is an intersection that Effect cannot write: a member has additionalProperties next to a reference.`,
+      )
+    }
 
     this.modifiers = modifiers
     this.fieldsKnown = isBare(modifiers)
@@ -135,13 +139,14 @@ type ToOwnKeysArgs = {
 
 /**
  * The keys that the struct writes itself: those of an inline object, those of
- * more than one model, and those a model leaves optional and another member
- * requires. A spread gives the others.
+ * more than one model, those next to a reference, and those a model leaves
+ * optional and another member requires. A spread gives the others: it is the
+ * model's own fields, without the keywords next to the reference to it.
  */
 const toOwnKeys = ({ schema, flat }: ToOwnKeysArgs): string[] => {
   const models = schema.members.flatMap((member) => {
     const result = member.isRef() || 'members' in member
-      ? toFlatMember(member)
+      ? toFlatModel(member)
       : undefined
 
     return result?.type === 'flat' ? [result.flat] : []
@@ -159,6 +164,7 @@ const toOwnKeys = ({ schema, flat }: ToOwnKeysArgs): string[] => {
     )
 
     return inlineKeys.includes(key) || owners.length !== 1 ||
+      owners[0].properties[key] !== flat.properties[key] ||
       (flat.required.includes(key) && !owners[0].required.includes(key))
   })
 }

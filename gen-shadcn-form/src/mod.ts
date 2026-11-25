@@ -1,4 +1,5 @@
 import { toOasOperationEntry, type IsSupportedOasOperationArgs } from '@skmtc/core'
+import { toObjectSchema } from '@skmtc/gen-tanstack-query-supabase-zod'
 import type { EnrichmentSchema } from './enrichments.ts'
 import { toEnrichmentSchema } from './enrichments.ts'
 import { ShadcnForm } from './ShadcnForm.ts'
@@ -7,9 +8,12 @@ export const ShadcnFormEntry = toOasOperationEntry<EnrichmentSchema>({
   id: denoJson.name,
 
   isSupported({ operation }: IsSupportedOasOperationArgs) {
+    const body = operation.requestBody?.resolve()?.toSchema()
+
     return (
       ['post', 'put', 'patch'].includes(operation.method) &&
-      Boolean(operation.requestBody?.resolve()?.toSchema()?.resolve().type === 'object')
+      body !== undefined &&
+      toObjectSchema(body) !== undefined
     )
   },
 

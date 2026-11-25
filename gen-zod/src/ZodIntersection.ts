@@ -1,10 +1,12 @@
+import { OasUnion } from '@skmtc/core'
 import { TsSnippet } from "@skmtc/lang-typescript";
-import type { GenerateContextType, GeneratorKey, Modifiers, OasIntersection, RefParts, TypeSystemValue } from '@skmtc/core'
+import type { GenerateContextType, GeneratorKey, Modifiers, OasIntersection, OasRef, OasSchema, RefParts, TypeSystemValue } from '@skmtc/core'
 import { toZodValue } from "./Zod.ts";
 import { ZodRef } from "./ZodRef.ts";
+import { ZodUnion } from "./ZodUnion.ts";
 import { applyModifiers } from "./applyModifiers.ts";
 import { isDeferred, needsAnnotation } from "./deferred.ts";
-import { buildMembers } from "./intersectionMembers.ts";
+import { buildMembers, hasNoKeys } from "./intersectionMembers.ts";
 
 type ZodIntersectionArgs = {
   context: GenerateContextType;
@@ -31,15 +33,38 @@ export class ZodIntersection extends TsSnippet {
   ) {
     super({ context, generatorKey, stackTrail: schema.stackTrail.clone() });
 
-    this.members = buildMembers(schema, (member) =>
-      toZodValue({
-        destinationPath,
-        schema: member,
-        required: true,
-        context,
-        rootRef,
-      })
-    );
+    const toValue = (member: OasSchema | OasRef<"schema">): TypeSystemValue =>
+      hasNoKeys(member)
+        ? new ZodAnyKeys({ context, generatorKey, stackTrail: member.stackTrail.clone() })
+        : toZodValue({
+          destinationPath,
+          schema: member,
+          required: true,
+          context,
+          rootRef,
+        });
+
+    this.members = buildMembers(schema, (member) => {
+      // `anyOf: [{ minProperties: 1 }, …]`: an empty branch is built here, as
+      // the union would write it as `z.object({})`.
+      if (member instanceof OasUnion && member.members.some(hasNoKeys)) {
+        const union = new ZodUnion({
+          context,
+          generatorKey,
+          destinationPath,
+          modifiers: { required: true, nullable: member.nullable },
+          rootRef,
+          schema: new OasUnion({ members: [] }),
+        });
+        union.members = member.members.map(toValue);
+        union.deferred = union.members.some(isDeferred);
+        union.annotated = union.members.some(needsAnnotation);
+
+        return union;
+      }
+
+      return toValue(member);
+    });
     this.modifiers = modifiers;
     this.deferred = this.members.some((member) =>
       isDeferred(member) && !(member instanceof ZodRef)
@@ -62,5 +87,18 @@ export class ZodIntersection extends TsSnippet {
       `${first}${rest.map((member) => `.and(${member})`).join("")}`,
       this.modifiers,
     );
+  }
+}
+
+/**
+ * A member, or a branch of one that is a union, that is an object with no keys
+ * of its own (see `hasNoKeys`). zod infers `Record<string, never>` for
+ * `z.object({})`, which would refuse the keys of the other members.
+ */
+class ZodAnyKeys extends TsSnippet {
+  type = "unknown" as const;
+
+  override toString(): string {
+    return "z.looseObject({})";
   }
 }

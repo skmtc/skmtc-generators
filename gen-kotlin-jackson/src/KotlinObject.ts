@@ -24,6 +24,7 @@ import type {
 import { toKotlinValue } from './Kotlin.ts'
 import { applyModifiers, isNullish } from './modifiers.ts'
 import { KotlinUnknown } from './KotlinScalars.ts'
+import { isNullable } from './nullable.ts'
 import { JACKSON_ANNOTATION_PACKAGE, JSON_PROPERTY, toModelExportPath } from './lib.ts'
 
 type KotlinObjectArgs = {
@@ -314,7 +315,7 @@ export class KotlinObjectProperties extends KtSnippet {
       ([key, property]) => {
         const modifiers: Modifiers = {
           required: required.includes(key),
-          nullable: 'nullable' in property ? property.nullable : undefined,
+          nullable: isNullable(property),
         }
 
         const name = sanitizePropertyName(camelCase(key))

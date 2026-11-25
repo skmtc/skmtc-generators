@@ -1,5 +1,6 @@
 import type { OasArray, OasOperation, OasRef, OasSchema } from '@skmtc/core'
 import invariant from 'tiny-invariant'
+import { toObjectSchema } from './toObjectSchema.ts'
 
 type ListKeyAndItem = {
   key: string[]
@@ -18,8 +19,10 @@ export const toListKeyAndItem = (operation: OasOperation): ListKeyAndItem => {
     }
   }
 
-  if (response.type === 'object') {
-    const result = Object.entries(response.properties ?? {}).find(
+  const object = toObjectSchema(response)
+
+  if (object) {
+    const result = Object.entries(object.properties ?? {}).find(
       (entry): entry is [string, OasArray] => {
         return entry[1].type === 'array'
       }
@@ -46,9 +49,7 @@ export const isListResponse = (operation: OasOperation) => {
     // response (e.g. /resource/{id}) may contain a scalar array property
     // like `tags: string[]` that toListKeyAndItem returns as the "list" —
     // that's not a list of rows and shouldn't drive table/select dispatch.
-    const itemType = schema?.resolve().type
-
-    return itemType === 'object'
+    return toObjectSchema(schema) !== undefined
   } catch {
     return false
   }

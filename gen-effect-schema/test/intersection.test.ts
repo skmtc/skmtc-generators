@@ -9,6 +9,7 @@ import {
   loopDocument,
   loopError,
   runE2eFixture,
+  toDocumentObject,
   toRunError,
   toSchemasDocument,
 } from '@skmtc/test-support'
@@ -108,9 +109,100 @@ Deno.test('intersection - any value adds no field', () => {
   )
 })
 
+Deno.test('intersection - a limit that one member adds is kept', () => {
+  assertStringIncludes(
+    runPet([{ type: 'object', properties: { age: { type: 'integer', minimum: 1 } } }]).artifacts[petPath],
+    'Schema.Struct({...Animal.fields, age: Schema.optional(Schema.Int.check(',
+  )
+})
+
+Deno.test('intersection - any value beside a reference in a cycle is the reference', () => {
+  const { artifacts } = runE2eFixture({
+    id,
+    entry,
+    document: toSchemasDocument({
+      Node: {
+        type: 'object',
+        properties: { parent: { allOf: [{ $ref: '#/components/schemas/Node' }, { description: 'The parent' }] } },
+      },
+    }),
+  })
+
+  assertStringIncludes(
+    artifacts['src/schema-effect/node.generated.ts'],
+    'parent: Schema.optional(Schema.suspend(',
+  )
+})
+
+Deno.test('intersection - any value beside a reference to a string is the reference', () => {
+  assertStringIncludes(
+    run(toSchemasDocument({
+      Id: { type: 'string' },
+      Pet: {
+        type: 'object',
+        properties: {
+          id: { nullable: true, allOf: [{ $ref: '#/components/schemas/Id' }, { description: 'The id' }] },
+        },
+      },
+    })).artifacts[petPath],
+    'id: Schema.optional(Schema.NullOr(Id))',
+  )
+})
+
+Deno.test('intersection - a default is kept when a later member has none', () => {
+  const { artifacts } = runE2eFixture({
+    id,
+    entry,
+    document: toSchemasDocument({
+      Animal: { type: 'object', properties: { kind: { type: 'string', default: 'x' } } },
+      Pet: {
+        allOf: [{ $ref }, { type: 'object', properties: { kind: { type: 'string' } } }],
+      },
+    }),
+    system: keepAllRefs,
+    enrichments: { _generator: { defaults: true } },
+  })
+
+  assertStringIncludes(artifacts[petPath], 'kind: Schema.String.pipe(Schema.withDecodingDefaultType(Effect.succeed("x")))')
+})
+
+const toSiteDocument = (keywords: Record<string, unknown>) =>
+  toDocumentObject({
+    openapi: '3.1.0',
+    info: { title: 'Site keywords', version: '1' },
+    paths: {},
+    components: {
+      schemas: {
+        Animal: animal,
+        Pet: { allOf: [{ $ref, ...keywords }, { type: 'object', properties: { name: { type: 'string' } } }] },
+      },
+    },
+  }, 'site keywords')
+
+Deno.test('intersection - the keywords next to a member reference are kept', () => {
+  const text = { type: 'string' }
+
+  assertStringIncludes(
+    run(toSiteDocument({ properties: { extra: text }, required: ['extra'] })).artifacts[petPath],
+    'Schema.Struct({...Animal.fields, extra: Schema.String, name: Schema.optional(Schema.String)})',
+  )
+  assertStringIncludes(
+    run(toSiteDocument({ required: ['age'] })).artifacts[petPath],
+    'Schema.Struct({...Animal.fields, age: Schema.Int, name: Schema.optional(Schema.String)})',
+  )
+  assertStringIncludes(
+    run(toSiteDocument({ properties: { kind: { type: 'string', enum: ['a'] } } })).artifacts[petPath],
+    'kind: Schema.optional(Schema.Literal("a"))',
+  )
+  assertStringIncludes(
+    toRunError(run(toSiteDocument({ additionalProperties: text }))),
+    '#/components/schemas/Pet/allOf is an intersection that Effect cannot write: a member has additionalProperties next to a reference',
+  )
+})
+
 Deno.test('intersection - two schemas of one property fail and are named', () => {
   assertStringIncludes(
-    toRunError(runPet([{ type: 'object', properties: { age: { type: 'integer', minimum: 1 } } }])),
+    toRunError(runPet([{ type: 'object', properties: { age: { type: 'string' } } }])),
     "#/components/schemas/Pet/allOf is an intersection that cannot be one object: two members have a property 'age'",
   )
 })

@@ -3,6 +3,7 @@
 // deno-lint-ignore-file skmtc/single-dispatch -- it answers what the members say together; it decides no output, which is the router's
 import { DanglingRefError } from '@skmtc/core'
 import type { CustomValue, OasIntersection, OasObject, OasRef, OasSchema } from '@skmtc/core'
+import { toNarrower } from './narrower.ts'
 
 type PropertySchema = OasSchema | OasRef<'schema'> | CustomValue
 
@@ -25,8 +26,22 @@ export type FlatResult =
  */
 export const toFlatObject = (schema: OasIntersection): FlatResult => toFlat(schema, [])
 
-/** What one member of an intersection adds to the object: see {@link toFlatObject}. */
-export const toFlatMember = (member: OasSchema | OasRef<'schema'>): FlatResult => toFlat(member, [])
+/** What a model adds to the object, without the keywords next to the references to it. */
+export const toFlatModel = (model: OasSchema | OasRef<'schema'>): FlatResult =>
+  model.isRef() ? toFlatModel(model.resolveOnce()) : toFlat(model, [])
+
+/** The one reference of an intersection whose other members say nothing (`{ description }`), or `undefined`. */
+export const toLoneRef = ({ members }: OasIntersection): OasRef<'schema'> | undefined => {
+  const [first, ...rest] = members.filter(member => member.type !== 'unknown')
+
+  return first?.isRef() &&
+    rest.length === 0 &&
+    first.properties === undefined &&
+    first.required === undefined &&
+    first.additionalProperties === undefined
+    ? first
+    : undefined
+}
 
 /** {@link toFlatObject}, or an error that names the schema. */
 export const toFlatObjectOrThrow = (schema: OasIntersection): FlatObject => {
@@ -103,7 +118,7 @@ const mergeFlat = (first: FlatObject, second: FlatObject): FlatResult => {
   const properties: Record<string, PropertySchema> = { ...first.properties }
 
   for (const [key, schema] of Object.entries(second.properties)) {
-    const merged = Object.hasOwn(properties, key) ?toNarrower(properties[key], schema) : schema
+    const merged = Object.hasOwn(properties, key) ? toNarrower(properties[key], schema) : schema
 
     if (merged === undefined) {
       return { type: 'failed', reason: `two members have a property '${key}', of two different schemas` }
@@ -137,68 +152,9 @@ const toNarrowerRecord = (
     return { type: 'record', record: typeof first === 'object' ? first : second ?? first }
   }
 
-  return isSame(first, second)
-    ? { type: 'record', record: second }
-    : { type: 'failed', reason: 'two members have additionalProperties, of two different schemas' }
-}
+  const record = toNarrower(first, second)
 
-/** The one of two schemas that allows only what the other allows too, or `undefined`. */
-const toNarrower = (first: PropertySchema, second: PropertySchema): PropertySchema | undefined => {
-  if (first.type === 'unknown' || isSame(first, second)) {
-    return second
-  }
-
-  if (second.type === 'unknown' || isStringEnumOf(first, second)) {
-    return first
-  }
-
-  return isStringEnumOf(second, first) ? second : undefined
-}
-
-/** Whether `schema` lists the values of a string, and `base` is any string or lists them too. */
-const isStringEnumOf = (schema: PropertySchema, base: PropertySchema): boolean => {
-  if (schema.type !== 'string' || base.type !== 'string' || schema.enums === undefined) {
-    return false
-  }
-
-  const values: (string | null)[] | undefined = base.enums
-
-  return (
-    (!schema.nullable || base.nullable === true) &&
-    (values === undefined || schema.enums.every(value => values.includes(value)))
-  )
-}
-
-const isSame = (first: PropertySchema, second: PropertySchema): boolean =>
-  first === second ||
-  (first.type !== 'custom' &&
-    second.type !== 'custom' &&
-    JSON.stringify(toRules(schemaToJson(first))) === JSON.stringify(toRules(schemaToJson(second))))
-
-const schemaToJson = (schema: OasSchema | OasRef<'schema'>): unknown => schema.toJsonSchema({ resolve: false })
-
-/** The keywords that only describe a value. */
-const ANNOTATIONS = ['title', 'description', 'example', 'default', 'deprecated', 'readOnly', 'writeOnly', 'externalDocs']
-
-/** A JSON schema without its annotations, at every level. The keys of `properties` are names, not keywords. */
-const toRules = (value: unknown): unknown => {
-  if (Array.isArray(value)) {
-    return value.map(toRules)
-  }
-
-  if (typeof value !== 'object' || value === null) {
-    return value
-  }
-
-  return Object.fromEntries(
-    Object.entries(value).flatMap(([key, entry]) => {
-      if (ANNOTATIONS.includes(key)) {
-        return []
-      }
-
-      return key === 'properties' && typeof entry === 'object' && entry !== null
-        ? [[key, Object.entries(entry).map(([name, schema]) => [name, toRules(schema)])]]
-        : [[key, toRules(entry)]]
-    })
-  )
+  return record === undefined || record.type === 'custom'
+    ? { type: 'failed', reason: 'two members have additionalProperties, of two different schemas' }
+    : { type: 'record', record }
 }

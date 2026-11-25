@@ -10,6 +10,7 @@ import type {
 } from '@skmtc/core'
 import type { KtEntityType } from '@skmtc/lang-kotlin'
 import { type FlatObject, toFlatObject } from './flatObject.ts'
+import { isNullable } from './nullable.ts'
 
 type ModelSchema = OasSchema | OasRef<'schema'>
 
@@ -61,7 +62,7 @@ export const toObject = (intersection: OasIntersection, flat: FlatObject): OasOb
   const object = new OasObject({
     ...flat,
     description: intersection.description,
-    nullable: intersection.nullable,
+    nullable: isNullable(intersection),
   })
   object.stackTrail = intersection.stackTrail
 

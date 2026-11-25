@@ -7,8 +7,12 @@ import {
   keepAllRefs,
   loopDocument,
   loopError,
+  requiredBranchesDocument,
+  requiredBranchesError,
+  requiredKeysDocument,
   requiredLoopDocument,
   requiredLoopError,
+  requiredThroughModelDocuments,
   runE2eFixture,
   toRunError,
 } from "@skmtc/test-support";
@@ -42,9 +46,39 @@ Deno.test("intersection - a discriminated union of intersections renders z.union
 Deno.test("intersection - more than two members", () => {
   assertStringIncludes(
     members["src/types/noted.generated.ts"],
-    "export const noted = animal.and(z.unknown()).and(marker);",
+    "export const noted = animal.and(z.unknown()).and(z.looseObject({}));",
   );
 });
+
+// The trap: zod infers `Record<string, never>` for `z.object({})`.
+Deno.test("intersection - an object with no keys of its own does not refuse the keys of the others", () => {
+  assertStringIncludes(members["src/types/filled.generated.ts"], "animal.and(z.looseObject({}));");
+  assertStringIncludes(
+    members["src/types/either.generated.ts"],
+    "animal.and(z.union([z.looseObject({}), z.looseObject({})]));",
+  );
+});
+
+Deno.test("intersection - a key required by a reference, or declared by a union, is required", () => {
+  const { artifacts } = runE2eFixture({ id, entry, document: requiredKeysDocument });
+
+  assertStringIncludes(artifacts["src/types/sub.generated.ts"], ".and(z.object({kind: z.literal('a')}));");
+  assertStringIncludes(artifacts["src/types/both.generated.ts"], ".and(z.object({id: z.string()}));");
+  assertStringIncludes(artifacts["src/types/narrowed.generated.ts"], ".and(z.object({id: z.string()}));");
+  assertStringIncludes(
+    toRunError(runE2eFixture({ id, entry, document: requiredBranchesDocument })),
+    requiredBranchesError,
+  );
+});
+
+for (const [order, document] of Object.entries(requiredThroughModelDocuments)) {
+  Deno.test(`intersection - a required property that holds one of another model renders, ${order}`, () => {
+    assertStringIncludes(
+      runE2eFixture({ id, entry, document }).artifacts["src/types/employee.generated.ts"],
+      "z.lazy(() => person).and(z.object({id: z.string().optional(), get manager()",
+    );
+  });
+}
 
 Deno.test("intersection - a key that one member requires and another declares is required", () => {
   assertStringIncludes(

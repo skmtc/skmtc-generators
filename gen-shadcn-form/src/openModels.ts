@@ -11,9 +11,19 @@ type OpenModelArgs = {
   openModels: OpenModels
 }
 
-/** `openModels` and the model that `schema` refers to, if it is a reference. */
+/**
+ * `openModels` and the model that `schema` refers to, if it is a reference, or
+ * the models its members refer to, if it is an inline intersection, whose
+ * fields are theirs.
+ */
 export const openModel = ({ schema, openModels }: OpenModelArgs): OpenModels => {
-  return schema.isRef() ? new Set(openModels).add(toModel(schema)) : openModels
+  if (schema.isRef()) {
+    return new Set(openModels).add(toModel(schema))
+  }
+
+  return schema.type === 'intersection'
+    ? schema.members.reduce((acc, member) => openModel({ schema: member, openModels: acc }), openModels)
+    : openModels
 }
 
 type RepeatsModelArgs = {
@@ -24,7 +34,7 @@ type RepeatsModelArgs = {
 /**
  * Whether the field for `schema` would show an open model again. An array
  * repeats the model that its items repeat: its table would have no rows to
- * show.
+ * show. An inline intersection repeats a model that a member refers to.
  */
 export const repeatsModel = ({ schema, openModels }: RepeatsModelArgs): boolean => {
   if (schema.type === 'custom') {
@@ -32,14 +42,25 @@ export const repeatsModel = ({ schema, openModels }: RepeatsModelArgs): boolean 
   }
 
   if (schema.isRef()) {
-    return (
-      openModels.has(toModel(schema)) ||
-      repeatsModel({ schema: schema.resolve(), openModels: openModel({ schema, openModels }) })
-    )
+    if (openModels.has(toModel(schema))) {
+      return true
+    }
+
+    const target = schema.resolve()
+
+    // A model with the fields of an open one (a subtype of the body) is a model
+    // of its own, which can be entered once.
+    return target.type === 'intersection' && target.members.length > 1
+      ? false
+      : repeatsModel({ schema: target, openModels: openModel({ schema, openModels }) })
   }
 
   if (schema.type === 'array') {
     return repeatsModel({ schema: schema.items, openModels })
+  }
+
+  if (schema.type === 'intersection') {
+    return schema.members.some(member => repeatsModel({ schema: member, openModels }))
   }
 
   // `schemaToField` renders a one-member union as its member

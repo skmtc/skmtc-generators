@@ -4,7 +4,7 @@ import { TsProjection } from '@skmtc/gen-typescript'
 import invariant from 'tiny-invariant'
 import { TableColumn } from './TableColumn.ts'
 import type { OasOperationProjectionConstructorArgs, ToOasOperationIdentifierNameArgs } from '@skmtc/core'
-import { toListKeyAndItem } from '@skmtc/gen-tanstack-query-supabase-zod'
+import { toListKeyAndItem, toObjectSchema } from '@skmtc/gen-tanstack-query-supabase-zod'
 import { ShadcnTableBase } from './base.ts'
 import { toProperties, type EnrichmentSchema } from './enrichments.ts'
 
@@ -15,7 +15,7 @@ export class TanstackColumns extends ShadcnTableBase {
 
     const { schema } = toListKeyAndItem(operation)
 
-    invariant(schema.resolve().type === 'object', 'Expected object type')
+    invariant(toObjectSchema(schema), 'Expected object type')
 
     const rowTypeDefinition = this.insertNormalizedModel(TsProjection, {
       schema,

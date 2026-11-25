@@ -2,6 +2,7 @@ import type { ContentSettings, TypeSystemValue, GenerateContextType, RefParts } 
 import { createType } from '@skmtc/lang-typescript'
 import { toTsValue } from './Ts.ts'
 import { TypescriptBase } from './base.ts'
+import { buildModel } from './intersectionMembers.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
 
 type ConstructorArgs = {
@@ -18,13 +19,15 @@ export class TsProjection extends TypescriptBase {
 
     const schema = context.resolveSchemaRefOnce(ref)
 
-    this.value = toTsValue({
-      schema,
-      required: true,
-      destinationPath: settings.exportPath,
-      context,
-      rootRef
-    })
+    this.value = buildModel(() =>
+      toTsValue({
+        schema,
+        required: true,
+        destinationPath: settings.exportPath,
+        context,
+        rootRef
+      })
+    )
   }
 
   static schemaToValueFn = (...args: Parameters<typeof toTsValue>) => {

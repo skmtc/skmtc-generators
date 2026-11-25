@@ -153,8 +153,10 @@ const copies: Record<string, string[]> = {
     'gen-valibot',
     'gen-zod'
   ],
-  'intersectionMembers.ts': ['gen-arktype', 'gen-typescript', 'gen-valibot', 'gen-zod'],
-  'flatObject.ts': ['gen-effect-schema', 'gen-kotlin-jackson']
+  'intersectionMembers.ts': ['gen-arktype', 'gen-md-docs', 'gen-typescript', 'gen-valibot', 'gen-zod'],
+  'flatObject.ts': ['gen-effect-schema', 'gen-kotlin-jackson'],
+  'narrower.ts': ['gen-effect-schema', 'gen-kotlin-jackson'],
+  'toObjectSchema.ts': ['gen-tanstack-query-fetch-zod', 'gen-tanstack-query-supabase-zod']
 }
 
 for (const [file, dirs] of Object.entries(copies)) {

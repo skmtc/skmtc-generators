@@ -130,6 +130,86 @@ Deno.test('intersection - two schemas of one property that differ in annotations
   assertStringIncludes(toRunError(runPet(other, tags('Two'))), "two members have a property 'tags'")
 })
 
+const toObject = (properties: OpenAPIV3.SchemaObject['properties']): OpenAPIV3.SchemaObject => ({ type: 'object', properties })
+
+const x: OpenAPIV3.SchemaObject = { type: 'string' }
+const row: OpenAPIV3.SchemaObject = { type: 'object', properties: { x } }
+
+/** What Pet writes for the property `p` that Animal and Pet both declare. */
+const narrowings: Record<string, [OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject, OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject, string]> = {
+  'a value of an enum by reference': [{ $ref: '#/components/schemas/Kind' }, { type: 'string', enum: ['a'] }, 'val p: PetP? = null'],
+  'a minimum': [{ type: 'integer' }, { type: 'integer', minimum: 1 }, 'val p: Int? = null'],
+  'a higher minimum': [{ type: 'integer', minimum: 1 }, { type: 'integer', minimum: 2 }, 'val p: Int? = null'],
+  'a maxLength': [x, { type: 'string', maxLength: 10 }, 'val p: String? = null'],
+  'not null': [{ type: 'string', nullable: true }, x, 'val p: String? = null'],
+  'any value': [{}, x, 'val p: String? = null'],
+  'any value after': [x, { description: 'Text' }, 'val p: String? = null'],
+  'the items of an array': [
+    { type: 'array', items: { type: 'object' } },
+    { type: 'array', items: { $ref: '#/components/schemas/Row' } },
+    'val p: List<Row>? = null',
+  ],
+  'the order of keys': [toObject({ x, y: x }), toObject({ y: x, x }), 'val p: PetP? = null'],
+  'a required key': [row, { ...row, required: ['x'] }, 'val p: PetP? = null'],
+  'a typed record': [{ type: 'object' }, { type: 'object', additionalProperties: x }, 'val p: Map<String, String>? = null'],
+  'a branch of a union': [{ oneOf: [x, { type: 'integer' }] }, x, 'val p: String? = null'],
+}
+
+for (const [name, [base, own, expected]] of Object.entries(narrowings)) {
+  for (const [order, first, second] of [['after', base, own], ['before', own, base]] as const) {
+    Deno.test(`intersection - ${name}, ${order} the wider schema of the property, is the property`, () => {
+      const { artifacts } = run(
+        toSchemasDocument({
+          Kind: { type: 'string', enum: ['a', 'b'] },
+          Row: row,
+          Animal: toObject({ p: first }),
+          Pet: { allOf: [{ $ref }, toObject({ p: second })] },
+        }),
+        keepAllRefs,
+      )
+
+      // An inline class is named from the position that the narrower one is at.
+      assertStringIncludes(
+        artifacts[pathOf('Pet')].replace(/\bAnimalP\b/, 'PetP'),
+        expected,
+      )
+    })
+  }
+}
+
+for (
+  const [name, first, second] of [
+    ['two types', x, { type: 'integer' }],
+    ['a value that is not in the enum', { type: 'string', enum: ['a'] }, { type: 'string', enum: ['c'] }],
+    ['a minimum and a maximum', { type: 'integer', minimum: 1 }, { type: 'integer', maximum: 5 }],
+    ['a value that can be null in the enum that cannot', { type: 'string', enum: ['a', 'b'] }, { type: 'string', enum: ['a'], nullable: true }],
+    ['two sets of keys', toObject({ x }), toObject({ y: x })],
+  ] satisfies [string, OpenAPIV3.SchemaObject, OpenAPIV3.SchemaObject][]
+) {
+  Deno.test(`intersection - ${name}: neither schema is the narrower, and they fail by name`, () => {
+    assertStringIncludes(toRunError(runPet(toObject({ p: second }), toObject({ p: first }))), "two members have a property 'p'")
+  })
+}
+
+Deno.test('intersection - a value that can be null in every member can be null', () => {
+  const toOwner = (nullable: boolean) =>
+    run(
+      toSchemasDocument({
+        A: { ...row, nullable: true },
+        B: { ...toObject({ y: x }), nullable },
+        Owner: {
+          type: 'object',
+          required: ['p'],
+          properties: { p: { allOf: [{ $ref: '#/components/schemas/A' }, { $ref: '#/components/schemas/B' }] } },
+        },
+      }),
+      keepAllRefs,
+    ).artifacts[pathOf('Owner')]
+
+  assertStringIncludes(toOwner(true), 'val p: OwnerP? = null')
+  assertStringIncludes(toOwner(false), 'val p: OwnerP\n')
+})
+
 // The trap: `'constructor' in {}` is true.
 Deno.test('intersection - a property named as a member of every JavaScript object', () => {
   const text: OpenAPIV3.SchemaObject = { type: 'string' }

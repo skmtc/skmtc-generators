@@ -16,6 +16,8 @@ import { generatorSchema } from './enrichments.ts'
 import * as v from 'valibot'
 import { EffectArray } from './EffectArray.ts'
 import { EffectIntersection } from './EffectIntersection.ts'
+import { toLoneRef } from './flatObject.ts'
+import { assertNoMemberLoop } from './memberLoop.ts'
 import { EffectObject } from './EffectObject.ts'
 import { EffectRef } from './EffectRef.ts'
 import { EffectString } from './EffectString.ts'
@@ -147,7 +149,26 @@ export const toEffectValueImpl = (
         coerce,
         schema,
       })
-    case 'intersection':
+    case 'intersection': {
+      assertNoMemberLoop(schema)
+
+      const loneRef = toLoneRef(schema)
+
+      if (loneRef) {
+        return new EffectRef({
+          context,
+          destinationPath,
+          ref: loneRef,
+          modifiers: {
+            ...modifiers,
+            nullable: schema.nullable || loneRef.nullable,
+          },
+          rootRef,
+          schema: loneRef,
+          coerce,
+        })
+      }
+
       return new EffectIntersection({
         context,
         destinationPath,
@@ -157,6 +178,7 @@ export const toEffectValueImpl = (
         rootRef,
         coerce,
       })
+    }
     case 'string':
       return new EffectString({
         context,

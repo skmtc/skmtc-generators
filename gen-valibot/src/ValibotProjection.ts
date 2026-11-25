@@ -4,6 +4,7 @@ import { createVariable } from '@skmtc/lang-typescript'
 import { TsProjection } from '@skmtc/gen-typescript'
 import { toValibotValue } from './Valibot.ts'
 import { ValibotBase } from './base.ts'
+import { buildModel } from './intersectionMembers.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
 import { toVariantKeys } from './variant.ts'
 
@@ -24,13 +25,15 @@ export class ValibotProjection extends ValibotBase {
 
     const schema = context.resolveSchemaRefOnce(ref)
 
-    this.value = toValibotValue({
-      schema,
-      required: true,
-      destinationPath,
-      context,
-      rootRef
-    })
+    this.value = buildModel(() =>
+      toValibotValue({
+        schema,
+        required: true,
+        destinationPath,
+        context,
+        rootRef
+      })
+    )
 
     // Every reference inside a cycle renders `v.lazy(() => …)` (see
     // ValibotRef), so the `export const` of a model the cycle refers back to

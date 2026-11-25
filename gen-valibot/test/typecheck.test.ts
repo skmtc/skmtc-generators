@@ -21,6 +21,8 @@ import {
   intersectionMembersDocument,
   keepAllRefs,
   nodeValue,
+  requiredKeysDocument,
+  requiredThroughModelDocuments,
   runE2eFixture,
   unionDocument
 } from '@skmtc/test-support'
@@ -198,6 +200,12 @@ const intersectionMembersConsumer = toConsumer(['named'], [
   `['Named without the key it requires', !v.safeParse(named, {}).success]`
 ])
 
+const requiredKeysConsumer = toConsumer(['sub', 'both', 'narrowed'], [
+  `['Sub', v.safeParse(sub, { kind: 'a' }).success && !v.safeParse(sub, {}).success]`,
+  `['Both', v.safeParse(both, { id: 'x' }).success && !v.safeParse(both, {}).success]`,
+  `['Narrowed', v.safeParse(narrowed, { id: 'x' }).success && !v.safeParse(narrowed, {}).success]`
+])
+
 const intersectionCycleConsumer = toConsumer(['node', 'closed', 'pair'], [
   `['Node', v.safeParse(node, ${JSON.stringify(nodeValue)}).success]`,
   `['Node without a key of the ref', !v.safeParse(node, { name: 'r', children: [{ extra: 'e' }] }).success]`,
@@ -208,6 +216,9 @@ const intersectionCycleConsumer = toConsumer(['node', 'closed', 'pair'], [
 for (const [name, document, system, consumer, count] of [
   ['intersections', intersectionDocument, keepAllRefs, intersectionConsumer, 7],
   ['members of intersections', intersectionMembersDocument, keepAllRefs, intersectionMembersConsumer, 8],
+  ['required keys', requiredKeysDocument, undefined, requiredKeysConsumer, 7],
+  ['a base and its subtype', requiredThroughModelDocuments['the base first'], undefined, '', 2],
+  ['a subtype and its base', requiredThroughModelDocuments['the subtype first'], undefined, '', 2],
   ['intersections in a cycle', intersectionCycleDocument, undefined, intersectionCycleConsumer, 7]
 ] as const) {
   Deno.test({
