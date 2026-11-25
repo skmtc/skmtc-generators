@@ -134,6 +134,22 @@ Deno.test('intersection - a member in a cycle fails and is named', () => {
   )
 })
 
+// Built first, Sub refers to a Base that is complete, not `suspended`. It is in a
+// cycle all the same, and which of the two modules loads first is not known.
+Deno.test('intersection - a member in a cycle whose model is built already fails and is named', () => {
+  const document = toSchemasDocument({
+    Sub: {
+      allOf: [{ $ref: '#/components/schemas/Base' }, { type: 'object', properties: { name: { type: 'string' } } }],
+    },
+    Base: { type: 'object', properties: { subs: { type: 'array', items: { $ref: '#/components/schemas/Sub' } } } },
+  })
+
+  assertStringIncludes(
+    toRunError(runE2eFixture({ id, entry, document })),
+    '#/components/schemas/Sub/allOf is an intersection that Effect cannot write: the fields of its member #/components/schemas/Base are not known',
+  )
+})
+
 for (
   const [name, base] of Object.entries<OpenAPIV3.SchemaObject>({
     'nullable model': { ...animal, nullable: true },
