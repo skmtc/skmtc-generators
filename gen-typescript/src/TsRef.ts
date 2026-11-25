@@ -1,6 +1,6 @@
 import { toModelGeneratorKey, toModelRef } from '@skmtc/core'
 import { TsSnippet } from '@skmtc/lang-typescript'
-import type { GenerateContextType, Modifiers, OasRef, OasSchema, RefName } from '@skmtc/core'
+import type { GenerateContextType, Modifiers, OasRef, OasSchema, RefParts } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
 import { TsProjection } from './TsProjection.ts'
 import { typescriptEntry } from './mod.ts'
@@ -9,8 +9,8 @@ type TsRefConstructorProps = {
   context: GenerateContextType
   destinationPath: string
   modifiers: Modifiers
-  refName: RefName
-  rootRef?: RefName
+  ref: RefParts
+  rootRef?: RefParts
   /** The originating ref schema node — for fine-grained attribution. */
   schema?: OasSchema | OasRef<'schema'>
 }
@@ -21,13 +21,13 @@ export class TsRef extends TsSnippet {
   modifiers: Modifiers
   terminal: boolean
   constructor(
-    { context, refName, modifiers, destinationPath, rootRef, schema }: TsRefConstructorProps
+    { context, ref, modifiers, destinationPath, rootRef, schema }: TsRefConstructorProps
   ) {
     super({
       context,
       generatorKey: toModelGeneratorKey({
         generatorId: typescriptEntry.id,
-        refName,
+        ref,
         variant: 'main'
       }),
       stackTrail: schema?.stackTrail.clone()
@@ -36,18 +36,18 @@ export class TsRef extends TsSnippet {
     // A reference back to a model whose projection is being constructed
     // comes back `suspended`, so the model is not constructed again. A type
     // alias may name itself, so it renders like any other reference.
-    const ref = toModelRef({
+    const modelRef = toModelRef({
       context,
-      refName,
+      ref,
       destinationPath,
       projection: TsProjection,
       rootRef,
       variant: 'main'
     })
 
-    this.name = ref.settings.identifier.name
+    this.name = modelRef.settings.identifier.name
     this.modifiers = modifiers
-    this.terminal = ref.suspended
+    this.terminal = modelRef.suspended
   }
 
   override toString(): string {

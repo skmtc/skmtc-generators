@@ -3,7 +3,7 @@ import {
   type Modifiers,
   type GeneratorKey,
   type OasObject,
-  type RefName,
+  type RefParts,
   type TypeSystemRecord,
   type TypeSystemObjectProperties,
   isEmpty
@@ -19,7 +19,7 @@ type ArktypeObjectArgs = {
   modifiers: Modifiers
   destinationPath: string
   generatorKey: GeneratorKey
-  rootRef?: RefName
+  rootRef?: RefParts
 }
 
 export class ArktypeObject extends TsSnippet {

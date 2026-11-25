@@ -6,7 +6,7 @@ import denoJson from '../deno.json' with { type: 'json' }
 export const valibotEntry = toModelEntry<EnrichmentSchema>({
   id: denoJson.name,
   toEnrichmentSchema,
-  transform({ context, refName }) {
-    context.insertModel(ValibotProjection, refName)
+  transform({ context, ref }) {
+    context.insertModel(ValibotProjection, ref)
   }
 })

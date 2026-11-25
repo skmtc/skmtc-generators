@@ -6,7 +6,7 @@ import { KotlinProjection } from './KotlinProjection.ts'
 export const kotlinJacksonEntry = toModelEntry<EnrichmentSchema>({
   id: denoJson.name,
   toEnrichmentSchema,
-  transform({ context, refName }) {
-    context.insertModel(KotlinProjection, refName)
+  transform({ context, ref }) {
+    context.insertModel(KotlinProjection, ref)
   },
 })

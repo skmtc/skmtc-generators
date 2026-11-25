@@ -6,7 +6,7 @@ import denoJson from '../deno.json' with { type: 'json' }
 export const arktypeEntry = toModelEntry<EnrichmentSchema>({
   id: denoJson.name,
   toEnrichmentSchema,
-  transform({ context, refName }) {
-    context.insertModel(ArktypeProjection, refName)
+  transform({ context, ref }) {
+    context.insertModel(ArktypeProjection, ref)
   }
 })

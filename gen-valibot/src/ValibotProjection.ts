@@ -1,5 +1,5 @@
 import { isReferencedBack } from '@skmtc/core'
-import type { TypeSystemValue, GenerateContextType, RefName, ContentSettings } from '@skmtc/core'
+import type { TypeSystemValue, GenerateContextType, RefParts, ContentSettings } from '@skmtc/core'
 import { createVariable } from '@skmtc/lang-typescript'
 import { TsProjection } from '@skmtc/gen-typescript'
 import { toValibotValue } from './Valibot.ts'
@@ -10,19 +10,19 @@ import { toVariantKeys } from './variant.ts'
 type ConstructorArgs = {
   context: GenerateContextType
   destinationPath: string
-  refName: RefName
+  ref: RefParts
   settings: ContentSettings<EnrichmentSchema>
-  rootRef?: RefName
+  rootRef?: RefParts
 }
 
 export class ValibotProjection extends ValibotBase {
   value: TypeSystemValue
   /** The value's `variantKeys` (see `isVariantOption`); none for a model typed `v.GenericSchema<T>`. */
   variantKeys: string[]
-  constructor({ context, refName, settings, destinationPath, rootRef }: ConstructorArgs) {
-    super({ context, refName, settings })
+  constructor({ context, ref, settings, destinationPath, rootRef }: ConstructorArgs) {
+    super({ context, ref, settings })
 
-    const schema = context.resolveSchemaRefOnce(refName)
+    const schema = context.resolveSchemaRefOnce(ref)
 
     this.value = toValibotValue({
       schema,
@@ -42,7 +42,7 @@ export class ValibotProjection extends ValibotBase {
     const recursive = isReferencedBack({ context, settings })
 
     if (recursive) {
-      const type = context.insertModel(TsProjection, refName, {
+      const type = context.insertModel(TsProjection, ref, {
         variant: 'main',
         destinationPath
       })

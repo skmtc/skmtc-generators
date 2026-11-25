@@ -31,12 +31,36 @@ export const generatorConfigSchema = v.object({
 export type GeneratorConfig = v.InferOutput<typeof generatorConfigSchema>
 
 /**
- * SLOT(enrichments): the three-scope umbrella. Only the `generator`
- * scope is read; there is no per-model configuration. Must stay a
+ * Subject-scoped, at `client.json#settings.enrichments[id][model][variant]`,
+ * where `model` is a component's name, or a whole pointer
+ * (`#/components/schemas/A/properties/disk`) with no percent escapes:
+ * `#/paths/~1x~1{id}/…`, not `#/paths/~1x~1%7Bid%7D/…`:
+ *
+ * - `name`: the model's identifier, in place of the one made from `refName`.
+ *   Two models whose default names are the same fail the run with
+ *   `Registered definition mismatch`; name one of them here.
+ */
+export const subjectSchema = v.optional(
+  v.object({
+    name: v.optional(
+      v.pipe(
+        v.string(),
+        v.check(
+          name => isKtIdentifierName(name) && !ktHardKeywords.has(name),
+          issue => `gen-kotlin-jackson: name '${issue.input}' is not a valid identifier`
+        )
+      )
+    )
+  })
+)
+
+/**
+ * SLOT(enrichments): the three-scope umbrella: `generator`, and each
+ * model's `subject`. Must stay a
  * FUNCTION returning the schema.
  */
 export const enrichmentSchema = v.object({
-  subject: v.undefined(),
+  subject: subjectSchema,
   generator: generatorConfigSchema,
   stack: v.undefined(),
 })

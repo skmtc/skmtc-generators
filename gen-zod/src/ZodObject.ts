@@ -1,6 +1,6 @@
 import { isEmpty } from '@skmtc/core'
 import { handleKey, TsSnippet } from '@skmtc/lang-typescript'
-import type { CustomValue, GenerateContextType, GeneratorKey, Modifiers, OasObject, OasRef, OasSchema, RefName, TypeSystemObjectProperties, TypeSystemRecord, TypeSystemValue } from '@skmtc/core'
+import type { CustomValue, GenerateContextType, GeneratorKey, Modifiers, OasObject, OasRef, OasSchema, RefParts, TypeSystemObjectProperties, TypeSystemRecord, TypeSystemValue } from '@skmtc/core'
 import { toZodValue } from "./Zod.ts";
 import { applyModifiers } from "./applyModifiers.ts";
 import { ZodUnknown } from "./ZodUnknown.ts";
@@ -12,7 +12,7 @@ type ZodObjectProps = {
   objectSchema: OasObject;
   modifiers: Modifiers;
   generatorKey: GeneratorKey;
-  rootRef?: RefName;
+  rootRef?: RefParts;
 };
 
 export class ZodObject extends TsSnippet {
@@ -102,7 +102,7 @@ type ZodObjectPropertiesArgs = {
   properties: Record<string, OasSchema | OasRef<"schema"> | CustomValue>;
   required: OasObject["required"];
   generatorKey: GeneratorKey;
-  rootRef?: RefName;
+  rootRef?: RefParts;
 };
 
 class ZodObjectProperties extends TsSnippet {
@@ -160,7 +160,7 @@ type ZodRecordArgs = {
   destinationPath: string;
   schema: true | OasSchema | OasRef<"schema">;
   generatorKey: GeneratorKey;
-  rootRef?: RefName;
+  rootRef?: RefParts;
 };
 
 class ZodRecord extends TsSnippet {

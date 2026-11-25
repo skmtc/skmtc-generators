@@ -9,7 +9,7 @@ import { ZodInteger } from "./ZodInteger.ts";
 import { ZodBoolean } from "./ZodBoolean.ts";
 import { ZodVoid } from "./ZodVoid.ts";
 import { ZodUnknown } from "./ZodUnknown.ts";
-import { toGeneratorOnlyKey, toRefName } from '@skmtc/core'
+import { toGeneratorOnlyKey } from '@skmtc/core'
 import { zodEntry } from "./mod.ts";
 
 /**
@@ -18,7 +18,7 @@ import { zodEntry } from "./mod.ts";
  * `stackTrail` (`stackTrail: schema.stackTrail.clone()`) — no
  * router-level wrapper. The originating node is passed to every snippet,
  * including the ones that otherwise receive only decomposed parts
- * (`items` / `members` / `refName`) or nothing (`void` / `unknown`).
+ * (`items` / `members` / `ref`) or nothing (`void` / `unknown`).
  */
 export const toZodValue: SchemaToValueFn = ({
   schema: schemaNode,
@@ -48,7 +48,7 @@ export const toZodValue: SchemaToValueFn = ({
       return new ZodRef({
         context,
         destinationPath,
-        refName: toRefName(schema.$ref),
+        ref: schema,
         modifiers,
         rootRef,
         schema,

@@ -1,6 +1,6 @@
 import { assertEquals } from '@std/assert'
 import { TsProjection } from '../../src/TsProjection.ts'
-import { type RefName, StackTrail } from '@skmtc/core'
+import { type RefName, toSchemaComponentRef, StackTrail } from '@skmtc/core'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
 import { toParseContext } from '../helpers/toParseContext.ts'
 
@@ -21,7 +21,7 @@ Deno.test('TsProjection - simple object type', () => {
   const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
-  const tsProjection = context.insertModel(TsProjection, 'User' as RefName)
+  const tsProjection = context.insertModel(TsProjection, toSchemaComponentRef('User' as RefName))
 
   // Should generate an object with required properties
   assertEquals(`${tsProjection.toValue()}`, '{id: string, name: string}')
@@ -45,7 +45,7 @@ Deno.test('TsProjection - object with optional properties', () => {
   const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
-  const tsProjection = context.insertModel(TsProjection, 'Product' as RefName)
+  const tsProjection = context.insertModel(TsProjection, toSchemaComponentRef('Product' as RefName))
 
   assertEquals(
     `${tsProjection.toValue()}`,
@@ -65,7 +65,7 @@ Deno.test('TsProjection - primitive string type', () => {
   const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
-  const tsProjection = context.insertModel(TsProjection, 'UserId' as RefName)
+  const tsProjection = context.insertModel(TsProjection, toSchemaComponentRef('UserId' as RefName))
 
   assertEquals(`${tsProjection.toValue()}`, 'string')
 })
@@ -85,7 +85,7 @@ Deno.test('TsProjection - array type', () => {
   const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
-  const tsProjection = context.insertModel(TsProjection, 'UserList' as RefName)
+  const tsProjection = context.insertModel(TsProjection, toSchemaComponentRef('UserList' as RefName))
 
   assertEquals(`${tsProjection.toValue()}`, 'Array<string>')
 })
@@ -102,7 +102,7 @@ Deno.test('TsProjection - union type', () => {
   const oasDocument = parseContext.parse(stackTrail)
   const context = toGenerateContext({ oasDocument })
 
-  const tsProjection = context.insertModel(TsProjection, 'StringOrNumber' as RefName)
+  const tsProjection = context.insertModel(TsProjection, toSchemaComponentRef('StringOrNumber' as RefName))
 
   assertEquals(`${tsProjection.toValue()}`, 'string | number')
 })

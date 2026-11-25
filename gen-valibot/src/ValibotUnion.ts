@@ -1,5 +1,5 @@
 import { toStringLiteral, TsSnippet } from '@skmtc/lang-typescript'
-import type { GenerateContextType, GeneratorKey, RefName, TypeSystemValue, Modifiers, OasRef, OasSchema, OasDiscriminator } from '@skmtc/core'
+import type { GenerateContextType, GeneratorKey, RefParts, TypeSystemValue, Modifiers, OasRef, OasSchema, OasDiscriminator } from '@skmtc/core'
 import { toValibotValue } from './Valibot.ts'
 import { applyModifiers } from './applyModifiers.ts'
 import { isVariantOption } from './variant.ts'
@@ -13,7 +13,7 @@ type ValibotUnionArgs = {
   discriminator?: OasDiscriminator
   modifiers: Modifiers
   generatorKey: GeneratorKey
-  rootRef?: RefName
+  rootRef?: RefParts
 }
 
 export class ValibotUnion extends TsSnippet {

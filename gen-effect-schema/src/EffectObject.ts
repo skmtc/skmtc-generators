@@ -12,7 +12,7 @@ import type {
   OasObject,
   OasRef,
   OasSchema,
-  RefName,
+  RefParts,
   TypeSystemValue,
 } from '@skmtc/core'
 import { toEffectValueImpl } from './Effect.ts'
@@ -30,7 +30,7 @@ type EffectObjectArgs = {
   objectSchema: OasObject
   modifiers: EffectModifiers
   generatorKey: GeneratorKey
-  rootRef?: RefName
+  rootRef?: RefParts
   coerce?: boolean
 }
 
@@ -128,7 +128,7 @@ type EffectObjectPropertiesArgs = {
   properties: Record<string, OasSchema | OasRef<'schema'> | CustomValue>
   required: OasObject['required']
   generatorKey: GeneratorKey
-  rootRef?: RefName
+  rootRef?: RefParts
   coerce?: boolean
 }
 
@@ -197,7 +197,7 @@ type EffectRecordArgs = {
   generatorKey: GeneratorKey
   /** The keys `properties` names beside the record, which the record must not check. */
   namedKeys: string[]
-  rootRef?: RefName
+  rootRef?: RefParts
   coerce?: boolean
 }
 

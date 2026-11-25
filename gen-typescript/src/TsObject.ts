@@ -1,6 +1,6 @@
 import { SnippetBase, isEmpty } from '@skmtc/core'
 import { TsSnippet, handleKey } from '@skmtc/lang-typescript'
-import type { GenerateContextType, OasRef, GeneratorKey, OasSchema, OasObject, CustomValue, RefName, TypeSystemObjectProperties, TypeSystemRecord, TypeSystemValue, Modifiers } from '@skmtc/core'
+import type { GenerateContextType, OasRef, GeneratorKey, OasSchema, OasObject, CustomValue, RefParts, TypeSystemObjectProperties, TypeSystemRecord, TypeSystemValue, Modifiers } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
 import { toTsValue } from './Ts.ts'
 import { TsUnknown } from './TsUnknown.ts'
@@ -11,7 +11,7 @@ type TsObjectProps = {
   value: OasObject
   modifiers: Modifiers
   generatorKey: GeneratorKey
-  rootRef?: RefName
+  rootRef?: RefParts
 }
 
 export class TsObject extends TsSnippet {
@@ -83,7 +83,7 @@ type ToPropertyValuesArgs = {
   destinationPath: string
   properties: Record<string, OasSchema | OasRef<'schema'> | CustomValue>
   required: OasObject['required']
-  rootRef?: RefName
+  rootRef?: RefParts
 }
 
 /** Each property's value, keyed by its rendered key. */
@@ -149,7 +149,7 @@ type TsRecordArgs = {
   generatorKey: GeneratorKey
   /** The values of the named properties beside the record; none for a record alone. */
   propertyValues: TypeSystemValue[]
-  rootRef?: RefName
+  rootRef?: RefParts
 }
 
 class TsRecord extends SnippetBase {

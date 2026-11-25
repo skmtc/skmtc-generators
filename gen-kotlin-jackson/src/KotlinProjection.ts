@@ -1,9 +1,9 @@
-import { toGeneratorOnlyKey } from '@skmtc/core'
+import { isDefaultRefPath, toGeneratorOnlyKey, toModelKey, toModelRef } from '@skmtc/core'
 import type {
   ContentSettings,
   GeneratedValue,
   GenerateContextType,
-  RefName,
+  RefParts,
 } from '@skmtc/core'
 import { createDataClass } from '@skmtc/lang-kotlin'
 import type { KtAnnotation } from '@skmtc/lang-kotlin'
@@ -16,12 +16,33 @@ import { isDataClassSchema, isEnumClassSchema, isSealedUnion } from './shape.ts'
 import { toSealedMembership } from './sealedMembership.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
 
+type ToParentNameArgs = {
+  context: GenerateContextType
+  ref: RefParts
+  destinationPath: string
+  rootRef: RefParts | undefined
+}
+
+/**
+ * The name of a sealed parent that is a model. The model sweep builds a
+ * component. Nothing else is sure to reach any other target, so it is
+ * inserted here: a clause never names an undeclared parent.
+ */
+const toParentName = ({ context, ref, destinationPath, rootRef }: ToParentNameArgs): string => {
+  const projection = KotlinProjection
+  const variant = 'main'
+
+  return isDefaultRefPath({ refPath: ref.refPath, refType: 'schema' })
+    ? context.toModelContentSettings({ ref, projection, variant }).identifier.name
+    : toModelRef({ context, ref, destinationPath, rootRef, projection, variant }).settings.identifier.name
+}
+
 type ConstructorArgs = {
   context: GenerateContextType
   destinationPath: string
-  refName: RefName
+  ref: RefParts
   settings: ContentSettings<EnrichmentSchema>
-  rootRef?: RefName
+  rootRef?: RefParts
 }
 
 export class KotlinProjection extends KotlinJacksonBase {
@@ -37,11 +58,11 @@ export class KotlinProjection extends KotlinJacksonBase {
   description: string | undefined
 
   constructor(
-    { context, refName, settings, destinationPath, rootRef }: ConstructorArgs,
+    { context, ref, settings, destinationPath, rootRef }: ConstructorArgs,
   ) {
-    super({ context, refName, settings })
+    super({ context, ref, settings })
 
-    const schema = context.resolveSchemaRefOnce(refName)
+    const schema = context.resolveSchemaRefOnce(ref)
 
     const generatorKey = toGeneratorOnlyKey({
       generatorId: KotlinJacksonBase.id,
@@ -65,7 +86,7 @@ export class KotlinProjection extends KotlinJacksonBase {
       // scan (computed before ANY construction — memoization makes build
       // order arbitrary); the parent's display name comes through the
       // sanctioned identity door, not a naming-policy copy.
-      const claims = toSealedMembership(context).get(refName) ?? []
+      const claims = toSealedMembership(context).get(toModelKey(ref)) ?? []
 
       // A component parent's display name comes through the sanctioned
       // identity door. A synthesized parent (an INLINE union) is
@@ -74,11 +95,7 @@ export class KotlinProjection extends KotlinJacksonBase {
       // over an undeclared parent must be impossible by construction.
       const supertypes = claims.map((claim) =>
         claim.parent.type === 'component'
-          ? context.toModelContentSettings({
-            refName: claim.parent.refName,
-            projection: KotlinProjection,
-            variant: 'main',
-          }).identifier.name
+          ? toParentName({ context, ref: claim.parent.ref, destinationPath, rootRef })
           : ensureSealedParent(context, {
             generatorKey,
             unionSchema: claim.parent.union,

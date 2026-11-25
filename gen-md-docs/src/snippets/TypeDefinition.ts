@@ -1,4 +1,5 @@
-import type { GenerateContextType, ModelProjectionArgs, OasRef, OasSchema, RefName } from '@skmtc/core'
+import { isDefaultRefPath, toModelKey, toRefPointer } from '@skmtc/core'
+import type { GenerateContextType, ModelProjectionArgs, OasDocument, OasRef, OasSchema, RefParts } from '@skmtc/core'
 import { List } from '@skmtc/lang-typescript'
 import { match, P } from 'ts-pattern'
 import { TypeDefinitionBase, type TypeDefinitionOptions } from '../base.ts'
@@ -26,14 +27,14 @@ export class TypeDefinition extends TypeDefinitionBase {
   constructor(args: ModelProjectionArgs<EnrichmentSchema, TypeDefinitionOptions>) {
     super(args)
 
-    const { context, refName, settings } = args
+    const { context, ref, settings } = args
 
     this.blocks = new List<(Heading | TypeContent | PageLink)[], '\n\n', 'none'>(
       [
-        new Heading({ context, level: 3, text: new TypeTitle({ context, refName }) }),
-        isExpandable({ context, refName })
-          ? new PageLink({ context, refName, documentPath: settings.exportPath })
-          : new TypeContent({ context, refName, documentPath: settings.exportPath })
+        new Heading({ context, level: 3, text: new TypeTitle({ context, ref }) }),
+        isExpandable({ context, ref })
+          ? new PageLink({ context, ref, documentPath: settings.exportPath })
+          : new TypeContent({ context, ref, documentPath: settings.exportPath })
       ],
       { separator: '\n\n' }
     )
@@ -46,7 +47,7 @@ export class TypeDefinition extends TypeDefinitionBase {
 
 type TypeContentArgs = {
   context: GenerateContextType
-  refName: RefName
+  ref: RefParts
   /** The document the type is written in. */
   documentPath: string
 }
@@ -59,12 +60,12 @@ type TypeContentArgs = {
  * component, which for an alias is what it names.)
  */
 export class TypeContent extends List<(DocumentSchema | ExternalDocs)[], '\n\n', 'none'> {
-  constructor({ context, refName, documentPath }: TypeContentArgs) {
+  constructor({ context, ref, documentPath }: TypeContentArgs) {
     const component =
-      context.document.type === 'oas' ? context.document.value.components?.schemas?.[refName] : undefined
+      context.document.type === 'oas' ? toTypeSchema(context.document.value, ref) : undefined
 
     if (component === undefined) {
-      throw new Error(`'${refName}' is not one of the document's component schemas`)
+      throw new Error(`'${toModelKey(ref)}' is not one of the document's schemas`)
     }
 
     const externalDocs = match(component)
@@ -73,7 +74,7 @@ export class TypeContent extends List<(DocumentSchema | ExternalDocs)[], '\n\n',
 
     super(
       [
-        new DocumentSchema({ context, schema: toTypeRows({ context, refName, component }), documentPath }),
+        new DocumentSchema({ context, schema: toTypeRows({ context, ref, component }), documentPath }),
         externalDocs !== undefined ? new ExternalDocs({ context, externalDocs }) : undefined
       ],
       { separator: '\n\n' }
@@ -81,28 +82,43 @@ export class TypeContent extends List<(DocumentSchema | ExternalDocs)[], '\n\n',
   }
 }
 
+/** A type's schema as written: a component, or the target the document keeps under the ref's whole pointer. */
+const toTypeSchema = (document: OasDocument, ref: RefParts): OasSchema | OasRef<'schema'> | undefined => {
+  if (isDefaultRefPath({ refPath: ref.refPath, refType: 'schema' })) {
+    return document.components?.schemas?.[ref.refName]
+  }
+
+  const target = document.toRefTarget(toRefPointer(ref))
+
+  if (target?.isRef()) {
+    return target.isSchemaRef() ? target : undefined
+  }
+
+  return target?.oasType === 'schema' ? target : undefined
+}
+
 /**
- * Each run's type rows, by refName. A type's rows depend on no document, and
+ * Each run's type rows, by `toModelKey`. A type's rows depend on no document, and
  * every document that links to a type defines it, so the rows are built once
  * per run and written into each of those documents. Keyed by the run's
  * context, so no rows outlive their run or carry one run's context into
  * another.
  */
-const typeRows = new WeakMap<GenerateContextType, Map<RefName, Schema>>()
+const typeRows = new WeakMap<GenerateContextType, Map<string, Schema>>()
 
 type ToTypeRowsArgs = {
   context: GenerateContextType
-  refName: RefName
+  ref: RefParts
   /** The component, as written. */
   component: OasSchema | OasRef<'schema'>
 }
 
-/** The rows of the type `refName` in this run: built on first use, then shared. */
-const toTypeRows = ({ context, refName, component }: ToTypeRowsArgs): Schema => {
-  const rows = typeRows.get(context) ?? new Map<RefName, Schema>()
-  const schema = rows.get(refName) ?? new Schema({ context, name: undefined, schema: component, required: undefined })
+/** The rows of the type `ref` in this run: built on first use, then shared. */
+const toTypeRows = ({ context, ref, component }: ToTypeRowsArgs): Schema => {
+  const rows = typeRows.get(context) ?? new Map<string, Schema>()
+  const schema = rows.get(toModelKey(ref)) ?? new Schema({ context, name: undefined, schema: component, required: undefined })
 
-  rows.set(refName, schema)
+  rows.set(toModelKey(ref), schema)
   typeRows.set(context, rows)
 
   return schema

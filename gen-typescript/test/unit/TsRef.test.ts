@@ -1,6 +1,6 @@
 import { assertEquals } from '@std/assert'
 import { TsRef } from '../../src/TsRef.ts'
-import { OasRef, type RefName, StackTrail } from '@skmtc/core'
+import { OasRef, type RefName, toSchemaComponentRef, StackTrail } from '@skmtc/core'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
 import { toParseContext } from '../helpers/toParseContext.ts'
 import { toTsValue } from '@skmtc/gen-typescript'
@@ -24,7 +24,7 @@ Deno.test('TsRef - basic reference', () => {
   const tsRef = new TsRef({
     context: toGenerateContext({ oasDocument }),
     destinationPath: '/test',
-    refName: 'User' as RefName,
+    ref: toSchemaComponentRef('User' as RefName),
     modifiers: { required: true }
   })
 
@@ -50,7 +50,7 @@ Deno.test('TsRef - nullable reference', () => {
   const tsRef = new TsRef({
     context: toGenerateContext({ oasDocument }),
     destinationPath: '/test',
-    refName: 'Product' as RefName,
+    ref: toSchemaComponentRef('Product' as RefName),
     modifiers: { required: true, nullable: true }
   })
 
@@ -75,7 +75,7 @@ Deno.test('TsRef - optional reference', () => {
   const tsRef = new TsRef({
     context: toGenerateContext({ oasDocument }),
     destinationPath: '/test',
-    refName: 'Category' as RefName,
+    ref: toSchemaComponentRef('Category' as RefName),
     modifiers: { required: false }
   })
 
@@ -110,7 +110,7 @@ Deno.test('TsRef - recursive reference', () => {
     ),
 
     required: true,
-    rootRef: 'Category' as RefName,
+    rootRef: toSchemaComponentRef('Category' as RefName),
     context,
     destinationPath: '@/types/category.generated.ts'
   })
@@ -147,7 +147,7 @@ Deno.test('TsRef - camelCase reference name transformation', () => {
   const tsRef = new TsRef({
     context: toGenerateContext({ oasDocument }),
     destinationPath: '/test',
-    refName: 'user-profile' as RefName,
+    ref: toSchemaComponentRef('user-profile' as RefName),
     modifiers: { required: true }
   })
 

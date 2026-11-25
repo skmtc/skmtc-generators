@@ -1,5 +1,5 @@
 import { TsSnippet } from '@skmtc/lang-typescript'
-import type { TypeSystemValue, OasSchema, Modifiers, GeneratorKey, GenerateContextType, OasRef, RefName } from '@skmtc/core'
+import type { TypeSystemValue, OasSchema, Modifiers, GeneratorKey, GenerateContextType, OasRef, RefParts } from '@skmtc/core'
 import { toTsValue } from './Ts.ts'
 import { applyModifiers } from './applyModifiers.ts'
 
@@ -11,7 +11,7 @@ type TsArrayArgs = {
   schema?: OasSchema | OasRef<'schema'>
   modifiers: Modifiers
   generatorKey: GeneratorKey
-  rootRef?: RefName
+  rootRef?: RefParts
 }
 
 export class TsArray extends TsSnippet {

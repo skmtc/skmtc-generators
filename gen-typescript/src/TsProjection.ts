@@ -1,4 +1,4 @@
-import type { ContentSettings, TypeSystemValue, GenerateContextType, RefName } from '@skmtc/core'
+import type { ContentSettings, TypeSystemValue, GenerateContextType, RefParts } from '@skmtc/core'
 import { createType } from '@skmtc/lang-typescript'
 import { toTsValue } from './Ts.ts'
 import { TypescriptBase } from './base.ts'
@@ -6,17 +6,17 @@ import type { EnrichmentSchema } from './enrichments.ts'
 
 type ConstructorArgs = {
   context: GenerateContextType
-  refName: RefName
+  ref: RefParts
   settings: ContentSettings<EnrichmentSchema>
-  rootRef?: RefName
+  rootRef?: RefParts
 }
 
 export class TsProjection extends TypescriptBase {
   value: TypeSystemValue
-  constructor({ context, refName, settings, rootRef }: ConstructorArgs) {
-    super({ context, refName, settings })
+  constructor({ context, ref, settings, rootRef }: ConstructorArgs) {
+    super({ context, ref, settings })
 
-    const schema = context.resolveSchemaRefOnce(refName)
+    const schema = context.resolveSchemaRefOnce(ref)
 
     this.value = toTsValue({
       schema,

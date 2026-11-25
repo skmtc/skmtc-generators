@@ -1,6 +1,6 @@
 import { assertEquals, assertThrows } from '@std/assert'
 import { ArktypeRef } from '@skmtc/gen-arktype'
-import { type RefName, StackTrail } from '@skmtc/core'
+import { type RefName, toSchemaComponentRef, StackTrail } from '@skmtc/core'
 import { toGenerateContext } from '../helpers/toGenerateContext.ts'
 import { toParseContext } from '../helpers/toParseContext.ts'
 
@@ -43,7 +43,7 @@ const toRefContext = () => {
 Deno.test('ArktypeRef - basic reference', () => {
   const arktypeRef = new ArktypeRef({
     context: toRefContext(),
-    refName: 'User' as RefName,
+    ref: toSchemaComponentRef('User' as RefName),
     modifiers: { required: true },
     destinationPath: '/test'
   })
@@ -54,7 +54,7 @@ Deno.test('ArktypeRef - basic reference', () => {
 Deno.test('ArktypeRef - nullable reference', () => {
   const arktypeRef = new ArktypeRef({
     context: toRefContext(),
-    refName: 'Product' as RefName,
+    ref: toSchemaComponentRef('Product' as RefName),
     modifiers: { required: true, nullable: true },
     destinationPath: '/test'
   })
@@ -67,7 +67,7 @@ Deno.test('ArktypeRef - nullable reference', () => {
 Deno.test('ArktypeRef - optional reference', () => {
   const arktypeRef = new ArktypeRef({
     context: toRefContext(),
-    refName: 'Category' as RefName,
+    ref: toSchemaComponentRef('Category' as RefName),
     modifiers: { required: false },
     destinationPath: '/test'
   })
@@ -80,7 +80,7 @@ Deno.test('ArktypeRef - drives the referenced model into its own file', () => {
 
   new ArktypeRef({
     context,
-    refName: 'User' as RefName,
+    ref: toSchemaComponentRef('User' as RefName),
     modifiers: { required: true },
     destinationPath: '/test'
   })
@@ -101,7 +101,7 @@ Deno.test('ArktypeRef - a model that refers to itself is refused, by name', () =
     () =>
       new ArktypeRef({
         context: toRefContext(),
-        refName: 'Node' as RefName,
+        ref: toSchemaComponentRef('Node' as RefName),
         modifiers: { required: true },
         destinationPath: '/test'
       }),
@@ -115,7 +115,7 @@ Deno.test('ArktypeRef - a cycle of two models is refused, naming the model refer
     () =>
       new ArktypeRef({
         context: toRefContext(),
-        refName: 'Employee' as RefName,
+        ref: toSchemaComponentRef('Employee' as RefName),
         modifiers: { required: true },
         destinationPath: '/test'
       }),

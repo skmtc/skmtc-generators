@@ -1,5 +1,5 @@
 import { TsSnippet } from "@skmtc/lang-typescript";
-import type { GenerateContextType, GeneratorKey, Modifiers, OasRef, OasSchema, RefName, TypeSystemValue } from '@skmtc/core'
+import type { GenerateContextType, GeneratorKey, Modifiers, OasRef, OasSchema, RefParts, TypeSystemValue } from '@skmtc/core'
 import { toZodValue } from "./Zod.ts";
 import { applyModifiers } from "./applyModifiers.ts";
 import { isDeferred } from "./deferred.ts";
@@ -12,7 +12,7 @@ type ZodArrayArgs = {
   schema?: OasSchema | OasRef<"schema">;
   modifiers: Modifiers;
   generatorKey: GeneratorKey;
-  rootRef?: RefName;
+  rootRef?: RefParts;
 };
 
 export class ZodArray extends TsSnippet {

@@ -18,7 +18,7 @@ import type {
   OasObject,
   OasRef,
   OasSchema,
-  RefName,
+  RefParts,
   TypeSystemValue,
 } from '@skmtc/core'
 import { toKotlinValue } from './Kotlin.ts'
@@ -32,7 +32,7 @@ type KotlinObjectArgs = {
   objectSchema: OasObject
   modifiers: Modifiers
   generatorKey: GeneratorKey
-  rootRef?: RefName
+  rootRef?: RefParts
 }
 
 /**
@@ -202,7 +202,7 @@ type KotlinObjectPropertiesArgs = {
   properties: Record<string, OasSchema | OasRef<'schema'> | CustomValue>
   required: OasObject['required']
   generatorKey: GeneratorKey
-  rootRef?: RefName
+  rootRef?: RefParts
   /**
    * The object's `additionalProperties` channel, when it coexists with
    * declared properties — renders as a `@JsonAnySetter`/`@JsonAnyGetter`
@@ -388,7 +388,7 @@ type KotlinRecordArgs = {
   destinationPath: string
   schema: true | OasSchema | OasRef<'schema'>
   generatorKey: GeneratorKey
-  rootRef?: RefName
+  rootRef?: RefParts
   /**
    * Render `MutableMap` instead of `Map` — set when this record is a
    * synthesized class's catch-all parameter, which Jackson's any-setter

@@ -428,3 +428,31 @@ deno task test:coverage
 ## License
 
 [MIT](LICENSE).
+
+## Naming a model
+
+A model is named from its `refName` (the last segment of its `$ref`). Two
+models whose names come out the same, such as `pet` and `Pet`, or refs to
+`…/A/properties/disk` and `…/B/properties/disk`, fail the run with
+`Registered definition mismatch`. Set `name` on one of them in `client.json`:
+
+```jsonc
+{
+  "settings": {
+    "enrichments": {
+      "@skmtc/gen-valibot": {
+        // A component is keyed by its name, any other target by its whole pointer.
+        "Pet": { "main": { "name": "upperPet" } },
+        "#/components/schemas/B/properties/disk": { "main": { "name": "webServiceDisk" } }
+      }
+    }
+  }
+}
+```
+
+Write a pointer with no percent escapes: `#/paths/~1x~1{id}/…`, also when the
+`$ref` in the document has `%7Bid%7D`.
+
+A model that refers back to itself can also insert gen-typescript's type,
+which is named by gen-typescript. If the type's name clashes, set its `name`
+under `@skmtc/gen-typescript`, also when you do not list that generator.

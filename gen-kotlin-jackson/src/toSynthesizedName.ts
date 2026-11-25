@@ -1,5 +1,6 @@
-import { camelCase, capitalize, isMethod, toMethodVerb } from '@skmtc/core'
+import { camelCase, capitalize, fromModelKey, isMethod, toMethodVerb } from '@skmtc/core'
 import type { GenerateContextType, StackTrail } from '@skmtc/core'
+import { toModelName } from './base.ts'
 
 /**
  * Derive the name for a synthesized declaration from the schema's own
@@ -67,6 +68,53 @@ export const toSynthesizedName = (
  * of them in lockstep.
  */
 export const toSynthesizedNameOrNull = (
+  context: GenerateContextType,
+  stackTrail: StackTrail,
+): string | null => {
+  return toDocumentRootedName(context, stackTrail) ?? toRefTargetRootedName(context, stackTrail)
+}
+
+/**
+ * The name of a position inside the target of a ref that does not point at a
+ * component, whose own root gives no name (`#/x-models/Disk`,
+ * `#/components/responses/Err/content/…/schema`): the target's model name,
+ * then the position inside it.
+ */
+const toRefTargetRootedName = (
+  context: GenerateContextType,
+  stackTrail: StackTrail,
+): string | null => {
+  const { refName, refPath } = fromModelKey(stackTrail.toSchemaPointer())
+
+  return toNameInTarget(context, refPath, [refName])
+}
+
+/**
+ * The name of the position `frames` below `pointer`, from the nearest target
+ * at or above `pointer`. The position itself is not looked up: a target is a
+ * model, and has the model's name.
+ */
+const toNameInTarget = (
+  context: GenerateContextType,
+  pointer: string,
+  frames: string[],
+): string | null => {
+  if (context.document.type !== 'oas' || pointer === '#') {
+    return null
+  }
+
+  const ref = fromModelKey(pointer)
+
+  if (context.document.value.toRefTarget(pointer) === undefined) {
+    return toNameInTarget(context, ref.refPath, [ref.refName, ...frames])
+  }
+
+  const segments = toSegments(frames)
+
+  return segments === null ? null : `${toModelName(context, ref)}${segments.join('')}`
+}
+
+const toDocumentRootedName = (
   context: GenerateContextType,
   stackTrail: StackTrail,
 ): string | null => {

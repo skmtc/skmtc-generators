@@ -2,15 +2,15 @@ import { toModelRef } from '@skmtc/core'
 import { TsSnippet } from '@skmtc/lang-typescript'
 import { applyModifiers } from './applyModifiers.ts'
 import { ValibotProjection } from './ValibotProjection.ts'
-import type { GenerateContextType, GeneratorKey, RefName, Modifiers, OasRef, OasSchema } from '@skmtc/core'
+import type { GenerateContextType, GeneratorKey, RefParts, Modifiers, OasRef, OasSchema } from '@skmtc/core'
 
 type ValibotRefArgs = {
   context: GenerateContextType
   destinationPath: string
-  refName: RefName
+  ref: RefParts
   modifiers: Modifiers
   generatorKey: GeneratorKey
-  rootRef?: RefName
+  rootRef?: RefParts
   /** The originating ref schema node — for fine-grained attribution. */
   schema?: OasSchema | OasRef<'schema'>
 }
@@ -18,17 +18,17 @@ type ValibotRefArgs = {
 export class ValibotRef extends TsSnippet {
   type = 'ref' as const
   name: string
-  refName: RefName
+  ref: RefParts
   modifiers: Modifiers
   destinationPath: string
-  rootRef?: RefName
+  rootRef?: RefParts
   terminal: boolean
   /** The model's `variantKeys` (see `isVariantOption`); none for a `v.lazy` or nullable reference. */
   variantKeys: string[]
 
   constructor({
     context,
-    refName,
+    ref,
     destinationPath,
     modifiers,
     generatorKey,
@@ -37,7 +37,7 @@ export class ValibotRef extends TsSnippet {
   }: ValibotRefArgs) {
     super({ context, generatorKey, stackTrail: schema?.stackTrail.clone() })
 
-    this.refName = refName
+    this.ref = ref
     this.modifiers = modifiers
     this.destinationPath = destinationPath
     this.rootRef = rootRef
@@ -49,18 +49,18 @@ export class ValibotRef extends TsSnippet {
     // `inCycle`. Both render `v.lazy(...)`: valibot reads a plain reference
     // when the module loads, and any model of a cycle can be the first one
     // loaded. `toModelRef` stitches the import in every case.
-    const ref = toModelRef({
+    const modelRef = toModelRef({
       context,
-      refName,
+      ref,
       destinationPath,
       rootRef,
       projection: ValibotProjection,
       variant: 'main'
     })
 
-    this.name = ref.settings.identifier.name
-    this.terminal = ref.suspended || ref.inCycle
-    this.variantKeys = ref.suspended || ref.inCycle || modifiers.nullable ? [] : ref.definition.value.variantKeys
+    this.name = modelRef.settings.identifier.name
+    this.terminal = modelRef.suspended || modelRef.inCycle
+    this.variantKeys = modelRef.suspended || modelRef.inCycle || modifiers.nullable ? [] : modelRef.definition.value.variantKeys
   }
 
   override toString(): string {

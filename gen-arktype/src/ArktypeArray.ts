@@ -1,5 +1,5 @@
 import type { OasRef, OasSchema } from '@skmtc/core'
-import type { GenerateContextType, Modifiers, GeneratorKey, RefName } from '@skmtc/core'
+import type { GenerateContextType, Modifiers, GeneratorKey, RefParts } from '@skmtc/core'
 import { TsSnippet } from '@skmtc/lang-typescript'
 import { applyModifiers, applyValueModifiers } from './applyModifiers.ts'
 import { toAtomicSyntax } from './toAtomicSyntax.ts'
@@ -13,7 +13,7 @@ type ArktypeArrayArgs = {
   items: OasSchema | OasRef<'schema'>
   destinationPath: string
   generatorKey: GeneratorKey
-  rootRef?: RefName
+  rootRef?: RefParts
 }
 
 export class ArktypeArray extends TsSnippet {

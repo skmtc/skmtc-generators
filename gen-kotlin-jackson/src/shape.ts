@@ -1,4 +1,4 @@
-import { isEmpty } from '@skmtc/core'
+import { isDefaultRefPath, isEmpty, toRefPointer } from '@skmtc/core'
 import type {
   GenerateContextType,
   OasObject,
@@ -6,14 +6,14 @@ import type {
   OasSchema,
   OasString,
   OasUnion,
-  RefName,
+  RefParts,
 } from '@skmtc/core'
 import type { KtEntityType } from '@skmtc/lang-kotlin'
 
 type ModelSchema = OasSchema | OasRef<'schema'>
 
 /**
- * Read a component schema straight from the document. Identity is
+ * Read a model's schema straight from the document. Identity is
  * computed before construction, so it reads the schema without going
  * through the context's model machinery.
  *
@@ -22,13 +22,22 @@ type ModelSchema = OasSchema | OasRef<'schema'>
  */
 export const peekSchema = (
   context: GenerateContextType,
-  refName: RefName,
+  ref: RefParts,
 ): ModelSchema | undefined => {
   if (context.document.type !== 'oas') {
     return undefined
   }
 
-  return context.document.value.components?.schemas?.[refName]?.resolveOnce()
+  // A ref that does not point at a component is kept under its whole pointer.
+  const target = isDefaultRefPath({ refPath: ref.refPath, refType: 'schema' })
+    ? context.document.value.components?.schemas?.[ref.refName]
+    : context.document.value.toRefTarget(toRefPointer(ref))
+
+  if (target?.isRef()) {
+    return target.isSchemaRef() ? target.resolveOnce() : undefined
+  }
+
+  return target?.oasType === 'schema' ? target.resolveOnce() : undefined
 }
 
 /**
@@ -95,7 +104,7 @@ export const isSealedUnion = (
       return false
     }
 
-    const target = peekSchema(context, member.toRefName())
+    const target = peekSchema(context, member)
 
     if (!target || target.isRef() || !isDataClassSchema(target)) {
       return false
@@ -119,9 +128,9 @@ export const isSealedUnion = (
  */
 export const toModelShape = (
   context: GenerateContextType,
-  refName: RefName,
+  ref: RefParts,
 ): KtEntityType => {
-  const schema = peekSchema(context, refName)
+  const schema = peekSchema(context, ref)
 
   if (!schema) {
     return 'typealias'

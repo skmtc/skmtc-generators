@@ -1,4 +1,4 @@
-import type { ContentSettings, GenerateContextType, RefName, TypeSystemValue } from '@skmtc/core'
+import type { ContentSettings, GenerateContextType, RefParts, TypeSystemValue } from '@skmtc/core'
 import { createVariable } from '@skmtc/lang-typescript'
 import { TsProjection } from '@skmtc/gen-typescript'
 import { toZodValue } from "./Zod.ts";
@@ -9,9 +9,9 @@ import type { EnrichmentSchema } from "./enrichments.ts";
 type ConstructorArgs = {
   context: GenerateContextType;
   destinationPath: string;
-  refName: RefName;
+  ref: RefParts;
   settings: ContentSettings<EnrichmentSchema>;
-  rootRef?: RefName;
+  rootRef?: RefParts;
 };
 
 export class ZodProjection extends ZodBase {
@@ -19,11 +19,11 @@ export class ZodProjection extends ZodBase {
   /** Renders `z.lazy(() => …)`: the value holds a reference inside a cycle that no getter defers. */
   lazy: boolean;
   constructor(
-    { context, refName, settings, destinationPath, rootRef }: ConstructorArgs,
+    { context, ref, settings, destinationPath, rootRef }: ConstructorArgs,
   ) {
-    super({ context, refName, settings });
+    super({ context, ref, settings });
 
-    const schema = context.resolveSchemaRefOnce(refName);
+    const schema = context.resolveSchemaRefOnce(ref);
 
     this.value = toZodValue({
       schema,
@@ -43,7 +43,7 @@ export class ZodProjection extends ZodBase {
     this.lazy = isDeferred(this.value);
 
     if (this.lazy) {
-      const type = context.insertModel(TsProjection, refName, {
+      const type = context.insertModel(TsProjection, ref, {
         variant: "main",
         destinationPath,
       });

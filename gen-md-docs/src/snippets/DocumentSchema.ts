@@ -1,4 +1,4 @@
-import { SnippetBase, toModelRef, type GenerateContextType } from '@skmtc/core'
+import { SnippetBase, toModelKey, toModelRef, type GenerateContextType } from '@skmtc/core'
 import { isPageOf } from './ObjectPage.ts'
 import type { Schema } from './Schema.ts'
 import { TypeDefinition } from './TypeDefinition.ts'
@@ -29,12 +29,12 @@ export class DocumentSchema extends SnippetBase {
 
     this.schema = schema
 
-    const links = [...new Set(schema.links)].filter(refName => !isPageOf({ context, refName, documentPath }))
+    const links = [...new Map(schema.links.map(ref => [toModelKey(ref), ref])).values()].filter(ref => !isPageOf({ context, ref, documentPath }))
 
-    links.forEach(refName => {
+    links.forEach(ref => {
       toModelRef({
         context,
-        refName,
+        ref,
         destinationPath: documentPath,
         projection: TypeDefinition,
         options: { documentPath }

@@ -5,7 +5,7 @@ import type {
   Modifiers,
   OasRef,
   OasSchema,
-  RefName,
+  RefParts,
 } from '@skmtc/core'
 import { applyModifiers } from './modifiers.ts'
 import { KotlinProjection } from './KotlinProjection.ts'
@@ -15,8 +15,8 @@ type KotlinRefArgs = {
   context: GenerateContextType
   destinationPath: string
   modifiers: Modifiers
-  refName: RefName
-  rootRef?: RefName
+  ref: RefParts
+  rootRef?: RefParts
   /** The originating ref schema node — for fine-grained attribution. */
   schema?: OasSchema | OasRef<'schema'>
 }
@@ -35,14 +35,14 @@ export class KotlinRef extends KtSnippet {
   terminal: boolean
 
   constructor(
-    { context, refName, destinationPath, modifiers, rootRef, schema }:
+    { context, ref, destinationPath, modifiers, rootRef, schema }:
       KotlinRefArgs,
   ) {
     super({
       context,
       generatorKey: toModelGeneratorKey({
         generatorId: kotlinJacksonEntry.id,
-        refName,
+        ref,
         variant: 'main',
       }),
       stackTrail: schema?.stackTrail.clone(),
@@ -52,18 +52,18 @@ export class KotlinRef extends KtSnippet {
     // comes back `suspended`, so the peer is not constructed again. Any
     // other model is constructed or reused, and `toModelRef` stitches the
     // import (KtFile leaves out a same-package one).
-    const ref = toModelRef({
+    const modelRef = toModelRef({
       context,
-      refName,
+      ref,
       destinationPath,
       rootRef,
       projection: KotlinProjection,
       variant: 'main',
     })
 
-    this.name = ref.settings.identifier.name
+    this.name = modelRef.settings.identifier.name
     this.modifiers = modifiers
-    this.terminal = ref.suspended
+    this.terminal = modelRef.suspended
   }
 
   override toString(): string {

@@ -310,3 +310,56 @@ Deno.test('aliases - the keywords next to a $ref that names a schema still apply
 
   assertStringIncludes(artifacts['src/docs/pets-GET.md'], '- **owner** [`Person`](#type-Person) nullable — Who owns the pet')
 })
+
+Deno.test('referenced types - two deep targets that share a refName are both defined, each at its own anchor', () => {
+  const toPointer = (status: string) => `#/components/responses/${status}/content/application~1json/schema`
+  const toResponse = (property: string) => ({
+    ...ok,
+    content: json({ type: 'object', properties: { [property]: { type: 'string' } } })
+  })
+  const { artifacts } = run({
+    paths: {
+      '/pets': {
+        get: {
+          responses: {
+            '400': { ...ok, content: json({ $ref: toPointer('400') }) },
+            '422': { ...ok, content: json({ $ref: toPointer('422') }) }
+          }
+        }
+      }
+    },
+    components: { responses: { '400': toResponse('reason'), '422': toResponse('field') } }
+  })
+  const markdown = Object.entries(artifacts).find(([path]) => path.endsWith('pets-GET.md'))?.[1] ?? ''
+
+  assertEquals(
+    toTypeHeadings(markdown),
+    ['400', '422'].map(status => `### <a id="type-${encodeURIComponent(toPointer(status))}"></a>Schema`)
+  )
+})
+
+Deno.test('expandable objects - two deep targets that share a refName have a page each', () => {
+  const toPointer = (owner: string) => `#/components/schemas/${owner}/properties/disk`
+  const toOwner = (property: string): OpenAPIV3.SchemaObject => ({
+    type: 'object',
+    properties: { disk: { type: 'object', properties: { [property]: { type: 'string' } } } }
+  })
+  const toField = (owner: string) => ({
+    anyOf: [{ type: 'string' as const }, { $ref: toPointer(owner) }],
+    'x-expansionResources': { oneOf: [{ $ref: toPointer(owner) }] }
+  })
+  const { artifacts } = run({
+    paths: { '/disks': { get: { responses: { '200': { ...ok, content: json(ref('Disks')) } } } } },
+    components: {
+      schemas: {
+        A: toOwner('first'),
+        B: toOwner('second'),
+        Disks: { type: 'object', properties: { a: toField('A'), b: toField('B') } }
+      }
+    }
+  })
+  const pages = Object.entries(artifacts).filter(([path]) => path.includes('/_types/'))
+
+  assertEquals(pages.length, 2)
+  assertEquals(pages.map(([, page]) => page.includes('**first**')).toSorted(), [false, true])
+})

@@ -10,7 +10,7 @@ import { TsInteger } from './TsInteger.ts'
 import { TsBoolean } from './TsBoolean.ts'
 import { TsVoid } from './TsVoid.ts'
 import { TsUnknown } from './TsUnknown.ts'
-import { toGeneratorOnlyKey, toRefName } from '@skmtc/core'
+import { toGeneratorOnlyKey } from '@skmtc/core'
 import { typescriptEntry } from './mod.ts'
 
 /**
@@ -19,7 +19,7 @@ import { typescriptEntry } from './mod.ts'
  * schema's `stackTrail` (`stackTrail: schema.stackTrail.clone()`) — no
  * router-level wrapper. The originating node is passed to
  * every snippet, including the ones that otherwise receive only decomposed
- * parts (`items` / `members` / `refName`) or nothing (`number` / `unknown`).
+ * parts (`items` / `members` / `ref`) or nothing (`number` / `unknown`).
  * `void` takes none — `OasVoid` is not part of the `OasSchema` union.
  */
 export const toTsValue: SchemaToValueFn = ({
@@ -43,7 +43,7 @@ export const toTsValue: SchemaToValueFn = ({
       return new TsRef({
         context,
         destinationPath,
-        refName: toRefName(ref.$ref),
+        ref,
         modifiers,
         rootRef,
         schema: ref

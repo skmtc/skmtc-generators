@@ -1,7 +1,7 @@
 import type {
   ContentSettings,
   GenerateContextType,
-  RefName,
+  RefParts,
   TypeSystemValue,
 } from '@skmtc/core'
 import { createVariable, toTsIdentifier } from '@skmtc/lang-typescript'
@@ -13,9 +13,9 @@ import type { EffectSchemaOptions } from './options.ts'
 type ConstructorArgs = {
   context: GenerateContextType
   destinationPath: string
-  refName: RefName
+  ref: RefParts
   settings: ContentSettings<EnrichmentSchema>
-  rootRef?: RefName
+  rootRef?: RefParts
   /** The caller's options — the coerced reading, or none for JSON. */
   options?: EffectSchemaOptions
 }
@@ -24,12 +24,12 @@ export class EffectProjection extends EffectBase {
   value: TypeSystemValue
 
   constructor(
-    { context, refName, settings, destinationPath, rootRef, options }:
+    { context, ref, settings, destinationPath, rootRef, options }:
       ConstructorArgs,
   ) {
-    super({ context, refName, settings, options })
+    super({ context, ref, settings, options })
 
-    const schema = context.resolveSchemaRefOnce(refName)
+    const schema = context.resolveSchemaRefOnce(ref)
 
     // The coerced reading is asked for by the caller (see options.ts); the
     // router threads it to every leaf, and a ref on the way passes it on.

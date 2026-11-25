@@ -10,7 +10,7 @@
  * `KotlinProjection` from the shape dispatch, because only a top-level
  * model has a name to hang them on.
  */
-import { toGeneratorOnlyKey, toRefName } from '@skmtc/core'
+import { toGeneratorOnlyKey } from '@skmtc/core'
 import type { Modifiers, SchemaToValueFn, SchemaType } from '@skmtc/core'
 import { match } from 'ts-pattern'
 import { kotlinJacksonEntry } from './mod.ts'
@@ -52,7 +52,7 @@ export const toKotlinValue: SchemaToValueFn = (
       return new KotlinRef({
         context,
         destinationPath,
-        refName: toRefName(ref.$ref),
+        ref,
         modifiers,
         rootRef,
         schema: ref,
