@@ -8,6 +8,10 @@ import { toProperties, type EnrichmentSchema } from './enrichments.ts'
 
 export class FormFields extends SnippetBase {
   fields: ListLines<Stringable> | undefined
+  /** The top-level properties that have a field. */
+  keptNames: string[] = []
+  /** The top-level properties that have none, as each repeats a model. */
+  cutNames: string[] = []
   constructor({ context, operation, settings }: OasOperationProjectionConstructorArgs<EnrichmentSchema>) {
     super({ context })
 
@@ -30,7 +34,7 @@ export class FormFields extends SnippetBase {
 
       return List.fromEntries(resolved.properties ?? {}).toLines(([name, schema]) => {
         const override = overrides.get(name)
-        return schemaToField({
+        const field = schemaToField({
           context,
           name,
           schema,
@@ -42,6 +46,11 @@ export class FormFields extends SnippetBase {
           isRequired: Boolean(resolved.required?.includes(name)),
           input: override?.moduleSelect.module
         })
+
+        const names = field === undefined ? this.cutNames : this.keptNames
+        names.push(name)
+
+        return field
       })
     })
   }

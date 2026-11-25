@@ -42,7 +42,7 @@ export const repeatsModel = ({ schema, openModels }: RepeatsModelArgs): boolean 
     return repeatsModel({ schema: schema.items, openModels })
   }
 
-  // `schemaToField` renders a one-member intersection as its member
+  // `schemaToField` renders a one-member union as its member
   if (schema.type === 'union' && schema.members.length === 1) {
     return repeatsModel({ schema: schema.members[0], openModels })
   }

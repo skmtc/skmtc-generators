@@ -157,6 +157,38 @@ Deno.test('recursive body - a model used twice side by side keeps both its field
   ])
 })
 
+const uncutForm = "useForm<Required<NewUser>>({\n    resolver: zodResolver(newUser.required()),"
+
+Deno.test('recursive body - a property with no field is not required, so the form can be submitted', () => {
+  const form = toForm({
+    NewUser: {
+      type: 'object',
+      required: ['name'],
+      properties: { name: string, 'nick-name': string, parent: toRef('NewUser') }
+    }
+  })
+
+  assertStringIncludes(
+    form,
+    `useForm<NewUser & Required<Pick<NewUser, 'name' | 'nick-name'>>>({
+    resolver: zodResolver(newUser.required({name: true, 'nick-name': true})),`
+  )
+  assertStringIncludes(form, "defaultValues: NewUser & Required<Pick<NewUser, 'name' | 'nick-name'>>,")
+})
+
+Deno.test('recursive body - a form with no field at all requires nothing', () => {
+  const form = toForm({ NewUser: { type: 'object', properties: { parent: toRef('NewUser') } } })
+
+  assertStringIncludes(form, 'useForm<NewUser>({\n    resolver: zodResolver(newUser.required({})),')
+})
+
+Deno.test('recursive body - a body with every field still requires every property', () => {
+  const form = toForm({ NewUser: { type: 'object', properties: { name: string, size: string } } })
+
+  assertStringIncludes(form, uncutForm)
+  assertStringIncludes(form, 'defaultValues: Required<NewUser>,')
+})
+
 // Neither reference ends at a model, so the run fails. It fails with the
 // loop's own error, not by following the loop until the stack is full.
 Deno.test('recursive body - a column that is a loop of references names the loop', () => {
@@ -215,4 +247,6 @@ Deno.test('recursive body - the input enrichment still renders a component for a
   assert(/<ParentField\s+lens=\{lens\.focus\(`parent`\)/.test(form))
   assertStringIncludes(form, `import {ParentField} from '@/inputs/ParentField.tsx'`)
   assertEquals(toFieldNames(form), ['name', 'parent'])
+  // A property with a component has a field, so it stays required
+  assertStringIncludes(form, uncutForm)
 })
