@@ -1,6 +1,7 @@
 /** A body, or a property of one, that is an `allOf` in a cycle (#117). */
 import { assertEquals, assertFalse, assertStringIncludes } from '@std/assert'
-import { assertNoResultErrors, operationDocument, runE2eFixture } from '@skmtc/test-support'
+import type { SystemSettings } from '@skmtc/core'
+import { assertNoResultErrors, keepAllRefs, operationDocument, runE2eFixture } from '@skmtc/test-support'
 import type { OpenAPIV3 } from 'openapi-types'
 import { ShadcnFormEntry } from '../src/mod.ts'
 
@@ -11,10 +12,11 @@ const toRef = (name: string): OpenAPIV3.ReferenceObject => ({ $ref: `#/component
 const text: OpenAPIV3.SchemaObject = { type: 'string' }
 
 /** The form for `POST /users`, whose request body is `NewUser`. */
-const toForm = (schemas: Schemas): string => {
+const toForm = (schemas: Schemas, system?: SystemSettings): string => {
   const { artifacts, manifest } = runE2eFixture({
     id: '@skmtc/gen-shadcn-form',
     entry: ShadcnFormEntry,
+    system,
     document: { ...operationDocument, components: { schemas: { ...operationDocument.components?.schemas, ...schemas } } }
   })
 
@@ -84,4 +86,33 @@ Deno.test('intersection - the rows of a table have the columns of every member',
   })
 
   assertEquals(toFieldNames(form), ['rows', 'rows.${index}.id', 'rows.${index}.name'])
+  assertStringIncludes(form, "headers={['id', 'name']}")
+})
+
+// `ZodIntersection` has no `.required` either, annotated or not.
+Deno.test('intersection - a body outside a cycle has no .required', () => {
+  const form = toForm(
+    { NewUser: { allOf: [toRef('Base'), { type: 'object', properties: { name: text } }] }, Base: { type: 'object', properties: { id: text } } },
+    keepAllRefs
+  )
+
+  assertEquals(toFieldNames(form), ['id', 'name'])
+  assertFalse(form.includes('.required('))
+})
+
+Deno.test('intersection - a subtype of the body, and a base of a subtype, are entered once', () => {
+  const subtype = toForm({
+    NewUser: { type: 'object', properties: { id: text, child: toRef('Child') } },
+    Child: { allOf: [toRef('NewUser'), { type: 'object', properties: { name: text } }] }
+  })
+
+  assertEquals(toFieldNames(subtype), ['id', 'child.id', 'child.name'])
+
+  const base = toForm({
+    NewUser: { type: 'object', properties: { child: toRef('Child') } },
+    Parent: { type: 'object', properties: { id: text, other: toRef('Parent'), child: toRef('Child') } },
+    Child: { allOf: [toRef('Parent'), { type: 'object', properties: { name: text } }] }
+  })
+
+  assertEquals(toFieldNames(base), ['child.id', 'child.other.id', 'child.name'])
 })
