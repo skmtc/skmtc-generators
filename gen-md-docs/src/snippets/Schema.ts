@@ -163,7 +163,12 @@ type ToSiteTypeInfoArgs = {
   site: SiteSchema
 }
 
-const toSiteTypeInfo = ({ context, schema, required, site }: ToSiteTypeInfoArgs) => {
+const toSiteTypeInfo = ({
+  context,
+  schema,
+  required,
+  site
+}: ToSiteTypeInfoArgs): TypeInfo | AliasTypeInfo | UnresolvedTypeInfo => {
   switch (site.type) {
     case 'schema':
       return new TypeInfo({ context, schema, resolved: site.schema, required })
@@ -171,10 +176,6 @@ const toSiteTypeInfo = ({ context, schema, required, site }: ToSiteTypeInfoArgs)
       return new AliasTypeInfo({ context, schema, required })
     case 'dangling':
       return new UnresolvedTypeInfo({ context, schema, required })
-    default: {
-      const _exhaustive: never = site
-      throw new Error(`Unhandled schema site type: ${_exhaustive}`)
-    }
   }
 }
 
@@ -203,7 +204,7 @@ const toExpansion = (schema: OasSchema | OasRef<'schema'>): Property[] => {
       return []
     default: {
       const _exhaustive: never = schema
-      throw new Error(`Unhandled schema type: ${_exhaustive}`)
+      throw new Error(`Unhandled schema type: ${Reflect.get(_exhaustive, 'type')}`)
     }
   }
 }

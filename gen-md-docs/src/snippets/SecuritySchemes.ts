@@ -96,10 +96,6 @@ export const toSchemeKind = ({ context, scheme }: ToSchemeArgs): SchemeKind => {
       return new OAuth2Scheme({ context })
     case 'openIdConnect':
       return new OpenIdConnectScheme({ context })
-    default: {
-      const _exhaustive: never = scheme
-      throw new Error(`Unhandled security scheme type: ${_exhaustive}`)
-    }
   }
 }
 
@@ -315,9 +311,5 @@ export const toSchemeDetail = ({ context, scheme }: ToSchemeArgs): SchemeDetail 
       return new OAuth2Detail({ context, scheme })
     case 'openIdConnect':
       return new OpenIdConnectDetail({ context, scheme })
-    default: {
-      const _exhaustive: never = scheme
-      throw new Error(`Unhandled security scheme type: ${_exhaustive}`)
-    }
   }
 }

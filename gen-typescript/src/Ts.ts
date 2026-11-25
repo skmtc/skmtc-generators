@@ -98,7 +98,7 @@ export const toTsValue: SchemaToValueFn = ({
       return new TsUnknown({ context, generatorKey, schema })
     default: {
       const _exhaustive: never = schema
-      throw new Error(`Unhandled schema type: ${_exhaustive}`)
+      throw new Error(`Unhandled schema type: ${Reflect.get(_exhaustive, 'type')}`)
     }
   }
 }

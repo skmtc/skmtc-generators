@@ -1,4 +1,4 @@
-import { assert, assertEquals, assertExists } from '@std/assert'
+import { assert, assertEquals, assertExists, assertThrows } from '@std/assert'
 import { OasArray, OasNumber, OasObject, OasString, OasUnion } from '@skmtc/core'
 import { Schema } from '../../src/snippets/Schema.ts'
 import { DocumentSchema } from '../../src/snippets/DocumentSchema.ts'
@@ -226,5 +226,16 @@ Deno.test('Schema - renders a $ref by name, linked to its definition in the same
   assertEquals(
     `${file.sections}`,
     '### <a id="type-Node"></a>Node\n\n`object`\n- **id** `string` required\n- **next** [`Node`](#type-Node)'
+  )
+})
+
+Deno.test('Schema - a schema type it has no case for fails and names the type', () => {
+  // As if core had added a type after this snippet was written.
+  const schema = Object.assign(new OasString({}), { type: 'tuple' })
+
+  assertThrows(
+    () => new Schema({ context: toGenerateContext(), name: 'id', schema, required: true }),
+    Error,
+    'Unhandled schema type: tuple'
   )
 })
