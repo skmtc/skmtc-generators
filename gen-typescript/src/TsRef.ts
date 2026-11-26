@@ -20,6 +20,11 @@ export class TsRef extends TsSnippet {
   name: string
   modifiers: Modifiers
   terminal: boolean
+  /**
+   * See `toDirectNames`. A reference back names its model, which is still
+   * being built. Any other reference names what its model does.
+   */
+  directNames: string[]
   constructor(
     { context, ref, modifiers, destinationPath, rootRef, schema }: TsRefConstructorProps
   ) {
@@ -48,6 +53,7 @@ export class TsRef extends TsSnippet {
     this.name = modelRef.settings.identifier.name
     this.modifiers = modifiers
     this.terminal = modelRef.suspended
+    this.directNames = modelRef.suspended ? [this.name] : modelRef.definition.value.directNames
   }
 
   override toString(): string {

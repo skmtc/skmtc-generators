@@ -2,6 +2,7 @@ import type { ContentSettings, TypeSystemValue, GenerateContextType, RefParts } 
 import { createType } from '@skmtc/lang-typescript'
 import { toTsValue } from './Ts.ts'
 import { TypescriptBase } from './base.ts'
+import { toDirectNames } from './directNames.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
 
 type ConstructorArgs = {
@@ -13,6 +14,8 @@ type ConstructorArgs = {
 
 export class TsProjection extends TypescriptBase {
   value: TypeSystemValue
+  /** See `toDirectNames`. */
+  directNames: string[]
   constructor({ context, ref, settings, rootRef }: ConstructorArgs) {
     super({ context, ref, settings })
 
@@ -25,6 +28,17 @@ export class TsProjection extends TypescriptBase {
       context,
       rootRef
     })
+
+    this.directNames = toDirectNames(this.value)
+
+    // `Card: { allOf: [Payment, …] }` with `Payment: { oneOf: [Card, …] }`:
+    // TypeScript refuses the alias (TS2456), and a validator written from
+    // it never ends its parse.
+    if (this.directNames.includes(settings.identifier.name)) {
+      throw new Error(
+        `${schema.stackTrail.toSchemaPointer()} cannot be rendered: ${settings.identifier.name} is a member of its own allOf, oneOf or anyOf, with no property between. A type alias cannot refer to itself that way.`
+      )
+    }
   }
 
   static schemaToValueFn = (...args: Parameters<typeof toTsValue>) => {
