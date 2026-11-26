@@ -93,7 +93,7 @@ export class Modifiers extends List<string[], ' ', 'none'> {
 
 type TypeFacetsArgs = {
   modifiers: Modifiers
-  /** `undefined` for a type that has no allowed values: a union, an unknown. */
+  /** `undefined` for a type that has no allowed values: a union, an intersection, an unknown. */
   enums: Enums | undefined
   constraints: Constraints
 }
@@ -187,6 +187,7 @@ const toTypeFacets = ({ context, schema, required }: ToTypeFacetsArgs): TypeFace
         constraints: new Constraints({ context, values: [], defaultValue: schema.default })
       })
     case 'union':
+    case 'intersection':
       return new TypeFacets({
         modifiers: new Modifiers({ nullable: schema.nullable, required }),
         enums: undefined,

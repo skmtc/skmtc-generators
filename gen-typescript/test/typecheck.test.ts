@@ -12,7 +12,13 @@ import {
   additionalPropertiesDocument,
   awkwardNamesDocument,
   checkGenerated,
+  closedValue,
   emptyEnumDocument,
+  intersectionCycleDocument,
+  intersectionDocument,
+  keepAllRefs,
+  nodeValue,
+  paymentValue,
   runE2eFixture
 } from '@skmtc/test-support'
 import { typescriptEntry } from '../src/mod.ts'
@@ -111,5 +117,64 @@ Deno.test({
     const { artifacts } = runE2eFixture({ id: '@skmtc/gen-typescript', entry: typescriptEntry, document: emptyEnumDocument })
 
     assertEquals(await checkGenerated({ artifacts: { ...artifacts, 'src/consumer.ts': emptyEnumConsumer }, imports: {} }), [])
+  }
+})
+
+const intersectionConsumer = `import type {Pet} from '@/types/pet.generated.ts'
+import type {Payment} from '@/types/payment.generated.ts'
+
+export const pet: Pet = {kind: 'dog', name: 'Rex'}
+export const payment: Payment = ${JSON.stringify(paymentValue)}
+
+// @ts-expect-error \`kind\` is required by Animal, the other member.
+export const missing: Pet = {name: 'Rex'}
+`
+
+Deno.test({
+  name: 'typecheck - an intersection takes the keys of every member',
+  ignore: Deno.env.get('TYPECHECK') !== '1',
+  fn: async () => {
+    const { artifacts } = runE2eFixture({
+      id: '@skmtc/gen-typescript',
+      entry: typescriptEntry,
+      document: intersectionDocument,
+      system: keepAllRefs
+    })
+
+    assertEquals(Object.keys(artifacts).length, 6)
+
+    assertEquals(
+      await checkGenerated({ artifacts: { ...artifacts, 'src/consumer.ts': intersectionConsumer }, imports: {} }),
+      []
+    )
+  }
+})
+
+const intersectionCycleConsumer = `import type {Node} from '@/types/node.generated.ts'
+import type {Closed} from '@/types/closed.generated.ts'
+
+export const node: Node = ${JSON.stringify(nodeValue)}
+export const closed: Closed = ${JSON.stringify(closedValue)}
+`
+
+// The trap: a type alias that names itself as a member of its own
+// intersection, with no property between, does not compile (TS2456). These
+// refs lead back through a property.
+Deno.test({
+  name: 'typecheck - an intersection with a ref that closes a cycle compiles',
+  ignore: Deno.env.get('TYPECHECK') !== '1',
+  fn: async () => {
+    const { artifacts } = runE2eFixture({
+      id: '@skmtc/gen-typescript',
+      entry: typescriptEntry,
+      document: intersectionCycleDocument
+    })
+
+    assertEquals(Object.keys(artifacts).length, 3)
+
+    assertEquals(
+      await checkGenerated({ artifacts: { ...artifacts, 'src/consumer.ts': intersectionCycleConsumer }, imports: {} }),
+      []
+    )
   }
 })

@@ -186,7 +186,8 @@ export const toSiteTypeInfo = ({
 
 /**
  * The child property specs of a schema node — an object's own properties, an
- * array's (flattened) item properties, a union's members. A `$ref` is a leaf
+ * array's (flattened) item properties, the members of a union or an
+ * intersection. A `$ref` is a leaf
  * and contributes no inline children; nor does a scalar.
  */
 const toExpansion = (schema: OasSchema | OasRef<'schema'>): Property[] => {
@@ -200,6 +201,7 @@ const toExpansion = (schema: OasSchema | OasRef<'schema'>): Property[] => {
     case 'array':
       return toExpansion(schema.items)
     case 'union':
+    case 'intersection':
       return schema.members.map(member => ({ name: undefined, schema: member, required: undefined }))
     case 'string':
     case 'number':

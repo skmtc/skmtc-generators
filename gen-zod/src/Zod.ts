@@ -3,6 +3,7 @@ import { ZodArray } from "./ZodArray.ts";
 import { ZodRef } from "./ZodRef.ts";
 import { ZodObject } from "./ZodObject.ts";
 import { ZodUnion } from "./ZodUnion.ts";
+import { ZodIntersection } from "./ZodIntersection.ts";
 import type { Modifiers, SchemaToValueFn, SchemaType } from '@skmtc/core'
 import { ZodNumber } from "./ZodNumber.ts";
 import { ZodInteger } from "./ZodInteger.ts";
@@ -74,6 +75,15 @@ export const toZodValue: SchemaToValueFn = ({
       });
     case "union":
       return new ZodUnion({
+        context,
+        destinationPath,
+        modifiers,
+        generatorKey,
+        rootRef,
+        schema,
+      });
+    case "intersection":
+      return new ZodIntersection({
         context,
         destinationPath,
         modifiers,

@@ -12,8 +12,8 @@
   },
   "imports": {
     "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.2.25",
-    "@skmtc/core": "jsr:@skmtc/core@0.46.0",
-    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.14.8"
+    "@skmtc/core": "jsr:@skmtc/core@0.48.0",
+    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.15.3"
   },
   "lint": {
     "plugins": [
