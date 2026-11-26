@@ -22,6 +22,15 @@ PascalCase name of the type it decodes to
 - **Recursion**: a recursive reference is wrapped in `Schema.suspend`, typed
   with the model's type from `@skmtc/gen-typescript` (written to `@/types/`)
 
+## An `allOf` that keeps a `$ref`
+
+The parser merges the members of an `allOf` into one schema, which renders
+as one `Schema.Struct`. By default the parser keeps a `$ref` that closes a
+cycle, and the schema is then an intersection of the `$ref` and the other
+members. Effect has no intersection of schemas, so the run fails, and the
+error names the schema. To have the parser merge each `allOf`, set
+`settings.system.intersections` to `"merge"` in `client.json`.
+
 ## Coerced readings
 
 A peer generator can ask for a model's query-string reading with
