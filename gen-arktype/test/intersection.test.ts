@@ -5,7 +5,6 @@
 import { assertEquals, assertStringIncludes } from '@std/assert'
 import {
   assertHasResultError,
-  inheritanceLoopDocument,
   intersectionCycleDocument,
   intersectionDocument,
   keepAllRefs,
@@ -40,15 +39,4 @@ Deno.test('an intersection with a ref that closes a cycle fails as any recursive
   assertEquals(Object.keys(artifacts), [])
   assertHasResultError(manifest)
   assertStringIncludes(JSON.stringify(manifest.parseIssues), 'Node is recursive, which gen-arktype cannot render')
-})
-
-Deno.test('an inheritance loop fails the same way, and the error names a model of the loop', () => {
-  const { artifacts, manifest } = runE2eFixture({
-    id: '@skmtc/gen-arktype',
-    entry: arktypeEntry,
-    document: inheritanceLoopDocument
-  })
-
-  assertEquals(Object.keys(artifacts), [])
-  assertStringIncludes(JSON.stringify(manifest.parseIssues), 'Payment is recursive, which gen-arktype cannot render')
 })

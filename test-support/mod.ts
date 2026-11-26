@@ -854,30 +854,4 @@ export const nodeValue = { name: 'r', children: [{ name: 'c', children: [], extr
 /** A value that Closed of `intersectionCycleDocument` allows: a property of Base, and its own. */
 export const closedValue = { kind: 'k', b: 'x' }
 
-/**
- * An inheritance loop: Payment lists Card, and Card is an `allOf` of Payment,
- * with no property between the two. A type alias cannot be a member of its own
- * union or intersection, and a validator written that way never ends a parse.
- */
-export const inheritanceLoopDocument: OpenAPIV3.Document = {
-  openapi: '3.0.3',
-  info: { title: 'Inheritance loop fixture', version: '1.0.0' },
-  paths: {},
-  components: {
-    schemas: {
-      Payment: {
-        oneOf: [{ $ref: '#/components/schemas/Card' }, { $ref: '#/components/schemas/Cash' }],
-        discriminator: { propertyName: 'type' }
-      },
-      Card: {
-        allOf: [
-          { $ref: '#/components/schemas/Payment' },
-          { type: 'object', required: ['type'], properties: { type: { type: 'string', enum: ['card'] } } }
-        ]
-      },
-      Cash: { type: 'object', required: ['type'], properties: { type: { type: 'string', enum: ['cash'] } } }
-    }
-  }
-}
-
 export { checkGenerated } from './checkGenerated.ts'

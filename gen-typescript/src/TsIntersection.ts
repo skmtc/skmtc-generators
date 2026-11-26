@@ -2,7 +2,6 @@ import { TsSnippet } from '@skmtc/lang-typescript'
 import type { GenerateContextType, GeneratorKey, OasIntersection, Modifiers, TypeSystemValue, RefParts } from '@skmtc/core'
 import { toTsValue } from './Ts.ts'
 import { applyModifiers } from './applyModifiers.ts'
-import { toDirectNames } from './directNames.ts'
 
 type TsIntersectionArgs = {
   context: GenerateContextType
@@ -17,8 +16,6 @@ export class TsIntersection extends TsSnippet {
   type = 'intersection' as const
   members: TypeSystemValue[]
   modifiers: Modifiers
-  /** See `toDirectNames`. */
-  directNames: string[]
 
   constructor({ context, generatorKey, destinationPath, modifiers, rootRef, schema }: TsIntersectionArgs) {
     super({ context, generatorKey, stackTrail: schema.stackTrail.clone() })
@@ -34,7 +31,6 @@ export class TsIntersection extends TsSnippet {
     })
 
     this.modifiers = modifiers
-    this.directNames = this.members.flatMap(toDirectNames)
   }
 
   override toString(): string {

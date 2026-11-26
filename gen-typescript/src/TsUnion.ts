@@ -2,7 +2,6 @@ import { TsSnippet } from '@skmtc/lang-typescript'
 import type { GenerateContextType, GeneratorKey, OasDiscriminator, OasSchema, OasRef, Modifiers, TypeSystemValue, RefParts } from '@skmtc/core'
 import { toTsValue } from './Ts.ts'
 import { applyModifiers } from './applyModifiers.ts'
-import { toDirectNames } from './directNames.ts'
 
 type TsUnionArgs = {
   context: GenerateContextType
@@ -21,8 +20,6 @@ export class TsUnion extends TsSnippet {
   members: TypeSystemValue[]
   discriminator: string | undefined
   modifiers: Modifiers
-  /** See `toDirectNames`. */
-  directNames: string[]
 
   constructor({
     context,
@@ -48,7 +45,6 @@ export class TsUnion extends TsSnippet {
 
     this.discriminator = discriminator?.propertyName
     this.modifiers = modifiers
-    this.directNames = this.members.flatMap(toDirectNames)
   }
 
   override toString(): string {

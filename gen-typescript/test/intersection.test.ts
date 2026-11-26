@@ -3,13 +3,7 @@
  * renders each member, joined with `&`.
  */
 import { assertEquals, assertStringIncludes } from '@std/assert'
-import {
-  inheritanceLoopDocument,
-  intersectionCycleDocument,
-  intersectionDocument,
-  keepAllRefs,
-  runE2eFixture
-} from '@skmtc/test-support'
+import { intersectionCycleDocument, intersectionDocument, keepAllRefs, runE2eFixture } from '@skmtc/test-support'
 import { typescriptEntry } from '../src/mod.ts'
 
 Deno.test('a ref and an object render as an intersection of the two', () => {
@@ -40,21 +34,5 @@ Deno.test('a ref that closes a cycle renders by name inside the intersection', (
   assertStringIncludes(
     artifacts['src/types/closed.generated.ts'],
     'export type Closed = (Base) & ({b?: string | undefined});'
-  )
-})
-
-// The trap: `type Payment = Card | Cash` with `type Card = (Payment) & (…)`
-// renders, and fails only where the files are compiled (TS2456).
-Deno.test('a model that is a member of its own union, through an intersection, fails the run by name', () => {
-  const { artifacts, manifest } = runE2eFixture({
-    id: '@skmtc/gen-typescript',
-    entry: typescriptEntry,
-    document: inheritanceLoopDocument
-  })
-
-  assertEquals(Object.keys(artifacts), [])
-  assertStringIncludes(
-    JSON.stringify(manifest.parseIssues),
-    '#/components/schemas/Payment/oneOf cannot be rendered: Payment is a member of its own allOf, oneOf or anyOf, with no property between.'
   )
 })

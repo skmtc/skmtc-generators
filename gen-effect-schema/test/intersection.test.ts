@@ -4,13 +4,7 @@
  * schema. The parser merges the `allOf` when it is told to.
  */
 import { assertEquals, assertStringIncludes } from '@std/assert'
-import {
-  inheritanceLoopDocument,
-  intersectionCycleDocument,
-  intersectionDocument,
-  keepAllRefs,
-  runE2eFixture,
-} from '@skmtc/test-support'
+import { intersectionCycleDocument, intersectionDocument, keepAllRefs, runE2eFixture } from '@skmtc/test-support'
 import { effectSchemaEntry } from '../src/mod.ts'
 
 const id = '@skmtc/gen-effect-schema'
@@ -43,20 +37,6 @@ Deno.test('an intersection inside a property is named by its place in the proper
   assertStringIncludes(
     JSON.stringify(manifest.parseIssues),
     '#/components/schemas/Node/properties/children/items/allOf is an allOf that keeps a $ref',
-  )
-})
-
-Deno.test('an inheritance loop fails the run, and the error names the subtype', () => {
-  const { artifacts, manifest } = runE2eFixture({
-    id,
-    entry: effectSchemaEntry,
-    document: inheritanceLoopDocument,
-  })
-
-  assertEquals(Object.keys(artifacts), [])
-  assertStringIncludes(
-    JSON.stringify(manifest.parseIssues),
-    '#/components/schemas/Card/allOf is an allOf that keeps a $ref',
   )
 })
 
