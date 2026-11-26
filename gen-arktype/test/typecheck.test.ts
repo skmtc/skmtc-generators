@@ -22,6 +22,9 @@ import {
   additionalPropertiesDocument,
   awkwardNamesDocument,
   checkGenerated,
+  intersectionDocument,
+  keepAllRefs,
+  paymentValue,
   runE2eFixture
 } from '@skmtc/test-support'
 import type { OpenAPIV3 } from 'openapi-types'
@@ -294,6 +297,55 @@ Deno.test({
 
     assertEquals(
       await checkGenerated({ artifacts: { ...artifacts, 'src/consumer.ts': keySyntaxConsumer }, imports: { arktype: ARKTYPE } }),
+      []
+    )
+  }
+})
+
+// Parses a value through an intersection (Pet), and through a union whose
+// members are intersections (Payment). Loading it throws when arktype
+// refuses a value the document allows, or accepts a Pet without the key of
+// Animal.
+const intersectionConsumer = `import { type } from 'arktype'
+import { pet } from '@/types/pet.generated.ts'
+import { payment } from '@/types/payment.generated.ts'
+
+const accepts = (schema: (value: unknown) => unknown, value: unknown): boolean =>
+  !(schema(value) instanceof type.errors)
+
+const checks: Array<[string, boolean]> = [
+  ['Pet accepts the keys of both members', accepts(pet, { kind: 'dog', name: 'Rex' })],
+  ['Pet without the key of Animal is rejected', !accepts(pet, { name: 'Rex' })],
+  ['Payment accepts a member with the key of its base', accepts(payment, ${JSON.stringify(paymentValue)})]
+]
+
+for (const [name, passed] of checks) {
+  if (!passed) {
+    throw new Error(name)
+  }
+}
+`
+
+// The trap: arktype reads a tuple at the type level, so a tuple it does not
+// take as an intersection is a TypeScript error here, and nowhere else.
+Deno.test({
+  name: 'typecheck - an intersection, and a union of intersections, compile against arktype and check',
+  ignore: Deno.env.get('TYPECHECK') !== '1',
+  fn: async () => {
+    const { artifacts } = runE2eFixture({
+      id: '@skmtc/gen-arktype',
+      entry: arktypeEntry,
+      document: intersectionDocument,
+      system: keepAllRefs
+    })
+
+    assertEquals(Object.keys(artifacts).length, 6)
+
+    assertEquals(
+      await checkGenerated({
+        artifacts: { ...artifacts, 'src/consumer.ts': intersectionConsumer },
+        imports: { arktype: ARKTYPE }
+      }),
       []
     )
   }

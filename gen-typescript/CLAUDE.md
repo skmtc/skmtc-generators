@@ -30,7 +30,7 @@ This is a TypeScript code generator for the Skmtc framework. It transforms schem
 
 ### Core Components
 
-The generator has two layers: one **Projection** class (`TsProjection`, extending `TypescriptBase` from `src/base.ts`) orchestrates per-model emission and is the cache-key-bearing artifact, and per-variant **Snippet** classes (`TsString`, `TsArray`, `TsObject`, `TsUnion`, `TsNumber`, `TsInteger`, `TsBoolean`, `TsRef`, `TsNull`, `TsNever`, `TsVoid`, `TsUnknown`, all extending `SnippetBase`) handle the inline rendering for each schema variant. The main entry point is `typescriptEntry` from `src/mod.ts`, which dispatches to `TsProjection`.
+The generator has two layers: one **Projection** class (`TsProjection`, extending `TypescriptBase` from `src/base.ts`) orchestrates per-model emission and is the cache-key-bearing artifact, and per-variant **Snippet** classes (`TsString`, `TsArray`, `TsObject`, `TsUnion`, `TsIntersection`, `TsNumber`, `TsInteger`, `TsBoolean`, `TsRef`, `TsNull`, `TsNever`, `TsVoid`, `TsUnknown`, all extending `SnippetBase`) handle the inline rendering for each schema variant. The main entry point is `typescriptEntry` from `src/mod.ts`, which dispatches to `TsProjection`.
 
 ### Key Files
 
@@ -49,6 +49,7 @@ The `toTsValue` function in `src/Ts.ts` converts schema types to their TypeScrip
 - `array` → `TsArray`
 - `object` → `TsObject`
 - `union` → `TsUnion`
+- `intersection` → `TsIntersection`
 - `string` → `TsString`
 - `number` → `TsNumber`
 - `integer` → `TsInteger`

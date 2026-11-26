@@ -1,5 +1,5 @@
 import { assert, assertEquals, assertExists, assertThrows } from '@std/assert'
-import { OasArray, OasNumber, OasObject, OasString, OasUnion } from '@skmtc/core'
+import { OasArray, OasIntersection, OasNumber, OasObject, OasString, OasUnion } from '@skmtc/core'
 import { Schema, toSiteTypeInfo } from '../../src/snippets/Schema.ts'
 import { DocumentSchema } from '../../src/snippets/DocumentSchema.ts'
 import { MdFile } from '../../src/lang/MdFile.ts'
@@ -120,6 +120,26 @@ Deno.test('Schema - renders union members as bullets', () => {
   })
 
   assertEquals(snippet.toString(), '`union`\n- `string`\n- `number`')
+})
+
+Deno.test('Schema - renders intersection members as bullets', () => {
+  const snippet = new Schema({
+    context: toGenerateContext(),
+    name: undefined,
+    schema: new OasIntersection({
+      members: [
+        new OasObject({ properties: { kind: new OasString({}) }, required: ['kind'] }),
+        new OasObject({ properties: { name: new OasString({}) } })
+      ],
+      nullable: true
+    }),
+    required: false
+  })
+
+  assertEquals(
+    snippet.toString(),
+    '`intersection` nullable\n- `object`\n  - **kind** `string` required\n- `object`\n  - **name** `string`'
+  )
 })
 
 Deno.test('Schema - renders string length, pattern and default constraints', () => {

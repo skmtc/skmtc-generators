@@ -1,6 +1,6 @@
 {
   "name": "@skmtc/gen-arktype",
-  "version": "0.2.23",
+  "version": "0.2.24",
   "exports": "./mod.ts",
   "tasks": {
     "test": "deno test --allow-env --allow-sys --allow-read",
