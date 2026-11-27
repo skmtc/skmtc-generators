@@ -434,6 +434,7 @@ const stringCheckPlacesDocument: OpenAPIV3.Document = {
     schemas: {
       Tags: { type: 'array', items: { type: 'string', maxLength: 3 } },
       Words: { type: 'array', items: { type: 'string', pattern: '^\\p{L}+$' } },
+      Codes: { type: 'array', items: { type: 'string', pattern: '(?i)abc' } },
       Profile: {
         type: 'object',
         required: ['nick'],
@@ -449,15 +450,18 @@ const stringCheckPlacesDocument: OpenAPIV3.Document = {
 const stringCheckPlacesConsumer = `import { type } from 'arktype'
 import { tags } from '@/types/tags.generated.ts'
 import { words } from '@/types/words.generated.ts'
+import { codes } from '@/types/codes.generated.ts'
 import { profile } from '@/types/profile.generated.ts'
 
 const cases: Array<[string, (value: unknown) => unknown, unknown, boolean]> = [
-  // The trap: \`string <= 3[]\` bounds the array, so it refused one short tag.
+  // \`string <= 3[]\` bounds each item, not the array.
   ['Tags', tags, ['abc'], true],
   ['Tags', tags, ['abcd'], false],
   // The trap: without the u flag, \\\\p{L} matches the text p{L}.
   ['Words', words, ['été'], true],
   ['Words', words, ['p{L}'], false],
+  // A pattern JavaScript rejects is not checked.
+  ['Codes', codes, ['xyz'], true],
   ['Profile', profile, { nick: 'ada' }, true],
   ['Profile', profile, { nick: null, bio: 'hi' }, true],
   ['Profile', profile, { nick: 'Ada' }, false],
@@ -483,7 +487,7 @@ Deno.test({
       document: stringCheckPlacesDocument
     })
 
-    assertEquals(Object.keys(artifacts).length, 3)
+    assertEquals(Object.keys(artifacts).length, 4)
 
     assertEquals(
       await checkGenerated({

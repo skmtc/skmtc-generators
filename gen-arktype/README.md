@@ -8,7 +8,7 @@ An [ArkType](https://arktype.io) `type` for each component schema.
   keyword: `string.email`, `string.url`, `string.ip.v4` and `string.ip.v6`.
   `src/formats.ts` lists each format, and says why `date-time`, `date` and
   `uuid` stay `string`.
-- **Lengths**: `(1 <= string <= 20)`.
+- **Lengths**: `1 <= string <= 20`.
 - **Patterns**: a `RegExp` beside the string, `["string", "&", /^a+$/u]`,
   because ArkType's string syntax has no regex flags. The `u` flag is set when
   the pattern compiles with it. A pattern that JavaScript cannot compile is

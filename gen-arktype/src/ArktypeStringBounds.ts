@@ -10,7 +10,7 @@ type ArktypeStringBoundsArgs = {
 
 /**
  * A string's keyword (`string`, or the keyword of its format) with its
- * lengths, in arktype string syntax: `(1 <= string.email <= 20)`.
+ * lengths, in arktype string syntax: `1 <= string.email <= 20`.
  */
 export class ArktypeStringBounds extends SnippetBase {
   keyword: string
@@ -29,16 +29,16 @@ export class ArktypeStringBounds extends SnippetBase {
   override toString(): string {
     const { keyword, minLength, maxLength } = this
 
-    // The trap: `string <= 20[]` parses, and bounds the array, not the
-    // string. So a bound is in parentheses, wherever a parent puts it.
+    // A suffix binds after a bound: `string <= 20[]` is an array of strings
+    // of at most 20, so a parent adds `[]` with no parentheses.
     if (minLength !== undefined && maxLength !== undefined) {
-      return `(${minLength} <= ${keyword} <= ${maxLength})`
+      return `${minLength} <= ${keyword} <= ${maxLength}`
     }
 
     if (minLength !== undefined) {
-      return `(${keyword} >= ${minLength})`
+      return `${keyword} >= ${minLength}`
     }
 
-    return maxLength === undefined ? keyword : `(${keyword} <= ${maxLength})`
+    return maxLength === undefined ? keyword : `${keyword} <= ${maxLength}`
   }
 }

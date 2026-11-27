@@ -23,7 +23,7 @@ Deno.test('stringFormat - each model renders its format check, pattern or plain 
     ['ipv6', 'type("string.ip.v6")'],
     ['uriTemplate', 'type("string")'],
     ['slug', 'type(["string", "&", /^[a-z]+(-[a-z]+)*$/u])'],
-    ['workEmail', 'type(["(string.email <= 20)", "&", /@example\\.com$/u])']
+    ['workEmail', 'type(["string.email <= 20", "&", /@example\\.com$/u])']
   ]
 
   assertEquals(Object.keys(artifacts).length, expected.length)
@@ -44,4 +44,20 @@ Deno.test('stringFormat - a pattern JavaScript rejects is a comment, and the fil
   assertStringIncludes(artifacts['src/types/account.generated.ts'], "pattern '(?i)x*\\/' is not a JavaScript regex")
   assertStringIncludes(artifacts['src/types/url.generated.ts'], 'type(["string", "&", /^https:\\/\\//u])')
   assertStringIncludes(artifacts['src/types/letters.generated.ts'], 'type(["string", "&", /^\\p{L}+$/u])')
+})
+
+// The trap: an array reads its item's string syntax and never calls the
+// item's `toString()`, so the comment on a skipped pattern was lost.
+Deno.test('stringFormat - an array item keeps the comment on a pattern JavaScript rejects', () => {
+  const artifacts = generate({
+    openapi: '3.0.3',
+    info: { title: 'Skipped pattern in an array', version: '1.0.0' },
+    paths: {},
+    components: { schemas: { Codes: { type: 'array', items: { type: 'string', pattern: '(?i)abc' } } } }
+  })
+
+  assertStringIncludes(
+    artifacts['src/types/codes.generated.ts'],
+    "export const codes = type([/**\n * pattern '(?i)abc' is not a JavaScript regex, so it is not checked\n */\n\"string\", \"[]\"])"
+  )
 })

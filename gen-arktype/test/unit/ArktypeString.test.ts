@@ -173,26 +173,19 @@ Deno.test('ArktypeString - a format named after an Object.prototype key stays st
 })
 
 Deno.test('ArktypeString - with minLength', () => {
-  assertEquals(toArktypeString(new OasString({ minLength: 3 })).toString(), '"(string >= 3)"')
+  assertEquals(toArktypeString(new OasString({ minLength: 3 })).toString(), '"string >= 3"')
 })
 
 Deno.test('ArktypeString - with maxLength', () => {
-  assertEquals(toArktypeString(new OasString({ maxLength: 20 })).toString(), '"(string <= 20)"')
+  assertEquals(toArktypeString(new OasString({ maxLength: 20 })).toString(), '"string <= 20"')
 })
 
 Deno.test('ArktypeString - with minLength and maxLength', () => {
-  assertEquals(toArktypeString(new OasString({ minLength: 3, maxLength: 20 })).toString(), '"(3 <= string <= 20)"')
+  assertEquals(toArktypeString(new OasString({ minLength: 3, maxLength: 20 })).toString(), '"3 <= string <= 20"')
 })
 
 Deno.test('ArktypeString - a length of 0 keeps its check', () => {
-  assertEquals(toArktypeString(new OasString({ minLength: 0, maxLength: 0 })).toString(), '"(0 <= string <= 0)"')
-})
-
-// The trap: `string <= 20[]` parses, and bounds the array.
-Deno.test('ArktypeString - a bounded string keeps its parentheses where a parent adds a suffix', () => {
-  const arktypeString = toArktypeString(new OasString({ maxLength: 20 }))
-
-  assertEquals(arktypeString.atomicStringSyntax, '(string <= 20)')
+  assertEquals(toArktypeString(new OasString({ minLength: 0, maxLength: 0 })).toString(), '"0 <= string <= 0"')
 })
 
 Deno.test('ArktypeString - a format keeps its length checks and modifiers', () => {
@@ -201,7 +194,7 @@ Deno.test('ArktypeString - a format keeps its length checks and modifiers', () =
     nullable: true
   })
 
-  assertEquals(arktypeString.toString(), '"(3 <= string.email <= 20) | null | undefined"')
+  assertEquals(arktypeString.toString(), '"3 <= string.email <= 20 | null | undefined"')
 })
 
 Deno.test('ArktypeString - a pattern is a RegExp beside the string syntax, with the u flag', () => {
@@ -223,13 +216,26 @@ Deno.test('ArktypeString - a pattern sits beside the format and the lengths, ins
     { required: true, nullable: true }
   )
 
-  assertEquals(arktypeString.toString(), '[["(string.email <= 20)", "&", /@example\\.com$/u], "|", "null"]')
+  assertEquals(arktypeString.toString(), '[["string.email <= 20", "&", /@example\\.com$/u], "|", "null"]')
 })
 
 Deno.test('ArktypeString - a pattern JavaScript rejects is left out, with a comment', () => {
   assertEquals(
     toArktypeString(new OasString({ pattern: '(?i)abc' })).toString(),
     "/**\n * pattern '(?i)abc' is not a JavaScript regex, so it is not checked\n */\n\"string\""
+  )
+})
+
+// The trap: an array or a union reads the string syntax and never calls
+// `toString()`, so the comment was lost there.
+Deno.test('ArktypeString - a pattern JavaScript rejects takes the value form, so a parent keeps its comment', () => {
+  const arktypeString = toArktypeString(new OasString({ pattern: '(?i)abc' }), { required: true, nullable: true })
+
+  assertEquals(arktypeString.stringSyntax, undefined)
+  assertEquals(arktypeString.atomicStringSyntax, undefined)
+  assertEquals(
+    arktypeString.toString(),
+    "/**\n * pattern '(?i)abc' is not a JavaScript regex, so it is not checked\n */\n[\"string\", \"|\", \"null\"]"
   )
 })
 

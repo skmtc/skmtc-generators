@@ -24,7 +24,7 @@ export class ArktypeString extends TsSnippet {
   pattern: string | undefined
   /** A `pattern` JavaScript rejects, left unchecked and named in a comment. */
   skippedPattern: string | undefined
-  /** The string syntax, or `undefined` when a pattern needs the value form. */
+  /** The string syntax, or `undefined` when a pattern, checked or skipped, needs the value form. */
   stringSyntax: string | undefined
   atomicStringSyntax: string | undefined
   modifiers: Modifiers
@@ -63,13 +63,21 @@ export class ArktypeString extends TsSnippet {
       }
     }
 
-    this.stringSyntax = this.pattern === undefined ? applyModifiers(this.content, modifiers) : undefined
+    // A parent that reads the string syntax never calls `toString()`, so a
+    // skipped pattern takes the value form too, and keeps its comment.
+    const plain = this.pattern === undefined && this.skippedPattern === undefined
+
+    this.stringSyntax = plain ? applyModifiers(this.content, modifiers) : undefined
     this.atomicStringSyntax = this.stringSyntax === undefined ? undefined : toAtomicSyntax(this.stringSyntax)
   }
 
   override toString(): string {
+    const value = this.pattern === undefined
+      ? JSON.stringify(this.content)
+      : `[${JSON.stringify(this.content)}, "&", ${this.pattern}]`
+
     const content = this.stringSyntax === undefined
-      ? applyValueModifiers(`[${JSON.stringify(this.content)}, "&", ${this.pattern}]`, this.modifiers)
+      ? applyValueModifiers(value, this.modifiers)
       : JSON.stringify(this.stringSyntax)
 
     // The trap: a pattern written for another engine (`(?i)`) makes the
