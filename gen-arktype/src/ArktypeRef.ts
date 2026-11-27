@@ -3,7 +3,7 @@ import { toModelGeneratorKey, toModelRef } from '@skmtc/core'
 import { TsSnippet } from '@skmtc/lang-typescript'
 import { applyValueModifiers } from './applyModifiers.ts'
 import { ArktypeProjection } from './ArktypeProjection.ts'
-import { arktypeEntry } from './mod.ts'
+import denoJson from '../deno.json' with { type: 'json' }
 import type { GenerateContextType, RefParts, Modifiers } from '@skmtc/core'
 
 type ArktypeRefArgs = {
@@ -30,7 +30,7 @@ export class ArktypeRef extends TsSnippet {
     super({
       context,
       generatorKey: toModelGeneratorKey({
-        generatorId: arktypeEntry.id,
+        generatorId: denoJson.name,
         ref,
         variant: 'main'
       }),

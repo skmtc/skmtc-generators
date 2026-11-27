@@ -1,5 +1,6 @@
 import { toOasOperationEntry, type Method } from '@skmtc/core'
 import { defineAndRegister, createVariable } from '@skmtc/lang-typescript'
+import { typescriptProjections } from '@skmtc/gen-typescript'
 import { MockRoute } from './MockRoute.ts'
 import { MockRoutesList } from './MockRoutesList.ts'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
@@ -12,6 +13,9 @@ export const MswEntry = toOasOperationEntry<EnrichmentSchema>({
   id: denoJson.name,
 
   toEnrichmentSchema,
+
+  // gen-typescript's are here because a mock's type is rendered with `toTsValue`.
+  projections: [MockRoute, ...typescriptProjections],
 
   isSupported({ operation }) {
     return mswMethods.includes(operation.method)

@@ -12,7 +12,7 @@ import { ArktypeBoolean } from './ArktypeBoolean.ts'
 import { ArktypeVoid } from './ArktypeVoid.ts'
 import { ArktypeUnknown } from './ArktypeUnknown.ts'
 import { toGeneratorOnlyKey } from '@skmtc/core'
-import { arktypeEntry } from './mod.ts'
+import denoJson from '../deno.json' with { type: 'json' }
 
 /**
  * Every value the router produces. Snippets that nest other values hold this
@@ -51,7 +51,7 @@ export const toArktypeValue = ({
     nullable: 'nullable' in schema ? schema.nullable : undefined
   }
 
-  const generatorKey = toGeneratorOnlyKey({ generatorId: arktypeEntry.id })
+  const generatorKey = toGeneratorOnlyKey({ generatorId: denoJson.name })
 
   switch (schema.type) {
     case 'custom':

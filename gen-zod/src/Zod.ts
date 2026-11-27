@@ -14,7 +14,7 @@ import { ZodBoolean } from "./ZodBoolean.ts";
 import { ZodVoid } from "./ZodVoid.ts";
 import { ZodUnknown } from "./ZodUnknown.ts";
 import { toGeneratorOnlyKey } from '@skmtc/core'
-import { zodEntry } from "./mod.ts";
+import denoJson from "../deno.json" with { type: "json" };
 
 /**
  * Whether this project renders defaults: `applyDefaults` in the generator
@@ -23,7 +23,7 @@ import { zodEntry } from "./mod.ts";
  * gen-effect-schema's `rendersDefaults`.
  */
 const appliesDefaults = (context: GenerateContextType): boolean =>
-  v.parse(generatorSchema, context.readEnrichment([zodEntry.id, "_generator"]))
+  v.parse(generatorSchema, context.readEnrichment([denoJson.name, "_generator"]))
     ?.applyDefaults ?? false;
 
 /**
@@ -71,7 +71,7 @@ export const toZodValue: SchemaToValueFn = ({
     defaultValue: toDefaultValue(context, schema),
   };
 
-  const generatorKey = toGeneratorOnlyKey({ generatorId: zodEntry.id });
+  const generatorKey = toGeneratorOnlyKey({ generatorId: denoJson.name });
 
   switch (schema.type) {
     case "custom":

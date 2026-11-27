@@ -9,7 +9,7 @@ import type {
 } from '@skmtc/core'
 import { applyModifiers } from './modifiers.ts'
 import { EffectProjection } from './EffectProjection.ts'
-import { effectSchemaEntry } from './mod.ts'
+import denoJson from '../deno.json' with { type: 'json' }
 import { LIB, LIB_MODULE } from './lib.ts'
 import { needsCoercion } from './coercion.ts'
 import { toOptions } from './options.ts'
@@ -65,7 +65,7 @@ export class EffectRef extends TsSnippet {
     super({
       context,
       generatorKey: toModelGeneratorKey({
-        generatorId: effectSchemaEntry.id,
+        generatorId: denoJson.name,
         ref,
         variant: 'main',
       }),

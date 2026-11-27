@@ -11,7 +11,7 @@ import { TsBoolean } from './TsBoolean.ts'
 import { TsVoid } from './TsVoid.ts'
 import { TsUnknown } from './TsUnknown.ts'
 import { toGeneratorOnlyKey } from '@skmtc/core'
-import { typescriptEntry } from './mod.ts'
+import denoJson from '../deno.json' with { type: 'json' }
 
 /**
  * Maps a parsed schema node to its TypeScript snippet. Fine-grained
@@ -41,7 +41,7 @@ export const toTsValue: SchemaToValueFn = ({
     nullable: 'nullable' in schema ? schema.nullable : undefined
   }
 
-  const generatorKey = toGeneratorOnlyKey({ generatorId: typescriptEntry.id })
+  const generatorKey = toGeneratorOnlyKey({ generatorId: denoJson.name })
 
   switch (schema.type) {
     case 'custom':

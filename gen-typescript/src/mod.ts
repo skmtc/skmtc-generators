@@ -1,8 +1,15 @@
-import { toModelEntry } from '@skmtc/core'
+import { toModelEntry, type DeclaredProjection } from '@skmtc/core'
 import { TsProjection } from './TsProjection.ts'
 import { setCustomScalars } from './scalars.ts'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
+
+/**
+ * Every projection class gen-typescript can insert. A generator that
+ * inserts `TsProjection`, or renders with `toTsValue`, spreads this list
+ * into its entry's `projections`.
+ */
+export const typescriptProjections: readonly DeclaredProjection[] = [TsProjection]
 
 /**
  * Options for {@link toTypescriptEntry}.
@@ -44,6 +51,7 @@ export const toTypescriptEntry = (options: TypescriptEntryOptions = {}) => {
   return toModelEntry<EnrichmentSchema>({
     id: denoJson.name,
     toEnrichmentSchema,
+    projections: typescriptProjections,
     transform({ context, ref }) {
       context.insertModel(TsProjection, ref)
     }

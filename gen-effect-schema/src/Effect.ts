@@ -10,7 +10,7 @@ import type {
   SchemaToValueFn,
   SchemaType,
 } from '@skmtc/core'
-import { effectSchemaEntry } from './mod.ts'
+import denoJson from '../deno.json' with { type: 'json' }
 import type { EffectModifiers } from './modifiers.ts'
 import { generatorSchema } from './enrichments.ts'
 import * as v from 'valibot'
@@ -46,7 +46,7 @@ export type ToEffectValueImplArgs = Parameters<SchemaToValueFn>[0] & {
 const rendersDefaults = (context: GenerateContextType): boolean =>
   v.parse(
     generatorSchema,
-    context.readEnrichment([effectSchemaEntry.id, '_generator']),
+    context.readEnrichment([denoJson.name, '_generator']),
   )
     ?.defaults ?? false
 
@@ -97,7 +97,7 @@ export const toEffectValueImpl = (
     defaultValue: toDefaultValue(context, schema),
   }
 
-  const generatorKey = toGeneratorOnlyKey({ generatorId: effectSchemaEntry.id })
+  const generatorKey = toGeneratorOnlyKey({ generatorId: denoJson.name })
 
   // deno-lint-ignore skmtc/single-dispatch -- this is the router: `toEffectValue` is this function with `coerce` off. The rule knows a router by the name `to<X>Value`.
   switch (schema.type) {

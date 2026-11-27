@@ -1,6 +1,7 @@
 import invariant from 'tiny-invariant'
 import { SupabaseHono } from './SupabaseHono.ts'
 import { toOasOperationEntry, type Method } from '@skmtc/core'
+import { zodProjections } from '@skmtc/gen-zod'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
@@ -10,6 +11,7 @@ const honoMethods: readonly Method[] = ['get', 'put', 'post', 'delete', 'options
 export const supabaseHonoEntry = toOasOperationEntry<EnrichmentSchema>({
   id: denoJson.name,
   toEnrichmentSchema,
+  projections: [SupabaseHono, ...zodProjections],
   isSupported({ operation }) {
     return honoMethods.includes(operation.method)
   },

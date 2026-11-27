@@ -9,7 +9,7 @@ import type {
 } from '@skmtc/core'
 import { applyModifiers } from './modifiers.ts'
 import { KotlinProjection } from './KotlinProjection.ts'
-import { kotlinJacksonEntry } from './mod.ts'
+import denoJson from '../deno.json' with { type: 'json' }
 
 type KotlinRefArgs = {
   context: GenerateContextType
@@ -41,7 +41,7 @@ export class KotlinRef extends KtSnippet {
     super({
       context,
       generatorKey: toModelGeneratorKey({
-        generatorId: kotlinJacksonEntry.id,
+        generatorId: denoJson.name,
         ref,
         variant: 'main',
       }),

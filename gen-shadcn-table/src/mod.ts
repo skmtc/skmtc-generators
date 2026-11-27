@@ -1,13 +1,28 @@
-import { toOasOperationEntry } from '@skmtc/core'
+import { toOasOperationEntry, type DeclaredProjection } from '@skmtc/core'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
-import { isListResponse } from '@skmtc/gen-tanstack-query-supabase-zod'
+import { isListResponse, tanstackQueryProjections } from '@skmtc/gen-tanstack-query-supabase-zod'
+import { typescriptProjections } from '@skmtc/gen-typescript'
 import { ShadcnTable } from './ShadcnTable.ts'
+import { TanstackColumns } from './TanstackColumns.ts'
 import denoJson from '../deno.json' with { type: 'json' }
+
+/**
+ * Every projection class gen-shadcn-table can insert: its own, and those of
+ * the generators it inserts from.
+ */
+export const shadcnTableProjections: readonly DeclaredProjection[] = [
+  ShadcnTable,
+  TanstackColumns,
+  ...tanstackQueryProjections,
+  ...typescriptProjections
+]
 
 export const ShadcnTableEntry = toOasOperationEntry<EnrichmentSchema>({
   id: denoJson.name,
 
   toEnrichmentSchema,
+
+  projections: shadcnTableProjections,
 
   isSupported: ({ operation }) => {
     return operation.method === 'get' && isListResponse(operation)

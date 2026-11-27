@@ -7,6 +7,7 @@ import denoJson from '../deno.json' with { type: 'json' }
 export const fetchEntry: OasOperationEntry<EnrichmentSchema> = toOasOperationEntry<EnrichmentSchema>({
   id: denoJson.name,
   toEnrichmentSchema,
+  projections: [FetchFn, PostFn],
   transform: ({ context, operation }) => {
     const projection = operation.method === 'post' ? PostFn : FetchFn
     context.insertOperation({ projection, operation })
