@@ -1,10 +1,31 @@
-import { toOasOperationEntry, type IsSupportedOasOperationArgs } from '@skmtc/core'
+import {
+  toOasOperationEntry,
+  type DeclaredProjection,
+  type IsSupportedOasOperationArgs
+} from '@skmtc/core'
+import { tanstackQueryProjections } from '@skmtc/gen-tanstack-query-supabase-zod'
+import { typescriptProjections } from '@skmtc/gen-typescript'
+import { zodProjections } from '@skmtc/gen-zod'
 import type { EnrichmentSchema } from './enrichments.ts'
 import { toEnrichmentSchema } from './enrichments.ts'
 import { ShadcnForm } from './ShadcnForm.ts'
 import denoJson from '../deno.json' with { type: 'json' }
+
+/**
+ * Every projection class gen-shadcn-form can insert: its own, and those of
+ * the generators it inserts from.
+ */
+export const shadcnFormProjections: readonly DeclaredProjection[] = [
+  ShadcnForm,
+  ...tanstackQueryProjections,
+  ...zodProjections,
+  ...typescriptProjections
+]
+
 export const ShadcnFormEntry = toOasOperationEntry<EnrichmentSchema>({
   id: denoJson.name,
+
+  projections: shadcnFormProjections,
 
   isSupported({ operation }: IsSupportedOasOperationArgs) {
     return (

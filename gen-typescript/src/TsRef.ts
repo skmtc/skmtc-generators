@@ -3,7 +3,7 @@ import { TsSnippet } from '@skmtc/lang-typescript'
 import type { GenerateContextType, Modifiers, OasRef, OasSchema, RefParts } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
 import { TsProjection } from './TsProjection.ts'
-import { typescriptEntry } from './mod.ts'
+import denoJson from '../deno.json' with { type: 'json' }
 
 type TsRefConstructorProps = {
   context: GenerateContextType
@@ -26,7 +26,7 @@ export class TsRef extends TsSnippet {
     super({
       context,
       generatorKey: toModelGeneratorKey({
-        generatorId: typescriptEntry.id,
+        generatorId: denoJson.name,
         ref,
         variant: 'main'
       }),

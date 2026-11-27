@@ -3,7 +3,7 @@ import { TsSnippet } from "@skmtc/lang-typescript";
 import type { GenerateContextType, OasRef, OasSchema, RefParts } from '@skmtc/core'
 import { applyModifiers, type ZodModifiers } from "./applyModifiers.ts";
 import { ZodProjection } from "./ZodProjection.ts";
-import { zodEntry } from "./mod.ts";
+import denoJson from "../deno.json" with { type: "json" };
 type ConstructorProps = {
   context: GenerateContextType;
   destinationPath: string;
@@ -36,7 +36,7 @@ export class ZodRef extends TsSnippet {
     super({
       context,
       generatorKey: toModelGeneratorKey({
-        generatorId: zodEntry.id,
+        generatorId: denoJson.name,
         ref,
         variant: "main",
       }),

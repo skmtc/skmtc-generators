@@ -11,4 +11,4 @@ export * from "./src/ZodInteger.ts";
 export * from "./src/ZodBoolean.ts";
 export * from "./src/ZodVoid.ts";
 export * from "./src/ZodUnknown.ts";
-export { zodEntry as default } from "./src/mod.ts";
+export { zodEntry as default, zodProjections } from "./src/mod.ts";

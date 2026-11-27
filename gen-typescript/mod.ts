@@ -15,6 +15,7 @@ export * from './src/TsVoid.ts'
 export { TsProjection } from './src/TsProjection.ts'
 export {
   typescriptEntry,
+  typescriptProjections,
   toTypescriptEntry,
   type TypescriptEntryOptions
 } from './src/mod.ts'

@@ -1,4 +1,5 @@
 import { toGeneratorEnrichment, toOasOperationEntry } from '@skmtc/core'
+import { kotlinJacksonProjections } from '@skmtc/gen-kotlin-jackson'
 import { ensureApiErrorSupport } from './apiErrorSupport.ts'
 import { ensureTagApi } from './ensureTagApi.ts'
 import { isSpringMethod } from './lib.ts'
@@ -29,6 +30,9 @@ import denoJson from '../deno.json' with { type: 'json' }
 export default toOasOperationEntry<EnrichmentSchema>({
   id: denoJson.name,
   toEnrichmentSchema,
+  // No projection of its own: the tag files are registered directly. The
+  // types of an operation come from gen-kotlin-jackson's router.
+  projections: kotlinJacksonProjections,
   isSupported({ operation }) {
     return isSpringMethod(operation.method)
   },

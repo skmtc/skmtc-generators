@@ -12,7 +12,7 @@
  */
 import { toGeneratorOnlyKey } from '@skmtc/core'
 import type { Modifiers, SchemaToValueFn, SchemaType } from '@skmtc/core'
-import { kotlinJacksonEntry } from './mod.ts'
+import denoJson from '../deno.json' with { type: 'json' }
 import { KotlinArray } from './KotlinArray.ts'
 import { KotlinObject } from './KotlinObject.ts'
 import { KotlinRef } from './KotlinRef.ts'
@@ -41,7 +41,7 @@ export const toKotlinValue: SchemaToValueFn = (
   }
 
   const generatorKey = toGeneratorOnlyKey({
-    generatorId: kotlinJacksonEntry.id,
+    generatorId: denoJson.name,
   })
 
   switch (schema.type) {

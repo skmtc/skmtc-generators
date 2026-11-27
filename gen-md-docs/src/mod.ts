@@ -24,6 +24,9 @@ const catalogPath = '@/docs/index.json'
 export const mdDocsEntry = toOasOperationEntry<EnrichmentSchema>({
   id: denoJson.name,
   toEnrichmentSchema,
+  // No `projections`: the path of a document is an option that `transform`
+  // passes on the insert, so core cannot ask a projection for it before the
+  // run, and every operation writes to the indexes.
   transform: ({ context, operation, variant }) => {
     const document = context.insertOperation({
       projection: OperationDoc,

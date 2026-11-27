@@ -4,8 +4,8 @@
   "private": true,
   "exports": "./mod.ts",
   "tasks": {
-    "test": "deno test --allow-read",
-    "test:coverage": "deno test --allow-read",
+    "test": "deno test --allow-env --allow-sys --allow-read",
+    "test:coverage": "deno test --allow-env --allow-sys --allow-read",
     "coverage:report": "echo \"test-support holds test code only: no coverage to report\""
   },
   "lint": {

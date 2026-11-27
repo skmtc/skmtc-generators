@@ -11,7 +11,7 @@ import { ValibotBoolean } from './ValibotBoolean.ts'
 import { ValibotVoid } from './ValibotVoid.ts'
 import { ValibotUnknown } from './ValibotUnknown.ts'
 import { toGeneratorOnlyKey } from '@skmtc/core'
-import { valibotEntry } from './mod.ts'
+import denoJson from '../deno.json' with { type: 'json' }
 
 export const toValibotValue: SchemaToValueFn = ({
   schema: schemaNode,
@@ -31,7 +31,7 @@ export const toValibotValue: SchemaToValueFn = ({
     nullable: 'nullable' in schema ? schema.nullable : undefined
   }
 
-  const generatorKey = toGeneratorOnlyKey({ generatorId: valibotEntry.id })
+  const generatorKey = toGeneratorOnlyKey({ generatorId: denoJson.name })
 
   switch (schema.type) {
     case 'custom':

@@ -1,6 +1,7 @@
 import invariant from 'tiny-invariant'
 import { ExpressApp } from './ExpressApp.ts'
 import { toOasOperationEntry, type Method } from '@skmtc/core'
+import { valibotProjections } from '@skmtc/gen-valibot'
 import { toEnrichmentSchema, type EnrichmentSchema } from './enrichments.ts'
 import denoJson from '../deno.json' with { type: 'json' }
 
@@ -10,6 +11,7 @@ const expressMethods: readonly Method[] = ['get', 'put', 'post', 'delete', 'opti
 export const expressEntry = toOasOperationEntry<EnrichmentSchema>({
   id: denoJson.name,
   toEnrichmentSchema,
+  projections: [ExpressApp, ...valibotProjections],
   isSupported({ operation }) {
     return expressMethods.includes(operation.method)
   },
