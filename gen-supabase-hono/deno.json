@@ -1,12 +1,12 @@
 {
   "name": "@skmtc/gen-supabase-hono",
-  "version": "0.2.29",
+  "version": "0.2.30",
   "exports": "./mod.ts",
   "imports": {
-    "@skmtc/gen-zod": "jsr:@skmtc/gen-zod@0.5.0",
-    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.2.26",
-    "@skmtc/core": "jsr:@skmtc/core@0.48.0",
-    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.15.3"
+    "@skmtc/gen-zod": "jsr:@skmtc/gen-zod@0.5.1",
+    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.2.27",
+    "@skmtc/core": "jsr:@skmtc/core@0.52.0",
+    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.15.8"
   },
   "tasks": {
     "test": "deno test --allow-env --allow-sys --allow-read",

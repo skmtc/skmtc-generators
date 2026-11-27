@@ -1,6 +1,6 @@
 {
   "name": "@skmtc/gen-msw",
-  "version": "0.2.26",
+  "version": "0.2.27",
   "exports": "./mod.ts",
   "tasks": {
     "test": "deno test --allow-env --allow-sys --allow-read",
@@ -11,9 +11,9 @@
     "publish": "deno publish --allow-slow-types --allow-dirty"
   },
   "imports": {
-    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.2.26",
-    "@skmtc/core": "jsr:@skmtc/core@0.48.0",
-    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.15.3"
+    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.2.27",
+    "@skmtc/core": "jsr:@skmtc/core@0.52.0",
+    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.15.8"
   },
   "lint": {
     "plugins": [
