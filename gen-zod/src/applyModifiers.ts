@@ -19,16 +19,17 @@ export type ZodModifiers = Modifiers & { defaultValue?: unknown };
  * input. `.default({})` takes a whole output value and does not compile
  * when a key inside has a default.
  *
- * The trap: a `deferred` value (see `isDeferred`) renders inside a getter
- * with no return type, and `.default()` and `.prefault()` take a value typed
- * from the schema itself, so TypeScript cannot type the getter (TS7023). A
- * deferred value keeps `.optional()` and leaves its default out.
+ * The trap: `.default()` and `.prefault()` take a value typed from the
+ * schema itself. When that type runs through a getter of the cycle, at the
+ * value or anywhere below it, TypeScript cannot type the getter (TS7023,
+ * TS7022). A `cyclic` value (see `isCyclic`) keeps `.optional()` and leaves
+ * its default out.
  */
-export const applyModifiers = (content: string, modifiers: ZodModifiers, deferred = false) => {
+export const applyModifiers = (content: string, modifiers: ZodModifiers, cyclic = false) => {
   const postNullable = withNullable(content, modifiers);
   const { defaultValue } = modifiers;
 
-  if (defaultValue !== undefined && !deferred) {
+  if (defaultValue !== undefined && !cyclic) {
     const method = typeof defaultValue === "object" && defaultValue !== null ? "prefault" : "default";
 
     return `${postNullable}.${method}(${JSON.stringify(defaultValue)})`;

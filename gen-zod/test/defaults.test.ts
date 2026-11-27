@@ -69,6 +69,20 @@ export const node = z.object({name: z.string().optional(), get children() { retu
   );
 });
 
+// The trap: `meta` is not a getter, but its type runs through one, so
+// `.prefault({})` there does not type-check either (TS7022).
+Deno.test("defaults - a value that holds a getter leaves its default out", () => {
+  const artifacts = generate({ applyDefaults: true });
+
+  assertEquals(
+    artifacts["src/types/tree.generated.ts"],
+    `import {z} from 'zod'
+
+export const tree = z.object({meta: z.object({flag: z.boolean().default(true), get parent() { return tree.optional() }}).optional()});
+`,
+  );
+});
+
 Deno.test("defaults - a default inside a model deferred as a whole renders too", () => {
   const artifacts = generate({ applyDefaults: true });
 

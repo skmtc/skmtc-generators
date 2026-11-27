@@ -784,7 +784,8 @@ export const stringFormatCases: StringFormatCase[] = [
  * required key, an array and a nullable key (Job), and one inside a union
  * that refers to itself with no object on the way (Setting), which a model
  * generator defers as a whole. Node has one on a key that refers back into
- * its cycle, which a model generator defers as a getter, and Config has
+ * its cycle, which a model generator defers as a getter. Tree has one on an
+ * object that holds such a key without being deferred itself. Config has
  * `default: {}` on an object whose own key has a default.
  */
 export const defaultDocument: OpenAPIV3.Document = {
@@ -817,6 +818,19 @@ export const defaultDocument: OpenAPIV3.Document = {
         properties: {
           name: { type: 'string' },
           children: { type: 'array', items: { $ref: '#/components/schemas/Node' }, default: [] }
+        }
+      },
+      Tree: {
+        type: 'object',
+        properties: {
+          meta: {
+            type: 'object',
+            default: {},
+            properties: {
+              flag: { type: 'boolean', default: true },
+              parent: { $ref: '#/components/schemas/Tree' }
+            }
+          }
         }
       },
       Config: {

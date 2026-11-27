@@ -444,7 +444,8 @@ Deno.test({
  * Checks gen-typescript's type against a schema with `.default()`, and
  * throws when a parse does not fill a default in. `Repo`, `Job` and `Config`
  * are gen-typescript's own output, moved to `@/ts/` because they share
- * gen-zod's file names. Node, a getter in a cycle, only has to compile.
+ * gen-zod's file names. Node, a getter in a cycle, only has to compile;
+ * Tree, an object that holds one, also fills the default inside it.
  *
  * The trap: `.default()` makes the key always present on the output, so
  * `z.output` is narrower than the type. The type has to stay assignable both
@@ -458,6 +459,7 @@ import type { Config } from "@/ts/config.generated.ts";
 import { repo } from "@/types/repo.generated.ts";
 import { job } from "@/types/job.generated.ts";
 import { config } from "@/types/config.generated.ts";
+import { tree } from "@/types/tree.generated.ts";
 import { setting } from "@/types/setting.generated.ts";
 
 type Equals<X, Y> = (<T>() => T extends X ? 1 : 2) extends (<T>() => T extends Y ? 1 : 2) ? true : false;
@@ -504,6 +506,11 @@ if (!config.safeParse(configValue).success) {
   throw new Error("Config refused a value of its TypeScript type");
 }
 
+// An object that holds a getter of the cycle keeps the defaults inside it.
+if (tree.parse({ meta: {} }).meta?.flag !== true) {
+  throw new Error("Tree did not fill its default in");
+}
+
 // setting is z.lazy, annotated z.ZodType<Setting>, with a default inside.
 const nested = setting.parse([{}]);
 
@@ -530,7 +537,7 @@ for (const zod of [ZOD_4_1, ZOD]) {
         document: defaultDocument,
       }).artifacts;
 
-      assertEquals(Object.keys(zodArtifacts).length, 5);
+      assertEquals(Object.keys(zodArtifacts).length, 6);
 
       assertEquals(
         await checkGenerated({

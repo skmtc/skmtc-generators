@@ -9,3 +9,12 @@
 export const isDeferred = (value: unknown): boolean =>
   typeof value === "object" && value !== null && "deferred" in value &&
   value.deferred === true;
+
+/**
+ * Whether a value holds a reference inside a cycle anywhere below it, deferred
+ * or not. Its type then runs through the cycle, so it takes no `.default()`
+ * (see `applyModifiers`).
+ */
+export const isCyclic = (value: unknown): boolean =>
+  typeof value === "object" && value !== null && "cyclic" in value &&
+  value.cyclic === true;

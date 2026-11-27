@@ -4,7 +4,7 @@ import type { CustomValue, GenerateContextType, GeneratorKey, OasObject, OasRef,
 import { toZodValue } from "./Zod.ts";
 import { applyModifiers, type ZodModifiers } from "./applyModifiers.ts";
 import { ZodUnknown } from "./ZodUnknown.ts";
-import { isDeferred } from "./deferred.ts";
+import { isCyclic, isDeferred } from "./deferred.ts";
 
 type ZodObjectProps = {
   context: GenerateContextType;
@@ -27,6 +27,8 @@ export class ZodObject extends TsSnippet {
    * runs a getter beside it at module load.
    */
   deferred: boolean;
+  /** See `isCyclic`: a property or the record holds a reference in the cycle. */
+  cyclic: boolean;
 
   constructor({
     context,
@@ -72,6 +74,9 @@ export class ZodObject extends TsSnippet {
       (this.recordProperties !== null &&
         Object.values(objectProperties?.properties ?? {}).some(isDeferred));
 
+    this.cyclic = isCyclic(this.recordProperties?.value) ||
+      Object.values(objectProperties?.properties ?? {}).some(isCyclic);
+
     this.register({ imports: { zod: ["z"] }, destinationPath });
   }
 
@@ -84,7 +89,7 @@ export class ZodObject extends TsSnippet {
       return applyModifiers(
         `${objectProperties}.catchall(${recordProperties.value})`,
         this.modifiers,
-        this.deferred,
+        this.cyclic,
       );
     }
 
@@ -92,7 +97,7 @@ export class ZodObject extends TsSnippet {
       recordProperties?.toString() ?? objectProperties?.toString() ??
         "z.object({})",
       this.modifiers,
-      this.deferred,
+      this.cyclic,
     );
   }
 }

@@ -2,7 +2,7 @@ import { TsSnippet } from "@skmtc/lang-typescript";
 import type { GenerateContextType, GeneratorKey, OasIntersection, RefParts, TypeSystemValue } from '@skmtc/core'
 import { toZodValue } from "./Zod.ts";
 import { applyModifiers, type ZodModifiers } from "./applyModifiers.ts";
-import { isDeferred } from "./deferred.ts";
+import { isCyclic, isDeferred } from "./deferred.ts";
 
 type ZodIntersectionArgs = {
   context: GenerateContextType;
@@ -19,6 +19,8 @@ export class ZodIntersection extends TsSnippet {
   modifiers: ZodModifiers;
   /** See `isDeferred`. */
   deferred: boolean;
+  /** See `isCyclic`. */
+  cyclic: boolean;
 
   constructor({
     context,
@@ -42,6 +44,7 @@ export class ZodIntersection extends TsSnippet {
 
     this.modifiers = modifiers;
     this.deferred = this.members.some(isDeferred);
+    this.cyclic = this.members.some(isCyclic);
 
     this.register({ imports: { zod: ["z"] }, destinationPath });
   }
@@ -51,6 +54,6 @@ export class ZodIntersection extends TsSnippet {
       .map((member) => `${member}`)
       .reduce((left, right) => `${left}.and(${right})`);
 
-    return applyModifiers(members, this.modifiers, this.deferred);
+    return applyModifiers(members, this.modifiers, this.cyclic);
   }
 }

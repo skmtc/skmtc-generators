@@ -617,8 +617,11 @@ Without it, or with `false`, the output is the same as before the setting.
   through the schema, so `default: {}` fills in the defaults of the keys
   inside it.
 - A key that refers back into its own cycle renders as a getter. Its default
-  is left out, and it stays `.optional()`. With a default there, TypeScript
-  cannot type the getter.
+  is left out, and it stays `.optional()`. The same is true for a value that
+  holds such a key anywhere inside it, such as an object with a `parent` key
+  that refers back. With a default there, TypeScript cannot type the getter.
+  The defaults of keys inside the value that are not in the cycle still
+  render.
 
 `.default()` changes the type that Zod infers. The key is optional on the
 input and always present on the output. gen-typescript's type does not
