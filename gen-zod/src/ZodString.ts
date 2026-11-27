@@ -144,6 +144,10 @@ const tryRegExpLiteral = (pattern: string, flags: string): string | undefined =>
       return undefined;
     }
 
+    // `new RegExp` with string arguments throws only a SyntaxError, so no
+    // test reaches this line. It stays, as in EffectString, for any other error.
+    // deno-coverage-ignore-start
     throw error;
   }
+  // deno-coverage-ignore-stop
 };
