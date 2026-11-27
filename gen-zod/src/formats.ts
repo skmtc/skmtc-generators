@@ -1,7 +1,9 @@
 /**
  * The string formats gen-zod checks, each with the Zod 4 schema that checks
- * it. #132 gives gen-valibot, gen-arktype and gen-effect-schema checks for
- * the formats of this list. Until then, they do not check the same formats.
+ * it. This is the list of formats that gen-valibot, gen-arktype and
+ * gen-effect-schema follow: the `formats.ts` of each maps the formats of this
+ * list that its library has an exact check for, and says why it leaves out
+ * the others.
  *
  * | format      | Zod 4 schema                        |
  * | ----------- | ----------------------------------- |
