@@ -21,8 +21,11 @@ import {
   intersectionDocument,
   keepAllRefs,
   nodeValue,
+  patternDocument,
   paymentValue,
   runE2eFixture,
+  stringFormatCases,
+  stringFormatDocument,
   unionDocument,
 } from "@skmtc/test-support";
 import { zodEntry } from "../src/mod.ts";
@@ -351,5 +354,86 @@ Deno.test({
       }),
       [],
     );
+  },
+});
+
+/** Loading it throws on the first case of `stringFormatCases` zod gets wrong. */
+const stringFormatConsumer = `import type { ZodType } from "zod";
+import { dateTime } from "@/types/dateTime.generated.ts";
+import { date } from "@/types/date.generated.ts";
+import { duration } from "@/types/duration.generated.ts";
+import { email } from "@/types/email.generated.ts";
+import { uri } from "@/types/uri.generated.ts";
+import { uuid } from "@/types/uuid.generated.ts";
+import { ipv4 } from "@/types/ipv4.generated.ts";
+import { ipv6 } from "@/types/ipv6.generated.ts";
+import { uriTemplate } from "@/types/uriTemplate.generated.ts";
+import { slug } from "@/types/slug.generated.ts";
+import { workEmail } from "@/types/workEmail.generated.ts";
+
+const models: Record<string, ZodType> = {
+  DateTime: dateTime,
+  Date: date,
+  Duration: duration,
+  Email: email,
+  Uri: uri,
+  Uuid: uuid,
+  Ipv4: ipv4,
+  Ipv6: ipv6,
+  UriTemplate: uriTemplate,
+  Slug: slug,
+  WorkEmail: workEmail,
+};
+
+for (const check of ${JSON.stringify(stringFormatCases)}) {
+  const accepted = models[check.model].safeParse(check.value).success;
+  if (accepted !== check.accept) {
+    throw new Error(\`\${check.model}, \${JSON.stringify(check.value)}: accepted is \${accepted}\`);
+  }
+}
+`;
+
+// The trap: a check that came in after zod 4.1 breaks generated code for a
+// user on 4.1, so each format compiles and parses on the oldest and the newest.
+for (const zod of [ZOD_4_1, ZOD]) {
+  Deno.test({
+    name: `typecheck - each string format and pattern compiles and parses on ${zod}`,
+    ignore: Deno.env.get("TYPECHECK") !== "1",
+    fn: async () => {
+      const { artifacts } = runE2eFixture({
+        id: "@skmtc/gen-zod",
+        entry: zodEntry,
+        document: stringFormatDocument,
+      });
+
+      assertEquals(Object.keys(artifacts).length, 11);
+
+      assertEquals(
+        await checkGenerated({
+          artifacts: { ...artifacts, "src/consumer.ts": stringFormatConsumer },
+          imports: { zod },
+        }),
+        [],
+      );
+    },
+  });
+}
+
+// The trap: a pattern ending in `\` or written for another engine made the
+// file fail to parse; a `*/` in the comment that replaces it would end the
+// comment early. Every file has to compile and load.
+Deno.test({
+  name: "typecheck - every pattern renders as a regex or a comment, and compiles",
+  ignore: Deno.env.get("TYPECHECK") !== "1",
+  fn: async () => {
+    const { artifacts } = runE2eFixture({
+      id: "@skmtc/gen-zod",
+      entry: zodEntry,
+      document: patternDocument,
+    });
+
+    assertEquals(Object.keys(artifacts).length, 6);
+
+    assertEquals(await checkGenerated({ artifacts, imports: { zod: ZOD } }), []);
   },
 });

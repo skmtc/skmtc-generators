@@ -1,7 +1,8 @@
-import { List, toStringLiteral, TsSnippet } from '@skmtc/lang-typescript'
+import { List, toRegExpLiteral, toStringLiteral, TsSnippet, withDescription } from '@skmtc/lang-typescript'
 import { applyModifiers } from "./applyModifiers.ts";
 import type { GenerateContextType, GeneratorKey, Modifiers, OasString } from '@skmtc/core'
 import { ZodConstraint } from "./ZodConstraints.ts";
+import { formatSchemas } from "./formats.ts";
 
 type ZodStringArgs = {
   context: GenerateContextType;
@@ -15,7 +16,11 @@ export class ZodString extends TsSnippet {
   type = "string" as const;
   format: string | undefined;
   enums: string[] | (string | null)[] | undefined;
+  /** `z.string()`, or the Zod 4 schema that checks the format (`formats.ts`). */
+  base: string;
   constraints: List<ZodConstraint[]>;
+  /** A `pattern` JavaScript rejects, left unchecked and named in a comment. */
+  skippedPattern: string | undefined;
   modifiers: Modifiers;
   constructor(
     { context, stringSchema, generatorKey, destinationPath, modifiers }:
@@ -25,6 +30,8 @@ export class ZodString extends TsSnippet {
 
     this.enums = stringSchema.enums;
     this.format = stringSchema.format;
+    // A format Zod 4 has no check for stays a plain string.
+    this.base = (this.format === undefined ? undefined : formatSchemas.get(this.format)) ?? "z.string()";
     this.constraints = new List<ZodConstraint[]>([], {
       skipEmpty: true,
       separator: "",
@@ -50,6 +57,23 @@ export class ZodString extends TsSnippet {
       );
     }
 
+    // An enum drops the pattern (see `toString()`), so it has nothing to warn about.
+    if (stringSchema.pattern && stringSchema.enums === undefined) {
+      const literal = toPatternLiteral(stringSchema.pattern);
+
+      if (literal === undefined) {
+        this.skippedPattern = stringSchema.pattern;
+
+        // A warning sets this model's result to 'warning', so the CLI and
+        // the manifest show it, not only the comment in the output.
+        context.logger.warn(toSkippedPatternNote(stringSchema.pattern));
+      } else {
+        this.constraints.values.push(
+          new ZodConstraint({ context, name: "regex", value: literal }),
+        );
+      }
+    }
+
     this.modifiers = modifiers;
 
     this.register({ imports: { zod: ["z"] }, destinationPath });
@@ -58,9 +82,9 @@ export class ZodString extends TsSnippet {
   override toString(): string {
     const { enums } = this;
 
-    // An enum lists every value it accepts, so the length and pattern
-    // checks add nothing, and `z.enum` / `z.literal` have no `.max()` to
-    // call. ZodNumber and ZodInteger drop theirs the same way.
+    // An enum lists every value it accepts, so the format, length and
+    // pattern checks add nothing, and `z.enum` / `z.literal` have no
+    // `.max()` to call. ZodNumber and ZodInteger drop theirs the same way.
     if (enums && Array.isArray(enums)) {
       // Core lists `null` only on a nullable schema, and the nullable
       // modifier adds `.nullable()`, so the enum lists the strings. An
@@ -79,6 +103,51 @@ export class ZodString extends TsSnippet {
       return applyModifiers(`z.enum([${values.map(toStringLiteral).join(", ")}])`, this.modifiers);
     }
 
-    return applyModifiers(`z.string()${this.constraints}`, this.modifiers);
+    const content = applyModifiers(`${this.base}${this.constraints}`, this.modifiers);
+
+    // The trap: a pattern written for another engine (`(?i)`) makes the
+    // whole file fail to parse, and throwing fails the whole run. So the
+    // check is left out, and the comment says which pattern and why.
+    return this.skippedPattern === undefined ? content : withDescription(content, {
+      description: toSkippedPatternNote(this.skippedPattern),
+    });
   }
 }
+
+// Copied from gen-effect-schema's EffectString.ts (#130): no package both
+// generators import holds it yet.
+
+/** Says which pattern was left out and why, in the output and the warning. */
+const toSkippedPatternNote = (pattern: string): string =>
+  `pattern ${toStringLiteral(pattern)} is not a JavaScript regex, so it is not checked`;
+
+/**
+ * The pattern as a regex literal, or `undefined` when JavaScript rejects it.
+ *
+ * The trap: without the `u` flag, `^\p{L}+$` is valid and matches the text
+ * `p{L}`, not a letter. JSON Schema patterns mean Unicode, so `u` comes
+ * first. A pattern valid only without it (`\-` outside a class) falls back to
+ * no flag.
+ */
+const toPatternLiteral = (pattern: string): string | undefined =>
+  tryRegExpLiteral(pattern, "u") ?? tryRegExpLiteral(pattern, "");
+
+/**
+ * `toRegExpLiteral` lets the engine escape the literal, and throws a
+ * `SyntaxError` on a pattern or flags it rejects.
+ */
+const tryRegExpLiteral = (pattern: string, flags: string): string | undefined => {
+  try {
+    return toRegExpLiteral(pattern, flags);
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      return undefined;
+    }
+
+    // `new RegExp` with string arguments throws only a SyntaxError, so no
+    // test reaches this line. It stays, as in EffectString, for any other error.
+    // deno-coverage-ignore-start
+    throw error;
+  }
+  // deno-coverage-ignore-stop
+};

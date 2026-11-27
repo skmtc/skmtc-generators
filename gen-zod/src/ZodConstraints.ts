@@ -3,12 +3,13 @@ import { SnippetBase, type GenerateContextType } from '@skmtc/core'
 type ZodConstraintArgs = {
   context: GenerateContextType;
   name: string;
-  value: number | undefined;
+  /** A number, or code such as a regex literal. */
+  value: number | string | undefined;
 };
 
 export class ZodConstraint extends SnippetBase {
   name: string;
-  value: number | undefined;
+  value: number | string | undefined;
   constructor({ context, name, value }: ZodConstraintArgs) {
     super({ context });
 

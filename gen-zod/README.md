@@ -13,6 +13,12 @@ zod 3 cannot type.
 - **Complex types**: object, array, union (oneOf/anyOf), references ($ref)
 - **Modifiers**: nullable (`.nullable()`), optional (`.optional()`)
 - **Enums**: Single values (`z.literal()`) and multiple values (`z.enum()`)
+- **String formats**: A format that Zod 4 has a check for gets that check, such
+  as `z.email()` or `z.iso.datetime({ offset: true })`. `src/formats.ts` lists
+  each format. Every other format, such as `uri-template`, is `z.string()`.
+- **Patterns**: `.regex()`, with the `u` flag when the pattern compiles with
+  it. A pattern that JavaScript cannot compile is not checked. A comment and a
+  warning name it.
 - **Integer validation**: Uses `z.number().int()` for integer types
 - **Objects**: Nested objects, properties with special characters
 - **Additional properties**: Record types (`z.record()`), mixed with regular
