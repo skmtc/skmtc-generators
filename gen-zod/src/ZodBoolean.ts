@@ -1,10 +1,10 @@
-import { applyModifiers } from "./applyModifiers.ts";
-import type { GenerateContextType, GeneratorKey, Modifiers, OasBoolean } from '@skmtc/core'
+import { applyModifiers, type ZodModifiers } from "./applyModifiers.ts";
+import type { GenerateContextType, GeneratorKey, OasBoolean } from '@skmtc/core'
 import { TsSnippet } from "@skmtc/lang-typescript";
 
 type ZodBooleanArgs = {
   context: GenerateContextType;
-  modifiers: Modifiers;
+  modifiers: ZodModifiers;
   /**
    * The parsed boolean schema. Carries `enums` (the boolean values
    * the schema constrains to) so a single-value enum can be emitted
@@ -20,7 +20,7 @@ type ZodBooleanArgs = {
 
 export class ZodBoolean extends TsSnippet {
   type = "boolean" as const;
-  modifiers: Modifiers;
+  modifiers: ZodModifiers;
   enums?: boolean[] | (boolean | null)[];
 
   constructor(

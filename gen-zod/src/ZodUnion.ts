@@ -1,15 +1,15 @@
 import { toStringLiteral, TsSnippet } from "@skmtc/lang-typescript";
-import type { GenerateContextType, GeneratorKey, Modifiers, OasUnion, RefParts, TypeSystemValue } from '@skmtc/core'
+import type { GenerateContextType, GeneratorKey, OasUnion, RefParts, TypeSystemValue } from '@skmtc/core'
 import { toZodValue } from "./Zod.ts";
-import { applyModifiers } from "./applyModifiers.ts";
-import { isDeferred } from "./deferred.ts";
+import { applyModifiers, type ZodModifiers } from "./applyModifiers.ts";
+import { isCyclic, isDeferred } from "./deferred.ts";
 import { isTypedAsOption } from "./discriminated.ts";
 
 type ZodUnionArgs = {
   context: GenerateContextType;
   destinationPath: string;
   schema: OasUnion;
-  modifiers: Modifiers;
+  modifiers: ZodModifiers;
   generatorKey: GeneratorKey;
   rootRef?: RefParts;
 };
@@ -19,9 +19,11 @@ export class ZodUnion extends TsSnippet {
   members: TypeSystemValue[];
   /** The key `z.discriminatedUnion` switches on, when every member can be its option. */
   discriminator: string | undefined;
-  modifiers: Modifiers;
+  modifiers: ZodModifiers;
   /** See `isDeferred`. */
   deferred: boolean;
+  /** See `isCyclic`. */
+  cyclic: boolean;
 
   constructor({
     context,
@@ -52,6 +54,7 @@ export class ZodUnion extends TsSnippet {
       : undefined;
     this.modifiers = modifiers;
     this.deferred = this.members.some(isDeferred);
+    this.cyclic = this.members.some(isCyclic);
 
     this.register({ imports: { zod: ["z"] }, destinationPath });
   }
@@ -63,6 +66,6 @@ export class ZodUnion extends TsSnippet {
       ? `z.discriminatedUnion(${toStringLiteral(this.discriminator)}, [${members}])`
       : `z.union([${members}])`;
 
-    return applyModifiers(content, this.modifiers);
+    return applyModifiers(content, this.modifiers, this.cyclic);
   }
 }
