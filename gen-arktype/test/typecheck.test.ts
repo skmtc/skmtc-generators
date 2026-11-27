@@ -24,8 +24,11 @@ import {
   checkGenerated,
   intersectionDocument,
   keepAllRefs,
+  patternDocument,
   paymentValue,
-  runE2eFixture
+  runE2eFixture,
+  stringFormatCases,
+  stringFormatDocument
 } from '@skmtc/test-support'
 import type { OpenAPIV3 } from 'openapi-types'
 import { arktypeEntry } from '../src/mod.ts'
@@ -348,5 +351,165 @@ Deno.test({
       }),
       []
     )
+  }
+})
+
+/**
+ * Models whose format arktype has no exact keyword for (`src/formats.ts`).
+ * They stay a plain string, so they accept every case, also one
+ * `stringFormatCases` marks as refused.
+ */
+const uncheckedModels = ['DateTime', 'Date', 'Duration', 'Uuid']
+
+/** Loading it throws on the first case of `stringFormatCases` arktype gets wrong. */
+const stringFormatConsumer = `import { type } from 'arktype'
+import { dateTime } from '@/types/dateTime.generated.ts'
+import { date } from '@/types/date.generated.ts'
+import { duration } from '@/types/duration.generated.ts'
+import { email } from '@/types/email.generated.ts'
+import { uri } from '@/types/uri.generated.ts'
+import { uuid } from '@/types/uuid.generated.ts'
+import { ipv4 } from '@/types/ipv4.generated.ts'
+import { ipv6 } from '@/types/ipv6.generated.ts'
+import { uriTemplate } from '@/types/uriTemplate.generated.ts'
+import { slug } from '@/types/slug.generated.ts'
+import { workEmail } from '@/types/workEmail.generated.ts'
+
+const models: Record<string, (value: unknown) => unknown> = {
+  DateTime: dateTime,
+  Date: date,
+  Duration: duration,
+  Email: email,
+  Uri: uri,
+  Uuid: uuid,
+  Ipv4: ipv4,
+  Ipv6: ipv6,
+  UriTemplate: uriTemplate,
+  Slug: slug,
+  WorkEmail: workEmail
+}
+
+const unchecked: string[] = ${JSON.stringify(uncheckedModels)}
+
+for (const check of ${JSON.stringify(stringFormatCases)}) {
+  const accepted = !(models[check.model](check.value) instanceof type.errors)
+  const expected = unchecked.includes(check.model) || check.accept
+  if (accepted !== expected) {
+    throw new Error(\`\${check.model}, \${JSON.stringify(check.value)}: accepted is \${accepted}\`)
+  }
+}
+`
+
+Deno.test({
+  name: 'typecheck - each string format and pattern compiles against arktype and checks',
+  ignore: Deno.env.get('TYPECHECK') !== '1',
+  fn: async () => {
+    const { artifacts } = runE2eFixture({
+      id: '@skmtc/gen-arktype',
+      entry: arktypeEntry,
+      document: stringFormatDocument
+    })
+
+    assertEquals(Object.keys(artifacts).length, 11)
+
+    assertEquals(
+      await checkGenerated({
+        artifacts: { ...artifacts, 'src/consumer.ts': stringFormatConsumer },
+        imports: { arktype: ARKTYPE }
+      }),
+      []
+    )
+  }
+})
+
+/**
+ * A bounded string and a pattern where a parent wraps them: in an array, as
+ * a nullable property, and as an optional one.
+ */
+const stringCheckPlacesDocument: OpenAPIV3.Document = {
+  openapi: '3.0.3',
+  info: { title: 'String checks in place', version: '1.0.0' },
+  paths: {},
+  components: {
+    schemas: {
+      Tags: { type: 'array', items: { type: 'string', maxLength: 3 } },
+      Words: { type: 'array', items: { type: 'string', pattern: '^\\p{L}+$' } },
+      Profile: {
+        type: 'object',
+        required: ['nick'],
+        properties: {
+          nick: { type: 'string', minLength: 2, pattern: '^[a-z]+$', nullable: true },
+          bio: { type: 'string', maxLength: 5 }
+        }
+      }
+    }
+  }
+}
+
+const stringCheckPlacesConsumer = `import { type } from 'arktype'
+import { tags } from '@/types/tags.generated.ts'
+import { words } from '@/types/words.generated.ts'
+import { profile } from '@/types/profile.generated.ts'
+
+const cases: Array<[string, (value: unknown) => unknown, unknown, boolean]> = [
+  // The trap: \`string <= 3[]\` bounds the array, so it refused one short tag.
+  ['Tags', tags, ['abc'], true],
+  ['Tags', tags, ['abcd'], false],
+  // The trap: without the u flag, \\\\p{L} matches the text p{L}.
+  ['Words', words, ['été'], true],
+  ['Words', words, ['p{L}'], false],
+  ['Profile', profile, { nick: 'ada' }, true],
+  ['Profile', profile, { nick: null, bio: 'hi' }, true],
+  ['Profile', profile, { nick: 'Ada' }, false],
+  ['Profile', profile, { nick: 'a' }, false],
+  ['Profile', profile, { nick: 'ada', bio: 'too long' }, false]
+]
+
+for (const [name, check, value, accept] of cases) {
+  const accepted = !(check(value) instanceof type.errors)
+  if (accepted !== accept) {
+    throw new Error(\`\${name}, \${JSON.stringify(value)}: accepted is \${accepted}\`)
+  }
+}
+`
+
+Deno.test({
+  name: 'typecheck - a bounded string and a pattern check the same inside an array or a property',
+  ignore: Deno.env.get('TYPECHECK') !== '1',
+  fn: async () => {
+    const { artifacts } = runE2eFixture({
+      id: '@skmtc/gen-arktype',
+      entry: arktypeEntry,
+      document: stringCheckPlacesDocument
+    })
+
+    assertEquals(Object.keys(artifacts).length, 3)
+
+    assertEquals(
+      await checkGenerated({
+        artifacts: { ...artifacts, 'src/consumer.ts': stringCheckPlacesConsumer },
+        imports: { arktype: ARKTYPE }
+      }),
+      []
+    )
+  }
+})
+
+// The trap: a pattern ending in `\` or written for another engine made the
+// file fail to parse; a `*/` in the comment that replaces it would end the
+// comment early. Every file has to compile and load.
+Deno.test({
+  name: 'typecheck - every pattern renders as a regex or a comment, and compiles',
+  ignore: Deno.env.get('TYPECHECK') !== '1',
+  fn: async () => {
+    const { artifacts } = runE2eFixture({
+      id: '@skmtc/gen-arktype',
+      entry: arktypeEntry,
+      document: patternDocument
+    })
+
+    assertEquals(Object.keys(artifacts).length, 6)
+
+    assertEquals(await checkGenerated({ artifacts, imports: { arktype: ARKTYPE } }), [])
   }
 })
