@@ -30,22 +30,17 @@ const appliesDefaults = (context: GenerateContextType): boolean =>
  * The schema's `default`, wherever the engine keeps it: `default` on the
  * scalar and object nodes, `defaultValue` on arrays. A ref carries none:
  * OpenAPI 3.0 drops a `$ref`'s siblings. The same lift as
- * gen-effect-schema's `toDefaultValue`.
+ * gen-effect-schema's `toDefaultValue`. The setting is read only for a node
+ * that has a default.
  */
 const toDefaultValue = (context: GenerateContextType, schema: SchemaType): unknown => {
-  if (!appliesDefaults(context)) {
-    return undefined;
-  }
+  const value = "default" in schema
+    ? schema.default
+    : "defaultValue" in schema
+    ? schema.defaultValue
+    : undefined;
 
-  if ("default" in schema) {
-    return schema.default;
-  }
-
-  if ("defaultValue" in schema) {
-    return schema.defaultValue;
-  }
-
-  return undefined;
+  return value !== undefined && appliesDefaults(context) ? value : undefined;
 };
 
 /**
