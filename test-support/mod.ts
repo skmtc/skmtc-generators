@@ -761,6 +761,9 @@ export const stringFormatCases: StringFormatCase[] = [
   { model: 'Uri', value: 'https://example.com/a?b=c', accept: true },
   { model: 'Uri', value: 'not a uri', accept: false },
   { model: 'Uuid', value: '123e4567-e89b-42d3-a456-426614174000', accept: true },
+  // The trap: a version digit of 0 is valid `format: uuid`, and an RFC 9562 check refuses it.
+  { model: 'Uuid', value: '00000000-0000-0000-0000-000000000001', accept: true },
+  { model: 'Uuid', value: '123e4567-e89b-02d3-0456-426614174000', accept: true },
   { model: 'Uuid', value: '123e4567', accept: false },
   { model: 'Ipv4', value: '192.168.0.1', accept: true },
   { model: 'Ipv4', value: '256.1.1.1', accept: false },

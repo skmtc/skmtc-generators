@@ -18,7 +18,7 @@ Deno.test("stringFormat - each model renders its format check, pattern or plain 
     ["duration", "z.iso.duration()"],
     ["email", "z.email()"],
     ["uri", "z.url()"],
-    ["uuid", "z.uuid()"],
+    ["uuid", "z.guid()"],
     ["ipv4", "z.ipv4()"],
     ["ipv6", "z.ipv6()"],
     ["uriTemplate", "z.string()"],

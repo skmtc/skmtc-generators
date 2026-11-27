@@ -10,7 +10,7 @@
  * | `duration`  | `z.iso.duration()`                  |
  * | `email`     | `z.email()`                         |
  * | `uri`       | `z.url()`                           |
- * | `uuid`      | `z.uuid()`                          |
+ * | `uuid`      | `z.guid()`                          |
  * | `ipv4`      | `z.ipv4()`                          |
  * | `ipv6`      | `z.ipv6()`                          |
  *
@@ -18,6 +18,11 @@
  *
  * - `uri-template`, `uri-reference`: Zod 4 has no check for them.
  * - `time`: RFC 3339 `full-time` has an offset, and `z.iso.time()` refuses one.
+ *
+ * `uuid` is `z.guid()`, not `z.uuid()`: JSON Schema's `uuid` is the RFC 4122
+ * layout of hex digits, and `z.uuid()` also checks RFC 9562's version and
+ * variant digits, so it refuses an id such as
+ * `00000000-0000-0000-0000-000000000001`.
  *
  * Each schema here is in zod 4.1.12, the oldest zod 4 the typecheck task
  * holds. `date-time` passes `offset: true` because RFC 3339 allows an offset
@@ -32,7 +37,7 @@ export const formatSchemas: ReadonlyMap<string, string> = new Map([
   ['duration', 'z.iso.duration()'],
   ['email', 'z.email()'],
   ['uri', 'z.url()'],
-  ['uuid', 'z.uuid()'],
+  ['uuid', 'z.guid()'],
   ['ipv4', 'z.ipv4()'],
   ['ipv6', 'z.ipv6()'],
 ])
