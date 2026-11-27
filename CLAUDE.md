@@ -2,6 +2,24 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Before you write or change a generator
+
+1. **Load the `skmtc-generator` skill and follow it.** It is in the `skmtc`
+   repo at `deno/docs/skills/skmtc-generator/`. In a harness that loads no
+   skills, read its `SKILL.md`. Do this before a sketch, a ticket or a line of
+   code.
+2. **Open the twin.** The same class in another package already does the job.
+   Copy its shape, names and order.
+3. **Render what the parser gives.** A new schema type is one class and one
+   router case in each package. Add no function that inspects, repairs, merges
+   or compares schemas, and copy no helper file between packages.
+4. **A stock generator is an example with sensible defaults.** A rare or
+   broken document is the work of whoever clones the generator, or of a parser
+   setting. It is not a reason to add code here.
+5. **Finish with the skill's `references/finish.md`.** Its
+   `scripts/complexity.ts` exits 0 for each package you changed, and your
+   report lists each function you added outside a class, with its reason.
+
 ## Commands
 
 ### Type Checking
