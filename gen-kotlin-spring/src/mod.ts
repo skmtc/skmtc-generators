@@ -23,7 +23,7 @@ import denoJson from '../deno.json' with { type: 'json' }
  * hand-written half. Eject it before writing logic into it.
  *
  * Config (`basePackage`) is read from the `generator` enrichment scope
- * (`client.json#enrichments[id]._generator`), not constructor options — so
+ * (`skmtc.config.json#settings.enrichments[id]._generator`), not constructor options — so
  * the generator runs CLI-only and carries no module state.
  */
 export default toOasOperationEntry<EnrichmentSchema>({

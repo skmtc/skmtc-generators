@@ -82,7 +82,7 @@ scope, neither with a default — a placeholder package must never ship
 into consumer code:
 
 ```jsonc
-// client.json#settings.enrichments
+// skmtc.config.json#settings.enrichments
 {
   "@skmtc/gen-kotlin-spring":  { "_generator": { "basePackage": "com.acme.orders.api" } },
   // The model peer. Required even when its transform is NOT registered:
@@ -107,7 +107,7 @@ Optional generator-scope config:
   hosted today, a deployment fact that needn't be where this service will
   run. Absent means no prefix.
 
-  Not called `basePath`, which `client.json` already spends on
+  Not called `basePath`, which `skmtc.config.json` already spends on
   `settings.basePath` — the filesystem root the generated files land under.
 
 - **`emitServiceImplementations`** (boolean, off when absent) — write a

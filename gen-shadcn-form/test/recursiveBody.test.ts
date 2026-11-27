@@ -210,7 +210,7 @@ Deno.test('recursive body - a column that is a loop of references names the loop
     spanId: 'fixture',
     startAt: Date.now(),
     document: { type: 'oas', value: document },
-    settings: { basePath: './src', system: { danglingRefs: ['schema'] } },
+    settings: { basePath: './src', parse: { danglingRefs: ['schema'] } },
     stackTrail: new StackTrail([]),
     silent: true,
     // @ts-expect-error - entry vs the generic config map (the known variance gap)

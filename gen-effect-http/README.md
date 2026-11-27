@@ -28,7 +28,7 @@ layer, which is where the base URL, authentication and status handling
 (`HttpClient.filterStatusOk`) live.
 
 `get`, `post`, `put`, `patch` and `delete` are supported. To generate only the
-operations you call, scope a large document with `client.json#settings.include`.
+operations you call, scope a large document with `skmtc.config.json#settings.include`.
 
 ## Customizing
 

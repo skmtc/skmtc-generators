@@ -22,7 +22,7 @@ const run = (document: Omit<OpenAPIV3.Document, 'openapi' | 'info'>, system?: Sy
     spanId: 'run',
     startAt: Date.now(),
     document: { type: 'oas', value: { openapi: '3.0.3', info: { title: 'Types', version: '1' }, ...document } },
-    settings: { basePath: './src', generatedSuffix: '', system },
+    settings: { basePath: './src', generatedSuffix: '', parse: system },
     stackTrail: new StackTrail([]),
     silent: true,
     toGeneratorConfigMap: () => ({
@@ -32,7 +32,7 @@ const run = (document: Omit<OpenAPIV3.Document, 'openapi' | 'info'>, system?: Sy
   })
 
 /**
- * A run with the `system` settings the skmtc-md-docs stack runs with: every
+ * A run with the `settings.parse` the skmtc-md-docs stack runs with: every
  * kind of `$ref` may name nothing. Core names a loop of `$ref`s a dangling
  * ref, so without them the parser removes the loop and what uses it.
  */

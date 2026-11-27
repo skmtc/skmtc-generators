@@ -150,7 +150,7 @@ export const toEffectValueImpl = (
     // generator would merge the members, which is the parser's work.
     case 'intersection':
       throw new Error(
-        `${schema.stackTrail.toSchemaPointer()} is an allOf that keeps a $ref, which gen-effect-schema cannot render: Effect has no intersection of schemas. Set settings.system.intersections to "merge" in client.json, and the parser merges each allOf into one schema.`,
+        `${schema.stackTrail.toSchemaPointer()} is an allOf that keeps a $ref, which gen-effect-schema cannot render: Effect has no intersection of schemas. Set settings.parse.intersections to "merge" in skmtc.config.json, and the parser merges each allOf into one schema.`,
       )
     case 'string':
       return new EffectString({

@@ -28,6 +28,8 @@ zod 3 cannot type.
   A union with a discriminator is `z.union()` when one of its members is
   nullable, has additional properties, is not an object, or has no literal
   value for the discriminator property. zod 4 does not accept those members.
+  It is also `z.union()` when one of its members is in a cycle with the
+  union, so the form does not depend on where a run enters the cycle.
 - **References**: Schema references. A property that holds a reference inside
   a cycle is a getter. A model with no property on the way, such as a union
   that holds itself, is `z.lazy()`, typed with gen-typescript's type.
@@ -564,7 +566,7 @@ deno task coverage:html
 A model is named from its `refName` (the last segment of its `$ref`). Two
 models whose names come out the same, such as `pet` and `Pet`, or refs to
 `…/A/properties/disk` and `…/B/properties/disk`, fail the run with
-`Registered definition mismatch`. Set `name` on one of them in `client.json`:
+`Registered definition mismatch`. Set `name` on one of them in `skmtc.config.json`:
 
 ```jsonc
 {

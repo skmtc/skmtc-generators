@@ -29,7 +29,7 @@ as one `Schema.Struct`. By default the parser keeps a `$ref` that closes a
 cycle, and the schema is then an intersection of the `$ref` and the other
 members. Effect has no intersection of schemas, so the run fails, and the
 error names the schema. To have the parser merge each `allOf`, set
-`settings.system.intersections` to `"merge"` in `client.json`.
+`settings.parse.intersections` to `"merge"` in `skmtc.config.json`.
 
 ## Coerced readings
 
@@ -41,7 +41,7 @@ ending in `FromString` is refused, because it would collide with a twin.
 
 ## Options
 
-At `client.json#settings.enrichments["@skmtc/gen-effect-schema"]._generator`:
+At `skmtc.config.json#settings.enrichments["@skmtc/gen-effect-schema"]._generator`:
 
 - `defaults` (boolean, default `false`): render a schema's `default` as a
   decoding default (`Schema.withDecodingDefaultType`).
@@ -56,7 +56,7 @@ Output paths are fixed in `src/base.ts`. To write elsewhere, clone the generator
 A model is named from its `refName` (the last segment of its `$ref`). Two
 models whose names come out the same, such as `pet` and `Pet`, or refs to
 `…/A/properties/disk` and `…/B/properties/disk`, fail the run with
-`Registered definition mismatch`. Set `name` on one of them in `client.json`:
+`Registered definition mismatch`. Set `name` on one of them in `skmtc.config.json`:
 
 ```jsonc
 {

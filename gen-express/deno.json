@@ -1,12 +1,12 @@
 {
   "name": "@skmtc/gen-express",
-  "version": "0.2.26",
+  "version": "0.2.27",
   "exports": "./mod.ts",
   "imports": {
-    "@skmtc/gen-valibot": "jsr:@skmtc/gen-valibot@0.2.26",
-    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.2.26",
-    "@skmtc/core": "jsr:@skmtc/core@0.48.0",
-    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.15.3"
+    "@skmtc/gen-valibot": "jsr:@skmtc/gen-valibot@0.2.27",
+    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.2.27",
+    "@skmtc/core": "jsr:@skmtc/core@0.52.0",
+    "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.15.8"
   },
   "tasks": {
     "test": "deno test --allow-env --allow-sys --allow-read",
