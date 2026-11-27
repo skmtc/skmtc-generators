@@ -719,6 +719,64 @@ export const patternDocument: OpenAPIV3.Document = {
 }
 
 /**
+ * A string model for each format gen-zod maps (`gen-zod/src/formats.ts`), one
+ * with a format no validator checks (UriTemplate), one with a pattern (Slug),
+ * and one with a format, a length and a pattern together (WorkEmail).
+ */
+export const stringFormatDocument: OpenAPIV3.Document = {
+  openapi: '3.0.3',
+  info: { title: 'String format fixture', version: '1.0.0' },
+  paths: {},
+  components: {
+    schemas: {
+      DateTime: { type: 'string', format: 'date-time' },
+      Date: { type: 'string', format: 'date' },
+      Duration: { type: 'string', format: 'duration' },
+      Email: { type: 'string', format: 'email' },
+      Uri: { type: 'string', format: 'uri' },
+      Uuid: { type: 'string', format: 'uuid' },
+      Ipv4: { type: 'string', format: 'ipv4' },
+      Ipv6: { type: 'string', format: 'ipv6' },
+      UriTemplate: { type: 'string', format: 'uri-template' },
+      Slug: { type: 'string', pattern: '^[a-z]+(-[a-z]+)*$' },
+      WorkEmail: { type: 'string', format: 'email', maxLength: 20, pattern: '@example\\.com$' }
+    }
+  }
+}
+
+type StringFormatCase = { model: string; value: string; accept: boolean }
+
+/** A value each model of `stringFormatDocument` accepts, and one it refuses. */
+export const stringFormatCases: StringFormatCase[] = [
+  { model: 'DateTime', value: '2024-05-01T10:00:00Z', accept: true },
+  // The trap: RFC 3339 allows an offset, and a date-time check refuses one unless asked.
+  { model: 'DateTime', value: '2024-05-01T10:00:00+02:00', accept: true },
+  { model: 'DateTime', value: '2024-05-01', accept: false },
+  { model: 'Date', value: '2024-05-01', accept: true },
+  { model: 'Date', value: '2024-13-01', accept: false },
+  { model: 'Duration', value: 'P1DT2H', accept: true },
+  { model: 'Duration', value: '1 day', accept: false },
+  { model: 'Email', value: 'ada@example.com', accept: true },
+  { model: 'Email', value: 'ada', accept: false },
+  { model: 'Uri', value: 'https://example.com/a?b=c', accept: true },
+  { model: 'Uri', value: 'not a uri', accept: false },
+  { model: 'Uuid', value: '123e4567-e89b-42d3-a456-426614174000', accept: true },
+  { model: 'Uuid', value: '123e4567', accept: false },
+  { model: 'Ipv4', value: '192.168.0.1', accept: true },
+  { model: 'Ipv4', value: '256.1.1.1', accept: false },
+  { model: 'Ipv6', value: '2001:db8::1', accept: true },
+  { model: 'Ipv6', value: '192.168.0.1', accept: false },
+  { model: 'UriTemplate', value: 'https://example.com/{id}', accept: true },
+  { model: 'UriTemplate', value: 'any text', accept: true },
+  { model: 'Slug', value: 'a-slug', accept: true },
+  { model: 'Slug', value: 'Not A Slug', accept: false },
+  { model: 'WorkEmail', value: 'ada@example.com', accept: true },
+  { model: 'WorkEmail', value: 'ada@other.com', accept: false },
+  { model: 'WorkEmail', value: 'a.long.name@example.com', accept: false },
+  { model: 'WorkEmail', value: '@example.com', accept: false }
+]
+
+/**
  * An empty `enum: []` on each scalar type. The list allows no value, so a
  * generator that renders enums renders each one as never, not as `null` or
  * as the plain type.

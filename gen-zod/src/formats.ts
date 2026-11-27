@@ -1,0 +1,38 @@
+/**
+ * The string formats gen-zod checks, each with the Zod 4 schema that checks
+ * it. This is the list of record: the other validators (gen-valibot,
+ * gen-arktype, gen-effect-schema) map the same formats.
+ *
+ * | format      | Zod 4 schema                        |
+ * | ----------- | ----------------------------------- |
+ * | `date-time` | `z.iso.datetime({ offset: true })`  |
+ * | `date`      | `z.iso.date()`                      |
+ * | `duration`  | `z.iso.duration()`                  |
+ * | `email`     | `z.email()`                         |
+ * | `uri`       | `z.url()`                           |
+ * | `uuid`      | `z.uuid()`                          |
+ * | `ipv4`      | `z.ipv4()`                          |
+ * | `ipv6`      | `z.ipv6()`                          |
+ *
+ * Every other format stays `z.string()`. Some of them on purpose:
+ *
+ * - `uri-template`, `uri-reference`: Zod 4 has no check for them.
+ * - `time`: RFC 3339 `full-time` has an offset, and `z.iso.time()` refuses one.
+ *
+ * Each schema here is in zod 4.1.12, the oldest zod 4 the typecheck task
+ * holds. `date-time` passes `offset: true` because RFC 3339 allows an offset
+ * such as `+02:00`, and `z.iso.datetime()` refuses one without it.
+ *
+ * A `Map`, not an object: a format named `constructor` would read
+ * `Object.prototype` from an object.
+ */
+export const formatSchemas: ReadonlyMap<string, string> = new Map([
+  ['date-time', 'z.iso.datetime({ offset: true })'],
+  ['date', 'z.iso.date()'],
+  ['duration', 'z.iso.duration()'],
+  ['email', 'z.email()'],
+  ['uri', 'z.url()'],
+  ['uuid', 'z.uuid()'],
+  ['ipv4', 'z.ipv4()'],
+  ['ipv6', 'z.ipv6()'],
+])
