@@ -1,7 +1,7 @@
 /**
  * The string formats gen-zod checks, each with the Zod 4 schema that checks
- * it. This is the list of record: the other validators (gen-valibot,
- * gen-arktype, gen-effect-schema) map the same formats.
+ * it. #132 gives gen-valibot, gen-arktype and gen-effect-schema checks for
+ * the formats of this list. Until then, they do not check the same formats.
  *
  * | format      | Zod 4 schema                        |
  * | ----------- | ----------------------------------- |
