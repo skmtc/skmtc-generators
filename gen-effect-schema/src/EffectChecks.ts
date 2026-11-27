@@ -7,13 +7,13 @@ type EffectCheckArgs = {
   /** The `Schema.is…` filter, without the prefix. */
   name: string
   /** Numbers render as-is; strings render verbatim (e.g. a `/regex/` literal). */
-  value: number | string
+  value?: number | string
 }
 
 /** One `Schema.isX(value)` filter. */
 export class EffectCheck extends SnippetBase {
   name: string
-  value: number | string
+  value: number | string | undefined
 
   constructor({ context, name, value }: EffectCheckArgs) {
     super({ context })
@@ -23,7 +23,7 @@ export class EffectCheck extends SnippetBase {
   }
 
   override toString(): string {
-    return `${LIB}.${this.name}(${this.value})`
+    return `${LIB}.${this.name}(${this.value ?? ''})`
   }
 }
 
