@@ -20,6 +20,8 @@
  * `date-time` is `v.isoTimestamp()`, not `v.isoDateTime()`: RFC 3339 has
  * seconds and an offset (`2024-05-01T10:00:00Z`), and `v.isoDateTime()`
  * takes only `yyyy-mm-ddThh:mm`, so it refuses every RFC 3339 date-time.
+ * `v.isoTimestamp()` is a little looser than RFC 3339: it also takes a space
+ * for the `T` and an offset with no colon (`+0200`).
  * `v.uuid()` takes the RFC 4122 layout of hex digits, with no check of the
  * version digit.
  *
