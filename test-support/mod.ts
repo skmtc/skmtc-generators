@@ -780,6 +780,80 @@ export const stringFormatCases: StringFormatCase[] = [
 ]
 
 /**
+ * A `default` on an optional boolean, string and integer (Repo), on a
+ * required key, an array and a nullable key (Job), and one inside a union
+ * that refers to itself with no object on the way (Setting), which a model
+ * generator defers as a whole. Node has one on a key that refers back into
+ * its cycle, which a model generator defers as a getter. Tree has one on an
+ * object that holds such a key without being deferred itself. Config has
+ * `default: {}` on an object whose own key has a default.
+ */
+export const defaultDocument: OpenAPIV3.Document = {
+  openapi: '3.0.3',
+  info: { title: 'Default fixture', version: '1.0.0' },
+  paths: {},
+  components: {
+    schemas: {
+      Repo: {
+        type: 'object',
+        required: ['name'],
+        properties: {
+          name: { type: 'string' },
+          archived: { type: 'boolean', default: false },
+          visibility: { type: 'string', default: 'public' },
+          per_page: { type: 'integer', default: 30 }
+        }
+      },
+      Job: {
+        type: 'object',
+        required: ['state'],
+        properties: {
+          state: { type: 'string', default: 'queued' },
+          tags: { type: 'array', items: { type: 'string' }, default: ['a'] },
+          note: { type: 'string', nullable: true, default: null }
+        }
+      },
+      Node: {
+        type: 'object',
+        properties: {
+          name: { type: 'string' },
+          children: { type: 'array', items: { $ref: '#/components/schemas/Node' }, default: [] }
+        }
+      },
+      Tree: {
+        type: 'object',
+        properties: {
+          meta: {
+            type: 'object',
+            default: {},
+            properties: {
+              flag: { type: 'boolean', default: true },
+              parent: { $ref: '#/components/schemas/Tree' }
+            }
+          }
+        }
+      },
+      Config: {
+        type: 'object',
+        properties: {
+          opts: {
+            type: 'object',
+            default: {},
+            properties: { enabled: { type: 'boolean', default: true } }
+          }
+        }
+      },
+      Setting: {
+        oneOf: [
+          { type: 'object', properties: { enabled: { type: 'boolean', default: true } } },
+          { type: 'array', items: { $ref: '#/components/schemas/Setting' } }
+        ]
+      }
+    }
+  }
+}
+
+/**
  * An empty `enum: []` on each scalar type. The list allows no value, so a
  * generator that renders enums renders each one as never, not as `null` or
  * as the plain type.

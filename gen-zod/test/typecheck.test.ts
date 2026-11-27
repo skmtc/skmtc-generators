@@ -16,6 +16,7 @@ import {
   closedValue,
   cycleDocument,
   cycleEdgeDocument,
+  defaultDocument,
   emptyEnumDocument,
   intersectionCycleDocument,
   intersectionDocument,
@@ -29,6 +30,7 @@ import {
   unionDocument,
 } from "@skmtc/test-support";
 import { zodEntry } from "../src/mod.ts";
+import { typescriptEntry } from "@skmtc/gen-typescript";
 
 /** The zod the output is checked against: getters need zod 4. */
 const ZOD = "npm:zod@4.6.7";
@@ -437,3 +439,119 @@ Deno.test({
     assertEquals(await checkGenerated({ artifacts, imports: { zod: ZOD } }), []);
   },
 });
+
+/**
+ * Checks gen-typescript's type against a schema with `.default()`, and
+ * throws when a parse does not fill a default in. `Repo`, `Job` and `Config`
+ * are gen-typescript's own output, moved to `@/ts/` because they share
+ * gen-zod's file names. Node, a getter in a cycle, only has to compile;
+ * Tree, an object that holds one, also fills the default inside it.
+ *
+ * The trap: `.default()` makes the key always present on the output, so
+ * `z.output` is narrower than the type. The type has to stay assignable both
+ * ways, and, where each key with a default is optional, to equal `z.input`.
+ * A required key with a default (Job's `state`) is optional on `z.input`.
+ */
+const defaultConsumer = `import type { z } from "zod";
+import type { Repo } from "@/ts/repo.generated.ts";
+import type { Job } from "@/ts/job.generated.ts";
+import type { Config } from "@/ts/config.generated.ts";
+import { repo } from "@/types/repo.generated.ts";
+import { job } from "@/types/job.generated.ts";
+import { config } from "@/types/config.generated.ts";
+import { tree } from "@/types/tree.generated.ts";
+import { setting } from "@/types/setting.generated.ts";
+
+type Equals<X, Y> = (<T>() => T extends X ? 1 : 2) extends (<T>() => T extends Y ? 1 : 2) ? true : false;
+
+export const inputIsType: Equals<z.input<typeof repo>, Repo> = true;
+
+// A parsed value is assignable to the TypeScript type.
+const parsed: Repo = repo.parse({ name: "a" });
+
+if (parsed.archived !== false || parsed.visibility !== "public" || parsed.per_page !== 30) {
+  throw new Error("Repo did not fill its defaults in: " + JSON.stringify(parsed));
+}
+
+// A value of the TypeScript type is accepted by parse.
+const value: Repo = { name: "b", archived: true };
+
+if (!repo.safeParse(value).success) {
+  throw new Error("Repo refused a value of its TypeScript type");
+}
+
+// The same both ways for a required key, an array and a nullable key.
+const parsedJob: Job = job.parse({});
+
+if (parsedJob.state !== "queued" || parsedJob.tags?.[0] !== "a" || parsedJob.note !== null) {
+  throw new Error("Job did not fill its defaults in: " + JSON.stringify(parsedJob));
+}
+
+const jobValue: Job = { state: "done", note: "x" };
+
+if (!job.safeParse(jobValue).success) {
+  throw new Error("Job refused a value of its TypeScript type");
+}
+
+// An object default of {} fills in the default of the key inside it.
+const parsedConfig: Config = config.parse({});
+
+if (parsedConfig.opts?.enabled !== true) {
+  throw new Error("Config did not fill its defaults in: " + JSON.stringify(parsedConfig));
+}
+
+const configValue: Config = { opts: { enabled: false } };
+
+if (!config.safeParse(configValue).success) {
+  throw new Error("Config refused a value of its TypeScript type");
+}
+
+// An object that holds a getter of the cycle keeps the defaults inside it.
+if (tree.parse({ meta: {} }).meta?.flag !== true) {
+  throw new Error("Tree did not fill its default in");
+}
+
+// setting is z.lazy, annotated z.ZodType<Setting>, with a default inside.
+const nested = setting.parse([{}]);
+
+if (!Array.isArray(nested) || Array.isArray(nested[0]) || nested[0].enabled !== true) {
+  throw new Error("Setting did not fill its default in: " + JSON.stringify(nested));
+}
+`;
+
+for (const zod of [ZOD_4_1, ZOD]) {
+  Deno.test({
+    name: `typecheck - a default compiles against gen-typescript's type and fills in on ${zod}`,
+    ignore: Deno.env.get("TYPECHECK") !== "1",
+    fn: async () => {
+      const zodArtifacts = runE2eFixture({
+        id: "@skmtc/gen-zod",
+        entry: zodEntry,
+        document: defaultDocument,
+        enrichments: { _generator: { applyDefaults: true } },
+      }).artifacts;
+
+      const tsArtifacts = runE2eFixture({
+        id: "@skmtc/gen-typescript",
+        entry: typescriptEntry,
+        document: defaultDocument,
+      }).artifacts;
+
+      assertEquals(Object.keys(zodArtifacts).length, 6);
+
+      assertEquals(
+        await checkGenerated({
+          artifacts: {
+            ...zodArtifacts,
+            "src/ts/repo.generated.ts": tsArtifacts["src/types/repo.generated.ts"],
+            "src/ts/job.generated.ts": tsArtifacts["src/types/job.generated.ts"],
+            "src/ts/config.generated.ts": tsArtifacts["src/types/config.generated.ts"],
+            "src/consumer.ts": defaultConsumer,
+          },
+          imports: { zod },
+        }),
+        [],
+      );
+    },
+  });
+}

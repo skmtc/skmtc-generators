@@ -1,13 +1,13 @@
 import { List, toRegExpLiteral, toStringLiteral, TsSnippet, withDescription } from '@skmtc/lang-typescript'
-import { applyModifiers } from "./applyModifiers.ts";
-import type { GenerateContextType, GeneratorKey, Modifiers, OasString } from '@skmtc/core'
+import { applyModifiers, type ZodModifiers } from "./applyModifiers.ts";
+import type { GenerateContextType, GeneratorKey, OasString } from '@skmtc/core'
 import { ZodConstraint } from "./ZodConstraints.ts";
 import { formatSchemas } from "./formats.ts";
 
 type ZodStringArgs = {
   context: GenerateContextType;
   stringSchema: OasString;
-  modifiers: Modifiers;
+  modifiers: ZodModifiers;
   destinationPath: string;
   generatorKey: GeneratorKey;
 };
@@ -21,7 +21,7 @@ export class ZodString extends TsSnippet {
   constraints: List<ZodConstraint[]>;
   /** A `pattern` JavaScript rejects, left unchecked and named in a comment. */
   skippedPattern: string | undefined;
-  modifiers: Modifiers;
+  modifiers: ZodModifiers;
   constructor(
     { context, stringSchema, generatorKey, destinationPath, modifiers }:
       ZodStringArgs,

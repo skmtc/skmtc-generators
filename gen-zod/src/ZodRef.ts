@@ -1,13 +1,13 @@
 import { toModelGeneratorKey, toModelRef } from '@skmtc/core'
 import { TsSnippet } from "@skmtc/lang-typescript";
-import type { GenerateContextType, Modifiers, OasRef, OasSchema, RefParts } from '@skmtc/core'
-import { applyModifiers } from "./applyModifiers.ts";
+import type { GenerateContextType, OasRef, OasSchema, RefParts } from '@skmtc/core'
+import { applyModifiers, type ZodModifiers } from "./applyModifiers.ts";
 import { ZodProjection } from "./ZodProjection.ts";
 import { zodEntry } from "./mod.ts";
 type ConstructorProps = {
   context: GenerateContextType;
   destinationPath: string;
-  modifiers: Modifiers;
+  modifiers: ZodModifiers;
   ref: RefParts;
   rootRef?: RefParts;
   /** The originating ref schema node — for fine-grained attribution. */
@@ -16,12 +16,14 @@ type ConstructorProps = {
 
 export class ZodRef extends TsSnippet {
   type = "ref" as const;
-  modifiers: Modifiers;
+  modifiers: ZodModifiers;
   name: string;
   /** A reference inside a cycle, which a getter or `z.lazy` above defers (see `isDeferred`). */
   deferred: boolean;
   /** A reference inside a cycle, under a name only a reference has (see `isTypedAsOption`). */
   inCycle: boolean;
+  /** See `isCyclic`. */
+  cyclic: boolean;
   /**
    * Whether the model renders `z.lazy(...)` as a whole (`ZodProjection.lazy`).
    * Not known for a reference back, whose model is still being built.
@@ -59,10 +61,11 @@ export class ZodRef extends TsSnippet {
     this.modifiers = modifiers;
     this.inCycle = modelRef.suspended || modelRef.inCycle;
     this.deferred = this.inCycle;
+    this.cyclic = this.inCycle;
     this.lazyModel = !modelRef.suspended && modelRef.definition.value.lazy;
   }
 
   override toString(): string {
-    return applyModifiers(this.name, this.modifiers);
+    return applyModifiers(this.name, this.modifiers, this.cyclic);
   }
 }

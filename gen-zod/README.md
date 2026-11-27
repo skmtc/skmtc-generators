@@ -11,7 +11,9 @@ zod 3 cannot type.
 
 - **Primitive types**: string, number, integer, boolean, void, unknown
 - **Complex types**: object, array, union (oneOf/anyOf), references ($ref)
-- **Modifiers**: nullable (`.nullable()`), optional (`.optional()`)
+- **Modifiers**: nullable (`.nullable()`), optional (`.optional()`), and
+  default (`.default()`) when `applyDefaults` is on (see
+  [Defaults](#defaults))
 - **Enums**: Single values (`z.literal()`) and multiple values (`z.enum()`)
 - **String formats**: A format that Zod 4 has a check for gets that check, such
   as `z.email()` or `z.iso.datetime({ offset: true })`. `src/formats.ts` lists
@@ -588,3 +590,44 @@ Write a pointer with no percent escapes: `#/paths/~1x~1{id}/…`, also when the
 A model that refers back to itself can also insert gen-typescript's type,
 which is named by gen-typescript. If the type's name clashes, set its `name`
 under `@skmtc/gen-typescript`, also when you do not list that generator.
+
+## Defaults
+
+A schema's `default` is left out unless you set `applyDefaults` in the
+generator scope:
+
+```jsonc
+{
+  "settings": {
+    "enrichments": {
+      "@skmtc/gen-zod": {
+        "_generator": { "applyDefaults": true }
+      }
+    }
+  }
+}
+```
+
+With `applyDefaults: true`, each schema with a `default` gets
+`.default(value)`. On an optional key it takes the place of `.optional()`:
+`archived: z.boolean().default(false)`.
+Without it, or with `false`, the output is the same as before the setting.
+
+- An object or array default is `.prefault(value)`. Zod parses the value
+  through the schema, so `default: {}` fills in the defaults of the keys
+  inside it.
+- A key that refers back into its own cycle renders as a getter. Its default
+  is left out, and it stays `.optional()`. The same is true for a value that
+  holds such a key anywhere inside it, such as an object with a `parent` key
+  that refers back. With a default there, TypeScript cannot type the getter.
+  The defaults of keys inside the value that are not in the cycle still
+  render.
+
+`.default()` changes the type that Zod infers. The key is optional on the
+input and always present on the output. gen-typescript's type does not
+change. When each key with a default is optional, the type is equal to
+`z.input` of the schema. A required key with a default is optional on
+`z.input` and required in the type. For a field with a default, `z.infer`
+(equal to `z.output`) is narrower than the generated type. A parsed value is
+assignable to the generated type, and `parse` accepts a value of the
+generated type.
