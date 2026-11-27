@@ -32,7 +32,7 @@ const run = (document: Omit<OpenAPIV3.Document, 'openapi' | 'info'>, system?: Sy
   })
 
 /**
- * A run with the `system` settings the skmtc-md-docs stack runs with: every
+ * A run with the `settings.parse` the skmtc-md-docs stack runs with: every
  * kind of `$ref` may name nothing. Core names a loop of `$ref`s a dangling
  * ref, so without them the parser removes the loop and what uses it.
  */

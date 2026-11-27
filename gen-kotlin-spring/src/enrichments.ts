@@ -31,7 +31,7 @@ const basePackageRequired =
   'gen-kotlin-spring needs _generator.basePackage, the Kotlin package the <Tag>Api and ApiError files are written to, e.g. "com.acme.api"'
 
 /**
- * The `generator`-scope config (`skmtc.config.json#enrichments[id]._generator`):
+ * The `generator`-scope config (`skmtc.config.json#settings.enrichments[id]._generator`):
  * `basePackage` (REQUIRED, validated) is where the `<Tag>Api` + `ApiError`
  * files land. May equal or differ from gen-kotlin's basePackage.
  * `emitServiceImplementations` (optional, off when absent) adds the

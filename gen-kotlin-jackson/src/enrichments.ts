@@ -10,7 +10,7 @@ const basePackageRequired =
   'gen-kotlin-jackson needs _generator.basePackage, the Kotlin package every model is written to, e.g. "com.acme.api"'
 
 /**
- * The `generator`-scope config (`skmtc.config.json#enrichments[id]._generator`):
+ * The `generator`-scope config (`skmtc.config.json#settings.enrichments[id]._generator`):
  * `basePackage` (REQUIRED, validated, no default) is the Kotlin package
  * every model — component-derived and synthesized alike — lands in. A
  * placeholder default would ship reserved-for-documentation space

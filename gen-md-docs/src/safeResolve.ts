@@ -8,7 +8,7 @@ type Resolvable<K extends OasRefData['refType']> = OasRef<K> | ResolvedRef<K>
  * a `$ref` to no component, or a chain of `$ref`s that comes back to one it
  * has passed (`R1` is a `$ref` to `R2`, and `R2` to `R1`). `resolve()` throws
  * `DanglingRefError` for either one, and the parser keeps either one only
- * when `system.danglingRefs` lists its kind. The docs mark it with an
+ * when `settings.parse.danglingRefs` lists its kind. The docs mark it with an
  * `UnresolvedMarker` instead of failing the whole run. Any other error throws.
  */
 export const safeResolve = <K extends OasRefData['refType']>(ref: Resolvable<K>): ResolvedRef<K> | undefined => {
