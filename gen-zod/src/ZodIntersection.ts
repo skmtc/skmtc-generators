@@ -1,14 +1,14 @@
 import { TsSnippet } from "@skmtc/lang-typescript";
-import type { GenerateContextType, GeneratorKey, Modifiers, OasIntersection, RefParts, TypeSystemValue } from '@skmtc/core'
+import type { GenerateContextType, GeneratorKey, OasIntersection, RefParts, TypeSystemValue } from '@skmtc/core'
 import { toZodValue } from "./Zod.ts";
-import { applyModifiers } from "./applyModifiers.ts";
+import { applyModifiers, type ZodModifiers } from "./applyModifiers.ts";
 import { isDeferred } from "./deferred.ts";
 
 type ZodIntersectionArgs = {
   context: GenerateContextType;
   destinationPath: string;
   schema: OasIntersection;
-  modifiers: Modifiers;
+  modifiers: ZodModifiers;
   generatorKey: GeneratorKey;
   rootRef?: RefParts;
 };
@@ -16,7 +16,7 @@ type ZodIntersectionArgs = {
 export class ZodIntersection extends TsSnippet {
   type = "intersection" as const;
   members: TypeSystemValue[];
-  modifiers: Modifiers;
+  modifiers: ZodModifiers;
   /** See `isDeferred`. */
   deferred: boolean;
 

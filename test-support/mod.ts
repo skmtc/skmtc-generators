@@ -780,6 +780,37 @@ export const stringFormatCases: StringFormatCase[] = [
 ]
 
 /**
+ * A `default` on an optional boolean, string and integer (Repo), and one
+ * inside a union that refers to itself with no object on the way (Setting),
+ * which a model generator defers as a whole.
+ */
+export const defaultDocument: OpenAPIV3.Document = {
+  openapi: '3.0.3',
+  info: { title: 'Default fixture', version: '1.0.0' },
+  paths: {},
+  components: {
+    schemas: {
+      Repo: {
+        type: 'object',
+        required: ['name'],
+        properties: {
+          name: { type: 'string' },
+          archived: { type: 'boolean', default: false },
+          visibility: { type: 'string', default: 'public' },
+          per_page: { type: 'integer', default: 30 }
+        }
+      },
+      Setting: {
+        oneOf: [
+          { type: 'object', properties: { enabled: { type: 'boolean', default: true } } },
+          { type: 'array', items: { $ref: '#/components/schemas/Setting' } }
+        ]
+      }
+    }
+  }
+}
+
+/**
  * An empty `enum: []` on each scalar type. The list allows no value, so a
  * generator that renders enums renders each one as never, not as `null` or
  * as the plain type.

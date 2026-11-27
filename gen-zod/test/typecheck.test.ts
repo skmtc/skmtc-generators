@@ -16,6 +16,7 @@ import {
   closedValue,
   cycleDocument,
   cycleEdgeDocument,
+  defaultDocument,
   emptyEnumDocument,
   intersectionCycleDocument,
   intersectionDocument,
@@ -29,6 +30,7 @@ import {
   unionDocument,
 } from "@skmtc/test-support";
 import { zodEntry } from "../src/mod.ts";
+import { typescriptEntry } from "@skmtc/gen-typescript";
 
 /** The zod the output is checked against: getters need zod 4. */
 const ZOD = "npm:zod@4.6.7";
@@ -437,3 +439,78 @@ Deno.test({
     assertEquals(await checkGenerated({ artifacts, imports: { zod: ZOD } }), []);
   },
 });
+
+/**
+ * Checks gen-typescript's type against a schema with `.default()`, and
+ * throws when a parse does not fill a default in. `Repo` is gen-typescript's
+ * own output, moved to `@/ts/` because it shares gen-zod's file name.
+ *
+ * The trap: `.default()` makes the key always present on the output, so
+ * `z.output` is narrower than the type. The type has to stay assignable both
+ * ways, and to equal `z.input`.
+ */
+const defaultConsumer = `import type { z } from "zod";
+import type { Repo } from "@/ts/repo.generated.ts";
+import { repo } from "@/types/repo.generated.ts";
+import { setting } from "@/types/setting.generated.ts";
+
+type Equals<X, Y> = (<T>() => T extends X ? 1 : 2) extends (<T>() => T extends Y ? 1 : 2) ? true : false;
+
+export const inputIsType: Equals<z.input<typeof repo>, Repo> = true;
+
+// A parsed value is assignable to the TypeScript type.
+const parsed: Repo = repo.parse({ name: "a" });
+
+if (parsed.archived !== false || parsed.visibility !== "public" || parsed.per_page !== 30) {
+  throw new Error("Repo did not fill its defaults in: " + JSON.stringify(parsed));
+}
+
+// A value of the TypeScript type is accepted by parse.
+const value: Repo = { name: "b", archived: true };
+
+if (!repo.safeParse(value).success) {
+  throw new Error("Repo refused a value of its TypeScript type");
+}
+
+// setting is z.lazy, annotated z.ZodType<Setting>, with a default inside.
+const nested = setting.parse([{}]);
+
+if (!Array.isArray(nested) || Array.isArray(nested[0]) || nested[0].enabled !== true) {
+  throw new Error("Setting did not fill its default in: " + JSON.stringify(nested));
+}
+`;
+
+for (const zod of [ZOD_4_1, ZOD]) {
+  Deno.test({
+    name: `typecheck - a default compiles against gen-typescript's type and fills in on ${zod}`,
+    ignore: Deno.env.get("TYPECHECK") !== "1",
+    fn: async () => {
+      const zodArtifacts = runE2eFixture({
+        id: "@skmtc/gen-zod",
+        entry: zodEntry,
+        document: defaultDocument,
+        enrichments: { _generator: { applyDefaults: true } },
+      }).artifacts;
+
+      const tsArtifacts = runE2eFixture({
+        id: "@skmtc/gen-typescript",
+        entry: typescriptEntry,
+        document: defaultDocument,
+      }).artifacts;
+
+      assertEquals(Object.keys(zodArtifacts).length, 2);
+
+      assertEquals(
+        await checkGenerated({
+          artifacts: {
+            ...zodArtifacts,
+            "src/ts/repo.generated.ts": tsArtifacts["src/types/repo.generated.ts"],
+            "src/consumer.ts": defaultConsumer,
+          },
+          imports: { zod },
+        }),
+        [],
+      );
+    },
+  });
+}

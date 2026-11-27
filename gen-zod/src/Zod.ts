@@ -4,7 +4,10 @@ import { ZodRef } from "./ZodRef.ts";
 import { ZodObject } from "./ZodObject.ts";
 import { ZodUnion } from "./ZodUnion.ts";
 import { ZodIntersection } from "./ZodIntersection.ts";
-import type { Modifiers, SchemaToValueFn, SchemaType } from '@skmtc/core'
+import type { GenerateContextType, SchemaToValueFn, SchemaType } from '@skmtc/core'
+import type { ZodModifiers } from "./applyModifiers.ts";
+import { generatorSchema } from "./enrichments.ts";
+import * as v from 'valibot'
 import { ZodNumber } from "./ZodNumber.ts";
 import { ZodInteger } from "./ZodInteger.ts";
 import { ZodBoolean } from "./ZodBoolean.ts";
@@ -12,6 +15,38 @@ import { ZodVoid } from "./ZodVoid.ts";
 import { ZodUnknown } from "./ZodUnknown.ts";
 import { toGeneratorOnlyKey } from '@skmtc/core'
 import { zodEntry } from "./mod.ts";
+
+/**
+ * Whether this project renders defaults: `applyDefaults` in the generator
+ * scope, read off the context so that it reaches a value a dependent
+ * generator builds with `toZodValue` too. The same read as
+ * gen-effect-schema's `rendersDefaults`.
+ */
+const appliesDefaults = (context: GenerateContextType): boolean =>
+  v.parse(generatorSchema, context.readEnrichment([zodEntry.id, "_generator"]))
+    ?.applyDefaults ?? false;
+
+/**
+ * The schema's `default`, wherever the engine keeps it: `default` on the
+ * scalar and object nodes, `defaultValue` on arrays. A ref carries none:
+ * OpenAPI 3.0 drops a `$ref`'s siblings. The same lift as
+ * gen-effect-schema's `toDefaultValue`.
+ */
+const toDefaultValue = (context: GenerateContextType, schema: SchemaType): unknown => {
+  if (!appliesDefaults(context)) {
+    return undefined;
+  }
+
+  if ("default" in schema) {
+    return schema.default;
+  }
+
+  if ("defaultValue" in schema) {
+    return schema.defaultValue;
+  }
+
+  return undefined;
+};
 
 /**
  * Maps a parsed schema node to its Zod snippet. Fine-grained attribution
@@ -34,10 +69,11 @@ export const toZodValue: SchemaToValueFn = ({
   // generator code narrows, it does not assert.
   const schema: SchemaType = schemaNode;
 
-  const modifiers: Modifiers = {
+  const modifiers: ZodModifiers = {
     required,
     // description: 'description' in schema ? schema.description : undefined,
     nullable: "nullable" in schema ? schema.nullable : undefined,
+    defaultValue: toDefaultValue(context, schema),
   };
 
   const generatorKey = toGeneratorOnlyKey({ generatorId: zodEntry.id });

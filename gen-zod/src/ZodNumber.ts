@@ -1,11 +1,11 @@
-import type { GenerateContextType, GeneratorKey, Modifiers, OasNumber } from '@skmtc/core'
+import type { GenerateContextType, GeneratorKey, OasNumber } from '@skmtc/core'
 import { TsSnippet, List } from '@skmtc/lang-typescript'
-import { applyModifiers } from "./applyModifiers.ts";
+import { applyModifiers, type ZodModifiers } from "./applyModifiers.ts";
 import { ZodConstraint } from "./ZodConstraints.ts";
 
 type ZodNumberArgs = {
   context: GenerateContextType;
-  modifiers: Modifiers;
+  modifiers: ZodModifiers;
   schema: OasNumber;
   destinationPath: string;
   generatorKey: GeneratorKey;
@@ -13,7 +13,7 @@ type ZodNumberArgs = {
 
 export class ZodNumber extends TsSnippet {
   type = "number" as const;
-  modifiers: Modifiers;
+  modifiers: ZodModifiers;
   enums?: number[] | (number | null)[];
   constraints: List<ZodConstraint[]>;
   constructor(

@@ -1,13 +1,13 @@
 import { toModelGeneratorKey, toModelRef } from '@skmtc/core'
 import { TsSnippet } from "@skmtc/lang-typescript";
-import type { GenerateContextType, Modifiers, OasRef, OasSchema, RefParts } from '@skmtc/core'
-import { applyModifiers } from "./applyModifiers.ts";
+import type { GenerateContextType, OasRef, OasSchema, RefParts } from '@skmtc/core'
+import { applyModifiers, type ZodModifiers } from "./applyModifiers.ts";
 import { ZodProjection } from "./ZodProjection.ts";
 import { zodEntry } from "./mod.ts";
 type ConstructorProps = {
   context: GenerateContextType;
   destinationPath: string;
-  modifiers: Modifiers;
+  modifiers: ZodModifiers;
   ref: RefParts;
   rootRef?: RefParts;
   /** The originating ref schema node — for fine-grained attribution. */
@@ -16,7 +16,7 @@ type ConstructorProps = {
 
 export class ZodRef extends TsSnippet {
   type = "ref" as const;
-  modifiers: Modifiers;
+  modifiers: ZodModifiers;
   name: string;
   /** A reference inside a cycle, which a getter or `z.lazy` above defers (see `isDeferred`). */
   deferred: boolean;

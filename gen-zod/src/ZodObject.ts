@@ -1,8 +1,8 @@
 import { isEmpty } from '@skmtc/core'
 import { handleKey, TsSnippet } from '@skmtc/lang-typescript'
-import type { CustomValue, GenerateContextType, GeneratorKey, Modifiers, OasObject, OasRef, OasSchema, RefParts, TypeSystemObjectProperties, TypeSystemRecord, TypeSystemValue } from '@skmtc/core'
+import type { CustomValue, GenerateContextType, GeneratorKey, OasObject, OasRef, OasSchema, RefParts, TypeSystemObjectProperties, TypeSystemRecord, TypeSystemValue } from '@skmtc/core'
 import { toZodValue } from "./Zod.ts";
-import { applyModifiers } from "./applyModifiers.ts";
+import { applyModifiers, type ZodModifiers } from "./applyModifiers.ts";
 import { ZodUnknown } from "./ZodUnknown.ts";
 import { isDeferred } from "./deferred.ts";
 
@@ -10,7 +10,7 @@ type ZodObjectProps = {
   context: GenerateContextType;
   destinationPath: string;
   objectSchema: OasObject;
-  modifiers: Modifiers;
+  modifiers: ZodModifiers;
   generatorKey: GeneratorKey;
   rootRef?: RefParts;
 };
@@ -19,7 +19,7 @@ export class ZodObject extends TsSnippet {
   type = "object" as const;
   recordProperties: TypeSystemRecord | null;
   objectProperties: TypeSystemObjectProperties | null;
-  modifiers: Modifiers;
+  modifiers: ZodModifiers;
   /**
    * See `isDeferred`. A property defers its own references as a getter;
    * the record beside the properties has no property to do that, and
@@ -96,7 +96,7 @@ export class ZodObject extends TsSnippet {
 }
 
 type ZodObjectPropertiesArgs = {
-  modifiers: Modifiers;
+  modifiers: ZodModifiers;
   context: GenerateContextType;
   destinationPath: string;
   properties: Record<string, OasSchema | OasRef<"schema"> | CustomValue>;
