@@ -615,7 +615,9 @@ Without it, or with `false`, the output is the same as before the setting.
 
 `.default()` changes the type that Zod infers. The key is optional on the
 input and always present on the output. gen-typescript's type does not
-change: it is equal to `z.input` of the schema. For a field with a default,
-`z.infer` (equal to `z.output`) is narrower than the generated type. A parsed
-value is assignable to the generated type, and `parse` accepts a value of the
+change. When each key with a default is optional, the type is equal to
+`z.input` of the schema. A required key with a default is optional on
+`z.input` and required in the type. For a field with a default, `z.infer`
+(equal to `z.output`) is narrower than the generated type. A parsed value is
+assignable to the generated type, and `parse` accepts a value of the
 generated type.

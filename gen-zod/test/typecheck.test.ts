@@ -442,16 +442,20 @@ Deno.test({
 
 /**
  * Checks gen-typescript's type against a schema with `.default()`, and
- * throws when a parse does not fill a default in. `Repo` is gen-typescript's
- * own output, moved to `@/ts/` because it shares gen-zod's file name.
+ * throws when a parse does not fill a default in. `Repo` and `Job` are
+ * gen-typescript's own output, moved to `@/ts/` because they share gen-zod's
+ * file names.
  *
  * The trap: `.default()` makes the key always present on the output, so
  * `z.output` is narrower than the type. The type has to stay assignable both
- * ways, and to equal `z.input`.
+ * ways, and, where each key with a default is optional, to equal `z.input`.
+ * A required key with a default (Job's `state`) is optional on `z.input`.
  */
 const defaultConsumer = `import type { z } from "zod";
 import type { Repo } from "@/ts/repo.generated.ts";
+import type { Job } from "@/ts/job.generated.ts";
 import { repo } from "@/types/repo.generated.ts";
+import { job } from "@/types/job.generated.ts";
 import { setting } from "@/types/setting.generated.ts";
 
 type Equals<X, Y> = (<T>() => T extends X ? 1 : 2) extends (<T>() => T extends Y ? 1 : 2) ? true : false;
@@ -470,6 +474,19 @@ const value: Repo = { name: "b", archived: true };
 
 if (!repo.safeParse(value).success) {
   throw new Error("Repo refused a value of its TypeScript type");
+}
+
+// The same both ways for a required key, an array and a nullable key.
+const parsedJob: Job = job.parse({});
+
+if (parsedJob.state !== "queued" || parsedJob.tags?.[0] !== "a" || parsedJob.note !== null) {
+  throw new Error("Job did not fill its defaults in: " + JSON.stringify(parsedJob));
+}
+
+const jobValue: Job = { state: "done", note: "x" };
+
+if (!job.safeParse(jobValue).success) {
+  throw new Error("Job refused a value of its TypeScript type");
 }
 
 // setting is z.lazy, annotated z.ZodType<Setting>, with a default inside.
@@ -498,13 +515,14 @@ for (const zod of [ZOD_4_1, ZOD]) {
         document: defaultDocument,
       }).artifacts;
 
-      assertEquals(Object.keys(zodArtifacts).length, 2);
+      assertEquals(Object.keys(zodArtifacts).length, 3);
 
       assertEquals(
         await checkGenerated({
           artifacts: {
             ...zodArtifacts,
             "src/ts/repo.generated.ts": tsArtifacts["src/types/repo.generated.ts"],
+            "src/ts/job.generated.ts": tsArtifacts["src/types/job.generated.ts"],
             "src/consumer.ts": defaultConsumer,
           },
           imports: { zod },

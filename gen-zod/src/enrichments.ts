@@ -8,7 +8,8 @@ import { sanitizeIdentifier } from '@skmtc/lang-typescript'
  *   unless set, and the output is then as it was before the setting. The
  *   key is optional on the input of the schema and always present on its
  *   output, so `z.infer` is narrower than gen-typescript's type, which
- *   stays as it is and equals `z.input`.
+ *   stays as it is. Where each key with a default is optional, the type
+ *   equals `z.input`.
  */
 export const generatorSchema = v.optional(
   v.object({

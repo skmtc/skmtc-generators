@@ -30,6 +30,18 @@ export const repo = z.object({name: z.string(), archived: z.boolean().default(fa
   );
 });
 
+Deno.test("defaults - a required key, an array and a nullable key keep their default", () => {
+  const artifacts = generate({ applyDefaults: true });
+
+  assertEquals(
+    artifacts["src/types/job.generated.ts"],
+    `import {z} from 'zod'
+
+export const job = z.object({state: z.string().default("queued"), tags: z.array(z.string()).default(["a"]), note: z.string().nullable().default(null)});
+`,
+  );
+});
+
 Deno.test("defaults - a default inside a model deferred as a whole renders too", () => {
   const artifacts = generate({ applyDefaults: true });
 
