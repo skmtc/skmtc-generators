@@ -79,7 +79,7 @@ Deno.test('ArktypeString - optional and nullable string', () => {
   assertEquals(arktypeString.toString(), '"string | null | undefined"')
 })
 
-Deno.test('ArktypeString - with format (should not affect output)', () => {
+Deno.test('ArktypeString - format date-time stays string (string.date.iso takes any ISO 8601 form)', () => {
   const arktypeString = new ArktypeString({
     context: toGenerateContext(),
     stringSchema: new OasString({ enums: undefined, format: 'date-time' }),
