@@ -783,7 +783,9 @@ export const stringFormatCases: StringFormatCase[] = [
  * A `default` on an optional boolean, string and integer (Repo), on a
  * required key, an array and a nullable key (Job), and one inside a union
  * that refers to itself with no object on the way (Setting), which a model
- * generator defers as a whole.
+ * generator defers as a whole. Node has one on a key that refers back into
+ * its cycle, which a model generator defers as a getter, and Config has
+ * `default: {}` on an object whose own key has a default.
  */
 export const defaultDocument: OpenAPIV3.Document = {
   openapi: '3.0.3',
@@ -808,6 +810,23 @@ export const defaultDocument: OpenAPIV3.Document = {
           state: { type: 'string', default: 'queued' },
           tags: { type: 'array', items: { type: 'string' }, default: ['a'] },
           note: { type: 'string', nullable: true, default: null }
+        }
+      },
+      Node: {
+        type: 'object',
+        properties: {
+          name: { type: 'string' },
+          children: { type: 'array', items: { $ref: '#/components/schemas/Node' }, default: [] }
+        }
+      },
+      Config: {
+        type: 'object',
+        properties: {
+          opts: {
+            type: 'object',
+            default: {},
+            properties: { enabled: { type: 'boolean', default: true } }
+          }
         }
       },
       Setting: {

@@ -63,6 +63,6 @@ export class ZodUnion extends TsSnippet {
       ? `z.discriminatedUnion(${toStringLiteral(this.discriminator)}, [${members}])`
       : `z.union([${members}])`;
 
-    return applyModifiers(content, this.modifiers);
+    return applyModifiers(content, this.modifiers, this.deferred);
   }
 }

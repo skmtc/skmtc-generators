@@ -613,6 +613,13 @@ With `applyDefaults: true`, each schema with a `default` gets
 `archived: z.boolean().default(false)`.
 Without it, or with `false`, the output is the same as before the setting.
 
+- An object or array default is `.prefault(value)`. Zod parses the value
+  through the schema, so `default: {}` fills in the defaults of the keys
+  inside it.
+- A key that refers back into its own cycle renders as a getter. Its default
+  is left out, and it stays `.optional()`. With a default there, TypeScript
+  cannot type the getter.
+
 `.default()` changes the type that Zod infers. The key is optional on the
 input and always present on the output. gen-typescript's type does not
 change. When each key with a default is optional, the type is equal to

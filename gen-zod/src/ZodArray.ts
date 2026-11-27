@@ -44,6 +44,6 @@ export class ZodArray extends TsSnippet {
   }
 
   override toString(): string {
-    return applyModifiers(`z.array(${this.items})`, this.modifiers);
+    return applyModifiers(`z.array(${this.items})`, this.modifiers, this.deferred);
   }
 }

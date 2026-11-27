@@ -37,7 +37,34 @@ Deno.test("defaults - a required key, an array and a nullable key keep their def
     artifacts["src/types/job.generated.ts"],
     `import {z} from 'zod'
 
-export const job = z.object({state: z.string().default("queued"), tags: z.array(z.string()).default(["a"]), note: z.string().nullable().default(null)});
+export const job = z.object({state: z.string().default("queued"), tags: z.array(z.string()).prefault(["a"]), note: z.string().nullable().default(null)});
+`,
+  );
+});
+
+Deno.test("defaults - an object default is .prefault(), so the defaults inside it fill in", () => {
+  const artifacts = generate({ applyDefaults: true });
+
+  assertEquals(
+    artifacts["src/types/config.generated.ts"],
+    `import {z} from 'zod'
+
+export const config = z.object({opts: z.object({enabled: z.boolean().default(true)}).prefault({})});
+`,
+  );
+});
+
+// The trap: `.default()` inside a getter with no return type does not
+// type-check (TS7023), so a key that refers back into its cycle keeps
+// `.optional()`.
+Deno.test("defaults - a key rendered as a getter leaves its default out", () => {
+  const artifacts = generate({ applyDefaults: true });
+
+  assertEquals(
+    artifacts["src/types/node.generated.ts"],
+    `import {z} from 'zod'
+
+export const node = z.object({name: z.string().optional(), get children() { return z.array(node).optional() }});
 `,
   );
 });

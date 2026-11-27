@@ -84,6 +84,7 @@ export class ZodObject extends TsSnippet {
       return applyModifiers(
         `${objectProperties}.catchall(${recordProperties.value})`,
         this.modifiers,
+        this.deferred,
       );
     }
 
@@ -91,6 +92,7 @@ export class ZodObject extends TsSnippet {
       recordProperties?.toString() ?? objectProperties?.toString() ??
         "z.object({})",
       this.modifiers,
+      this.deferred,
     );
   }
 }

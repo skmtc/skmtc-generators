@@ -51,6 +51,6 @@ export class ZodIntersection extends TsSnippet {
       .map((member) => `${member}`)
       .reduce((left, right) => `${left}.and(${right})`);
 
-    return applyModifiers(members, this.modifiers);
+    return applyModifiers(members, this.modifiers, this.deferred);
   }
 }

@@ -63,6 +63,6 @@ export class ZodRef extends TsSnippet {
   }
 
   override toString(): string {
-    return applyModifiers(this.name, this.modifiers);
+    return applyModifiers(this.name, this.modifiers, this.deferred);
   }
 }

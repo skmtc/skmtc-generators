@@ -442,9 +442,9 @@ Deno.test({
 
 /**
  * Checks gen-typescript's type against a schema with `.default()`, and
- * throws when a parse does not fill a default in. `Repo` and `Job` are
- * gen-typescript's own output, moved to `@/ts/` because they share gen-zod's
- * file names.
+ * throws when a parse does not fill a default in. `Repo`, `Job` and `Config`
+ * are gen-typescript's own output, moved to `@/ts/` because they share
+ * gen-zod's file names. Node, a getter in a cycle, only has to compile.
  *
  * The trap: `.default()` makes the key always present on the output, so
  * `z.output` is narrower than the type. The type has to stay assignable both
@@ -454,8 +454,10 @@ Deno.test({
 const defaultConsumer = `import type { z } from "zod";
 import type { Repo } from "@/ts/repo.generated.ts";
 import type { Job } from "@/ts/job.generated.ts";
+import type { Config } from "@/ts/config.generated.ts";
 import { repo } from "@/types/repo.generated.ts";
 import { job } from "@/types/job.generated.ts";
+import { config } from "@/types/config.generated.ts";
 import { setting } from "@/types/setting.generated.ts";
 
 type Equals<X, Y> = (<T>() => T extends X ? 1 : 2) extends (<T>() => T extends Y ? 1 : 2) ? true : false;
@@ -489,6 +491,19 @@ if (!job.safeParse(jobValue).success) {
   throw new Error("Job refused a value of its TypeScript type");
 }
 
+// An object default of {} fills in the default of the key inside it.
+const parsedConfig: Config = config.parse({});
+
+if (parsedConfig.opts?.enabled !== true) {
+  throw new Error("Config did not fill its defaults in: " + JSON.stringify(parsedConfig));
+}
+
+const configValue: Config = { opts: { enabled: false } };
+
+if (!config.safeParse(configValue).success) {
+  throw new Error("Config refused a value of its TypeScript type");
+}
+
 // setting is z.lazy, annotated z.ZodType<Setting>, with a default inside.
 const nested = setting.parse([{}]);
 
@@ -515,7 +530,7 @@ for (const zod of [ZOD_4_1, ZOD]) {
         document: defaultDocument,
       }).artifacts;
 
-      assertEquals(Object.keys(zodArtifacts).length, 3);
+      assertEquals(Object.keys(zodArtifacts).length, 5);
 
       assertEquals(
         await checkGenerated({
@@ -523,6 +538,7 @@ for (const zod of [ZOD_4_1, ZOD]) {
             ...zodArtifacts,
             "src/ts/repo.generated.ts": tsArtifacts["src/types/repo.generated.ts"],
             "src/ts/job.generated.ts": tsArtifacts["src/types/job.generated.ts"],
+            "src/ts/config.generated.ts": tsArtifacts["src/types/config.generated.ts"],
             "src/consumer.ts": defaultConsumer,
           },
           imports: { zod },
