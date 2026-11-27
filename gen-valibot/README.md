@@ -10,7 +10,17 @@ OpenAPI to [Valibot](https://valibot.dev/) schema generator for [Skmtc](https://
 - **Complex types**: object, array, union (oneOf/anyOf)
 - **Modifiers**: nullable, optional
 - **Enums**: Single values (literal) and multiple values (picklist)
-- **String formats**: date-time (isoDateTime)
+- **String formats**: A format that valibot has an action for gets that
+  action, such as `v.email()` or `v.isoTimestamp()`. `src/formats.ts` lists
+  each format. Every other format, such as `duration` or `uri-template`, is
+  `v.string()`. Since 0.3.0, `date-time` is `v.isoTimestamp()`: the
+  `v.isoDateTime()` of earlier releases refused an RFC 3339 date-time.
+- **Lengths**: `v.minLength()` and `v.maxLength()`.
+- **Patterns**: `v.regex()`, with the `u` flag when the pattern compiles with
+  it. A pattern that JavaScript cannot compile is not checked. A comment and a
+  warning name it.
+- **Enums** drop the format, length and pattern checks: an enum lists every
+  value it accepts.
 - **Integer validation**: Uses `v.pipe(v.number(), v.integer())`
 - **References**: Schema references via `$ref`
 - **Additional properties**: Record types and intersections
@@ -325,7 +335,7 @@ export const pet = v.union([
 
 ```typescript
 export const event = v.object({
-  createdAt: v.pipe(v.string(), v.isoDateTime())
+  createdAt: v.pipe(v.string(), v.isoTimestamp())
 })
 ```
 
