@@ -257,6 +257,13 @@ Deno.test("ZodString - a pattern JavaScript rejects is left out, with a comment"
   );
 });
 
+Deno.test("ZodString - an enum beside a pattern JavaScript rejects does not skip or warn", () => {
+  const zodString = toZodString(new OasString({ enums: ["a", "b"], pattern: "(?i)abc" }));
+
+  assertEquals(zodString.skippedPattern, undefined);
+  assertEquals(zodString.toString(), "z.enum(['a', 'b'])");
+});
+
 Deno.test("ZodString - an enum drops its format and pattern checks", () => {
   assertEquals(
     toZodString(new OasString({ enums: ["a@example.com", "b@example.com"], format: "email", pattern: "^x" }))

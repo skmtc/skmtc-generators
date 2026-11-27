@@ -57,7 +57,8 @@ export class ZodString extends TsSnippet {
       );
     }
 
-    if (stringSchema.pattern) {
+    // An enum drops the pattern (see `toString()`), so it has nothing to warn about.
+    if (stringSchema.pattern && stringSchema.enums === undefined) {
       const literal = toPatternLiteral(stringSchema.pattern);
 
       if (literal === undefined) {
