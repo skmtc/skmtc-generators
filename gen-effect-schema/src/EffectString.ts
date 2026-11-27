@@ -11,6 +11,7 @@ import {
   libImports,
 } from './modifiers.ts'
 import { EffectCheck, EffectChecks } from './EffectChecks.ts'
+import { formatChecks } from './formats.ts'
 import { LIB, LIB_MODULE } from './lib.ts'
 import { toLiterals, withNullMember } from './literals.ts'
 
@@ -47,6 +48,13 @@ export class EffectString extends TsSnippet {
     this.modifiers = modifiers
     this.checks = new EffectChecks()
 
+    // A format Effect 4 has no check for stays a plain string.
+    const formatCheck = this.format === undefined ? undefined : formatChecks.get(this.format)
+
+    if (formatCheck !== undefined) {
+      this.checks.values.push(new EffectCheck({ context, name: formatCheck }))
+    }
+
     if (stringSchema.minLength !== undefined) {
       this.checks.values.push(
         new EffectCheck({
@@ -67,7 +75,8 @@ export class EffectString extends TsSnippet {
       )
     }
 
-    if (stringSchema.pattern) {
+    // An enum drops the pattern (see `toString()`), so it has nothing to warn about.
+    if (stringSchema.pattern && stringSchema.enums === undefined) {
       const literal = toPatternLiteral(stringSchema.pattern)
 
       if (literal === undefined) {
@@ -90,10 +99,12 @@ export class EffectString extends TsSnippet {
   }
 
   override toString(): string {
-    // `format` stays a plain string, as gen-typescript types it: the
-    // wire value of a `date-time` or `uri` is a string, and a decoded
-    // value the type file does not know about would not match it. An
-    // empty `enum: []` goes to `toLiterals` too: it accepts nothing.
+    // A format is a check that keeps the value a string, as gen-typescript
+    // types it (`formats.ts`): the wire value of a `date-time` or `uri` is
+    // a string, and a decoded value the type file does not know about
+    // would not match it. An enum lists every value it accepts, so it drops
+    // the format, length and pattern checks. An empty `enum: []` goes to
+    // `toLiterals` too: it accepts nothing.
     if (this.enums !== undefined) {
       return applyModifiers(
         toLiterals(this.enums),

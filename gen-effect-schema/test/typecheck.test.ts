@@ -17,6 +17,8 @@ import {
   emptyEnumDocument,
   patternDocument,
   runE2eFixture,
+  stringFormatCases,
+  stringFormatDocument,
 } from '@skmtc/test-support'
 import { effectSchemaEntry } from '../src/mod.ts'
 
@@ -157,6 +159,83 @@ Deno.test({
     ])
 
     assertEquals(await checkGenerated({ artifacts, imports: { effect: EFFECT } }), [])
+  },
+})
+
+/**
+ * Models whose format Effect 4 has no check for (`src/formats.ts`). They stay
+ * a plain string, so they accept every case, also one `stringFormatCases`
+ * marks as refused.
+ */
+const uncheckedModels = ['DateTime', 'Date', 'Duration', 'Email', 'Uri', 'Ipv4', 'Ipv6']
+
+/**
+ * Cases that only a format check refuses, on a model with other checks:
+ * WorkEmail's length and pattern pass `@example.com`, and only `email` refuses it.
+ */
+const uncheckedValues = [['WorkEmail', '@example.com']]
+
+/** Loading it throws on the first case of `stringFormatCases` Effect gets wrong. */
+const stringFormatConsumer = `import { Schema } from 'effect'
+import { DateTime } from '@/schema-effect/dateTime.generated.ts'
+import { Date } from '@/schema-effect/date.generated.ts'
+import { Duration } from '@/schema-effect/duration.generated.ts'
+import { Email } from '@/schema-effect/email.generated.ts'
+import { Uri } from '@/schema-effect/uri.generated.ts'
+import { Uuid } from '@/schema-effect/uuid.generated.ts'
+import { Ipv4 } from '@/schema-effect/ipv4.generated.ts'
+import { Ipv6 } from '@/schema-effect/ipv6.generated.ts'
+import { UriTemplate } from '@/schema-effect/uriTemplate.generated.ts'
+import { Slug } from '@/schema-effect/slug.generated.ts'
+import { WorkEmail } from '@/schema-effect/workEmail.generated.ts'
+
+const accepts: Record<string, (value: unknown) => boolean> = {
+  DateTime: Schema.is(DateTime),
+  Date: Schema.is(Date),
+  Duration: Schema.is(Duration),
+  Email: Schema.is(Email),
+  Uri: Schema.is(Uri),
+  Uuid: Schema.is(Uuid),
+  Ipv4: Schema.is(Ipv4),
+  Ipv6: Schema.is(Ipv6),
+  UriTemplate: Schema.is(UriTemplate),
+  Slug: Schema.is(Slug),
+  WorkEmail: Schema.is(WorkEmail),
+}
+
+const unchecked: string[] = ${JSON.stringify(uncheckedModels)}
+const uncheckedValues: string[][] = ${JSON.stringify(uncheckedValues)}
+
+for (const check of ${JSON.stringify(stringFormatCases)}) {
+  const accepted = accepts[check.model](check.value)
+  const expected = unchecked.includes(check.model) || check.accept ||
+    uncheckedValues.some(([model, value]) => model === check.model && value === check.value)
+  if (accepted !== expected) {
+    throw new Error(\`\${check.model}, \${JSON.stringify(check.value)}: accepted is \${accepted}\`)
+  }
+}
+`
+
+Deno.test({
+  name: 'typecheck - each string format and pattern compiles against Effect and checks',
+  ignore: Deno.env.get('TYPECHECK') !== '1',
+  fn: async () => {
+    const { artifacts } = runE2eFixture({
+      id: '@skmtc/gen-effect-schema',
+      entry: effectSchemaEntry,
+      document: stringFormatDocument,
+    })
+
+    // One file for each model, and the index.
+    assertEquals(Object.keys(artifacts).length, 12)
+
+    assertEquals(
+      await checkGenerated({
+        artifacts: { ...artifacts, 'src/consumer.ts': stringFormatConsumer },
+        imports: { effect: EFFECT },
+      }),
+      [],
+    )
   },
 })
 

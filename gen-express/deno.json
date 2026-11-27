@@ -1,9 +1,9 @@
 {
   "name": "@skmtc/gen-express",
-  "version": "0.2.27",
+  "version": "0.2.28",
   "exports": "./mod.ts",
   "imports": {
-    "@skmtc/gen-valibot": "jsr:@skmtc/gen-valibot@0.2.27",
+    "@skmtc/gen-valibot": "jsr:@skmtc/gen-valibot@0.3.0",
     "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.2.27",
     "@skmtc/core": "jsr:@skmtc/core@0.52.0",
     "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.15.8"

@@ -29,11 +29,14 @@ import {
   additionalPropertiesDocument,
   emptyEnumDocument,
   patternDocument,
+  stringFormatDocument,
   toResultTypes,
 } from '@skmtc/test-support'
 import { assertEquals, assertStringIncludes } from '@std/assert'
 import effectSchemaEntry, { EffectObject } from '../mod.ts'
 import type { EnrichmentSchema } from './enrichments.ts'
+import { formatChecks } from './formats.ts'
+import type { OpenAPIV3 } from 'openapi-types'
 
 const fixture = {
   openapi: '3.0.3',
@@ -461,6 +464,102 @@ Deno.test('an empty enum accepts nothing, for every scalar type', () => {
       `export const ${name} = Schema.Never;`,
     )
   }
+})
+
+Deno.test('each string format renders its check, or a plain string', () => {
+  const { artifacts } = generate({ document: stringFormatDocument })
+
+  // Written out, not read from `formatChecks`, so a wrong entry there fails.
+  const expected: Array<[string, string, string]> = [
+    // The trap: Schema.isUUID() checks RFC 9562's version digits, and
+    // refuses a valid `uuid` such as 00000000-0000-0000-0000-000000000001.
+    ['uuid', 'Uuid', 'Schema.String.check(Schema.isGUID())'],
+    // Effect 4 has no check for these that keeps the value a string.
+    ['dateTime', 'DateTime', 'Schema.String'],
+    ['date', 'Date', 'Schema.String'],
+    ['duration', 'Duration', 'Schema.String'],
+    ['email', 'Email', 'Schema.String'],
+    ['uri', 'Uri', 'Schema.String'],
+    ['ipv4', 'Ipv4', 'Schema.String'],
+    ['ipv6', 'Ipv6', 'Schema.String'],
+    ['uriTemplate', 'UriTemplate', 'Schema.String'],
+    ['slug', 'Slug', 'Schema.String.check(Schema.isPattern(/^[a-z]+(-[a-z]+)*$/u))'],
+    [
+      'workEmail',
+      'WorkEmail',
+      'Schema.String.check(Schema.isMaxLength(20), Schema.isPattern(/@example\\.com$/u))',
+    ],
+  ]
+
+  // One file for each model, and the index.
+  assertEquals(Object.keys(artifacts).length, expected.length + 1)
+
+  for (const [file, name, schema] of expected) {
+    assertStringIncludes(
+      artifacts[`schema-effect/${file}.generated.ts`],
+      `export const ${name} = ${schema};`,
+    )
+  }
+})
+
+Deno.test('every format in formatChecks has a test', () => {
+  assertEquals([...formatChecks.keys()], ['uuid'])
+})
+
+const stringCheckDocument: OpenAPIV3.Document = {
+  openapi: '3.0.3',
+  info: { title: 'String checks', version: '1.0.0' },
+  paths: {},
+  components: {
+    schemas: {
+      Name: { type: 'string', minLength: 1, maxLength: 40 },
+      Empty: { type: 'string', maxLength: 0 },
+      Id: { type: 'string', format: 'uuid', minLength: 36, pattern: '^0' },
+      // The trap: a format name such as `constructor` is a key of every object.
+      Odd: { type: 'string', format: 'constructor' },
+      Choice: {
+        type: 'string',
+        enum: ['a', 'b'],
+        format: 'uuid',
+        maxLength: 1,
+        pattern: '(?i)a',
+      },
+    },
+  },
+}
+
+Deno.test('a string renders its lengths, after the format and before the pattern', () => {
+  const { artifacts } = generate({ document: stringCheckDocument })
+
+  assertStringIncludes(
+    artifacts['schema-effect/name.generated.ts'],
+    'export const Name = Schema.String.check(Schema.isMinLength(1), Schema.isMaxLength(40));',
+  )
+  assertStringIncludes(
+    artifacts['schema-effect/empty.generated.ts'],
+    'export const Empty = Schema.String.check(Schema.isMaxLength(0));',
+  )
+  assertStringIncludes(
+    artifacts['schema-effect/id.generated.ts'],
+    'export const Id = Schema.String.check(Schema.isGUID(), Schema.isMinLength(36), Schema.isPattern(/^0/u));',
+  )
+  assertStringIncludes(
+    artifacts['schema-effect/odd.generated.ts'],
+    'export const Odd = Schema.String;',
+  )
+})
+
+Deno.test('an enum drops its format, length and pattern checks, and does not warn', () => {
+  const { artifacts, manifest } = generate({ document: stringCheckDocument })
+
+  assertStringIncludes(
+    artifacts['schema-effect/choice.generated.ts'],
+    'export const Choice = Schema.Literals(["a", "b"]);',
+  )
+  assertEquals(
+    toResultTypes(manifest.results).filter((result) => result === 'warning'),
+    [],
+  )
 })
 
 Deno.test('enum and modifiers render at the leaf', () => {

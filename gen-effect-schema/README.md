@@ -13,6 +13,9 @@ PascalCase name of the type it decodes to
 - **Primitives**: string, number (`Schema.Finite`), integer (`Schema.Int`),
   boolean
 - **Checks**: string length and pattern; numeric bounds
+- **String formats**: `uuid` gets `Schema.isGUID()`, since 0.2.0. Effect 4
+  has no check that keeps the value a string for the other formats, so they
+  stay `Schema.String`. `src/formats.ts` lists each format.
 - **Composites**: object (`Schema.Struct`), array, `additionalProperties`
   (`Schema.Record`), union
 - **Enums**: `Schema.Literals`

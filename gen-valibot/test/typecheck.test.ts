@@ -20,14 +20,20 @@ import {
   intersectionDocument,
   keepAllRefs,
   nodeValue,
+  patternDocument,
   paymentValue,
   runE2eFixture,
+  stringFormatCases,
+  stringFormatDocument,
   unionDocument
 } from '@skmtc/test-support'
 import { valibotEntry } from '../src/mod.ts'
 
 /** The valibot the output is checked against, the workspace's pin. */
 const VALIBOT = 'npm:valibot@1.1.0'
+
+/** The valibot the generator's own `deno.json` names, the newest the task holds. */
+const VALIBOT_1_5 = 'npm:valibot@1.5.0'
 
 /**
  * Checks that each named property infers as exactly its own type, and
@@ -270,5 +276,97 @@ Deno.test({
       }),
       []
     )
+  }
+})
+
+/**
+ * Models whose format valibot has no action for (`src/formats.ts`). They stay
+ * a plain string, so they accept every case, also one `stringFormatCases`
+ * marks as refused.
+ */
+const uncheckedModels = ['Duration']
+
+/** Loading it throws on the first case of `stringFormatCases` valibot gets wrong. */
+const stringFormatConsumer = `import * as v from 'valibot'
+import { dateTime } from '@/types/dateTime.generated.ts'
+import { date } from '@/types/date.generated.ts'
+import { duration } from '@/types/duration.generated.ts'
+import { email } from '@/types/email.generated.ts'
+import { uri } from '@/types/uri.generated.ts'
+import { uuid } from '@/types/uuid.generated.ts'
+import { ipv4 } from '@/types/ipv4.generated.ts'
+import { ipv6 } from '@/types/ipv6.generated.ts'
+import { uriTemplate } from '@/types/uriTemplate.generated.ts'
+import { slug } from '@/types/slug.generated.ts'
+import { workEmail } from '@/types/workEmail.generated.ts'
+
+const models: Record<string, v.GenericSchema<unknown, string>> = {
+  DateTime: dateTime,
+  Date: date,
+  Duration: duration,
+  Email: email,
+  Uri: uri,
+  Uuid: uuid,
+  Ipv4: ipv4,
+  Ipv6: ipv6,
+  UriTemplate: uriTemplate,
+  Slug: slug,
+  WorkEmail: workEmail
+}
+
+const unchecked: string[] = ${JSON.stringify(uncheckedModels)}
+
+for (const check of ${JSON.stringify(stringFormatCases)}) {
+  const accepted = v.safeParse(models[check.model], check.value).success
+  const expected = unchecked.includes(check.model) || check.accept
+  if (accepted !== expected) {
+    throw new Error(\`\${check.model}, \${JSON.stringify(check.value)}: accepted is \${accepted}\`)
+  }
+}
+`
+
+// The trap: an action that came in after valibot 1.1 breaks generated code
+// for a user on 1.1, so each format compiles and parses on the oldest and the
+// newest.
+for (const valibot of [VALIBOT, VALIBOT_1_5]) {
+  Deno.test({
+    name: `typecheck - each string format and pattern compiles and parses on ${valibot}`,
+    ignore: Deno.env.get('TYPECHECK') !== '1',
+    fn: async () => {
+      const { artifacts } = runE2eFixture({
+        id: '@skmtc/gen-valibot',
+        entry: valibotEntry,
+        document: stringFormatDocument
+      })
+
+      assertEquals(Object.keys(artifacts).length, 11)
+
+      assertEquals(
+        await checkGenerated({
+          artifacts: { ...artifacts, 'src/consumer.ts': stringFormatConsumer },
+          imports: { valibot }
+        }),
+        []
+      )
+    }
+  })
+}
+
+// The trap: a pattern ending in `\` or written for another engine made the
+// file fail to parse; a `*/` in the comment that replaces it would end the
+// comment early. Every file has to compile and load.
+Deno.test({
+  name: 'typecheck - every pattern renders as a regex or a comment, and compiles',
+  ignore: Deno.env.get('TYPECHECK') !== '1',
+  fn: async () => {
+    const { artifacts } = runE2eFixture({
+      id: '@skmtc/gen-valibot',
+      entry: valibotEntry,
+      document: patternDocument
+    })
+
+    assertEquals(Object.keys(artifacts).length, 6)
+
+    assertEquals(await checkGenerated({ artifacts, imports: { valibot: VALIBOT } }), [])
   }
 })

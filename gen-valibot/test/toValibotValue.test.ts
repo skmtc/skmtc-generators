@@ -451,7 +451,7 @@ Deno.test('toValibotValue - string with format', () => {
     type: 'string',
     format: 'date-time'
   }
-  assertEquals(schemaToValibot(schema), 'v.pipe(v.string(), v.isoDateTime())')
+  assertEquals(schemaToValibot(schema), 'v.pipe(v.string(), v.isoTimestamp())')
 })
 
 Deno.test('toValibotValue - array with nullable items', () => {
