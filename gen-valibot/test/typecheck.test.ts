@@ -13,8 +13,14 @@ import {
   additionalPropertiesDocument,
   awkwardNamesDocument,
   checkGenerated,
+  closedValue,
   cycleDocument,
   emptyEnumDocument,
+  intersectionCycleDocument,
+  intersectionDocument,
+  keepAllRefs,
+  nodeValue,
+  paymentValue,
   runE2eFixture,
   unionDocument
 } from '@skmtc/test-support'
@@ -178,6 +184,88 @@ Deno.test({
     assertEquals(
       await checkGenerated({
         artifacts: { ...artifacts, 'src/consumer.ts': emptyEnumConsumer },
+        imports: { valibot: VALIBOT }
+      }),
+      []
+    )
+  }
+})
+
+// Parses a value through an intersection (Pet), and through a union whose
+// members are intersections (Payment). Loading it throws when valibot
+// refuses a value the document allows, or accepts a Pet without the key of
+// Animal.
+const intersectionConsumer = `import * as v from 'valibot'
+import { pet } from '@/types/pet.generated.ts'
+import { payment } from '@/types/payment.generated.ts'
+
+const results: [string, boolean, boolean][] = [
+  ['Pet', v.safeParse(pet, { kind: 'dog', name: 'Rex' }).success, true],
+  ['Pet without the key of Animal', v.safeParse(pet, { name: 'Rex' }).success, false],
+  ['Payment', v.safeParse(payment, ${JSON.stringify(paymentValue)}).success, true]
+]
+
+for (const [name, success, expected] of results) {
+  if (success !== expected) throw new Error(\`\${name}: accepted is \${success}\`)
+}
+`
+
+Deno.test({
+  name: 'typecheck - an intersection, and a union of intersections, compile against valibot and parse',
+  ignore: Deno.env.get('TYPECHECK') !== '1',
+  fn: async () => {
+    const { artifacts } = runE2eFixture({
+      id: '@skmtc/gen-valibot',
+      entry: valibotEntry,
+      document: intersectionDocument,
+      system: keepAllRefs
+    })
+
+    assertEquals(Object.keys(artifacts).length, 6)
+
+    assertEquals(
+      await checkGenerated({
+        artifacts: { ...artifacts, 'src/consumer.ts': intersectionConsumer },
+        imports: { valibot: VALIBOT }
+      }),
+      []
+    )
+  }
+})
+
+// Closed has \`additionalProperties: false\` beside its \`allOf\`. The parser
+// puts it on the member with \`b\`, and a strict object there would refuse
+// the keys of Base.
+const intersectionCycleConsumer = `import * as v from 'valibot'
+import { node } from '@/types/node.generated.ts'
+import { closed } from '@/types/closed.generated.ts'
+
+const accepted: [string, boolean][] = [
+  ['Node', v.safeParse(node, ${JSON.stringify(nodeValue)}).success],
+  ['Closed', v.safeParse(closed, ${JSON.stringify(closedValue)}).success]
+]
+
+for (const [name, success] of accepted) {
+  if (!success) throw new Error(\`\${name} refused a value its document allows\`)
+}
+`
+
+Deno.test({
+  name: 'typecheck - an intersection with a ref that closes a cycle compiles against valibot, loads first and parses',
+  ignore: Deno.env.get('TYPECHECK') !== '1',
+  fn: async () => {
+    const { artifacts } = runE2eFixture({
+      id: '@skmtc/gen-valibot',
+      entry: valibotEntry,
+      document: intersectionCycleDocument
+    })
+
+    // A failed run renders no files, and nothing then fails the check.
+    assertEquals(Object.keys(artifacts).length, 3)
+
+    assertEquals(
+      await checkGenerated({
+        artifacts: { ...artifacts, 'src/consumer.ts': intersectionCycleConsumer },
         imports: { valibot: VALIBOT }
       }),
       []

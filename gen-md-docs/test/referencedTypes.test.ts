@@ -363,3 +363,25 @@ Deno.test('expandable objects - two deep targets that share a refName have a pag
   assertEquals(pages.length, 2)
   assertEquals(pages.map(([, page]) => page.includes('**first**')).toSorted(), [false, true])
 })
+
+Deno.test('intersections - an allOf that keeps a $ref lists each member, and defines the type it links to', () => {
+  const { artifacts } = run(
+    {
+      paths: { '/pets': { get: { responses: { '200': { ...ok, content: json(ref('Pet')) } } } } },
+      components: {
+        schemas: {
+          Animal: { type: 'object', required: ['kind'], properties: { kind: { type: 'string' } } },
+          Pet: { allOf: [ref('Animal'), { type: 'object', properties: { name: { type: 'string' } } }] }
+        }
+      }
+    },
+    { intersections: 'all' }
+  )
+  const markdown = Object.entries(artifacts).find(([path]) => path.endsWith('pets-GET.md'))?.[1] ?? ''
+
+  assertStringIncludes(
+    markdown,
+    '`intersection`\n- [`Animal`](#type-Animal)\n- `object`\n  - **name** `string`'
+  )
+  assertEquals(toTypeHeadings(markdown), ['### <a id="type-Animal"></a>Animal', '### <a id="type-Pet"></a>Pet'])
+})

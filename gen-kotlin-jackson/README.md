@@ -2,6 +2,15 @@
 
 Kotlin models with Jackson annotations, one declaration for each component schema.
 
+## An `allOf` that keeps a `$ref`
+
+The parser merges the members of an `allOf` into one schema, which renders
+as one data class. By default the parser keeps a `$ref` that closes a
+cycle, and the schema is then an intersection of the `$ref` and the other
+members. Kotlin has no intersection type, so the run fails, and the error
+names the schema. To have the parser merge each `allOf`, set
+`settings.system.intersections` to `"merge"` in `client.json`.
+
 ## Naming a model
 
 A model is named from its `refName` (the last segment of its `$ref`). Two

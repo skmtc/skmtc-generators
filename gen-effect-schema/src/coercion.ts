@@ -34,6 +34,7 @@ export const needsCoercion = (
       )
     }
     case 'union':
+    case 'intersection':
       return schema.members.some((member) => needsCoercion(member, seen))
     case 'string':
     case 'unknown':

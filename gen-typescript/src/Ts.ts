@@ -3,6 +3,7 @@ import { TsArray } from './TsArray.ts'
 import { TsRef } from './TsRef.ts'
 import { TsObject } from './TsObject.ts'
 import { TsUnion } from './TsUnion.ts'
+import { TsIntersection } from './TsIntersection.ts'
 import type { Modifiers, SchemaToValueFn, SchemaType } from '@skmtc/core'
 import { TsNumber } from './TsNumber.ts'
 import { TsInteger } from './TsInteger.ts'
@@ -84,6 +85,8 @@ export const toTsValue: SchemaToValueFn = ({
         rootRef,
         schema
       })
+    case 'intersection':
+      return new TsIntersection({ context, destinationPath, modifiers, generatorKey, rootRef, schema })
     case 'number':
       return new TsNumber({ context, modifiers, generatorKey, schema })
     case 'integer':

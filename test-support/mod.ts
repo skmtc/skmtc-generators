@@ -7,7 +7,7 @@
  */
 import { assert, assertEquals } from '@std/assert'
 import { StackTrail, toArtifacts } from '@skmtc/core'
-import type { ResultsItem, ResultType } from '@skmtc/core'
+import type { ResultsItem, ResultType, SystemSettings } from '@skmtc/core'
 import type { OpenAPIV3 } from 'openapi-types'
 
 type ToArtifactsArgs = Parameters<typeof toArtifacts>[0]
@@ -316,16 +316,18 @@ type RunE2eFixtureArgs = {
   document: OpenAPIV3.Document
   /** The generator's own enrichments, by path, method and variant. */
   enrichments?: NonNullable<NonNullable<ToArtifactsArgs['settings']>['enrichments']>[string]
+  /** How the document is parsed (`client.json` `settings.system`). */
+  system?: SystemSettings
 }
 
 /** Run one generator over `document` with `basePath: './src'`. */
-export const runE2eFixture = ({ id, entry, document, enrichments }: RunE2eFixtureArgs): ReturnType<typeof toArtifacts> =>
+export const runE2eFixture = ({ id, entry, document, enrichments, system }: RunE2eFixtureArgs): ReturnType<typeof toArtifacts> =>
   toArtifacts({
     traceId: `${id}-e2e`,
     spanId: 'fixture',
     startAt: Date.now(),
     document: { type: 'oas', value: document },
-    settings: { basePath: './src', ...(enrichments ? { enrichments: { [id]: enrichments } } : {}) },
+    settings: { basePath: './src', system, ...(enrichments ? { enrichments: { [id]: enrichments } } : {}) },
     stackTrail: new StackTrail([]),
     silent: true,
     // @ts-expect-error - the map is generic over the enrichment type; one entry is not
@@ -762,5 +764,94 @@ export const additionalPropertiesCases: AdditionalPropertiesCase[] = [
   { name: 'a nested tree without its label', model: 'Tree', value: { label: 'root', left: { other: {} } }, accept: false },
   { name: 'an extra key that is not a tree', model: 'Tree', value: { label: 'root', left: 'text' }, accept: false }
 ]
+
+/** Keeps every `$ref` of an `allOf` as a member of an intersection, not only one that closes a cycle. */
+export const keepAllRefs: SystemSettings = { intersections: 'all' }
+
+/**
+ * Intersections, when parsed with `keepAllRefs`: a ref and an object (Pet),
+ * and a discriminated union whose members are intersections (Payment), which
+ * a validator's discriminated form does not take.
+ */
+export const intersectionDocument: OpenAPIV3.Document = {
+  openapi: '3.0.3',
+  info: { title: 'Intersection fixture', version: '1.0.0' },
+  paths: {},
+  components: {
+    schemas: {
+      Animal: { type: 'object', required: ['kind'], properties: { kind: { type: 'string' } } },
+      Pet: {
+        allOf: [{ $ref: '#/components/schemas/Animal' }, { type: 'object', properties: { name: { type: 'string' } } }]
+      },
+      Payment: {
+        oneOf: [{ $ref: '#/components/schemas/Card' }, { $ref: '#/components/schemas/Bank' }],
+        discriminator: { propertyName: 'type' }
+      },
+      Amount: { type: 'object', required: ['amount'], properties: { amount: { type: 'number' } } },
+      Card: {
+        allOf: [
+          { $ref: '#/components/schemas/Amount' },
+          { type: 'object', required: ['type'], properties: { type: { type: 'string', enum: ['card'] } } }
+        ]
+      },
+      Bank: {
+        allOf: [
+          { $ref: '#/components/schemas/Amount' },
+          { type: 'object', required: ['type'], properties: { type: { type: 'string', enum: ['bank'] } } }
+        ]
+      }
+    }
+  }
+}
+
+/** A value that Payment of `intersectionDocument` allows: a member of the union, with the key of its base. */
+export const paymentValue = { type: 'card', amount: 1 }
+
+/**
+ * Refs that close a cycle, which the parser keeps by default: in the items of
+ * a model's own property (Node), and from a subtype to a base that leads back
+ * to it (Closed). Closed has `additionalProperties: false` beside its
+ * `allOf`, which the parser puts on the member with `b` only.
+ */
+export const intersectionCycleDocument: OpenAPIV3.Document = {
+  openapi: '3.0.3',
+  info: { title: 'Intersection cycle fixture', version: '1.0.0' },
+  paths: {},
+  components: {
+    schemas: {
+      Node: {
+        type: 'object',
+        required: ['name', 'children'],
+        properties: {
+          name: { type: 'string' },
+          children: {
+            type: 'array',
+            items: {
+              allOf: [
+                { $ref: '#/components/schemas/Node' },
+                { type: 'object', properties: { extra: { type: 'string' } } }
+              ]
+            }
+          }
+        }
+      },
+      Base: {
+        type: 'object',
+        required: ['kind'],
+        properties: { kind: { type: 'string' }, closed: { $ref: '#/components/schemas/Closed' } }
+      },
+      Closed: {
+        allOf: [{ $ref: '#/components/schemas/Base' }, { type: 'object', properties: { b: { type: 'string' } } }],
+        additionalProperties: false
+      }
+    }
+  }
+}
+
+/** A value that Node of `intersectionCycleDocument` allows, through its intersection. */
+export const nodeValue = { name: 'r', children: [{ name: 'c', children: [], extra: 'e' }] }
+
+/** A value that Closed of `intersectionCycleDocument` allows: a property of Base, and its own. */
+export const closedValue = { kind: 'k', b: 'x' }
 
 export { checkGenerated } from './checkGenerated.ts'

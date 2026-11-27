@@ -89,7 +89,7 @@ export const isSealedUnion = (
   context: GenerateContextType,
   schema: ModelSchema,
 ): schema is OasUnion => {
-  if (!('members' in schema)) {
+  if (!('discriminator' in schema)) {
     return false
   }
 

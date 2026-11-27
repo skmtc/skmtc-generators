@@ -13,9 +13,15 @@ import {
   additionalPropertiesDocument,
   awkwardNamesDocument,
   checkGenerated,
+  closedValue,
   cycleDocument,
   cycleEdgeDocument,
   emptyEnumDocument,
+  intersectionCycleDocument,
+  intersectionDocument,
+  keepAllRefs,
+  nodeValue,
+  paymentValue,
   runE2eFixture,
   unionDocument,
 } from "@skmtc/test-support";
@@ -260,6 +266,87 @@ Deno.test({
     assertEquals(
       await checkGenerated({
         artifacts: { ...artifacts, "src/consumer.ts": emptyEnumConsumer },
+        imports: { zod: ZOD },
+      }),
+      [],
+    );
+  },
+});
+
+// Parses a value through an intersection (Pet), and through a union whose
+// members are intersections (Payment). Loading it throws when zod refuses a
+// value the document allows, or accepts a Pet without the key of Animal.
+const intersectionConsumer = `import { pet } from "@/types/pet.generated.ts";
+import { payment } from "@/types/payment.generated.ts";
+
+const results: [string, boolean, boolean][] = [
+  ["Pet", pet.safeParse({ kind: "dog", name: "Rex" }).success, true],
+  ["Pet without the key of Animal", pet.safeParse({ name: "Rex" }).success, false],
+  ["Payment", payment.safeParse(${JSON.stringify(paymentValue)}).success, true],
+];
+
+for (const [name, success, expected] of results) {
+  if (success !== expected) throw new Error(\`\${name}: accepted is \${success}\`);
+}
+`;
+
+// The trap: zod reads a discriminated union's options at the first parse,
+// so "Invalid discriminated union option" shows only when Payment parses.
+Deno.test({
+  name: "typecheck - an intersection, and a union of intersections, compile against zod and parse",
+  ignore: Deno.env.get("TYPECHECK") !== "1",
+  fn: async () => {
+    const { artifacts } = runE2eFixture({
+      id: "@skmtc/gen-zod",
+      entry: zodEntry,
+      document: intersectionDocument,
+      system: keepAllRefs,
+    });
+
+    assertEquals(Object.keys(artifacts).length, 6);
+
+    assertEquals(
+      await checkGenerated({
+        artifacts: { ...artifacts, "src/consumer.ts": intersectionConsumer },
+        imports: { zod: ZOD },
+      }),
+      [],
+    );
+  },
+});
+
+// Closed has \`additionalProperties: false\` beside its \`allOf\`. The parser
+// puts it on the member with \`b\`, and a strict object there would refuse
+// the keys of Base.
+const intersectionCycleConsumer = `import { node } from "@/types/node.generated.ts";
+import { closed } from "@/types/closed.generated.ts";
+
+const accepted: [string, boolean][] = [
+  ["Node", node.safeParse(${JSON.stringify(nodeValue)}).success],
+  ["Closed", closed.safeParse(${JSON.stringify(closedValue)}).success],
+];
+
+for (const [name, success] of accepted) {
+  if (!success) throw new Error(\`\${name} refused a value its document allows\`);
+}
+`;
+
+Deno.test({
+  name: "typecheck - an intersection with a ref that closes a cycle compiles against zod, loads first and parses",
+  ignore: Deno.env.get("TYPECHECK") !== "1",
+  fn: async () => {
+    const { artifacts } = runE2eFixture({
+      id: "@skmtc/gen-zod",
+      entry: zodEntry,
+      document: intersectionCycleDocument,
+    });
+
+    // A failed run renders no files, and nothing then fails the check.
+    assertEquals(Object.keys(artifacts).length, 3);
+
+    assertEquals(
+      await checkGenerated({
+        artifacts: { ...artifacts, "src/consumer.ts": intersectionCycleConsumer },
         imports: { zod: ZOD },
       }),
       [],

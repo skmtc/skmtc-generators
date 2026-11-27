@@ -1,8 +1,4 @@
-import {
-  normalizeWorkspacePath,
-  toModelGeneratorKey,
-  toModelRef,
-} from '@skmtc/core'
+import { toModelGeneratorKey, toModelRef } from '@skmtc/core'
 import { TsSnippet } from '@skmtc/lang-typescript'
 import { TsProjection } from '@skmtc/gen-typescript'
 import type {
@@ -121,11 +117,8 @@ export class EffectRef extends TsSnippet {
         variant: 'main',
       })
 
-      // Compared as workspace paths: one spelling on every host.
-      if (
-        normalizeWorkspacePath(tsSettings.exportPath) ===
-          normalizeWorkspacePath(settings.exportPath)
-      ) {
+      // Both are workspace paths: one spelling on every host.
+      if (tsSettings.exportPath === settings.exportPath) {
         throw new Error(
           `${ref.refName} is recursive, and gen-typescript would write its type into ${settings.exportPath}, the file gen-effect-schema writes its schema to — give the two generators' toExportPath different folders`,
         )

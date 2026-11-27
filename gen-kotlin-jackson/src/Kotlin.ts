@@ -87,6 +87,12 @@ export const toKotlinValue: SchemaToValueFn = (
         rootRef,
         schema,
       })
+    // Kotlin has no intersection type. To write one data class, a
+    // generator would merge the members, which is the parser's work.
+    case 'intersection':
+      throw new Error(
+        `${schema.stackTrail.toSchemaPointer()} is an allOf that keeps a $ref, which gen-kotlin-jackson cannot render: Kotlin has no intersection type. Set settings.system.intersections to "merge" in client.json, and the parser merges each allOf into one schema.`,
+      )
     case 'string':
       return new KotlinString({
         context,
