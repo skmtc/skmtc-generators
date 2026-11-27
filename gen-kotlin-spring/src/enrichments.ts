@@ -31,7 +31,7 @@ const basePackageRequired =
   'gen-kotlin-spring needs _generator.basePackage, the Kotlin package the <Tag>Api and ApiError files are written to, e.g. "com.acme.api"'
 
 /**
- * The `generator`-scope config (`client.json#enrichments[id]._generator`):
+ * The `generator`-scope config (`skmtc.config.json#enrichments[id]._generator`):
  * `basePackage` (REQUIRED, validated) is where the `<Tag>Api` + `ApiError`
  * files land. May equal or differ from gen-kotlin's basePackage.
  * `emitServiceImplementations` (optional, off when absent) adds the
@@ -51,7 +51,7 @@ export const generatorConfigSchema = v.object({
    * `@RequestMapping` on each controller — `/api` for a service whose
    * operations answer at `/api/customers`.
    *
-   * Named `routePrefix`, not `basePath`: `client.json` already spends
+   * Named `routePrefix`, not `basePath`: `skmtc.config.json` already spends
    * `settings.basePath` on the filesystem root the generated files land
    * under, and the two would sit in one file meaning different things.
    *

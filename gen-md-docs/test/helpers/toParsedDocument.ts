@@ -4,7 +4,7 @@ import * as log from '@std/log/logger'
 
 /** How the document is parsed. */
 type ToParsedDocumentOptions = {
-  /** `client.json` `settings.system`, such as the `danglingRefs` the docs list. */
+  /** `skmtc.config.json` `settings.parse`, such as the `danglingRefs` the docs list. */
   system?: SystemSettings
 }
 

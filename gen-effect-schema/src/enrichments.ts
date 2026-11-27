@@ -2,7 +2,7 @@ import * as v from 'valibot'
 import { sanitizeIdentifier } from '@skmtc/lang-typescript'
 
 /**
- * Generator-scoped, at `client.json#settings.enrichments[id]._generator`:
+ * Generator-scoped, at `skmtc.config.json#settings.enrichments[id]._generator`:
  *
  * - `defaults`: render a schema's `default` as a decoding default. Off
  *   unless set: some published documents carry defaults that are not
@@ -17,7 +17,7 @@ export const generatorSchema = v.optional(
 )
 
 /**
- * Subject-scoped, at `client.json#settings.enrichments[id][model][variant]`,
+ * Subject-scoped, at `skmtc.config.json#settings.enrichments[id][model][variant]`,
  * where `model` is a component's name, or a whole pointer
  * (`#/components/schemas/A/properties/disk`) with no percent escapes:
  * `#/paths/~1x~1{id}/…`, not `#/paths/~1x~1%7Bid%7D/…`:

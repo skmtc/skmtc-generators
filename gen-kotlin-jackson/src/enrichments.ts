@@ -10,7 +10,7 @@ const basePackageRequired =
   'gen-kotlin-jackson needs _generator.basePackage, the Kotlin package every model is written to, e.g. "com.acme.api"'
 
 /**
- * The `generator`-scope config (`client.json#enrichments[id]._generator`):
+ * The `generator`-scope config (`skmtc.config.json#enrichments[id]._generator`):
  * `basePackage` (REQUIRED, validated, no default) is the Kotlin package
  * every model — component-derived and synthesized alike — lands in. A
  * placeholder default would ship reserved-for-documentation space
@@ -31,7 +31,7 @@ export const generatorConfigSchema = v.object({
 export type GeneratorConfig = v.InferOutput<typeof generatorConfigSchema>
 
 /**
- * Subject-scoped, at `client.json#settings.enrichments[id][model][variant]`,
+ * Subject-scoped, at `skmtc.config.json#settings.enrichments[id][model][variant]`,
  * where `model` is a component's name, or a whole pointer
  * (`#/components/schemas/A/properties/disk`) with no percent escapes:
  * `#/paths/~1x~1{id}/…`, not `#/paths/~1x~1%7Bid%7D/…`:

@@ -316,7 +316,7 @@ type RunE2eFixtureArgs = {
   document: OpenAPIV3.Document
   /** The generator's own enrichments, by path, method and variant. */
   enrichments?: NonNullable<NonNullable<ToArtifactsArgs['settings']>['enrichments']>[string]
-  /** How the document is parsed (`client.json` `settings.system`). */
+  /** How the document is parsed (`skmtc.config.json` `settings.parse`). */
   system?: SystemSettings
 }
 
@@ -327,7 +327,7 @@ export const runE2eFixture = ({ id, entry, document, enrichments, system }: RunE
     spanId: 'fixture',
     startAt: Date.now(),
     document: { type: 'oas', value: document },
-    settings: { basePath: './src', system, ...(enrichments ? { enrichments: { [id]: enrichments } } : {}) },
+    settings: { basePath: './src', parse: system, ...(enrichments ? { enrichments: { [id]: enrichments } } : {}) },
     stackTrail: new StackTrail([]),
     silent: true,
     // @ts-expect-error - the map is generic over the enrichment type; one entry is not

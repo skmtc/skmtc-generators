@@ -22,7 +22,7 @@ const run = (document: Omit<OpenAPIV3.Document, 'openapi' | 'info'>, system?: Sy
     spanId: 'run',
     startAt: Date.now(),
     document: { type: 'oas', value: { openapi: '3.0.3', info: { title: 'Types', version: '1' }, ...document } },
-    settings: { basePath: './src', generatedSuffix: '', system },
+    settings: { basePath: './src', generatedSuffix: '', parse: system },
     stackTrail: new StackTrail([]),
     silent: true,
     toGeneratorConfigMap: () => ({

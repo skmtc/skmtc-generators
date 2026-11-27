@@ -569,7 +569,7 @@ deno task coverage:html
 A model is named from its `refName` (the last segment of its `$ref`). Two
 models whose names come out the same, such as `pet` and `Pet`, or refs to
 `…/A/properties/disk` and `…/B/properties/disk`, fail the run with
-`Registered definition mismatch`. Set `name` on one of them in `client.json`:
+`Registered definition mismatch`. Set `name` on one of them in `skmtc.config.json`:
 
 ```jsonc
 {
