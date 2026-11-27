@@ -20,8 +20,8 @@ export class ZodRef extends TsSnippet {
   name: string;
   /** A reference inside a cycle, which a getter or `z.lazy` above defers (see `isDeferred`). */
   deferred: boolean;
-  /** A reference back to a model whose projection is being built (`suspended`). */
-  referenceBack: boolean;
+  /** A reference inside a cycle, under a name only a reference has (see `isTypedAsOption`). */
+  inCycle: boolean;
   /**
    * Whether the model renders `z.lazy(...)` as a whole (`ZodProjection.lazy`).
    * Not known for a reference back, whose model is still being built.
@@ -57,8 +57,8 @@ export class ZodRef extends TsSnippet {
 
     this.name = modelRef.settings.identifier.name;
     this.modifiers = modifiers;
-    this.deferred = modelRef.suspended || modelRef.inCycle;
-    this.referenceBack = modelRef.suspended;
+    this.inCycle = modelRef.suspended || modelRef.inCycle;
+    this.deferred = this.inCycle;
     this.lazyModel = !modelRef.suspended && modelRef.definition.value.lazy;
   }
 

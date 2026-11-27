@@ -28,6 +28,8 @@ zod 3 cannot type.
   A union with a discriminator is `z.union()` when one of its members is
   nullable, has additional properties, is not an object, or has no literal
   value for the discriminator property. zod 4 does not accept those members.
+  It is also `z.union()` when one of its members is in a cycle with the
+  union, so the form does not depend on where a run enters the cycle.
 - **References**: Schema references. A property that holds a reference inside
   a cycle is a getter. A model with no property on the way, such as a union
   that holds itself, is `z.lazy()`, typed with gen-typescript's type.
