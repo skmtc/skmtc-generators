@@ -121,6 +121,20 @@ export const toZodValue: SchemaToValueFn = ({
         generatorKey,
         rootRef,
         schema,
+        // An object with no properties and no `additionalProperties` key
+        // constrains nothing: core makes one from a parent's `type: object`
+        // beside a `oneOf` whose member closes a `$ref` cycle. Rendered, it is
+        // a needless `z.object({}).and(…)`, so it is left out. A closed empty
+        // object (`additionalProperties: false`) constrains, so it stays. The
+        // same rule as gen-typescript's router.
+        members: schema.members.filter(
+          (member) =>
+            !(
+              member.type === "object" &&
+              Object.keys(member.properties ?? {}).length === 0 &&
+              member.additionalProperties === undefined
+            ),
+        ),
       });
     case "number":
       return new ZodNumber({

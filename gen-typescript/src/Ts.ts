@@ -86,7 +86,28 @@ export const toTsValue: SchemaToValueFn = ({
         schema
       })
     case 'intersection':
-      return new TsIntersection({ context, destinationPath, modifiers, generatorKey, rootRef, schema })
+      return new TsIntersection({
+        context,
+        destinationPath,
+        modifiers,
+        generatorKey,
+        rootRef,
+        schema,
+        // An object with no properties and no `additionalProperties` key
+        // constrains nothing: core makes one from a parent's `type: object`
+        // beside a `oneOf` whose member closes a `$ref` cycle. Rendered, it is
+        // `Record<string, never>`, which turns each property of the other
+        // member into `never`, so it is left out. A closed empty object
+        // (`additionalProperties: false`) constrains, so it stays.
+        members: schema.members.filter(
+          member =>
+            !(
+              member.type === 'object' &&
+              Object.keys(member.properties ?? {}).length === 0 &&
+              member.additionalProperties === undefined
+            )
+        )
+      })
     case 'number':
       return new TsNumber({ context, modifiers, generatorKey, schema })
     case 'integer':

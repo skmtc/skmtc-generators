@@ -1,10 +1,10 @@
 {
   "name": "@skmtc/gen-express",
-  "version": "0.2.31",
+  "version": "0.2.32",
   "exports": "./mod.ts",
   "imports": {
-    "@skmtc/gen-valibot": "jsr:@skmtc/gen-valibot@0.3.3",
-    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.2.30",
+    "@skmtc/gen-valibot": "jsr:@skmtc/gen-valibot@0.3.4",
+    "@skmtc/gen-typescript": "jsr:@skmtc/gen-typescript@0.2.31",
     "@skmtc/core": "jsr:@skmtc/core@0.57.0",
     "@skmtc/lang-typescript": "jsr:@skmtc/lang-typescript@0.15.16"
   },
