@@ -7,8 +7,8 @@ type TsIntersectionArgs = {
   context: GenerateContextType
   destinationPath: string
   schema: OasIntersection
-  /** The members to render: the router leaves out those that constrain nothing. */
-  members: OasIntersection['members']
+  /** The members to render: the router leaves out those that constrain nothing. Defaults to `schema.members`. */
+  members?: OasIntersection['members']
   modifiers: Modifiers
   generatorKey: GeneratorKey
   rootRef?: RefParts
@@ -22,7 +22,7 @@ export class TsIntersection extends TsSnippet {
   constructor({ context, generatorKey, destinationPath, members, modifiers, rootRef, schema }: TsIntersectionArgs) {
     super({ context, generatorKey, stackTrail: schema.stackTrail.clone() })
 
-    this.members = members.map(member => {
+    this.members = (members ?? schema.members).map(member => {
       return toTsValue({
         destinationPath,
         schema: member,

@@ -3,7 +3,8 @@
  * renders each member, joined with `.and(…)`.
  */
 import { assertEquals, assertStringIncludes } from "@std/assert";
-import { OasIntersection, OasObject } from "@skmtc/core";
+import { OasIntersection, OasObject, toGeneratorOnlyKey } from "@skmtc/core";
+import { ZodIntersection } from "../src/ZodIntersection.ts";
 import {
   intersectionCycleDocument,
   intersectionDocument,
@@ -52,6 +53,20 @@ Deno.test("a closed empty object beside a oneOf member that closes a cycle stays
     artifacts["src/types/closedField.generated.ts"],
     "z.object({}).and(closedArrayField)",
   );
+});
+
+// A caller outside the router may build the class without `members`: it
+// renders every member of the schema, as before #151.
+Deno.test("ZodIntersection without members renders each member of the schema", () => {
+  const intersection = new ZodIntersection({
+    context: toGenerateContext(),
+    destinationPath: "/test",
+    modifiers: { required: true },
+    generatorKey: toGeneratorOnlyKey({ generatorId: "@skmtc/gen-zod" }),
+    schema: new OasIntersection({ members: [new OasObject({ properties: {} })] }),
+  });
+
+  assertEquals(`${intersection}`, "z.object({})");
 });
 
 Deno.test("an intersection with no member left renders z.unknown()", () => {

@@ -8,8 +8,8 @@ type ZodIntersectionArgs = {
   context: GenerateContextType;
   destinationPath: string;
   schema: OasIntersection;
-  /** The members to render: the router leaves out those that constrain nothing. */
-  members: OasIntersection["members"];
+  /** The members to render: the router leaves out those that constrain nothing. Defaults to `schema.members`. */
+  members?: OasIntersection["members"];
   modifiers: ZodModifiers;
   generatorKey: GeneratorKey;
   rootRef?: RefParts;
@@ -35,7 +35,7 @@ export class ZodIntersection extends TsSnippet {
   }: ZodIntersectionArgs) {
     super({ context, generatorKey, stackTrail: schema.stackTrail.clone() });
 
-    this.members = members.map((member) => {
+    this.members = (members ?? schema.members).map((member) => {
       return toZodValue({
         destinationPath,
         schema: member,

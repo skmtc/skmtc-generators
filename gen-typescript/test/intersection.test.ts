@@ -3,7 +3,8 @@
  * renders each member, joined with `&`.
  */
 import { assertEquals, assertStringIncludes } from '@std/assert'
-import { OasIntersection, OasObject } from '@skmtc/core'
+import { OasIntersection, OasObject, toGeneratorOnlyKey } from '@skmtc/core'
+import { TsIntersection } from '../src/TsIntersection.ts'
 import {
   intersectionCycleDocument,
   intersectionDocument,
@@ -47,6 +48,20 @@ Deno.test('a closed empty object beside a oneOf member that closes a cycle stays
     artifacts['src/types/closedField.generated.ts'],
     `export type ClosedField = {type: 'string'} | (Record<string, never>) & (ClosedArrayField);`
   )
+})
+
+// A caller outside the router may build the class without `members`: it
+// renders every member of the schema, as before #151.
+Deno.test('TsIntersection without members renders each member of the schema', () => {
+  const intersection = new TsIntersection({
+    context: toGenerateContext(),
+    destinationPath: '/test',
+    modifiers: { required: true },
+    generatorKey: toGeneratorOnlyKey({ generatorId: '@skmtc/gen-typescript' }),
+    schema: new OasIntersection({ members: [new OasObject({ properties: {} })] })
+  })
+
+  assertEquals(`${intersection}`, 'Record<string, never>')
 })
 
 Deno.test('an intersection with no member left renders unknown', () => {
