@@ -989,4 +989,58 @@ export const nodeValue = { name: 'r', children: [{ name: 'c', children: [], extr
 /** A value that Closed of `intersectionCycleDocument` allows: a property of Base, and its own. */
 export const closedValue = { kind: 'k', b: 'x' }
 
+/**
+ * `type: object` beside a `oneOf` whose members close a `$ref` cycle, as
+ * skmtc-hub's EnrichmentField (skmtc-generators#151). Core keeps each member
+ * that closes the cycle as an intersection of the parent's empty object and
+ * the ref. Field is open: its empty object has no `additionalProperties`
+ * key. ClosedField says `additionalProperties: false`, so its empty object
+ * constrains.
+ */
+export const objectOneOfCycleDocument: OpenAPIV3.Document = {
+  openapi: '3.0.3',
+  info: { title: 'Object oneOf cycle fixture', version: '1.0.0' },
+  paths: {},
+  components: {
+    schemas: {
+      Field: {
+        type: 'object',
+        oneOf: [
+          { $ref: '#/components/schemas/StringField' },
+          { $ref: '#/components/schemas/ArrayField' }
+        ]
+      },
+      StringField: {
+        type: 'object',
+        required: ['type'],
+        properties: { type: { type: 'string', enum: ['string'] } }
+      },
+      ArrayField: {
+        type: 'object',
+        required: ['type', 'items'],
+        properties: {
+          type: { type: 'string', enum: ['array'] },
+          items: { $ref: '#/components/schemas/Field' }
+        }
+      },
+      ClosedField: {
+        type: 'object',
+        additionalProperties: false,
+        oneOf: [
+          { $ref: '#/components/schemas/StringField' },
+          { $ref: '#/components/schemas/ClosedArrayField' }
+        ]
+      },
+      ClosedArrayField: {
+        type: 'object',
+        required: ['type', 'items'],
+        properties: {
+          type: { type: 'string', enum: ['array'] },
+          items: { $ref: '#/components/schemas/ClosedField' }
+        }
+      }
+    }
+  }
+}
+
 export { checkGenerated } from './checkGenerated.ts'

@@ -4,7 +4,7 @@ import { ZodRef } from "./ZodRef.ts";
 import { ZodObject } from "./ZodObject.ts";
 import { ZodUnion } from "./ZodUnion.ts";
 import { ZodIntersection } from "./ZodIntersection.ts";
-import type { GenerateContextType, SchemaToValueFn, SchemaType } from '@skmtc/core'
+import type { GenerateContextType, OasIntersection, SchemaToValueFn, SchemaType } from '@skmtc/core'
 import type { ZodModifiers } from "./applyModifiers.ts";
 import { generatorSchema } from "./enrichments.ts";
 import * as v from 'valibot'
@@ -42,6 +42,26 @@ const toDefaultValue = (context: GenerateContextType, schema: SchemaType): unkno
 
   return value !== undefined && appliesDefaults(context) ? value : undefined;
 };
+
+/**
+ * The members of an intersection that constrain a value. An object with no
+ * properties and no `additionalProperties` key constrains nothing: core makes
+ * one from a parent's `type: object` beside a `oneOf` whose member closes a
+ * `$ref` cycle. Rendered, it is a needless `z.object({}).and(…)`. A closed
+ * empty object (`additionalProperties: false`) constrains, so it stays. The
+ * same rule as gen-typescript's `toMeaningfulMembers`.
+ */
+export const toMeaningfulMembers = (
+  members: OasIntersection["members"],
+): OasIntersection["members"] =>
+  members.filter(
+    (member) =>
+      !(
+        member.type === "object" &&
+        Object.keys(member.properties ?? {}).length === 0 &&
+        member.additionalProperties === undefined
+      ),
+  );
 
 /**
  * Maps a parsed schema node to its Zod snippet. Fine-grained attribution
@@ -121,6 +141,7 @@ export const toZodValue: SchemaToValueFn = ({
         generatorKey,
         rootRef,
         schema,
+        members: toMeaningfulMembers(schema.members),
       });
     case "number":
       return new ZodNumber({

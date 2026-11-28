@@ -3,8 +3,61 @@
  * renders each member, joined with `.and(…)`.
  */
 import { assertEquals, assertStringIncludes } from "@std/assert";
-import { intersectionCycleDocument, intersectionDocument, keepAllRefs, runE2eFixture } from "@skmtc/test-support";
+import { OasIntersection, OasObject } from "@skmtc/core";
+import {
+  intersectionCycleDocument,
+  intersectionDocument,
+  keepAllRefs,
+  objectOneOfCycleDocument,
+  runE2eFixture,
+} from "@skmtc/test-support";
 import { zodEntry } from "../src/mod.ts";
+import { toZodValue } from "../src/Zod.ts";
+import { toGenerateContext } from "./helpers/toGenerateContext.ts";
+
+const renderIntersection = (members: OasIntersection["members"]): string =>
+  `${
+    toZodValue({
+      schema: new OasIntersection({ members }),
+      destinationPath: "/test",
+      required: true,
+      context: toGenerateContext(),
+    })
+  }`;
+
+// skmtc-generators#151: core keeps a `oneOf` member that closes a cycle as
+// the parent's empty object and the ref. The open empty object constrains
+// nothing, so it is left out; a closed one stays.
+Deno.test("an open empty object beside a oneOf member that closes a cycle is left out", () => {
+  const { artifacts } = runE2eFixture({
+    id: "@skmtc/gen-zod",
+    entry: zodEntry,
+    document: objectOneOfCycleDocument,
+  });
+
+  assertStringIncludes(
+    artifacts["src/types/field.generated.ts"],
+    "export const field: z.ZodType<Field> = z.lazy(() => z.union([z.object({type: z.literal('string')}), arrayField]));",
+  );
+});
+
+Deno.test("a closed empty object beside a oneOf member that closes a cycle stays", () => {
+  const { artifacts } = runE2eFixture({
+    id: "@skmtc/gen-zod",
+    entry: zodEntry,
+    document: objectOneOfCycleDocument,
+  });
+
+  assertStringIncludes(
+    artifacts["src/types/closedField.generated.ts"],
+    "z.object({}).and(closedArrayField)",
+  );
+});
+
+Deno.test("an intersection with no member left renders z.unknown()", () => {
+  assertEquals(renderIntersection([]), "z.unknown()");
+  assertEquals(renderIntersection([new OasObject({ properties: {} })]), "z.unknown()");
+});
 
 Deno.test("a ref and an object render as an intersection of the two", () => {
   const { artifacts } = runE2eFixture({

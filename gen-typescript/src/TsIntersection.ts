@@ -7,6 +7,8 @@ type TsIntersectionArgs = {
   context: GenerateContextType
   destinationPath: string
   schema: OasIntersection
+  /** The members to render: the router leaves out those that constrain nothing. */
+  members: OasIntersection['members']
   modifiers: Modifiers
   generatorKey: GeneratorKey
   rootRef?: RefParts
@@ -17,10 +19,10 @@ export class TsIntersection extends TsSnippet {
   members: TypeSystemValue[]
   modifiers: Modifiers
 
-  constructor({ context, generatorKey, destinationPath, modifiers, rootRef, schema }: TsIntersectionArgs) {
+  constructor({ context, generatorKey, destinationPath, members, modifiers, rootRef, schema }: TsIntersectionArgs) {
     super({ context, generatorKey, stackTrail: schema.stackTrail.clone() })
 
-    this.members = schema.members.map(member => {
+    this.members = members.map(member => {
       return toTsValue({
         destinationPath,
         schema: member,
@@ -34,9 +36,13 @@ export class TsIntersection extends TsSnippet {
   }
 
   override toString(): string {
-    // Each member is in parentheses: `&` binds tighter than the `|` of a
-    // member that is a union, an enum or nullable.
-    const members = this.members.map(member => `(${member})`).join(' & ')
+    // Each member of two or more is in parentheses: `&` binds tighter than
+    // the `|` of a member that is a union, an enum or nullable. A lone
+    // member is the whole type, and no member at all allows any value.
+    const members =
+      this.members.length > 1
+        ? this.members.map(member => `(${member})`).join(' & ')
+        : `${this.members[0] ?? 'unknown'}`
 
     return applyModifiers(members, this.modifiers)
   }
