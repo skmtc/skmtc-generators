@@ -4,7 +4,7 @@ import { TsRef } from './TsRef.ts'
 import { TsObject } from './TsObject.ts'
 import { TsUnion } from './TsUnion.ts'
 import { TsIntersection } from './TsIntersection.ts'
-import type { Modifiers, OasIntersection, SchemaToValueFn, SchemaType } from '@skmtc/core'
+import type { Modifiers, SchemaToValueFn, SchemaType } from '@skmtc/core'
 import { TsNumber } from './TsNumber.ts'
 import { TsInteger } from './TsInteger.ts'
 import { TsBoolean } from './TsBoolean.ts'
@@ -12,24 +12,6 @@ import { TsVoid } from './TsVoid.ts'
 import { TsUnknown } from './TsUnknown.ts'
 import { toGeneratorOnlyKey } from '@skmtc/core'
 import denoJson from '../deno.json' with { type: 'json' }
-
-/**
- * The members of an intersection that constrain a value. An object with no
- * properties and no `additionalProperties` key constrains nothing: core makes
- * one from a parent's `type: object` beside a `oneOf` whose member closes a
- * `$ref` cycle. Rendered, it is `Record<string, never>`, which turns each
- * property of the other member into `never`. A closed empty object
- * (`additionalProperties: false`) constrains, so it stays.
- */
-export const toMeaningfulMembers = (members: OasIntersection['members']): OasIntersection['members'] =>
-  members.filter(
-    member =>
-      !(
-        member.type === 'object' &&
-        Object.keys(member.properties ?? {}).length === 0 &&
-        member.additionalProperties === undefined
-      )
-  )
 
 /**
  * Maps a parsed schema node to its TypeScript snippet. Fine-grained
@@ -111,7 +93,20 @@ export const toTsValue: SchemaToValueFn = ({
         generatorKey,
         rootRef,
         schema,
-        members: toMeaningfulMembers(schema.members)
+        // An object with no properties and no `additionalProperties` key
+        // constrains nothing: core makes one from a parent's `type: object`
+        // beside a `oneOf` whose member closes a `$ref` cycle. Rendered, it is
+        // `Record<string, never>`, which turns each property of the other
+        // member into `never`, so it is left out. A closed empty object
+        // (`additionalProperties: false`) constrains, so it stays.
+        members: schema.members.filter(
+          member =>
+            !(
+              member.type === 'object' &&
+              Object.keys(member.properties ?? {}).length === 0 &&
+              member.additionalProperties === undefined
+            )
+        )
       })
     case 'number':
       return new TsNumber({ context, modifiers, generatorKey, schema })
