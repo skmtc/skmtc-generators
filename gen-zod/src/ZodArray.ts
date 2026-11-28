@@ -1,5 +1,5 @@
 import { TsSnippet } from "@skmtc/lang-typescript";
-import type { GenerateContextType, GeneratorKey, OasRef, OasSchema, RefParts, TypeSystemValue } from '@skmtc/core'
+import type { GenerateContextType, GeneratorKey, OasRef, OasSchema, TypeSystemValue } from '@skmtc/core'
 import { toZodValue } from "./Zod.ts";
 import { applyModifiers, type ZodModifiers } from "./applyModifiers.ts";
 import { isCyclic, isDeferred } from "./deferred.ts";
@@ -12,7 +12,6 @@ type ZodArrayArgs = {
   schema?: OasSchema | OasRef<"schema">;
   modifiers: ZodModifiers;
   generatorKey: GeneratorKey;
-  rootRef?: RefParts;
 };
 
 export class ZodArray extends TsSnippet {
@@ -25,7 +24,7 @@ export class ZodArray extends TsSnippet {
   cyclic: boolean;
 
   constructor(
-    { context, generatorKey, destinationPath, items, modifiers, rootRef, schema }:
+    { context, generatorKey, destinationPath, items, modifiers, schema }:
       ZodArrayArgs,
   ) {
     super({ context, generatorKey, stackTrail: schema?.stackTrail.clone() });
@@ -37,7 +36,6 @@ export class ZodArray extends TsSnippet {
       schema: items,
       required: true,
       context,
-      rootRef,
     });
 
     this.deferred = isDeferred(this.items);

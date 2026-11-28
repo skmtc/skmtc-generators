@@ -1,5 +1,5 @@
 import type { OasIntersection } from '@skmtc/core'
-import type { GenerateContextType, Modifiers, GeneratorKey, RefParts } from '@skmtc/core'
+import type { GenerateContextType, Modifiers, GeneratorKey } from '@skmtc/core'
 import { TsSnippet } from '@skmtc/lang-typescript'
 import { applyValueModifiers } from './applyModifiers.ts'
 import { type ArktypeValue, toArktypeValue } from './Arktype.ts'
@@ -10,7 +10,6 @@ type ArktypeIntersectionArgs = {
   modifiers: Modifiers
   destinationPath: string
   generatorKey: GeneratorKey
-  rootRef?: RefParts
 }
 
 export class ArktypeIntersection extends TsSnippet {
@@ -22,7 +21,7 @@ export class ArktypeIntersection extends TsSnippet {
   members: ArktypeValue[]
   modifiers: Modifiers
 
-  constructor({ context, modifiers, destinationPath, generatorKey, rootRef, schema }: ArktypeIntersectionArgs) {
+  constructor({ context, modifiers, destinationPath, generatorKey, schema }: ArktypeIntersectionArgs) {
     super({ context, generatorKey, stackTrail: schema.stackTrail.clone() })
 
     this.modifiers = modifiers
@@ -32,8 +31,7 @@ export class ArktypeIntersection extends TsSnippet {
         schema: member,
         required: true,
         destinationPath,
-        context,
-        rootRef
+        context
       })
     )
   }

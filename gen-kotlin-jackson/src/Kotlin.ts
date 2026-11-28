@@ -27,7 +27,7 @@ import {
 } from './KotlinScalars.ts'
 
 export const toKotlinValue: SchemaToValueFn = (
-  { schema: schemaNode, destinationPath, required, context, rootRef },
+  { schema: schemaNode, destinationPath, required, context },
 ) => {
   // `schemaNode` arrives typed as the generic `Schema` parameter, and
   // TypeScript does not narrow a type parameter by discriminant. Widening
@@ -54,7 +54,6 @@ export const toKotlinValue: SchemaToValueFn = (
         destinationPath,
         ref: schema,
         modifiers,
-        rootRef,
         schema,
       })
     case 'array':
@@ -64,7 +63,6 @@ export const toKotlinValue: SchemaToValueFn = (
         modifiers,
         items: schema.items,
         generatorKey,
-        rootRef,
         schema,
       })
     case 'object':
@@ -74,7 +72,6 @@ export const toKotlinValue: SchemaToValueFn = (
         objectSchema: schema,
         modifiers,
         generatorKey,
-        rootRef,
       })
     case 'union':
       return new KotlinUnion({
@@ -84,7 +81,6 @@ export const toKotlinValue: SchemaToValueFn = (
         discriminator: schema.discriminator,
         modifiers,
         generatorKey,
-        rootRef,
         schema,
       })
     // Kotlin has no intersection type. To write one data class, a

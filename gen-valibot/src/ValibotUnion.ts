@@ -1,5 +1,5 @@
 import { toStringLiteral, TsSnippet } from '@skmtc/lang-typescript'
-import type { GenerateContextType, GeneratorKey, RefParts, TypeSystemValue, Modifiers, OasRef, OasSchema, OasDiscriminator } from '@skmtc/core'
+import type { GenerateContextType, GeneratorKey, TypeSystemValue, Modifiers, OasRef, OasSchema, OasDiscriminator } from '@skmtc/core'
 import { toValibotValue } from './Valibot.ts'
 import { applyModifiers } from './applyModifiers.ts'
 import { isVariantOption } from './variant.ts'
@@ -13,7 +13,6 @@ type ValibotUnionArgs = {
   discriminator?: OasDiscriminator
   modifiers: Modifiers
   generatorKey: GeneratorKey
-  rootRef?: RefParts
 }
 
 export class ValibotUnion extends TsSnippet {
@@ -30,13 +29,12 @@ export class ValibotUnion extends TsSnippet {
     members,
     discriminator,
     modifiers,
-    rootRef,
     schema
   }: ValibotUnionArgs) {
     super({ context, generatorKey, stackTrail: schema?.stackTrail.clone() })
 
     this.members = members.map(member => {
-      return toValibotValue({ destinationPath, schema: member, required: true, context, rootRef })
+      return toValibotValue({ destinationPath, schema: member, required: true, context })
     })
 
     // See `isVariantOption`. With a member valibot does not type as an

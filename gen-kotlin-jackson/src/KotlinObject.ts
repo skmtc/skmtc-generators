@@ -18,7 +18,6 @@ import type {
   OasObject,
   OasRef,
   OasSchema,
-  RefParts,
   TypeSystemValue,
 } from '@skmtc/core'
 import { toKotlinValue } from './Kotlin.ts'
@@ -32,7 +31,6 @@ type KotlinObjectArgs = {
   objectSchema: OasObject
   modifiers: Modifiers
   generatorKey: GeneratorKey
-  rootRef?: RefParts
 }
 
 /**
@@ -65,7 +63,6 @@ export class KotlinObject extends KtSnippet {
       destinationPath,
       objectSchema,
       modifiers,
-      rootRef,
     }: KotlinObjectArgs,
   ) {
     super({
@@ -122,7 +119,6 @@ export class KotlinObject extends KtSnippet {
           generatorKey,
           destinationPath: exportPath,
           schema: additionalProperties,
-          rootRef,
           // The MIXED form's record renders as the synthesized class's
           // catch-all parameter, where Jackson's any-setter writes
           // entries — so the map must be mutable.
@@ -139,7 +135,6 @@ export class KotlinObject extends KtSnippet {
         // about the object itself. Each property's optionality renders at
         // that property's own leaf via its modifiers.
         required,
-        rootRef,
         additionalPropertiesRecord: this.recordProperties ?? undefined,
       })
 
@@ -167,7 +162,6 @@ export class KotlinObject extends KtSnippet {
           generatorKey,
           destinationPath,
           schema: additionalProperties,
-          rootRef,
         })
         : null
 
@@ -202,7 +196,6 @@ type KotlinObjectPropertiesArgs = {
   properties: Record<string, OasSchema | OasRef<'schema'> | CustomValue>
   required: OasObject['required']
   generatorKey: GeneratorKey
-  rootRef?: RefParts
   /**
    * The object's `additionalProperties` channel, when it coexists with
    * declared properties — renders as a `@JsonAnySetter`/`@JsonAnyGetter`
@@ -252,7 +245,6 @@ export class KotlinObjectProperties extends KtSnippet {
       destinationPath,
       properties,
       required = [],
-      rootRef,
       additionalPropertiesRecord,
       supertypes = [],
       omittedProperties,
@@ -279,7 +271,6 @@ export class KotlinObjectProperties extends KtSnippet {
           schema: property,
           required: required.includes(key),
           context,
-          rootRef,
         }),
       ]),
     )
@@ -388,7 +379,6 @@ type KotlinRecordArgs = {
   destinationPath: string
   schema: true | OasSchema | OasRef<'schema'>
   generatorKey: GeneratorKey
-  rootRef?: RefParts
   /**
    * Render `MutableMap` instead of `Map` — set when this record is a
    * synthesized class's catch-all parameter, which Jackson's any-setter
@@ -402,7 +392,7 @@ export class KotlinRecord extends KtSnippet {
   mutable: boolean
 
   constructor(
-    { context, generatorKey, destinationPath, schema, rootRef, mutable = false }:
+    { context, generatorKey, destinationPath, schema, mutable = false }:
       KotlinRecordArgs,
   ) {
     super({ context, generatorKey })
@@ -418,7 +408,6 @@ export class KotlinRecord extends KtSnippet {
         schema,
         required: true,
         context,
-        rootRef,
       })
   }
 

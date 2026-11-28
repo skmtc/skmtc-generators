@@ -9,13 +9,12 @@ type ConstructorArgs = {
   destinationPath: string
   ref: RefParts
   settings: ContentSettings<EnrichmentSchema>
-  rootRef?: RefParts
 }
 
 export class ArktypeProjection extends ArktypeBase {
   value: ArktypeValue
 
-  constructor({ context, ref, settings, destinationPath, rootRef }: ConstructorArgs) {
+  constructor({ context, ref, settings, destinationPath }: ConstructorArgs) {
     super({ context, ref, settings })
 
     const schema = context.resolveSchemaRefOnce(ref)
@@ -24,8 +23,7 @@ export class ArktypeProjection extends ArktypeBase {
       schema,
       required: true,
       destinationPath,
-      context,
-      rootRef
+      context
     })
 
     // The `type(…)` call is what turns a definition into a Type, so it belongs

@@ -11,7 +11,6 @@ type ConstructorArgs = {
   destinationPath: string;
   ref: RefParts;
   settings: ContentSettings<EnrichmentSchema>;
-  rootRef?: RefParts;
 };
 
 export class ZodProjection extends ZodBase {
@@ -19,7 +18,7 @@ export class ZodProjection extends ZodBase {
   /** Renders `z.lazy(() => …)`: the value holds a reference inside a cycle that no getter defers. */
   lazy: boolean;
   constructor(
-    { context, ref, settings, destinationPath, rootRef }: ConstructorArgs,
+    { context, ref, settings, destinationPath }: ConstructorArgs,
   ) {
     super({ context, ref, settings });
 
@@ -30,7 +29,6 @@ export class ZodProjection extends ZodBase {
       required: true,
       destinationPath,
       context,
-      rootRef,
     });
 
     // A reference inside a cycle is deferred by the nearest object property,

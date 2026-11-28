@@ -1,6 +1,6 @@
 import { SnippetBase, isEmpty } from '@skmtc/core'
 import { TsSnippet, handleKey } from '@skmtc/lang-typescript'
-import type { GenerateContextType, OasRef, GeneratorKey, OasSchema, OasObject, CustomValue, RefParts, TypeSystemObjectProperties, TypeSystemRecord, TypeSystemValue, Modifiers } from '@skmtc/core'
+import type { GenerateContextType, OasRef, GeneratorKey, OasSchema, OasObject, CustomValue, TypeSystemObjectProperties, TypeSystemRecord, TypeSystemValue, Modifiers } from '@skmtc/core'
 import { applyModifiers } from './applyModifiers.ts'
 import { toTsValue } from './Ts.ts'
 import { TsUnknown } from './TsUnknown.ts'
@@ -11,7 +11,6 @@ type TsObjectProps = {
   value: OasObject
   modifiers: Modifiers
   generatorKey: GeneratorKey
-  rootRef?: RefParts
 }
 
 export class TsObject extends TsSnippet {
@@ -25,8 +24,7 @@ export class TsObject extends TsSnippet {
     generatorKey,
     destinationPath,
     value,
-    modifiers,
-    rootRef
+    modifiers
   }: TsObjectProps) {
     super({ context, generatorKey, stackTrail: value.stackTrail.clone() })
 
@@ -37,7 +35,7 @@ export class TsObject extends TsSnippet {
     const hasProperties = properties && !isEmpty(properties)
 
     const propertyValues = hasProperties
-      ? toPropertyValues({ context, destinationPath, properties, required, rootRef })
+      ? toPropertyValues({ context, destinationPath, properties, required })
       : {}
 
     // The record builds the object's one index signature, which takes in
@@ -48,8 +46,7 @@ export class TsObject extends TsSnippet {
           generatorKey,
           destinationPath,
           schema: additionalProperties,
-          propertyValues: Object.values(propertyValues),
-          rootRef
+          propertyValues: Object.values(propertyValues)
         })
       : null
 
@@ -83,7 +80,6 @@ type ToPropertyValuesArgs = {
   destinationPath: string
   properties: Record<string, OasSchema | OasRef<'schema'> | CustomValue>
   required: OasObject['required']
-  rootRef?: RefParts
 }
 
 /** Each property's value, keyed by its rendered key. */
@@ -91,8 +87,7 @@ const toPropertyValues = ({
   context,
   destinationPath,
   properties,
-  required = [],
-  rootRef
+  required = []
 }: ToPropertyValuesArgs): Record<string, TypeSystemValue> =>
   Object.fromEntries(
     Object.entries(properties).map(([key, property]) => {
@@ -100,8 +95,7 @@ const toPropertyValues = ({
         destinationPath,
         schema: property,
         required: required.includes(key),
-        context,
-        rootRef
+        context
       })
 
       return [handleKey(key), value]
@@ -149,20 +143,19 @@ type TsRecordArgs = {
   generatorKey: GeneratorKey
   /** The values of the named properties beside the record; none for a record alone. */
   propertyValues: TypeSystemValue[]
-  rootRef?: RefParts
 }
 
 class TsRecord extends SnippetBase {
   value: TypeSystemValue | 'true'
   indexSignature: TsIndexSignature
 
-  constructor({ context, generatorKey, destinationPath, schema, propertyValues, rootRef }: TsRecordArgs) {
+  constructor({ context, generatorKey, destinationPath, schema, propertyValues }: TsRecordArgs) {
     super({ context, generatorKey })
 
     this.value =
       schema === true || isEmpty(schema)
         ? new TsUnknown({ context, generatorKey })
-        : toTsValue({ destinationPath, schema, required: true, context, rootRef })
+        : toTsValue({ destinationPath, schema, required: true, context })
 
     this.indexSignature = new TsIndexSignature({
       context,

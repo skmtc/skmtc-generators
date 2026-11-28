@@ -17,8 +17,7 @@ export const toValibotValue: SchemaToValueFn = ({
   schema: schemaNode,
   destinationPath,
   required,
-  context,
-  rootRef
+  context
 }) => {
   // `schemaNode` arrives typed as the generic `Schema` parameter, and TypeScript
   // does not narrow a type parameter by discriminant. Widening it to the
@@ -43,7 +42,6 @@ export const toValibotValue: SchemaToValueFn = ({
         ref: schema,
         modifiers,
         generatorKey,
-        rootRef,
         schema
       })
     case 'array':
@@ -53,7 +51,6 @@ export const toValibotValue: SchemaToValueFn = ({
         modifiers,
         items: schema.items,
         generatorKey,
-        rootRef,
         schema
       })
     case 'object':
@@ -62,8 +59,7 @@ export const toValibotValue: SchemaToValueFn = ({
         destinationPath,
         objectSchema: schema,
         modifiers,
-        generatorKey,
-        rootRef
+        generatorKey
       })
     case 'union':
       return new ValibotUnion({
@@ -73,11 +69,10 @@ export const toValibotValue: SchemaToValueFn = ({
         discriminator: schema.discriminator,
         modifiers,
         generatorKey,
-        rootRef,
         schema
       })
     case 'intersection':
-      return new ValibotIntersection({ context, destinationPath, modifiers, generatorKey, rootRef, schema })
+      return new ValibotIntersection({ context, destinationPath, modifiers, generatorKey, schema })
     case 'number':
       return new ValibotNumber({ context, modifiers, destinationPath, generatorKey, schema })
     case 'integer':

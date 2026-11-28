@@ -3,7 +3,6 @@ import type {
   GenerateContextType,
   GeneratorKey,
   OasUnion,
-  RefParts,
   StackTrail,
   TypeSystemValue,
 } from '@skmtc/core'
@@ -18,13 +17,11 @@ type KotlinSealedInterfaceArgs = {
   destinationPath: string
   unionSchema: OasUnion
   generatorKey: GeneratorKey
-  rootRef?: RefParts
 }
 
 type EnsureSealedParentArgs = {
   generatorKey: GeneratorKey
   unionSchema: OasUnion
-  rootRef?: RefParts
 }
 
 /**
@@ -47,7 +44,7 @@ type EnsureSealedParentArgs = {
  */
 export const ensureSealedParent = (
   context: GenerateContextType,
-  { generatorKey, unionSchema, rootRef }: EnsureSealedParentArgs,
+  { generatorKey, unionSchema }: EnsureSealedParentArgs,
 ): string => {
   const name = toSynthesizedName(context, unionSchema.stackTrail)
 
@@ -66,7 +63,6 @@ export const ensureSealedParent = (
         generatorKey,
         destinationPath: sealedPath,
         unionSchema,
-        rootRef,
       }),
       destinationPath: sealedPath,
     })
@@ -130,7 +126,7 @@ export class KotlinSealedInterface extends KtSnippet {
   subTypes: KotlinSubType[]
 
   constructor(
-    { context, generatorKey, destinationPath, unionSchema, rootRef }:
+    { context, generatorKey, destinationPath, unionSchema }:
       KotlinSealedInterfaceArgs,
   ) {
     super({ context, generatorKey, stackTrail: unionSchema.stackTrail.clone() })
@@ -157,7 +153,6 @@ export class KotlinSealedInterface extends KtSnippet {
         required: true,
         destinationPath,
         context,
-        rootRef,
       })
 
       return new KotlinSubType({

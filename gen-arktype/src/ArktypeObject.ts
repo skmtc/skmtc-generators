@@ -3,7 +3,6 @@ import {
   type Modifiers,
   type GeneratorKey,
   type OasObject,
-  type RefParts,
   type TypeSystemRecord,
   type TypeSystemObjectProperties,
   isEmpty
@@ -19,7 +18,6 @@ type ArktypeObjectArgs = {
   modifiers: Modifiers
   destinationPath: string
   generatorKey: GeneratorKey
-  rootRef?: RefParts
 }
 
 export class ArktypeObject extends TsSnippet {
@@ -47,8 +45,7 @@ export class ArktypeObject extends TsSnippet {
     objectSchema,
     modifiers,
     destinationPath,
-    generatorKey,
-    rootRef
+    generatorKey
   }: ArktypeObjectArgs) {
     super({ context, generatorKey, stackTrail: objectSchema.stackTrail.clone() })
 
@@ -60,7 +57,7 @@ export class ArktypeObject extends TsSnippet {
         key,
         // Always `required: true` — a property's optionality is carried by the
         // `key?` spelling below, not by the value.
-        toArktypeValue({ schema: property, required: true, destinationPath, context, rootRef })
+        toArktypeValue({ schema: property, required: true, destinationPath, context })
       ])
     )
 
@@ -94,8 +91,7 @@ export class ArktypeObject extends TsSnippet {
             schema: additionalProperties,
             required: true,
             destinationPath,
-            context,
-            rootRef
+            context
           })
       : undefined
 

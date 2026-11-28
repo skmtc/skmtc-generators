@@ -17,8 +17,7 @@ function jsonSchemaToTs(
     schema: parsedSchema,
     destinationPath: '/test',
     required,
-    context: toGenerateContext(),
-    rootRef: undefined
+    context: toGenerateContext()
   })
 
   return result.toString()
@@ -525,8 +524,7 @@ Deno.test('types.md line 328 - Reference type', () => {
     schema: parsedSchema,
     destinationPath: '/test',
     required: true,
-    context: toGenerateContext({ oasDocument }),
-    rootRef: undefined
+    context: toGenerateContext({ oasDocument })
   })
 
   assertEquals(result.constructor.name, 'TsRef')

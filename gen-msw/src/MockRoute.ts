@@ -63,8 +63,7 @@ export class MockRoute extends MswBase {
           context,
           schema,
           destinationPath: settings.exportPath,
-          required: true,
-          rootRef: schema.isRef() ? schema : undefined
+          required: true
         })
       }) ?? new TsNever({ context, generatorKey: this.generatorKey })
 
@@ -86,8 +85,7 @@ export class MockRoute extends MswBase {
           context,
           schema,
           destinationPath: settings.exportPath,
-          required: true,
-          rootRef: schema.isRef() ? schema : undefined
+          required: true
         })
       : new TsNever({ context, generatorKey: this.generatorKey })
 

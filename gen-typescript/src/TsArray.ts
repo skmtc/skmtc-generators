@@ -1,5 +1,5 @@
 import { TsSnippet } from '@skmtc/lang-typescript'
-import type { TypeSystemValue, OasSchema, Modifiers, GeneratorKey, GenerateContextType, OasRef, RefParts } from '@skmtc/core'
+import type { TypeSystemValue, OasSchema, Modifiers, GeneratorKey, GenerateContextType, OasRef } from '@skmtc/core'
 import { toTsValue } from './Ts.ts'
 import { applyModifiers } from './applyModifiers.ts'
 
@@ -11,7 +11,6 @@ type TsArrayArgs = {
   schema?: OasSchema | OasRef<'schema'>
   modifiers: Modifiers
   generatorKey: GeneratorKey
-  rootRef?: RefParts
 }
 
 export class TsArray extends TsSnippet {
@@ -20,13 +19,13 @@ export class TsArray extends TsSnippet {
   modifiers: Modifiers
 
   constructor(
-    { context, generatorKey, destinationPath, items, modifiers, rootRef, schema }: TsArrayArgs
+    { context, generatorKey, destinationPath, items, modifiers, schema }: TsArrayArgs
   ) {
     super({ context, generatorKey, stackTrail: schema?.stackTrail.clone() })
 
     this.modifiers = modifiers
 
-    this.items = toTsValue({ destinationPath, schema: items, required: true, context, rootRef })
+    this.items = toTsValue({ destinationPath, schema: items, required: true, context })
   }
 
   override toString(): string {

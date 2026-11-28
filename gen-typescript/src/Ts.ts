@@ -26,8 +26,7 @@ export const toTsValue: SchemaToValueFn = ({
   schema: schemaNode,
   destinationPath,
   required,
-  context,
-  rootRef
+  context
 }) => {
   // `schemaNode` arrives typed as the generic `Schema` parameter, and TypeScript
   // does not narrow a type parameter by discriminant. Widening it to the
@@ -52,7 +51,6 @@ export const toTsValue: SchemaToValueFn = ({
         destinationPath,
         ref: schema,
         modifiers,
-        rootRef,
         schema
       })
     case 'array':
@@ -62,7 +60,6 @@ export const toTsValue: SchemaToValueFn = ({
         modifiers,
         items: schema.items,
         generatorKey,
-        rootRef,
         schema
       })
     case 'object':
@@ -71,8 +68,7 @@ export const toTsValue: SchemaToValueFn = ({
         destinationPath,
         value: schema,
         modifiers,
-        generatorKey,
-        rootRef
+        generatorKey
       })
     case 'union':
       return new TsUnion({
@@ -82,7 +78,6 @@ export const toTsValue: SchemaToValueFn = ({
         discriminator: schema.discriminator,
         modifiers,
         generatorKey,
-        rootRef,
         schema
       })
     case 'intersection':
@@ -91,7 +86,6 @@ export const toTsValue: SchemaToValueFn = ({
         destinationPath,
         modifiers,
         generatorKey,
-        rootRef,
         schema,
         // An object with no properties and no `additionalProperties` key
         // constrains nothing: core makes one from a parent's `type: object`

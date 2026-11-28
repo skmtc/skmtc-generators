@@ -12,7 +12,6 @@ import type {
   OasObject,
   OasRef,
   OasSchema,
-  RefParts,
   TypeSystemValue,
 } from '@skmtc/core'
 import { toEffectValueImpl } from './Effect.ts'
@@ -30,7 +29,6 @@ type EffectObjectArgs = {
   objectSchema: OasObject
   modifiers: EffectModifiers
   generatorKey: GeneratorKey
-  rootRef?: RefParts
   coerce?: boolean
 }
 
@@ -47,7 +45,6 @@ export class EffectObject extends TsSnippet {
       destinationPath,
       objectSchema,
       modifiers,
-      rootRef,
       coerce = false,
     }: EffectObjectArgs,
   ) {
@@ -70,7 +67,6 @@ export class EffectObject extends TsSnippet {
         destinationPath,
         schema: additionalProperties,
         namedKeys: hasProperties ? Object.keys(properties) : [],
-        rootRef,
         coerce,
       })
       : null
@@ -85,7 +81,6 @@ export class EffectObject extends TsSnippet {
         // about the object itself. Each property's optionality renders
         // at that property's own leaf via its modifiers.
         required,
-        rootRef,
         coerce,
       })
       : null
@@ -128,7 +123,6 @@ type EffectObjectPropertiesArgs = {
   properties: Record<string, OasSchema | OasRef<'schema'> | CustomValue>
   required: OasObject['required']
   generatorKey: GeneratorKey
-  rootRef?: RefParts
   coerce?: boolean
 }
 
@@ -145,7 +139,6 @@ class EffectObjectProperties extends TsSnippet {
       destinationPath,
       properties,
       required = [],
-      rootRef,
       coerce = false,
     }: EffectObjectPropertiesArgs,
   ) {
@@ -163,7 +156,6 @@ class EffectObjectProperties extends TsSnippet {
           schema: property,
           required: required.includes(key),
           context,
-          rootRef,
           coerce,
         }),
       ]),
@@ -197,7 +189,6 @@ type EffectRecordArgs = {
   generatorKey: GeneratorKey
   /** The keys `properties` names beside the record, which the record must not check. */
   namedKeys: string[]
-  rootRef?: RefParts
   coerce?: boolean
 }
 
@@ -218,7 +209,6 @@ class EffectRecord extends TsSnippet {
       destinationPath,
       schema,
       namedKeys,
-      rootRef,
       coerce = false,
     }: EffectRecordArgs,
   ) {
@@ -241,7 +231,6 @@ class EffectRecord extends TsSnippet {
         schema,
         required: true,
         context,
-        rootRef,
         coerce,
       })
   }

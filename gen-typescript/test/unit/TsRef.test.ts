@@ -110,7 +110,6 @@ Deno.test('TsRef - recursive reference', () => {
     ),
 
     required: true,
-    rootRef: toSchemaComponentRef('Category' as RefName),
     context,
     destinationPath: '@/types/category.generated.ts'
   })

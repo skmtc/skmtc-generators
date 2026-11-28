@@ -1,5 +1,5 @@
 import { TsSnippet } from '@skmtc/lang-typescript'
-import type { GenerateContextType, GeneratorKey, OasIntersection, Modifiers, TypeSystemValue, RefParts } from '@skmtc/core'
+import type { GenerateContextType, GeneratorKey, OasIntersection, Modifiers, TypeSystemValue } from '@skmtc/core'
 import { toTsValue } from './Ts.ts'
 import { applyModifiers } from './applyModifiers.ts'
 
@@ -11,7 +11,6 @@ type TsIntersectionArgs = {
   members?: OasIntersection['members']
   modifiers: Modifiers
   generatorKey: GeneratorKey
-  rootRef?: RefParts
 }
 
 export class TsIntersection extends TsSnippet {
@@ -19,7 +18,7 @@ export class TsIntersection extends TsSnippet {
   members: TypeSystemValue[]
   modifiers: Modifiers
 
-  constructor({ context, generatorKey, destinationPath, members, modifiers, rootRef, schema }: TsIntersectionArgs) {
+  constructor({ context, generatorKey, destinationPath, members, modifiers, schema }: TsIntersectionArgs) {
     super({ context, generatorKey, stackTrail: schema.stackTrail.clone() })
 
     this.members = (members ?? schema.members).map(member => {
@@ -27,8 +26,7 @@ export class TsIntersection extends TsSnippet {
         destinationPath,
         schema: member,
         required: true,
-        context,
-        rootRef
+        context
       })
     })
 

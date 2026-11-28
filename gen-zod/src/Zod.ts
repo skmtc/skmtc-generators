@@ -56,7 +56,6 @@ export const toZodValue: SchemaToValueFn = ({
   destinationPath,
   required,
   context,
-  rootRef,
 }) => {
   // `schemaNode` arrives typed as the generic `Schema` parameter, and TypeScript
   // does not narrow a type parameter by discriminant. Widening it to the
@@ -82,7 +81,6 @@ export const toZodValue: SchemaToValueFn = ({
         destinationPath,
         ref: schema,
         modifiers,
-        rootRef,
         schema,
       });
     case "array":
@@ -92,7 +90,6 @@ export const toZodValue: SchemaToValueFn = ({
         modifiers,
         items: schema.items,
         generatorKey,
-        rootRef,
         schema,
       });
     case "object":
@@ -102,7 +99,6 @@ export const toZodValue: SchemaToValueFn = ({
         objectSchema: schema,
         modifiers,
         generatorKey,
-        rootRef,
       });
     case "union":
       return new ZodUnion({
@@ -110,7 +106,6 @@ export const toZodValue: SchemaToValueFn = ({
         destinationPath,
         modifiers,
         generatorKey,
-        rootRef,
         schema,
       });
     case "intersection":
@@ -119,7 +114,6 @@ export const toZodValue: SchemaToValueFn = ({
         destinationPath,
         modifiers,
         generatorKey,
-        rootRef,
         schema,
         // An object with no properties and no `additionalProperties` key
         // constrains nothing: core makes one from a parent's `type: object`

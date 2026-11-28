@@ -10,7 +10,6 @@ type TsRefConstructorProps = {
   destinationPath: string
   modifiers: Modifiers
   ref: RefParts
-  rootRef?: RefParts
   /** The originating ref schema node — for fine-grained attribution. */
   schema?: OasSchema | OasRef<'schema'>
 }
@@ -21,7 +20,7 @@ export class TsRef extends TsSnippet {
   modifiers: Modifiers
   terminal: boolean
   constructor(
-    { context, ref, modifiers, destinationPath, rootRef, schema }: TsRefConstructorProps
+    { context, ref, modifiers, destinationPath, schema }: TsRefConstructorProps
   ) {
     super({
       context,
@@ -41,7 +40,6 @@ export class TsRef extends TsSnippet {
       ref,
       destinationPath,
       projection: TsProjection,
-      rootRef,
       variant: 'main'
     })
 
