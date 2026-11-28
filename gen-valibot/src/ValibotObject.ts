@@ -1,6 +1,6 @@
 import { SnippetBase, isEmpty } from '@skmtc/core'
 import { handleKey, TsSnippet } from '@skmtc/lang-typescript'
-import type { GenerateContextType, GeneratorKey, OasRef, OasSchema, OasObject, CustomValue, RefParts, TypeSystemObjectProperties, TypeSystemRecord, TypeSystemValue, Modifiers } from '@skmtc/core'
+import type { GenerateContextType, GeneratorKey, OasRef, OasSchema, OasObject, CustomValue, TypeSystemObjectProperties, TypeSystemRecord, TypeSystemValue, Modifiers } from '@skmtc/core'
 import { toValibotValue } from './Valibot.ts'
 import { applyModifiers } from './applyModifiers.ts'
 import { ValibotUnknown } from './ValibotUnknown.ts'
@@ -11,7 +11,6 @@ type ValibotObjectProps = {
   objectSchema: OasObject
   modifiers: Modifiers
   generatorKey: GeneratorKey
-  rootRef?: RefParts
 }
 
 export class ValibotObject extends TsSnippet {
@@ -33,8 +32,7 @@ export class ValibotObject extends TsSnippet {
     generatorKey,
     destinationPath,
     objectSchema,
-    modifiers,
-    rootRef
+    modifiers
   }: ValibotObjectProps) {
     super({ context, generatorKey, stackTrail: objectSchema.stackTrail.clone() })
 
@@ -49,8 +47,7 @@ export class ValibotObject extends TsSnippet {
           context,
           generatorKey,
           destinationPath,
-          schema: additionalProperties,
-          rootRef
+          schema: additionalProperties
         })
       : null
 
@@ -63,8 +60,7 @@ export class ValibotObject extends TsSnippet {
           properties,
           required,
           modifiers,
-          rest: this.recordProperties?.value,
-          rootRef
+          rest: this.recordProperties?.value
         })
       : null
 
@@ -95,7 +91,6 @@ type ValibotObjectPropertiesArgs = {
   generatorKey: GeneratorKey
   /** The value of `additionalProperties`, which the keys not named here must match. */
   rest: TypeSystemValue | 'true' | undefined
-  rootRef?: RefParts
 }
 
 class ValibotObjectProperties extends SnippetBase {
@@ -109,8 +104,7 @@ class ValibotObjectProperties extends SnippetBase {
     destinationPath,
     properties,
     required = [],
-    rest,
-    rootRef
+    rest
   }: ValibotObjectPropertiesArgs) {
     super({ context, generatorKey })
 
@@ -123,8 +117,7 @@ class ValibotObjectProperties extends SnippetBase {
           destinationPath,
           schema: property,
           required: required?.includes(key),
-          context,
-          rootRef
+          context
         })
 
         return [key, value]
@@ -151,19 +144,18 @@ type ValibotRecordArgs = {
   destinationPath: string
   schema: true | OasSchema | OasRef<'schema'>
   generatorKey: GeneratorKey
-  rootRef?: RefParts
 }
 
 class ValibotRecord extends SnippetBase {
   value: TypeSystemValue | 'true'
 
-  constructor({ context, generatorKey, destinationPath, schema, rootRef }: ValibotRecordArgs) {
+  constructor({ context, generatorKey, destinationPath, schema }: ValibotRecordArgs) {
     super({ context, generatorKey })
 
     this.value =
       schema === true || isEmpty(schema)
         ? new ValibotUnknown({ context, destinationPath, generatorKey })
-        : toValibotValue({ destinationPath, schema, required: true, context, rootRef })
+        : toValibotValue({ destinationPath, schema, required: true, context })
   }
 
   override toString(): string {

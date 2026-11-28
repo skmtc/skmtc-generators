@@ -81,7 +81,6 @@ export const toEffectValueImpl = (
     destinationPath,
     required,
     context,
-    rootRef,
     coerce = false,
   }: ToEffectValueImplArgs,
 ) => {
@@ -110,7 +109,6 @@ export const toEffectValueImpl = (
         destinationPath,
         ref: schema,
         modifiers,
-        rootRef,
         schema,
         coerce,
       })
@@ -121,7 +119,6 @@ export const toEffectValueImpl = (
         arraySchema: schema,
         modifiers,
         generatorKey,
-        rootRef,
         coerce,
       })
     case 'object':
@@ -131,7 +128,6 @@ export const toEffectValueImpl = (
         objectSchema: schema,
         modifiers,
         generatorKey,
-        rootRef,
         coerce,
       })
     case 'union':
@@ -142,7 +138,6 @@ export const toEffectValueImpl = (
         discriminator: schema.discriminator,
         modifiers,
         generatorKey,
-        rootRef,
         coerce,
         schema,
       })

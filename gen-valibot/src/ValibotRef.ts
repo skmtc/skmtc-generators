@@ -10,7 +10,6 @@ type ValibotRefArgs = {
   ref: RefParts
   modifiers: Modifiers
   generatorKey: GeneratorKey
-  rootRef?: RefParts
   /** The originating ref schema node — for fine-grained attribution. */
   schema?: OasSchema | OasRef<'schema'>
 }
@@ -21,7 +20,6 @@ export class ValibotRef extends TsSnippet {
   ref: RefParts
   modifiers: Modifiers
   destinationPath: string
-  rootRef?: RefParts
   terminal: boolean
   /** The model's `variantKeys` (see `isVariantOption`); none for a `v.lazy` or nullable reference. */
   variantKeys: string[]
@@ -32,7 +30,6 @@ export class ValibotRef extends TsSnippet {
     destinationPath,
     modifiers,
     generatorKey,
-    rootRef,
     schema
   }: ValibotRefArgs) {
     super({ context, generatorKey, stackTrail: schema?.stackTrail.clone() })
@@ -40,7 +37,6 @@ export class ValibotRef extends TsSnippet {
     this.ref = ref
     this.modifiers = modifiers
     this.destinationPath = destinationPath
-    this.rootRef = rootRef
 
     this.register({ imports: { valibot: [{ '*': 'v' }] }, destinationPath })
 
@@ -53,7 +49,6 @@ export class ValibotRef extends TsSnippet {
       context,
       ref,
       destinationPath,
-      rootRef,
       projection: ValibotProjection,
       variant: 'main'
     })

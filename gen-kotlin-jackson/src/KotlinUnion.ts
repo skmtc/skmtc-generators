@@ -6,7 +6,6 @@ import type {
   OasDiscriminator,
   OasRef,
   OasSchema,
-  RefParts,
   TypeSystemValue,
 } from '@skmtc/core'
 import { toKotlinValue } from './Kotlin.ts'
@@ -25,7 +24,6 @@ type KotlinUnionArgs = {
   discriminator?: OasDiscriminator
   modifiers: Modifiers
   generatorKey: GeneratorKey
-  rootRef?: RefParts
 }
 
 export class KotlinUnion extends KtSnippet {
@@ -44,7 +42,6 @@ export class KotlinUnion extends KtSnippet {
       members,
       discriminator,
       modifiers,
-      rootRef,
       schema,
     }: KotlinUnionArgs,
   ) {
@@ -63,7 +60,7 @@ export class KotlinUnion extends KtSnippet {
     const reference = schema !== undefined && !schema.isRef() &&
         isSealedUnion(context, schema) &&
         toSynthesizedNameOrNull(context, schema.stackTrail) !== null
-      ? ensureSealedParent(context, { generatorKey, unionSchema: schema, rootRef })
+      ? ensureSealedParent(context, { generatorKey, unionSchema: schema })
       : null
 
     // The TypeSystem contract walk. When the union qualified,
@@ -78,7 +75,6 @@ export class KotlinUnion extends KtSnippet {
         schema: member,
         required: true,
         context,
-        rootRef,
       })
     )
 

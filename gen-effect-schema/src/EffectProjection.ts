@@ -15,7 +15,6 @@ type ConstructorArgs = {
   destinationPath: string
   ref: RefParts
   settings: ContentSettings<EnrichmentSchema>
-  rootRef?: RefParts
   /** The caller's options — the coerced reading, or none for JSON. */
   options?: EffectSchemaOptions
 }
@@ -24,7 +23,7 @@ export class EffectProjection extends EffectBase {
   value: TypeSystemValue
 
   constructor(
-    { context, ref, settings, destinationPath, rootRef, options }:
+    { context, ref, settings, destinationPath, options }:
       ConstructorArgs,
   ) {
     super({ context, ref, settings, options })
@@ -40,7 +39,6 @@ export class EffectProjection extends EffectBase {
       required: true,
       destinationPath,
       context,
-      rootRef,
       coerce,
     })
 

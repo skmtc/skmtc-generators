@@ -1,6 +1,6 @@
 import { isEmpty } from '@skmtc/core'
 import { handleKey, TsSnippet } from '@skmtc/lang-typescript'
-import type { CustomValue, GenerateContextType, GeneratorKey, OasObject, OasRef, OasSchema, RefParts, TypeSystemObjectProperties, TypeSystemRecord, TypeSystemValue } from '@skmtc/core'
+import type { CustomValue, GenerateContextType, GeneratorKey, OasObject, OasRef, OasSchema, TypeSystemObjectProperties, TypeSystemRecord, TypeSystemValue } from '@skmtc/core'
 import { toZodValue } from "./Zod.ts";
 import { applyModifiers, type ZodModifiers } from "./applyModifiers.ts";
 import { ZodUnknown } from "./ZodUnknown.ts";
@@ -12,7 +12,6 @@ type ZodObjectProps = {
   objectSchema: OasObject;
   modifiers: ZodModifiers;
   generatorKey: GeneratorKey;
-  rootRef?: RefParts;
 };
 
 export class ZodObject extends TsSnippet {
@@ -36,7 +35,6 @@ export class ZodObject extends TsSnippet {
     destinationPath,
     objectSchema,
     modifiers,
-    rootRef,
   }: ZodObjectProps) {
     super({ context, generatorKey, stackTrail: objectSchema.stackTrail.clone() });
 
@@ -52,7 +50,6 @@ export class ZodObject extends TsSnippet {
         generatorKey,
         destinationPath,
         schema: additionalProperties,
-        rootRef,
       })
       : null;
 
@@ -64,7 +61,6 @@ export class ZodObject extends TsSnippet {
         properties,
         required, // 'required' here refers to the object's properties, not object itself,
         modifiers,
-        rootRef,
       })
       : null;
 
@@ -109,7 +105,6 @@ type ZodObjectPropertiesArgs = {
   properties: Record<string, OasSchema | OasRef<"schema"> | CustomValue>;
   required: OasObject["required"];
   generatorKey: GeneratorKey;
-  rootRef?: RefParts;
 };
 
 class ZodObjectProperties extends TsSnippet {
@@ -122,7 +117,6 @@ class ZodObjectProperties extends TsSnippet {
     destinationPath,
     properties,
     required = [],
-    rootRef,
   }: ZodObjectPropertiesArgs) {
     super({ context, generatorKey });
 
@@ -135,7 +129,6 @@ class ZodObjectProperties extends TsSnippet {
           schema: property,
           required: required?.includes(key),
           context,
-          rootRef,
         });
 
         return [key, value];
@@ -167,7 +160,6 @@ type ZodRecordArgs = {
   destinationPath: string;
   schema: true | OasSchema | OasRef<"schema">;
   generatorKey: GeneratorKey;
-  rootRef?: RefParts;
 };
 
 class ZodRecord extends TsSnippet {
@@ -176,7 +168,7 @@ class ZodRecord extends TsSnippet {
   deferred: boolean;
 
   constructor(
-    { context, generatorKey, destinationPath, schema, rootRef }: ZodRecordArgs,
+    { context, generatorKey, destinationPath, schema }: ZodRecordArgs,
   ) {
     super({ context, generatorKey });
 
@@ -188,7 +180,6 @@ class ZodRecord extends TsSnippet {
         schema,
         required: true,
         context,
-        rootRef,
       });
     }
 

@@ -1,5 +1,5 @@
 import { toStringLiteral, TsSnippet } from "@skmtc/lang-typescript";
-import type { GenerateContextType, GeneratorKey, OasUnion, RefParts, TypeSystemValue } from '@skmtc/core'
+import type { GenerateContextType, GeneratorKey, OasUnion, TypeSystemValue } from '@skmtc/core'
 import { toZodValue } from "./Zod.ts";
 import { applyModifiers, type ZodModifiers } from "./applyModifiers.ts";
 import { isCyclic, isDeferred } from "./deferred.ts";
@@ -11,7 +11,6 @@ type ZodUnionArgs = {
   schema: OasUnion;
   modifiers: ZodModifiers;
   generatorKey: GeneratorKey;
-  rootRef?: RefParts;
 };
 
 export class ZodUnion extends TsSnippet {
@@ -30,7 +29,6 @@ export class ZodUnion extends TsSnippet {
     generatorKey,
     destinationPath,
     modifiers,
-    rootRef,
     schema,
   }: ZodUnionArgs) {
     super({ context, generatorKey, stackTrail: schema.stackTrail.clone() });
@@ -41,7 +39,6 @@ export class ZodUnion extends TsSnippet {
         schema: member,
         required: true,
         context,
-        rootRef,
       });
     });
 

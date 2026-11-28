@@ -5,7 +5,6 @@ import type {
   Modifiers,
   OasRef,
   OasSchema,
-  RefParts,
   TypeSystemValue,
 } from '@skmtc/core'
 import { toKotlinValue } from './Kotlin.ts'
@@ -19,7 +18,6 @@ type KotlinArrayArgs = {
   schema?: OasSchema | OasRef<'schema'>
   modifiers: Modifiers
   generatorKey: GeneratorKey
-  rootRef?: RefParts
 }
 
 export class KotlinArray extends KtSnippet {
@@ -34,7 +32,6 @@ export class KotlinArray extends KtSnippet {
       destinationPath,
       items,
       modifiers,
-      rootRef,
       schema,
     }: KotlinArrayArgs,
   ) {
@@ -52,7 +49,6 @@ export class KotlinArray extends KtSnippet {
       schema: items,
       required: true,
       context,
-      rootRef,
     })
   }
 

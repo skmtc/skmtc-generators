@@ -5,7 +5,6 @@ import type {
   OasDiscriminator,
   OasRef,
   OasSchema,
-  RefParts,
   TypeSystemValue,
 } from '@skmtc/core'
 import { toEffectValueImpl } from './Effect.ts'
@@ -25,7 +24,6 @@ type EffectUnionArgs = {
   discriminator?: OasDiscriminator
   modifiers: EffectModifiers
   generatorKey: GeneratorKey
-  rootRef?: RefParts
   coerce?: boolean
 }
 
@@ -48,7 +46,6 @@ export class EffectUnion extends TsSnippet {
       members,
       discriminator,
       modifiers,
-      rootRef,
       coerce = false,
       schema,
     }: EffectUnionArgs,
@@ -61,7 +58,6 @@ export class EffectUnion extends TsSnippet {
         schema: member,
         required: true,
         context,
-        rootRef,
         coerce,
       })
     )

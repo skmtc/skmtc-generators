@@ -1,5 +1,5 @@
 import type { OasDiscriminator, OasRef, OasSchema } from '@skmtc/core'
-import type { GenerateContextType, Modifiers, GeneratorKey, RefParts } from '@skmtc/core'
+import type { GenerateContextType, Modifiers, GeneratorKey } from '@skmtc/core'
 import { TsSnippet } from '@skmtc/lang-typescript'
 import { applyModifiers, applyValueModifiers } from './applyModifiers.ts'
 import { toAtomicSyntax } from './toAtomicSyntax.ts'
@@ -14,7 +14,6 @@ type ArktypeUnionArgs = {
   modifiers: Modifiers
   destinationPath: string
   generatorKey: GeneratorKey
-  rootRef?: RefParts
 }
 
 export class ArktypeUnion extends TsSnippet {
@@ -32,7 +31,6 @@ export class ArktypeUnion extends TsSnippet {
     modifiers,
     destinationPath,
     generatorKey,
-    rootRef,
     schema
   }: ArktypeUnionArgs) {
     super({ context, generatorKey, stackTrail: schema?.stackTrail.clone() })
@@ -45,8 +43,7 @@ export class ArktypeUnion extends TsSnippet {
         schema: member,
         required: true,
         destinationPath,
-        context,
-        rootRef
+        context
       })
     )
 

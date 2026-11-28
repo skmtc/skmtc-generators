@@ -9,7 +9,6 @@ type ConstructorProps = {
   destinationPath: string;
   modifiers: ZodModifiers;
   ref: RefParts;
-  rootRef?: RefParts;
   /** The originating ref schema node — for fine-grained attribution. */
   schema?: OasSchema | OasRef<"schema">;
 };
@@ -30,7 +29,7 @@ export class ZodRef extends TsSnippet {
    */
   lazyModel: boolean;
   constructor(
-    { context, ref, destinationPath, modifiers, rootRef, schema }:
+    { context, ref, destinationPath, modifiers, schema }:
       ConstructorProps,
   ) {
     super({
@@ -52,7 +51,6 @@ export class ZodRef extends TsSnippet {
       context,
       ref,
       destinationPath,
-      rootRef,
       projection: ZodProjection,
       variant: "main",
     });

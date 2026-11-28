@@ -3,7 +3,6 @@ import type {
   GenerateContextType,
   GeneratorKey,
   OasArray,
-  RefParts,
   TypeSystemValue,
 } from '@skmtc/core'
 import { toEffectValueImpl } from './Effect.ts'
@@ -21,7 +20,6 @@ type EffectArrayArgs = {
   arraySchema: OasArray
   modifiers: EffectModifiers
   generatorKey: GeneratorKey
-  rootRef?: RefParts
   coerce?: boolean
 }
 
@@ -41,7 +39,6 @@ export class EffectArray extends TsSnippet {
       destinationPath,
       arraySchema,
       modifiers,
-      rootRef,
       coerce = false,
     }: EffectArrayArgs,
   ) {
@@ -71,7 +68,6 @@ export class EffectArray extends TsSnippet {
       schema: items,
       required: true,
       context,
-      rootRef,
       coerce,
     })
 

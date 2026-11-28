@@ -20,7 +20,6 @@ type EffectRefArgs = {
   destinationPath: string
   modifiers: Modifiers
   ref: RefParts
-  rootRef?: RefParts
   /** The ref node — attribution, and whether the target needs a twin. */
   schema: OasRef<'schema'>
   /** Query-string mode, as the enclosing parameter object passes it down. */
@@ -57,7 +56,6 @@ export class EffectRef extends TsSnippet {
       ref,
       destinationPath,
       modifiers,
-      rootRef,
       schema,
       coerce = false,
     }: EffectRefArgs,
@@ -87,7 +85,6 @@ export class EffectRef extends TsSnippet {
       context,
       ref,
       destinationPath,
-      rootRef,
       projection: EffectProjection,
       variant: 'main',
       options: toOptions(coerced),

@@ -16,7 +16,6 @@ type KotlinRefArgs = {
   destinationPath: string
   modifiers: Modifiers
   ref: RefParts
-  rootRef?: RefParts
   /** The originating ref schema node — for fine-grained attribution. */
   schema?: OasSchema | OasRef<'schema'>
 }
@@ -35,7 +34,7 @@ export class KotlinRef extends KtSnippet {
   terminal: boolean
 
   constructor(
-    { context, ref, destinationPath, modifiers, rootRef, schema }:
+    { context, ref, destinationPath, modifiers, schema }:
       KotlinRefArgs,
   ) {
     super({
@@ -56,7 +55,6 @@ export class KotlinRef extends KtSnippet {
       context,
       ref,
       destinationPath,
-      rootRef,
       projection: KotlinProjection,
       variant: 'main',
     })

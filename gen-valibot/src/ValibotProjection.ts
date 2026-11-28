@@ -12,14 +12,13 @@ type ConstructorArgs = {
   destinationPath: string
   ref: RefParts
   settings: ContentSettings<EnrichmentSchema>
-  rootRef?: RefParts
 }
 
 export class ValibotProjection extends ValibotBase {
   value: TypeSystemValue
   /** The value's `variantKeys` (see `isVariantOption`); none for a model typed `v.GenericSchema<T>`. */
   variantKeys: string[]
-  constructor({ context, ref, settings, destinationPath, rootRef }: ConstructorArgs) {
+  constructor({ context, ref, settings, destinationPath }: ConstructorArgs) {
     super({ context, ref, settings })
 
     const schema = context.resolveSchemaRefOnce(ref)
@@ -28,8 +27,7 @@ export class ValibotProjection extends ValibotBase {
       schema,
       required: true,
       destinationPath,
-      context,
-      rootRef
+      context
     })
 
     // Every reference inside a cycle renders `v.lazy(() => …)` (see

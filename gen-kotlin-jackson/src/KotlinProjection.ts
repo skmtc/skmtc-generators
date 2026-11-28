@@ -20,7 +20,6 @@ type ToParentNameArgs = {
   context: GenerateContextType
   ref: RefParts
   destinationPath: string
-  rootRef: RefParts | undefined
 }
 
 /**
@@ -28,13 +27,13 @@ type ToParentNameArgs = {
  * component. Nothing else is sure to reach any other target, so it is
  * inserted here: a clause never names an undeclared parent.
  */
-const toParentName = ({ context, ref, destinationPath, rootRef }: ToParentNameArgs): string => {
+const toParentName = ({ context, ref, destinationPath }: ToParentNameArgs): string => {
   const projection = KotlinProjection
   const variant = 'main'
 
   return isDefaultRefPath({ refPath: ref.refPath, refType: 'schema' })
     ? context.toModelContentSettings({ ref, projection, variant }).identifier.name
-    : toModelRef({ context, ref, destinationPath, rootRef, projection, variant }).settings.identifier.name
+    : toModelRef({ context, ref, destinationPath, projection, variant }).settings.identifier.name
 }
 
 type ConstructorArgs = {
@@ -42,7 +41,6 @@ type ConstructorArgs = {
   destinationPath: string
   ref: RefParts
   settings: ContentSettings<EnrichmentSchema>
-  rootRef?: RefParts
 }
 
 export class KotlinProjection extends KotlinJacksonBase {
@@ -58,7 +56,7 @@ export class KotlinProjection extends KotlinJacksonBase {
   description: string | undefined
 
   constructor(
-    { context, ref, settings, destinationPath, rootRef }: ConstructorArgs,
+    { context, ref, settings, destinationPath }: ConstructorArgs,
   ) {
     super({ context, ref, settings })
 
@@ -95,11 +93,10 @@ export class KotlinProjection extends KotlinJacksonBase {
       // over an undeclared parent must be impossible by construction.
       const supertypes = claims.map((claim) =>
         claim.parent.type === 'component'
-          ? toParentName({ context, ref: claim.parent.ref, destinationPath, rootRef })
+          ? toParentName({ context, ref: claim.parent.ref, destinationPath })
           : ensureSealedParent(context, {
             generatorKey,
             unionSchema: claim.parent.union,
-            rootRef,
           })
       )
 
@@ -109,7 +106,6 @@ export class KotlinProjection extends KotlinJacksonBase {
         destinationPath,
         properties: schema.properties ?? {},
         required: schema.required,
-        rootRef,
         supertypes,
         // The @JsonTypeInfo class discriminator carries the tag on the
         // wire — a declared property would collide with it, so members
@@ -136,7 +132,6 @@ export class KotlinProjection extends KotlinJacksonBase {
             generatorKey,
             destinationPath,
             schema: schema.additionalProperties,
-            rootRef,
             mutable: true,
           })
           : undefined,
@@ -154,7 +149,6 @@ export class KotlinProjection extends KotlinJacksonBase {
         generatorKey,
         destinationPath,
         unionSchema: schema,
-        rootRef,
       })
 
       this.value = value
@@ -166,7 +160,6 @@ export class KotlinProjection extends KotlinJacksonBase {
         required: true,
         destinationPath,
         context,
-        rootRef,
       })
     }
 

@@ -8,12 +8,11 @@ type ConstructorArgs = {
   context: GenerateContextType
   ref: RefParts
   settings: ContentSettings<EnrichmentSchema>
-  rootRef?: RefParts
 }
 
 export class TsProjection extends TypescriptBase {
   value: TypeSystemValue
-  constructor({ context, ref, settings, rootRef }: ConstructorArgs) {
+  constructor({ context, ref, settings }: ConstructorArgs) {
     super({ context, ref, settings })
 
     const schema = context.resolveSchemaRefOnce(ref)
@@ -22,8 +21,7 @@ export class TsProjection extends TypescriptBase {
       schema,
       required: true,
       destinationPath: settings.exportPath,
-      context,
-      rootRef
+      context
     })
   }
 

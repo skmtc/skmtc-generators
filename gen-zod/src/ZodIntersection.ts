@@ -1,5 +1,5 @@
 import { TsSnippet } from "@skmtc/lang-typescript";
-import type { GenerateContextType, GeneratorKey, OasIntersection, RefParts, TypeSystemValue } from '@skmtc/core'
+import type { GenerateContextType, GeneratorKey, OasIntersection, TypeSystemValue } from '@skmtc/core'
 import { toZodValue } from "./Zod.ts";
 import { applyModifiers, type ZodModifiers } from "./applyModifiers.ts";
 import { isCyclic, isDeferred } from "./deferred.ts";
@@ -12,7 +12,6 @@ type ZodIntersectionArgs = {
   members?: OasIntersection["members"];
   modifiers: ZodModifiers;
   generatorKey: GeneratorKey;
-  rootRef?: RefParts;
 };
 
 export class ZodIntersection extends TsSnippet {
@@ -30,7 +29,6 @@ export class ZodIntersection extends TsSnippet {
     destinationPath,
     members,
     modifiers,
-    rootRef,
     schema,
   }: ZodIntersectionArgs) {
     super({ context, generatorKey, stackTrail: schema.stackTrail.clone() });
@@ -41,7 +39,6 @@ export class ZodIntersection extends TsSnippet {
         schema: member,
         required: true,
         context,
-        rootRef,
       });
     });
 

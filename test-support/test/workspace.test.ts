@@ -114,30 +114,39 @@ for (const name of ['@skmtc/lang-typescript', '@skmtc/lang-kotlin']) {
   })
 }
 
+/** Every `.ts` and `.tsx` file under a directory, by its path from the root. */
+const toSourceFiles = (url: URL): { path: string; text: string }[] =>
+  [...Deno.readDirSync(url)].flatMap(entry => {
+    const child = new URL(entry.isDirectory ? `${entry.name}/` : entry.name, url)
+
+    if (entry.isDirectory) {
+      return toSourceFiles(child)
+    }
+
+    return /\.tsx?$/.test(entry.name)
+      ? [{ path: child.pathname.slice(rootUrl.pathname.length), text: Deno.readTextFileSync(child) }]
+      : []
+  })
+
+/** The source of every generator member, from each `gen-*` member's `src/`. */
+const generatorSources = members
+  .filter(({ dir }) => dir.startsWith('gen-'))
+  .flatMap(({ dir }) => toSourceFiles(new URL(`${dir}/src/`, rootUrl)))
+
 Deno.test('workspace - no generator source imports an OS-aware path module', () => {
   // An export path is `@/` plus a forward-slash path on every host. `join`
   // from @std/path or node:path spells it with `\` on Windows.
-  const offenders: string[] = []
+  const offenders = generatorSources
+    .filter(({ text }) => /from ['"](@std\/path[^'"]*|jsr:@std\/path[^'"]*|node:path)['"]/.test(text))
+    .map(({ path }) => path)
 
-  const walk = (url: URL) => {
-    for (const entry of Deno.readDirSync(url)) {
-      const child = new URL(entry.isDirectory ? `${entry.name}/` : entry.name, url)
+  assertEquals(offenders, [])
+})
 
-      if (entry.isDirectory) {
-        walk(child)
-      } else if (/\.tsx?$/.test(entry.name)) {
-        const text = Deno.readTextFileSync(child)
-
-        if (/from ['"](@std\/path[^'"]*|jsr:@std\/path[^'"]*|node:path)['"]/.test(text)) {
-          offenders.push(child.pathname.slice(rootUrl.pathname.length))
-        }
-      }
-    }
-  }
-
-  for (const { dir } of members.filter(({ dir }) => dir.startsWith('gen-'))) {
-    walk(new URL(`${dir}/src/`, rootUrl))
-  }
+Deno.test('workspace - no generator source mentions rootRef', () => {
+  // Core 0.58.0 removed `rootRef` (skmtc/skmtc#494). The type check rejects it
+  // only where it reaches core; a generator's own argument types still take it.
+  const offenders = generatorSources.filter(({ text }) => text.includes('rootRef')).map(({ path }) => path)
 
   assertEquals(offenders, [])
 })

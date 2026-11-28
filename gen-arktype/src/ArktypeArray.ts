@@ -1,5 +1,5 @@
 import type { OasRef, OasSchema } from '@skmtc/core'
-import type { GenerateContextType, Modifiers, GeneratorKey, RefParts } from '@skmtc/core'
+import type { GenerateContextType, Modifiers, GeneratorKey } from '@skmtc/core'
 import { TsSnippet } from '@skmtc/lang-typescript'
 import { applyModifiers, applyValueModifiers } from './applyModifiers.ts'
 import { toAtomicSyntax } from './toAtomicSyntax.ts'
@@ -13,7 +13,6 @@ type ArktypeArrayArgs = {
   items: OasSchema | OasRef<'schema'>
   destinationPath: string
   generatorKey: GeneratorKey
-  rootRef?: RefParts
 }
 
 export class ArktypeArray extends TsSnippet {
@@ -29,7 +28,6 @@ export class ArktypeArray extends TsSnippet {
     modifiers,
     destinationPath,
     generatorKey,
-    rootRef,
     schema
   }: ArktypeArrayArgs) {
     super({ context, generatorKey, stackTrail: schema?.stackTrail.clone() })
@@ -40,8 +38,7 @@ export class ArktypeArray extends TsSnippet {
       schema: items,
       required: true,
       destinationPath,
-      context,
-      rootRef
+      context
     })
 
     // An array is spellable in string syntax only when its item type is — an

@@ -13,7 +13,6 @@ type ArktypeRefArgs = {
   destinationPath: string
   ref: RefParts
   modifiers: Modifiers
-  rootRef?: RefParts
 }
 
 export class ArktypeRef extends TsSnippet {
@@ -26,7 +25,7 @@ export class ArktypeRef extends TsSnippet {
   modifiers: Modifiers
   name: string
 
-  constructor({ context, ref, destinationPath, modifiers, rootRef, schema }: ArktypeRefArgs) {
+  constructor({ context, ref, destinationPath, modifiers, schema }: ArktypeRefArgs) {
     super({
       context,
       generatorKey: toModelGeneratorKey({
@@ -43,7 +42,6 @@ export class ArktypeRef extends TsSnippet {
       context,
       ref,
       destinationPath,
-      rootRef,
       projection: ArktypeProjection,
       variant: 'main'
     })

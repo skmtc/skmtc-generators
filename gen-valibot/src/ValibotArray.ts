@@ -1,7 +1,7 @@
 import { TsSnippet } from '@skmtc/lang-typescript'
 import { toValibotValue } from './Valibot.ts'
 import { applyModifiers } from './applyModifiers.ts'
-import type { GenerateContextType, GeneratorKey, RefParts, TypeSystemValue, Modifiers, OasRef, OasSchema } from '@skmtc/core'
+import type { GenerateContextType, GeneratorKey, TypeSystemValue, Modifiers, OasRef, OasSchema } from '@skmtc/core'
 
 type ValibotArrayArgs = {
   context: GenerateContextType
@@ -11,7 +11,6 @@ type ValibotArrayArgs = {
   schema?: OasSchema | OasRef<'schema'>
   modifiers: Modifiers
   generatorKey: GeneratorKey
-  rootRef?: RefParts
 }
 
 export class ValibotArray extends TsSnippet {
@@ -25,7 +24,6 @@ export class ValibotArray extends TsSnippet {
     destinationPath,
     items,
     modifiers,
-    rootRef,
     schema
   }: ValibotArrayArgs) {
     super({ context, generatorKey, stackTrail: schema?.stackTrail.clone() })
@@ -36,8 +34,7 @@ export class ValibotArray extends TsSnippet {
       destinationPath,
       schema: items,
       required: true,
-      context,
-      rootRef
+      context
     })
 
     this.register({ imports: { valibot: [{ '*': 'v' }] }, destinationPath })

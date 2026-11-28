@@ -43,8 +43,7 @@ export const toArktypeValue = ({
   schema,
   destinationPath,
   required,
-  context,
-  rootRef
+  context
 }: TypeSystemArgs<SchemaType>): ArktypeValue => {
   const modifiers: Modifiers = {
     required,
@@ -62,7 +61,6 @@ export const toArktypeValue = ({
         destinationPath,
         ref: schema,
         modifiers,
-        rootRef,
         schema
       })
     case 'array':
@@ -72,7 +70,6 @@ export const toArktypeValue = ({
         modifiers,
         items: schema.items,
         generatorKey,
-        rootRef,
         schema
       })
     case 'object':
@@ -81,8 +78,7 @@ export const toArktypeValue = ({
         destinationPath,
         objectSchema: schema,
         modifiers,
-        generatorKey,
-        rootRef
+        generatorKey
       })
     case 'union':
       return new ArktypeUnion({
@@ -92,11 +88,10 @@ export const toArktypeValue = ({
         discriminator: schema.discriminator,
         modifiers,
         generatorKey,
-        rootRef,
         schema
       })
     case 'intersection':
-      return new ArktypeIntersection({ context, destinationPath, modifiers, generatorKey, rootRef, schema })
+      return new ArktypeIntersection({ context, destinationPath, modifiers, generatorKey, schema })
     case 'number':
       return new ArktypeNumber({ context, modifiers, destinationPath, generatorKey, schema })
     case 'integer':
